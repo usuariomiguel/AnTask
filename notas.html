@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ansotask — Notas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="./src/css/style.css" />
+    <link rel="icon" type="image/x-icon" href="/src/img/Anso.png" />
+  </head>
+  <body>
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
+
+    <div class="layout">
+
+      <!-- ── MOBILE HEADER ──────────────────────────────── -->
+      <header class="mobile-header">
+        <div class="mobile-header-left">
+          <button type="button" id="mobile-sidebar-btn" class="mobile-icon-btn" aria-label="Abrir proyectos">☰</button>
+        </div>
+        <div class="mobile-header-center">
+          <h1>Ansotask</h1>
+        </div>
+        <div class="mobile-header-right">
+          <button type="button" id="theme-toggle-mobile" class="mobile-icon-btn" aria-label="Cambiar tema">🌙</button>
+        </div>
+      </header>
+
+      <!-- ── MOBILE BODY (sidebar + main) ──────────────── -->
+      <div class="mobile-body">
+
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <!-- ── SIDEBAR ─────────────────────────────────────── -->
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-header-top">
+              <h1>Ansotask</h1>
+              <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos">◀</button>
+            </div>
+            <p class="subtitle">// proyectos</p>
+          </div>
+          <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
+          <div class="sidebar-footer">
+            <button type="button" id="new-project-btn" class="new-project-btn">+ Nuevo proyecto</button>
+          </div>
+        </aside>
+
+        <!-- ── NOTES PANEL ─────────────────────────────────── -->
+        <main class="main-panel">
+
+          <div class="empty-state" id="empty-state">
+            <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+            <div class="empty-state-icon">⬡</div>
+            <p class="empty-state-title">Ningún proyecto seleccionado</p>
+            <p class="empty-state-sub">Selecciona un proyecto para ver sus notas</p>
+          </div>
+
+          <div class="tasks-panel" id="notes-panel" hidden>
+            <div class="tasks-header">
+              <div class="tasks-header-left">
+                <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+                <div>
+                  <h2 id="project-title" class="project-title"></h2>
+                  <p class="subtitle">// notas del proyecto</p>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button type="button" id="export-workspace-btn" title="Exportar backup completo de todos los proyectos">↑ Exportar todo</button>
+                <a id="tasks-link" href="./index.html" class="notes-link">← Volver a tareas</a>
+              </div>
+            </div>
+
+            <div class="editor-toolbar" role="toolbar" aria-label="Formato de texto">
+              <button type="button" class="fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
+              <button type="button" class="fmt-btn" data-cmd="underline" title="Subrayado (Ctrl+U)"><span style="text-decoration:underline">U</span></button>
+              <button type="button" class="fmt-btn" data-cmd="strikeThrough" title="Tachado (Ctrl+M)"><span style="text-decoration:line-through">M</span></button>
+              <a id="tasks-link-mobile" href="./index.html" class="notes-link notes-link-mobile">← Tareas</a>
+            </div>
+
+            <div
+              id="daily-notes"
+              class="notes-editor"
+              contenteditable="true"
+              role="textbox"
+              aria-multiline="true"
+              aria-label="Notas del proyecto"
+              data-placeholder="// escribe aquí las notas del proyecto..."
+              spellcheck="true"
+            ></div>
+
+            <p id="notes-status" class="save-status">Sin cambios recientes</p>
+          </div>
+        </main>
+
+      </div><!-- /.mobile-body -->
+    </div>
+
+    <!-- Firebase SDK (compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="./src/js/firebase-sync.js"></script>
+    <script src="./src/js/notas.js"></script>
+  </body>
+</html>

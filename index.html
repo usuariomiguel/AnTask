@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ansotask</title>
+    <meta name="theme-color" content="#09090d" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="./src/css/style.css"/>
+    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  </head>
+  <body>
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
+
+    <div class="layout">
+
+      <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
+      <header class="mobile-header" id="mobile-header">
+        <div class="mobile-header-left">
+          <button type="button" class="mobile-icon-btn" id="mobile-menu-btn" aria-label="Abrir menú de proyectos">☰</button>
+        </div>
+        <div class="mobile-header-center">
+          <h1>Ansotask</h1>
+        </div>
+        <div class="mobile-header-right">
+          <button type="button" class="mobile-icon-btn" id="mobile-theme-toggle" aria-label="Cambiar tema">🌙</button>
+        </div>
+      </header>
+
+      <!-- ── MOBILE BODY: sidebar + main ──────────────────── -->
+      <div class="mobile-body">
+
+      <!-- ── SIDEBAR BACKDROP ──────────────────────────────── -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+      <!-- ── SIDEBAR ─────────────────────────────────────── -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-header-top">
+            <h1>Ansotask</h1>
+            <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos">◀</button>
+          </div>
+          <p class="subtitle">// proyectos</p>
+        </div>
+
+        <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
+
+        <div class="sidebar-footer">
+          <button type="button" id="global-search-btn" class="global-search-btn">⌕ Buscar tareas</button>
+          <div class="sidebar-footer-row">
+            <button type="button" id="new-project-btn" class="new-project-btn">+ Nuevo proyecto</button>
+            <button type="button" id="shortcuts-btn" class="shortcuts-help-btn" title="Atajos de teclado (?)">⌨</button>
+          </div>
+          <div class="sync-section" id="sync-section" hidden>
+            <button type="button" id="sync-signin-btn" class="sync-signin-btn">☁ Sincronizar con Google</button>
+            <div id="sync-user-info" class="sync-user-info" hidden>
+              <span id="sync-user-avatar" class="sync-user-avatar"></span>
+              <div class="sync-user-details">
+                <span id="sync-user-name" class="sync-user-name"></span>
+              </div>
+              <button type="button" id="sync-signout-btn" class="sync-signout-btn" title="Desconectar sincronización">Desconectar</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── MAIN PANEL ──────────────────────────────────── -->
+      <main class="main-panel" id="main-panel">
+
+        <!-- Estado vacío: ningún proyecto seleccionado -->
+        <div class="empty-state" id="empty-state">
+          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+          <div class="empty-state-icon">⬡</div>
+          <p class="empty-state-title">Ningún proyecto seleccionado</p>
+          <p class="empty-state-sub">Crea o selecciona un proyecto desde la barra lateral</p>
+        </div>
+
+        <!-- Panel de tareas (se muestra cuando hay proyecto activo) -->
+        <div class="tasks-panel" id="tasks-panel" hidden>
+
+          <div class="tasks-header">
+            <div class="tasks-header-left">
+              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+              <div>
+                <h2 id="project-title" class="project-title"></h2>
+                <p class="subtitle" id="project-subtitle"></p>
+              </div>
+            </div>
+            <div class="header-actions">
+              <a id="notes-link" href="#" class="notes-link">⬡ Notas del proyecto</a>
+              <button type="button" id="delete-project-btn" class="delete-project-btn" title="Eliminar proyecto">✕ Eliminar proyecto</button>
+            </div>
+          </div>
+
+          <form id="task-form" class="task-form">
+            <input
+              id="task-input"
+              type="text"
+              placeholder="// nueva tarea..."
+              maxlength="120"
+              autocomplete="off"
+              required
+            />
+            <button type="submit">+ Añadir</button>
+          </form>
+
+          <section class="toolbar">
+            <div class="sort-wrapper">
+              <select id="filter-select" class="sort-select" title="Filtrar tareas">
+                <option value="all">⬡ Todas</option>
+                <option value="pending">○ Pendientes</option>
+                <option value="done">✓ Hechas</option>
+              </select>
+            </div>
+            <div class="sort-wrapper">
+              <select id="sort-select" class="sort-select" title="Ordenar tareas">
+                <option value="manual">↕ Orden manual</option>
+                <option value="priority">▲ Prioridad</option>
+                <option value="due">⏱ Fecha límite</option>
+                <option value="az">A→Z Nombre</option>
+              </select>
+            </div>
+            <button type="button" id="export-btn" title="Exportar backup completo de todos los proyectos">↑ Exportar todo</button>
+            <label class="import-label" for="import-file" title="Restaurar backup de workspace o proyecto">↓ Importar</label>
+            <input id="import-file" type="file" accept="application/json" />
+            <button type="button" id="clear-done">✕ Limpiar hechas</button>
+            <button type="button" id="select-mode-btn" class="select-mode-btn">⊡ Seleccionar</button>
+          </section>
+
+          <!-- ── MOBILE TOOLBAR ─────────────────────────────── -->
+          <div class="mobile-toolbar" id="mobile-toolbar">
+            <!-- Filter dropdown -->
+            <div style="position:relative">
+              <button type="button" class="mobile-filter-btn" id="mobile-filter-btn">
+                <span id="mobile-filter-label">Todas</span>
+                <span class="caret">▾</span>
+              </button>
+              <div class="mobile-filter-dropdown" id="mobile-filter-dropdown" hidden>
+                <button type="button" data-filter="all" class="active">⬡ Todas</button>
+                <button type="button" data-filter="pending">○ Pendientes</button>
+                <button type="button" data-filter="done">✓ Hechas</button>
+              </div>
+            </div>
+            <!-- Secondary actions dropdown -->
+            <div style="position:relative">
+              <button type="button" class="mobile-actions-btn" id="mobile-actions-btn">
+                Acciones <span class="caret">▾</span>
+              </button>
+              <div class="mobile-actions-dropdown" id="mobile-actions-dropdown" hidden>
+                <button type="button" id="mobile-notes-btn">⬡ Notas del proyecto</button>
+                <button type="button" id="mobile-select-btn">⊡ Seleccionar tareas</button>
+                <button type="button" class="danger" id="mobile-delete-project-btn">✕ Eliminar proyecto</button>
+                <button type="button" id="mobile-export-btn">↑ Exportar</button>
+                <label for="import-file-mobile">↓ Importar</label>
+                <button type="button" class="danger" id="mobile-clear-done">✕ Limpiar hechas</button>
+                <label class="mobile-sort-label">Ordenar:</label>
+                <select id="sort-select-mobile" class="sort-select-mobile">
+                  <option value="manual">↕ Manual</option>
+                  <option value="priority">▲ Prioridad</option>
+                  <option value="due">⏱ Fecha límite</option>
+                  <option value="az">A→Z Nombre</option>
+                </select>
+              </div>
+            </div>
+            <input id="import-file-mobile" type="file" accept="application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" />
+          </div>
+
+
+
+          <!-- <section class="backup-tools" aria-label="Respaldo de tareas">
+          </section> -->
+
+          <div id="label-filter-bar" class="label-filter-bar" hidden></div>
+
+          <div class="bulk-action-bar" id="bulk-action-bar" hidden>
+            <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
+            <button type="button" id="bulk-done-btn">✓ Marcar hechas</button>
+            <button type="button" id="bulk-pending-btn">○ Pendientes</button>
+            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn">✕ Eliminar</button>
+            <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn">Cancelar</button>
+          </div>
+
+          <ul id="task-list" class="task-list" aria-live="polite"></ul>
+
+          <footer class="stats">
+            <span id="task-counter">0 pendientes</span>
+            <span id="save-status" class="save-status">Sin cambios recientes</span>
+          </footer>
+        </div>
+      </main>
+      </div><!-- /.mobile-body -->
+    </div>
+
+    <template id="task-item-template">
+      <li class="task-item" tabindex="0" role="button" aria-expanded="false">
+        <div class="task-main-row">
+          <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
+          <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+          <div class="task-summary">
+            <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
+            <span class="task-text"></span>
+            <span class="task-due-container"></span>
+            <span class="task-labels-container"></span>
+          </div>
+          <div class="task-actions">
+            <button type="button" class="priority-btn" title="Cambiar prioridad">◇ Prior.</button>
+            <button type="button" class="status-btn">⬡ Estado</button>
+            <button type="button" class="date-btn" aria-label="Establecer fecha límite">⏱ Fecha</button>
+            <button type="button" class="comment-btn">Comentario</button>
+            <button type="button" class="label-add-btn" title="Gestionar etiquetas">⊞ Etiquetas</button>
+            <button type="button" class="subtask-add-btn">+ Sub</button>
+            <button type="button" class="delete-btn" aria-label="Eliminar tarea">✕</button>
+            <span class="expand-indicator" aria-hidden="true">▾</span>
+          </div>
+        </div>
+        <div class="task-extra-content">
+          <p class="task-comment"></p>
+          <p class="task-text-expanded"></p>
+          <ul class="subtask-list" aria-label="Subtareas"></ul>
+        </div>
+      </li>
+    </template>
+
+    <!-- ── SHEET BACKDROP (body-level for correct fixed positioning) ── -->
+    <div class="sheet-backdrop" id="sheet-backdrop"></div>
+
+    <!-- ── TASK ACTION SHEET (body-level for correct fixed positioning) ── -->
+    <div class="task-action-sheet" id="task-action-sheet" aria-modal="true" role="dialog" aria-label="Opciones de tarea">
+      <div class="task-action-sheet-handle"></div>
+      <p class="task-action-sheet-title" id="sheet-task-title">Opciones</p>
+      <div class="task-action-sheet-body">
+        <button type="button" class="sheet-action-btn" data-sheet-action="priority">◇ Prioridad</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="status">⬡ Estado</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="date">⏱ Fecha</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="comment">💬 Comentario</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="labels">⊞ Etiquetas</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="subtask">+ Subtarea</button>
+        <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete">✕ Eliminar tarea</button>
+      </div>
+    </div>
+
+    <!-- ── NOTES SIDE PANEL ──────────────────────────────────────── -->
+    <div class="notes-side-panel" id="notes-side-panel" role="complementary" aria-label="Notas del proyecto">
+      <div class="notes-side-header">
+        <span class="notes-side-title">// notas</span>
+        <div class="notes-side-toolbar" role="toolbar" aria-label="Formato de notas">
+          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
+          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
+          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="underline" title="Subrayado (Ctrl+U)"><span style="text-decoration:underline">U</span></button>
+          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="strikeThrough" title="Tachado (Ctrl+M)"><span style="text-decoration:line-through">M</span></button>
+          <button type="button" id="notes-side-close" class="notes-side-close" aria-label="Cerrar panel de notas">✕</button>
+        </div>
+      </div>
+      <div
+        id="notes-side-editor"
+        class="notes-editor notes-side-editor"
+        contenteditable="true"
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Notas del proyecto"
+        data-placeholder="// escribe aquí las notas del proyecto..."
+        spellcheck="true"
+      ></div>
+      <p id="notes-side-status" class="save-status notes-side-status">Sin cambios recientes</p>
+    </div>
+
+    <!-- Firebase SDK (compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="./src/js/firebase-sync.js"></script>
+    <script src="./src/js/script.js"></script>
+    <script>
+    // ── MOBILE UI LOGIC ──────────────────────────────────────────
+    (function() {
+      var isMobile = function() { return window.innerWidth <= 768; };
+
+      // ── Sidebar toggle ────────────────────────────────────────
+      var menuBtn    = document.getElementById("mobile-menu-btn");
+      var backdrop   = document.getElementById("sidebar-backdrop");
+      var sidebar    = document.querySelector(".sidebar");
+
+      function openSidebar() {
+        sidebar.classList.add("sidebar-open");
+        backdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+      function closeSidebar() {
+        sidebar.classList.remove("sidebar-open");
+        backdrop.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      if (menuBtn) menuBtn.addEventListener("click", openSidebar);
+      if (backdrop) backdrop.addEventListener("click", closeSidebar);
+
+      if (sidebar) {
+        sidebar.addEventListener("click", function(e) {
+          var item = e.target.closest(".project-item");
+          if (item && isMobile()) setTimeout(closeSidebar, 120);
+        });
+      }
+
+      // ── Mobile theme toggle ───────────────────────────────────
+      var mobileThemeBtn = document.getElementById("mobile-theme-toggle");
+      var desktopThemeBtn = document.getElementById("theme-toggle");
+      var THEME_KEY = "mis-tareas-theme";
+
+      function syncMobileThemeIcon() {
+        var theme = document.documentElement.dataset.theme;
+        if (mobileThemeBtn) mobileThemeBtn.textContent = theme === "dark" ? "🌙" : "☀️";
+      }
+
+      if (mobileThemeBtn) {
+        mobileThemeBtn.addEventListener("click", function() {
+          if (window.toggleThemeWithTransition) {
+            window.toggleThemeWithTransition(mobileThemeBtn);
+            return;
+          }
+          var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+          document.documentElement.dataset.theme = next;
+          localStorage.setItem(THEME_KEY, next);
+          if (desktopThemeBtn) desktopThemeBtn.textContent = next === "dark" ? "🌙" : "☀️";
+          mobileThemeBtn.textContent = next === "dark" ? "🌙" : "☀️";
+        });
+      }
+
+      var themeObserver = new MutationObserver(syncMobileThemeIcon);
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      syncMobileThemeIcon();
+
+      // ── Mobile filter dropdown ────────────────────────────────
+      var filterBtn      = document.getElementById("mobile-filter-btn");
+      var filterDropdown = document.getElementById("mobile-filter-dropdown");
+      var filterLabelEl  = document.getElementById("mobile-filter-label");
+      var actionsBtn     = document.getElementById("mobile-actions-btn");
+      var actionsDropdown= document.getElementById("mobile-actions-dropdown");
+      var filterLabels   = { all: "Todas", pending: "Pendientes", done: "Hechas" };
+
+      if (filterBtn && filterDropdown) {
+        filterBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          var isOpen = !filterDropdown.hidden;
+          filterDropdown.hidden = isOpen;
+          filterBtn.classList.toggle("open", !isOpen);
+          if (actionsDropdown && !actionsDropdown.hidden) {
+            actionsDropdown.hidden = true;
+            if (actionsBtn) actionsBtn.classList.remove("open");
+          }
+        });
+
+        filterDropdown.addEventListener("click", function(e) {
+          var btn = e.target.closest("[data-filter]");
+          if (!btn) return;
+          var filter = btn.dataset.filter;
+          if (window.applyFilter) window.applyFilter(filter);
+          filterDropdown.hidden = true;
+          filterBtn.classList.remove("open");
+        });
+
+        document.addEventListener("click", function() {
+          filterDropdown.hidden = true;
+          filterBtn.classList.remove("open");
+          if (actionsDropdown) actionsDropdown.hidden = true;
+          if (actionsBtn) actionsBtn.classList.remove("open");
+        });
+      }
+
+      if (actionsBtn && actionsDropdown) {
+        actionsBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          var isOpen = !actionsDropdown.hidden;
+          actionsDropdown.hidden = isOpen;
+          actionsBtn.classList.toggle("open", !isOpen);
+          if (filterDropdown && !filterDropdown.hidden) {
+            filterDropdown.hidden = true;
+            if (filterBtn) filterBtn.classList.remove("open");
+          }
+        });
+
+        actionsDropdown.addEventListener("click", function(e) {
+          if (e.target.closest("button, label")) {
+            actionsDropdown.hidden = true;
+            actionsBtn.classList.remove("open");
+          }
+        });
+      }
+
+      // ── Mobile export/import/clear ────────────────────────────
+      var mobileExportBtn  = document.getElementById("mobile-export-btn");
+      var mobileImportFile = document.getElementById("import-file-mobile");
+      var mobileClearBtn   = document.getElementById("mobile-clear-done");
+      var mobileNotesBtn   = document.getElementById("mobile-notes-btn");
+      var mobileDeleteProjectBtn = document.getElementById("mobile-delete-project-btn");
+      var desktopExportBtn = document.getElementById("export-btn");
+      var desktopImportFile = document.getElementById("import-file");
+      var desktopClearBtn  = document.getElementById("clear-done");
+      var desktopNotesLink = document.getElementById("notes-link");
+      var desktopDeleteProjectBtn = document.getElementById("delete-project-btn");
+
+      if (mobileExportBtn && desktopExportBtn)
+        mobileExportBtn.addEventListener("click", function() { desktopExportBtn.click(); });
+
+      if (mobileImportFile && desktopImportFile) {
+        mobileImportFile.addEventListener("change", function(e) {
+          var dt = new DataTransfer();
+          if (e.target.files[0]) dt.items.add(e.target.files[0]);
+          desktopImportFile.files = dt.files;
+          desktopImportFile.dispatchEvent(new Event("change", { bubbles: true }));
+          mobileImportFile.value = "";
+        });
+      }
+
+      if (mobileClearBtn && desktopClearBtn)
+        mobileClearBtn.addEventListener("click", function() { desktopClearBtn.click(); });
+
+      if (mobileNotesBtn && desktopNotesLink)
+        mobileNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
+
+      if (mobileDeleteProjectBtn && desktopDeleteProjectBtn)
+        mobileDeleteProjectBtn.addEventListener("click", function() { desktopDeleteProjectBtn.click(); });
+
+      var mobileSelectBtn  = document.getElementById("mobile-select-btn");
+      var desktopSelectBtn = document.getElementById("select-mode-btn");
+      if (mobileSelectBtn && desktopSelectBtn)
+        mobileSelectBtn.addEventListener("click", function() { desktopSelectBtn.click(); });
+
+      // ── Task action sheet ─────────────────────────────────────
+      var actionSheet   = document.getElementById("task-action-sheet");
+      var sheetBackdrop = document.getElementById("sheet-backdrop");
+      var sheetTitle    = document.getElementById("sheet-task-title");
+      var currentTaskNode = null;
+
+      function openSheet(taskNode) {
+        if (!actionSheet || !isMobile()) return;
+        currentTaskNode = taskNode;
+        var textEl = taskNode.querySelector(".task-text");
+        if (sheetTitle && textEl) sheetTitle.textContent = textEl.textContent.trim().slice(0, 50);
+        actionSheet.classList.add("open");
+        sheetBackdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSheet() {
+        if (!actionSheet) return;
+        actionSheet.classList.remove("open");
+        sheetBackdrop.classList.remove("active");
+        document.body.style.overflow = "";
+        currentTaskNode = null;
+        // Remove any inline sub-options
+        var sub = actionSheet.querySelector(".sheet-sub-panel");
+        if (sub) sub.remove();
+      }
+
+      if (sheetBackdrop) sheetBackdrop.addEventListener("click", closeSheet);
+
+      var taskListEl = document.getElementById("task-list");
+      if (actionSheet) {
+        actionSheet.addEventListener("click", function(e) {
+          var btn = e.target.closest("[data-sheet-action]");
+          if (!btn || !currentTaskNode) return;
+          var action = btn.dataset.sheetAction;
+
+          // Priority and Status: show sub-options inline, then close after pick
+          if (action === "priority" || action === "status") {
+            showSubOptions(action, btn);
+            return;
+          }
+
+          var sel = action === "date"     ? ".date-btn" :
+                    action === "comment"  ? ".comment-btn" :
+                    action === "labels"   ? ".label-add-btn" :
+                    action === "subtask"  ? ".subtask-add-btn" :
+                    action === "delete"   ? ".delete-btn" : null;
+          var target = sel && currentTaskNode.querySelector(sel);
+          closeSheet();
+          if (target) setTimeout(function() { target.click(); }, 80);
+        });
+      }
+
+      function showSubOptions(action, sourceBtn) {
+        // Remove any existing sub-panel
+        var existing = actionSheet.querySelector(".sheet-sub-panel");
+        if (existing) existing.remove();
+
+        var options = action === "priority"
+          ? [
+              { label: "▲ Alta",    value: "high",   cls: "sub-high" },
+              { label: "◆ Media",   value: "medium", cls: "sub-medium" },
+              { label: "▽ Baja",    value: "low",    cls: "sub-low" },
+              { label: "✕ Quitar",  value: "none",   cls: "sub-none" },
+            ]
+          : [
+              { label: "▶ En progreso", value: "progress", cls: "sub-progress" },
+              { label: "⏸ En espera",  value: "waiting",  cls: "sub-waiting" },
+              { label: "✕ Quitar",      value: "none",     cls: "sub-none" },
+            ];
+
+        var sub = document.createElement("div");
+        sub.className = "sheet-sub-panel";
+        sub.innerHTML = '<p class="sheet-sub-title">' +
+          (action === "priority" ? "// Prioridad" : "// Estado") + '</p>';
+
+        var grid = document.createElement("div");
+        grid.className = "sheet-sub-grid";
+
+        options.forEach(function(opt) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "sheet-sub-btn " + opt.cls;
+          b.textContent = opt.label;
+          b.addEventListener("click", function(e) {
+            e.stopPropagation();
+            // Click the desktop button the right number of times to cycle to the right value
+            var taskNode = currentTaskNode;
+            var desktopBtn = taskNode.querySelector(action === "priority" ? ".priority-btn" : ".status-btn");
+            if (desktopBtn) {
+              // Cycle until we hit the desired value, max 5 clicks to avoid infinite loop
+              var cycles = 0;
+              function cycleToValue() {
+                if (cycles++ > 5) return;
+                desktopBtn.click();
+                // Check current state from class on task item
+                var reached = false;
+                if (action === "priority") {
+                  if (opt.value === "none")   reached = !taskNode.classList.contains("priority-high") && !taskNode.classList.contains("priority-medium") && !taskNode.classList.contains("priority-low");
+                  else                        reached = taskNode.classList.contains("priority-" + opt.value);
+                } else {
+                  if (opt.value === "none")   reached = !taskNode.classList.contains("status-progress") && !taskNode.classList.contains("status-waiting");
+                  else                        reached = taskNode.classList.contains("status-" + opt.value);
+                }
+                if (!reached) setTimeout(cycleToValue, 30);
+              }
+              cycleToValue();
+            }
+            closeSheet();
+          });
+          grid.appendChild(b);
+        });
+
+        sub.appendChild(grid);
+
+        // Insert after action body
+        var body = actionSheet.querySelector(".task-action-sheet-body");
+        body.after(sub);
+        // Scroll sheet into view
+        sub.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+
+    })();
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+            console.error("Error al registrar Service Worker:", error);
+          });
+        });
+      }
+    </script>
+
+  </body>
+</html>
