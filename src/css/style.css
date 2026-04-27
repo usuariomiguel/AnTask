@@ -132,6 +132,25 @@ body {
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79, 70, 229, 0.07) 0%, transparent 65%);
 }
 
+/* ─── BRAND LOGO ─────────────────────────────────────────────── */
+.brand-logo {
+  display: block;
+  height: 29px;
+  width: auto;
+  max-width: 100%;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  margin-bottom: 0;
+}
+
+/* Dark es el tema por defecto: la versión light se oculta por defecto */
+.brand-logo--light { display: none; }
+
+/* Cuando el tema es light: invertir visibilidad */
+:root[data-theme="light"] .brand-logo--dark  { display: none; }
+:root[data-theme="light"] .brand-logo--light { display: block; }
+
 /* ─── THEME TOGGLE ───────────────────────────────────────────── */
 .theme-toggle {
   position: fixed;
@@ -2752,7 +2771,11 @@ input.inline-edit {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 0.5rem 0.72rem;
-    padding-bottom: 5rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  .undo-toast {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
   }
 
   .task-item {
@@ -3087,8 +3110,16 @@ input.inline-edit {
   }
 
   .task-form input {
-    font-size: 0.88rem;
+    font-size: 1rem; /* ≥16px evita el zoom automático de iOS Safari */
     padding: 0.60rem 0.80rem;
+  }
+
+  input.inline-edit {
+    font-size: 1rem;
+  }
+
+  .modal-input {
+    font-size: 1rem;
   }
 
   .task-form button {
@@ -3400,6 +3431,34 @@ mark.search-hl {
   }
 }
 
+/* ─── SWIPE GESTURES (mobile) ───────────────────────────────── */
+.task-swipe-content {
+  display: contents; /* transparente al grid de .task-item */
+}
+
+.task-swipe-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.3rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.14s ease;
+  line-height: 1;
+}
+
+.task-swipe-hint-right {
+  left: 0.85rem;
+  color: var(--c-green);
+}
+
+.task-swipe-hint-left {
+  right: 0.85rem;
+  color: var(--c-pink);
+}
+
 /* ─── MULTI-SELECT ───────────────────────────────────────────── */
 .task-select-cb {
   display: none;
@@ -3592,11 +3651,19 @@ mark.search-hl {
     left: 0;
     right: 0;
     width: 100%;
-    height: 75vh;
+    height: 75dvh;
+    margin: 0;
     border-left: none;
     border-top: 1px solid var(--b-subtle);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     transform: translateY(105%);
+    z-index: 500; /* encima del sheet-backdrop (399) que se activa al abrir notas */
+    backdrop-filter: none;
+    background: var(--bg-panel);
+  }
+
+  :root[data-theme="light"] .notes-side-panel {
+    background: #ffffff;
   }
 
   .notes-side-panel.notes-side-open {

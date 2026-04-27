@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+
+    <!-- Brand gradient: indigo → violet -->
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#818cf8"/>
+      <stop offset="55%"  stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Dark indigo fill for hex body -->
+    <linearGradient id="hexBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1e1b4b" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0f0e1c" stop-opacity="0.90"/>
+    </linearGradient>
+
+    <!-- Background card gradient -->
+    <linearGradient id="bgCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#12111f"/>
+      <stop offset="100%" stop-color="#09090d"/>
+    </linearGradient>
+
+    <!-- Glow: colored shadow behind strokes -->
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="blur"/>
+      <feFlood flood-color="#818cf8" flood-opacity="0.75" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft ambient blob -->
+    <filter id="blob" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+
+  </defs>
+
+  <!-- ── Card background ───────────────────────────────────── -->
+  <rect width="100" height="100" rx="22" fill="url(#bgCard)"/>
+
+  <!-- ── Ambient glow blob ─────────────────────────────────── -->
+  <ellipse cx="50" cy="52" rx="28" ry="24"
+    fill="#4f46e5" opacity="0.28" filter="url(#blob)"/>
+
+  <!-- ── Outer hex fill ────────────────────────────────────── -->
+  <!-- pointy-top, center 50,50, R=44 -->
+  <polygon
+    points="50,6 88.1,28 88.1,72 50,94 11.9,72 11.9,28"
+    fill="url(#hexBody)"/>
+
+  <!-- ── Outer hex ring (glowing) ──────────────────────────── -->
+  <polygon
+    points="50,6 88.1,28 88.1,72 50,94 11.9,72 11.9,28"
+    fill="none" stroke="url(#brand)" stroke-width="1.8"
+    filter="url(#glow)"/>
+
+  <!-- ── Vertex accent dots ────────────────────────────────── -->
+  <circle cx="50"  cy="6"  r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+  <circle cx="88.1" cy="28" r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+  <circle cx="88.1" cy="72" r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+  <circle cx="50"  cy="94" r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+  <circle cx="11.9" cy="72" r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+  <circle cx="11.9" cy="28" r="2.3" fill="url(#brand)" filter="url(#glow)"/>
+
+  <!-- ── Inner hex ring (subtle depth layer) ───────────────── -->
+  <!-- center 50,50, R=29 -->
+  <polygon
+    points="50,21 75.1,35.5 75.1,64.5 50,79 24.9,64.5 24.9,35.5"
+    fill="none" stroke="url(#brand)" stroke-width="0.75"
+    opacity="0.28"/>
+
+  <!-- ── Checkmark (primary mark) ──────────────────────────── -->
+  <path d="M 32,52 L 45,65 L 69,37"
+    fill="none" stroke="url(#brand)"
+    stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round"
+    filter="url(#glow)"/>
+
+</svg>

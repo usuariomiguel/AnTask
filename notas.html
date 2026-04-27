@@ -2,12 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Ansotask — Notas</title>
+    <meta name="theme-color" content="#09090d" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="./src/css/style.css" />
-    <link rel="icon" type="image/x-icon" href="/src/img/Anso.png" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
   </head>
   <body>
     <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
@@ -20,7 +23,8 @@
           <button type="button" id="mobile-sidebar-btn" class="mobile-icon-btn" aria-label="Abrir proyectos">☰</button>
         </div>
         <div class="mobile-header-center">
-          <h1>Ansotask</h1>
+          <img src="./src/img/logo-dark.svg"  alt="Ansotask" class="brand-logo brand-logo--dark"  width="130" height="29">
+          <img src="./src/img/logo-light.svg" alt="Ansotask" class="brand-logo brand-logo--light" width="130" height="29">
         </div>
         <div class="mobile-header-right">
           <button type="button" id="theme-toggle-mobile" class="mobile-icon-btn" aria-label="Cambiar tema">🌙</button>
@@ -36,7 +40,8 @@
         <aside class="sidebar" id="sidebar">
           <div class="sidebar-header">
             <div class="sidebar-header-top">
-              <h1>Ansotask</h1>
+              <img src="./src/img/logo-dark.svg"  alt="Ansotask" class="brand-logo brand-logo--dark"  width="130" height="29">
+              <img src="./src/img/logo-light.svg" alt="Ansotask" class="brand-logo brand-logo--light" width="130" height="29">
               <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos">◀</button>
             </div>
             <p class="subtitle">// proyectos</p>

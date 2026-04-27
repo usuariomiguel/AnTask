@@ -1795,6 +1795,8 @@ function closeNotesPanel() {
   if (!notesSidePanel || !notesSidePanel.classList.contains("notes-side-open")) return;
   notesSidePanel.classList.remove("notes-side-open");
   if (window.innerWidth <= 768) {
+    var backdrop = document.getElementById("sheet-backdrop");
+    if (backdrop) backdrop.classList.remove("active");
     document.body.style.overflow = "";
   }
 }
