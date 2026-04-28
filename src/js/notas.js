@@ -46,9 +46,22 @@ let   activeProjectId = urlParams.get("project") || localStorage.getItem(ACTIVE_
 let projects = loadProjects();
 
 // ── Arranque ──────────────────────────────────────────────────
+var _splashStart = performance.now();
 initializeTheme();
 renderSidebar();
 activateProject(activeProjectId);
+
+// ── Ocultar pantalla de carga ──────────────────────────────────
+(function() {
+  var splash = document.getElementById("splash");
+  if (!splash) return;
+  var minMs = 1350;
+  var wait = Math.max(0, minMs - (performance.now() - _splashStart));
+  setTimeout(function() {
+    splash.classList.add("splash-done");
+    splash.addEventListener("transitionend", function() { splash.remove(); }, { once: true });
+  }, wait);
+})();
 
 // Inicializar auth para que scheduleSave tenga usuario
 if (window.AnsoSync) AnsoSync.init(null, null, null);

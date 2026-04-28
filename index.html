@@ -3,16 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Ansotask</title>
+    <title>antask</title>
     <meta name="theme-color" content="#09090d" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="./src/css/style.css"/>
+    <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg">
     <link rel="icon" type="image/png" href="./icons/icon-192.png">
   </head>
   <body>
+
+    <!-- ── SPLASH / LOADING SCREEN ──────────────────────────── -->
+    <div id="splash" aria-hidden="true" role="status" aria-label="Cargando antask">
+      <div class="splash-inner">
+        <svg class="splash-icon" viewBox="0 0 150 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sg" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stop-color="#b09dfc"/>
+              <stop offset="50%"  stop-color="#8b7cf6"/>
+              <stop offset="100%" stop-color="#5b3de8"/>
+            </linearGradient>
+          </defs>
+          <!-- Flat-top hexagon, starting upper-right, clockwise. R=52, cx=75, cy=85 -->
+          <path class="splash-hex"
+            d="M 101,40 L 127,85 L 101,130 L 49,130 L 23,85 L 49,40 Z"
+            stroke="url(#sg)" stroke-width="6" stroke-linejoin="round"/>
+          <!-- Checkmark — stays inside the hex -->
+          <path class="splash-check"
+            d="M 40,89 L 64,110 L 106,58"
+            stroke="url(#sg)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="splash-wordmark" aria-label="antask">
+          <span class="splash-an">an</span><span class="splash-task">task</span>
+        </div>
+        <p class="splash-tagline">Gestión de tareas inteligente</p>
+      </div>
+    </div>
+
     <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema">🌙</button>
 
     <div class="layout">
@@ -23,8 +52,8 @@
           <button type="button" class="mobile-icon-btn" id="mobile-menu-btn" aria-label="Abrir menú de proyectos">☰</button>
         </div>
         <div class="mobile-header-center">
-          <img src="./src/img/logo-dark.svg"  alt="Ansotask" class="brand-logo brand-logo--dark"  width="130" height="29">
-          <img src="./src/img/logo-light.svg" alt="Ansotask" class="brand-logo brand-logo--light" width="130" height="29">
+          <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
+          <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
         </div>
         <div class="mobile-header-right">
           <button type="button" class="mobile-icon-btn" id="mobile-theme-toggle" aria-label="Cambiar tema">🌙</button>
@@ -41,8 +70,8 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-header-top">
-            <img src="./src/img/logo-dark.svg"  alt="Ansotask" class="brand-logo brand-logo--dark"  width="130" height="29">
-            <img src="./src/img/logo-light.svg" alt="Ansotask" class="brand-logo brand-logo--light" width="130" height="29">
+            <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
+            <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
             <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos">◀</button>
           </div>
           <p class="subtitle">// proyectos</p>

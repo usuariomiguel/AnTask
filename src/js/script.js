@@ -102,9 +102,22 @@ const bulkCount      = document.getElementById("bulk-count");
 const selectModeBtn  = document.getElementById("select-mode-btn");
 
 // ─── ARRANQUE ────────────────────────────────────────────────
+var _splashStart = performance.now();
 initializeTheme();
 renderSidebar();
 activateProject(activeProjectId, false);
+
+// ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
+(function() {
+  var splash = document.getElementById("splash");
+  if (!splash) return;
+  var minMs = 1350;
+  var wait = Math.max(0, minMs - (performance.now() - _splashStart));
+  setTimeout(function() {
+    splash.classList.add("splash-done");
+    splash.addEventListener("transitionend", function() { splash.remove(); }, { once: true });
+  }, wait);
+})();
 
 // ─── CLOUD SYNC INIT ─────────────────────────────────────────
 if (window.AnsoSync) {
@@ -606,7 +619,7 @@ importFile.addEventListener("change", async function() {
     const currentProject = getActiveProject();
     const importedTasks = Array.isArray(parsed) ? parsed : parsed.tasks;
     if (!Array.isArray(importedTasks)) {
-      await modalAlert("Formato no válido. Asegúrate de importar un backup generado por Ansotask.", "error");
+      await modalAlert("Formato no válido. Asegúrate de importar un backup generado por antask.", "error");
       return;
     }
     if (!currentProject) {
@@ -688,7 +701,7 @@ function activateProject(id) {
 
   emptyState.hidden = hasProject;
   tasksPanel.hidden = !hasProject;
-  if (!hasProject) document.title = "Ansotask";
+  if (!hasProject) document.title = "antask";
 
   if (!hasProject) { renderSidebar(); return; }
 
@@ -1009,8 +1022,8 @@ function renderTasks() {
   taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   projectSubtitle.textContent = "// " + project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
   document.title = pending > 0
-    ? "(" + pending + ") " + project.name + " — Ansotask"
-    : project.name + " — Ansotask";
+    ? "(" + pending + ") " + project.name + " — antask"
+    : project.name + " — antask";
 }
 
 function renderSubtasks(task, subtaskList) {

@@ -1,6 +1,6 @@
 {
-  "name": "Ansotask",
-  "short_name": "Ansotask",
+  "name": "antask",
+  "short_name": "antask",
   "description": "Gestor de tareas y proyectos instalable como PWA.",
   "start_url": "./",
   "scope": "./",
@@ -10,6 +10,12 @@
   "theme_color": "#09090d",
   "lang": "es",
   "icons": [
+    {
+      "src": "./src/img/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "./icons/icon-192.png",
       "sizes": "192x192",
