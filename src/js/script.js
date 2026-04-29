@@ -850,6 +850,207 @@ function renderProjectItem(project, indented) {
   projectListEl.appendChild(li);
 }
 
+// ── Context menus for sections and projects ─────────────────────────────────
+
+var _ctxMenu = null;
+var _ctxCloseHandler = null;
+
+function closeCtxMenu() {
+  if (_ctxMenu) {
+    _ctxMenu.remove();
+    _ctxMenu = null;
+  }
+  if (_ctxCloseHandler) {
+    document.removeEventListener("mousedown", _ctxCloseHandler);
+    _ctxCloseHandler = null;
+  }
+}
+
+function positionCtxMenu(menu, anchor) {
+  menu.style.position = "fixed";
+  menu.style.visibility = "hidden";
+  document.body.appendChild(menu);
+
+  var rect = anchor.getBoundingClientRect();
+  var mw = menu.offsetWidth;
+  var mh = menu.offsetHeight;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+
+  var left = rect.right - mw;
+  if (left < 4) left = rect.left;
+  if (left + mw > vw - 4) left = vw - mw - 4;
+
+  var top = rect.bottom + 4;
+  if (top + mh > vh - 4) top = rect.top - mh - 4;
+
+  menu.style.left = left + "px";
+  menu.style.top  = top  + "px";
+  menu.style.visibility = "visible";
+}
+
+function _buildCtxMenu(items) {
+  var menu = document.createElement("div");
+  menu.className = "ctx-menu";
+  items.forEach(function(item) {
+    if (item === null) {
+      var sep = document.createElement("div");
+      sep.className = "ctx-sep";
+      menu.appendChild(sep);
+      return;
+    }
+    if (item.header) {
+      var hdr = document.createElement("div");
+      hdr.className = "ctx-header";
+      hdr.textContent = item.label;
+      menu.appendChild(hdr);
+      return;
+    }
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ctx-item" + (item.danger ? " ctx-item-danger" : "");
+    btn.textContent = item.label;
+    btn.addEventListener("click", function() {
+      closeCtxMenu();
+      item.action();
+    });
+    menu.appendChild(btn);
+  });
+  return menu;
+}
+
+async function showSectionMenu(section, anchor) {
+  closeCtxMenu();
+
+  var items = [
+    {
+      label: "Renombrar sección",
+      action: async function() {
+        var newName = await modalPrompt("// Cambiar nombre de sección", section.name, section.name);
+        if (newName === null) return;
+        var trimmed = newName.trim();
+        if (!trimmed || trimmed === section.name) return;
+        section.name = trimmed;
+        saveSections();
+        renderSidebar();
+      }
+    },
+    null,
+    {
+      label: "Eliminar sección",
+      danger: true,
+      action: async function() {
+        var ok = await modalConfirm(
+          "¿Eliminar la sección <strong>" + section.name + "</strong>? Los proyectos pasarán a sin sección.",
+          "✕ Eliminar"
+        );
+        if (!ok) return;
+        projects.forEach(function(p) {
+          if (p.sectionId === section.id) p.sectionId = null;
+        });
+        sections = sections.filter(function(s) { return s.id !== section.id; });
+        saveProjects();
+        saveSections();
+        renderSidebar();
+      }
+    }
+  ];
+
+  var menu = _buildCtxMenu(items);
+  positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) {
+      if (!menu.contains(e.target)) closeCtxMenu();
+    };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+async function showProjectMenu(project, anchor) {
+  closeCtxMenu();
+
+  var sectionOptions = sections.map(function(s) {
+    return {
+      label: (project.sectionId === s.id ? "✓ " : "    ") + s.name,
+      action: function() {
+        project.sectionId = project.sectionId === s.id ? null : s.id;
+        saveProjects();
+        renderSidebar();
+      }
+    };
+  });
+
+  var assignGroup = sectionOptions.length > 0
+    ? [{ label: "Mover a sección", header: true }].concat(sectionOptions).concat([null])
+    : [];
+
+  var items = assignGroup.concat([
+    {
+      label: "Renombrar proyecto",
+      action: async function() {
+        var newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
+        if (newName === null) return;
+        var trimmed = newName.trim();
+        if (!trimmed || trimmed === project.name) return;
+        project.name = trimmed;
+        saveProjects();
+        renderSidebar();
+        if (project.id === activeProjectId) activateProject(project.id);
+      }
+    },
+    null,
+    {
+      label: "Eliminar proyecto",
+      danger: true,
+      action: async function() {
+        var ok = await modalConfirm(
+          "¿Eliminar el proyecto <strong>" + project.name + "</strong> y todas sus tareas?",
+          "✕ Eliminar"
+        );
+        if (!ok) return;
+        projects = projects.filter(function(p) { return p.id !== project.id; });
+        if (activeProjectId === project.id) {
+          activeProjectId = projects.length > 0 ? projects[0].id : null;
+        }
+        saveProjects();
+        renderSidebar();
+        renderTasks();
+      }
+    }
+  ]);
+
+  var menu = _buildCtxMenu(items);
+  positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) {
+      if (!menu.contains(e.target)) closeCtxMenu();
+    };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+// New section button
+(function() {
+  var newSectionBtn = document.getElementById("new-section-btn");
+  if (newSectionBtn) {
+    newSectionBtn.addEventListener("click", async function() {
+      var name = await modalPrompt("// Nueva sección", "", "Nombre de la sección");
+      if (name === null) return;
+      var trimmed = name.trim();
+      if (!trimmed) return;
+      sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
+      saveSections();
+      renderSidebar();
+    });
+  }
+})();
+
+// ── End context menus ────────────────────────────────────────────────────────
+
 function renderTasks() {
   const project = getActiveProject();
   if (!project) return;
