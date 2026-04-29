@@ -925,6 +925,7 @@ button:focus-visible {
   padding-right: 0.2rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(129, 140, 248, 0.18) transparent;
+  border-radius: var(--radius-md);
 }
 
 .task-list::-webkit-scrollbar {
@@ -944,8 +945,6 @@ button:focus-visible {
 .task-item {
   display: grid;
   gap: 0;
-  border: 1px solid var(--b-subtle);
-  border-radius: var(--radius-md);
   padding: 0.7rem 0.95rem;
   background: var(--bg-item);
   cursor: pointer;
@@ -954,7 +953,6 @@ button:focus-visible {
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
   position: relative;
   animation: itemIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
-  margin-bottom: 0.4rem;
 }
 
 /* Left accent bar */
