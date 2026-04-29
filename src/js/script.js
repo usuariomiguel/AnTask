@@ -736,7 +736,8 @@ function activateProject(id) {
 
 function renderSidebar() {
   projectListEl.innerHTML = "";
-  const ungrouped = projects.filter(function(p) { return !p.sectionId; });
+  const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
+  const ungrouped = projects.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
 
   if (projects.length === 0 && sections.length === 0) {
     const li = document.createElement("li");
@@ -2283,7 +2284,7 @@ function saveProjects() {
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   updateSaveStatus(now);
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects);
+  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
 }
 
 function loadSections() {
@@ -2295,6 +2296,9 @@ function loadSections() {
 
 function saveSections() {
   localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+  const now = new Date().toISOString();
+  localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
+  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
 }
 
 function loadMetadata() {
@@ -2542,7 +2546,7 @@ function _updateProfileMenu(user) {
 function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube: subir datos locales
-    if (projects.length > 0) AnsoSync.scheduleSave(projects);
+    if (projects.length > 0) AnsoSync.scheduleSave(projects, sections);
     return;
   }
   // Comparar timestamps: tomar el más reciente
@@ -2550,20 +2554,24 @@ function _syncOnFirstConnect(cloudData) {
   var localTime = localMeta.lastSavedAt ? new Date(localMeta.lastSavedAt).getTime() : 0;
   var cloudTime = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
   if (cloudTime > localTime) {
-    _syncApplyRemote(cloudData.projects);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
   } else {
-    AnsoSync.scheduleSave(projects);
+    AnsoSync.scheduleSave(projects, sections);
   }
 }
 
-function _syncOnRemoteChange(remoteProjects) {
-  _syncApplyRemote(remoteProjects);
+function _syncOnRemoteChange(remoteProjects, remoteSections) {
+  _syncApplyRemote(remoteProjects, remoteSections || []);
 }
 
-function _syncApplyRemote(remoteProjects) {
+function _syncApplyRemote(remoteProjects, remoteSections) {
   try {
     projects = remoteProjects.map(sanitizeProject);
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    if (Array.isArray(remoteSections)) {
+      sections = remoteSections;
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+    }
     renderSidebar();
     var proj = getActiveProject();
     if (proj) {
