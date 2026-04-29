@@ -4041,7 +4041,6 @@ kbd {
     font-size: 14px;
   }
 }
-}
 
 /* ═══════════════════════════════════════════════════════════════
    SECCIONES DE PROYECTOS
@@ -4133,25 +4132,27 @@ kbd {
 .project-item:hover .project-kebab-btn { opacity: 1; }
 .project-kebab-btn:hover { background: rgba(129, 140, 248, 0.10); color: var(--t-soft); }
 
-/* New section button */
+/* New section button — same compact style as shortcuts-help-btn */
 .new-section-btn {
+  flex-shrink: 0;
   background: transparent;
   border: 1px solid var(--b-subtle);
   color: var(--t-muted);
-  cursor: pointer;
-  padding: 0.30rem 0.55rem;
   border-radius: var(--radius-sm);
-  font-size: 0.70rem;
-  font-family: var(--font-body);
-  font-weight: 500;
-  transition: border-color 0.14s, color 0.14s, background 0.14s;
-  white-space: nowrap;
+  padding: 0.46rem 0.60rem;
+  font-size: 0.80rem;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+  font-family: var(--font-mono);
+  line-height: 1;
 }
 
 .new-section-btn:hover {
-  border-color: rgba(129, 140, 248, 0.35);
   color: var(--c-cyan);
+  border-color: var(--b-active);
   background: rgba(129, 140, 248, 0.06);
+  box-shadow: none;
+  transform: none;
 }
 
 /* ── Context menu (shared) ────────────────────────────────────── */
@@ -4159,7 +4160,7 @@ kbd {
   list-style: none;
   margin: 0;
   padding: 0.30rem 0;
-  background: var(--bg-card);
+  background: var(--bg-deep);
   border: 1px solid var(--b-subtle);
   border-radius: 8px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.28);
@@ -4285,7 +4286,7 @@ kbd {
   bottom: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: var(--bg-card);
+  background: var(--bg-deep);
   border: 1px solid var(--b-subtle);
   border-radius: 10px;
   box-shadow: 0 -6px 28px rgba(0,0,0,0.30);
