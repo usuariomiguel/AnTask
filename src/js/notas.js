@@ -48,8 +48,8 @@ let projects = loadProjects();
 // ── Arranque ──────────────────────────────────────────────────
 var _splashStart = performance.now();
 initializeTheme();
-renderSidebar();
-activateProject(activeProjectId);
+try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
+try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
 
 // ── Ocultar pantalla de carga ──────────────────────────────────
 (function() {
@@ -58,8 +58,16 @@ activateProject(activeProjectId);
   var minMs = 1350;
   var wait = Math.max(0, minMs - (performance.now() - _splashStart));
   setTimeout(function() {
+    if (!splash.parentNode) return;
+    var removed = false;
+    function removeSplash() {
+      if (removed) return;
+      removed = true;
+      splash.remove();
+    }
     splash.classList.add("splash-done");
-    splash.addEventListener("transitionend", function() { splash.remove(); }, { once: true });
+    splash.addEventListener("transitionend", removeSplash, { once: true });
+    setTimeout(removeSplash, 700);
   }, wait);
 })();
 

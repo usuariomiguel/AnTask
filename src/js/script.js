@@ -105,9 +105,9 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 
 // ─── ARRANQUE ────────────────────────────────────────────────
 var _splashStart = performance.now();
-initializeTheme();
-renderSidebar();
-activateProject(activeProjectId, false);
+try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
+try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
+try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
 
 // ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
 (function() {
@@ -116,8 +116,16 @@ activateProject(activeProjectId, false);
   var minMs = 1350;
   var wait = Math.max(0, minMs - (performance.now() - _splashStart));
   setTimeout(function() {
+    if (!splash.parentNode) return;
+    var removed = false;
+    function removeSplash() {
+      if (removed) return;
+      removed = true;
+      splash.remove();
+    }
     splash.classList.add("splash-done");
-    splash.addEventListener("transitionend", function() { splash.remove(); }, { once: true });
+    splash.addEventListener("transitionend", removeSplash, { once: true });
+    setTimeout(removeSplash, 700);
   }, wait);
 })();
 
@@ -505,7 +513,7 @@ function toggleThemeWithTransition(sourceEl) {
 
 window.toggleThemeWithTransition = toggleThemeWithTransition;
 
-themeToggle.addEventListener("click", function() {
+if (themeToggle) themeToggle.addEventListener("click", function() {
   toggleThemeWithTransition(themeToggle);
 });
 
@@ -526,7 +534,7 @@ newProjectBtn.addEventListener("click", async function() {
 });
 
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
-deleteProjectBtn.addEventListener("click", async function() {
+if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
   const project = getActiveProject();
   if (!project) return;
   const confirmed = await modalConfirm(
@@ -2379,8 +2387,10 @@ function initializeTheme() {
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  themeToggle.textContent = theme === "dark" ? "🌙" : "☀️";
-  themeToggle.setAttribute("aria-label", "Cambiar tema (actual: " + (theme === "dark" ? "oscuro" : "claro") + ")");
+  if (themeToggle) {
+    themeToggle.textContent = theme === "dark" ? "🌙" : "☀️";
+    themeToggle.setAttribute("aria-label", "Cambiar tema (actual: " + (theme === "dark" ? "oscuro" : "claro") + ")");
+  }
 }
 
 // ── AUTO BACKUP SYSTEM ──────────────────────────────────────────

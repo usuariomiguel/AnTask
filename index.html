@@ -183,9 +183,8 @@
                 <option value="az">A→Z Nombre</option>
               </select>
             </div>
-            <button type="button" id="export-btn" title="Exportar backup completo de todos los proyectos">↑ Exportar todo</button>
-            <label class="import-label" for="import-file" title="Restaurar backup de workspace o proyecto">↓ Importar</label>
-            <input id="import-file" type="file" accept="application/json" />
+            <input id="import-file" type="file" accept="application/json" style="display:none" />
+            <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
             <button type="button" id="clear-done">✕ Limpiar hechas</button>
             <button type="button" id="select-mode-btn" class="select-mode-btn">⊡ Seleccionar</button>
           </section>
@@ -213,8 +212,6 @@
                 <button type="button" id="mobile-notes-btn">⬡ Notas del proyecto</button>
                 <button type="button" id="mobile-select-btn">⊡ Seleccionar tareas</button>
                 <button type="button" class="danger" id="mobile-delete-project-btn">✕ Eliminar proyecto</button>
-                <button type="button" id="mobile-export-btn">↑ Exportar</button>
-                <label for="import-file-mobile">↓ Importar</label>
                 <button type="button" class="danger" id="mobile-clear-done">✕ Limpiar hechas</button>
                 <label class="mobile-sort-label">Ordenar:</label>
                 <select id="sort-select-mobile" class="sort-select-mobile">
