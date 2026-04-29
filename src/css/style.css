@@ -568,7 +568,6 @@ body {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.9rem;
-  padding-right: 3.5rem;
   flex-wrap: wrap;
   flex-shrink: 0;
 }
@@ -956,7 +955,7 @@ button:focus-visible {
 }
 
 /* Left accent bar */
-.task-item::before {
+/* .task-item::before {
   content: '';
   position: absolute;
   left: 0;
@@ -967,7 +966,7 @@ button:focus-visible {
   border-radius: 0 3px 3px 0;
   opacity: 0;
   transition: opacity 0.18s, top 0.18s, bottom 0.18s;
-}
+} */
 
 .task-item:focus-visible {
   outline: 2px solid var(--focus-ring);
