@@ -83,16 +83,48 @@
           <button type="button" id="global-search-btn" class="global-search-btn">⌕ Buscar tareas</button>
           <div class="sidebar-footer-row">
             <button type="button" id="new-project-btn" class="new-project-btn">+ Nuevo proyecto</button>
+            <button type="button" id="new-section-btn" class="new-section-btn" title="Nueva sección de proyectos">⊟ Sección</button>
             <button type="button" id="shortcuts-btn" class="shortcuts-help-btn" title="Atajos de teclado (?)">⌨</button>
           </div>
-          <div class="sync-section" id="sync-section" hidden>
-            <button type="button" id="sync-signin-btn" class="sync-signin-btn">☁ Sincronizar con Google</button>
-            <div id="sync-user-info" class="sync-user-info" hidden>
-              <span id="sync-user-avatar" class="sync-user-avatar"></span>
-              <div class="sync-user-details">
-                <span id="sync-user-name" class="sync-user-name"></span>
+          <!-- Legacy sync nodes (hidden, JS still references them internally) -->
+          <div id="sync-section" hidden style="display:none!important">
+            <button id="sync-signin-btn" type="button"></button>
+            <div id="sync-user-info" hidden>
+              <span id="sync-user-avatar"></span>
+              <div><span id="sync-user-name"></span></div>
+              <button id="sync-signout-btn" type="button"></button>
+            </div>
+          </div>
+          <!-- Profile menu -->
+          <div class="profile-wrap" id="profile-wrap">
+            <button type="button" class="profile-btn" id="profile-btn" aria-haspopup="true" aria-expanded="false">
+              <span class="profile-avatar" id="profile-avatar">A</span>
+              <div class="profile-meta">
+                <span class="profile-name" id="profile-name">antask</span>
+                <span class="profile-sub" id="profile-sub">Local</span>
               </div>
-              <button type="button" id="sync-signout-btn" class="sync-signout-btn" title="Desconectar sincronización">Desconectar</button>
+              <span class="profile-dots">···</span>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown" hidden>
+              <div class="profile-dropdown-user">
+                <span class="profile-avatar profile-avatar-lg" id="profile-avatar-top">A</span>
+                <div>
+                  <div class="profile-dropdown-name" id="profile-name-top">antask</div>
+                  <div class="profile-dropdown-sub" id="profile-sub-top">Almacenamiento local</div>
+                </div>
+              </div>
+              <div class="profile-sep"></div>
+              <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico">↑</span> Exportar workspace</button>
+              <label class="profile-item" for="pf-import-input"><span class="profile-item-ico">↓</span> Importar workspace</label>
+              <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+              <div class="profile-sep"></div>
+              <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico">🌙</span> Cambiar tema</button>
+              <div class="profile-sep" id="pf-sync-sep" hidden></div>
+              <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico">☁</span> Sincronizar con Google</button>
+              <div id="pf-sync-user" hidden>
+                <div class="profile-sync-row"><span class="profile-item-ico">☁</span><span id="pf-sync-name"></span></div>
+                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn">Desconectar</button>
+              </div>
             </div>
           </div>
         </div>
@@ -304,6 +336,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="./src/js/firebase-sync.js"></script>
     <script src="./src/js/script.js"></script>
+    <script src="./src/js/sections-and-profile.js"></script>
     <script>
     // ── MOBILE UI LOGIC ──────────────────────────────────────────
     (function() {

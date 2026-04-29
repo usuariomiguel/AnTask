@@ -3,6 +3,7 @@ const PROJECTS_KEY   = "anso-projects";
 const ACTIVE_KEY     = "anso-active-project";
 const METADATA_KEY   = "anso-meta";
 const THEME_KEY      = "mis-tareas-theme";
+const SECTIONS_KEY   = "anso-sections";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";
@@ -82,6 +83,7 @@ let _notesSaveTimer   = null;
 migrateStorageIfNeeded();
 
 let projects        = loadProjects();
+let sections        = loadSections();
 let activeProjectId = localStorage.getItem(ACTIVE_KEY) || null;
 let currentFilter      = "all";
 let currentSort        = "manual";
@@ -734,57 +736,118 @@ function activateProject(id) {
 
 function renderSidebar() {
   projectListEl.innerHTML = "";
-  if (projects.length === 0) {
+  const ungrouped = projects.filter(function(p) { return !p.sectionId; });
+
+  if (projects.length === 0 && sections.length === 0) {
     const li = document.createElement("li");
     li.className = "project-empty";
     li.textContent = "Sin proyectos aún";
     projectListEl.appendChild(li);
     return;
   }
-  projects.forEach(function(project) {
-    const li = document.createElement("li");
-    li.className = "project-item";
-    if (project.id === activeProjectId) li.classList.add("active");
 
-    const done  = project.tasks.filter(function(t) { return t.done; }).length;
-    const total = project.tasks.length;
+  ungrouped.forEach(function(p) { renderProjectItem(p); });
 
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "project-item-name";
-    nameSpan.textContent = project.name;
-    nameSpan.title = "Doble clic para renombrar";
-
-    const countSpan = document.createElement("span");
-    countSpan.className = "project-item-count";
-    countSpan.textContent = done + "/" + total;
-
-    nameSpan.addEventListener("dblclick", async function(event) {
-      event.stopPropagation();
-      const newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
-      if (newName === null) return;
-      const trimmed = newName.trim();
-      if (!trimmed || trimmed === project.name) return;
-      project.name = trimmed;
-      saveProjects();
-      renderSidebar();
-      if (project.id === activeProjectId) activateProject(project.id);
-    });
-
-    const topRow = document.createElement("div");
-    topRow.className = "project-item-top";
-    topRow.appendChild(nameSpan);
-    topRow.appendChild(countSpan);
-
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    const bar = document.createElement("div");
-    bar.className = "project-progress-bar";
-    bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
-
-    li.appendChild(topRow);
-    if (total > 0) li.appendChild(bar);
-    li.addEventListener("click", function() { activateProject(project.id); });
-    projectListEl.appendChild(li);
+  sections.forEach(function(section) {
+    const sectionProjects = projects.filter(function(p) { return p.sectionId === section.id; });
+    renderSectionHeader(section, sectionProjects);
+    if (!section.collapsed) {
+      sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
+    }
   });
+}
+
+function renderSectionHeader(section, sectionProjects) {
+  const li = document.createElement("li");
+  li.className = "section-header";
+
+  const chevron = document.createElement("span");
+  chevron.className = "section-chevron";
+  chevron.textContent = section.collapsed ? "▶" : "▼";
+
+  const nameEl = document.createElement("span");
+  nameEl.className = "section-name";
+  nameEl.textContent = section.name;
+
+  const countEl = document.createElement("span");
+  countEl.className = "section-count";
+  countEl.textContent = sectionProjects.length;
+
+  const menuBtn = document.createElement("button");
+  menuBtn.type = "button";
+  menuBtn.className = "section-menu-btn";
+  menuBtn.textContent = "⋯";
+  menuBtn.title = "Opciones de sección";
+  menuBtn.addEventListener("click", function(e) {
+    e.stopPropagation();
+    showSectionMenu(section, menuBtn);
+  });
+
+  li.appendChild(chevron);
+  li.appendChild(nameEl);
+  li.appendChild(countEl);
+  li.appendChild(menuBtn);
+  li.addEventListener("click", function() {
+    section.collapsed = !section.collapsed;
+    saveSections();
+    renderSidebar();
+  });
+  projectListEl.appendChild(li);
+}
+
+function renderProjectItem(project, indented) {
+  const li = document.createElement("li");
+  li.className = "project-item" + (indented ? " project-item-indented" : "");
+  if (project.id === activeProjectId) li.classList.add("active");
+
+  const done  = project.tasks.filter(function(t) { return t.done; }).length;
+  const total = project.tasks.length;
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "project-item-name";
+  nameSpan.textContent = project.name;
+  nameSpan.title = "Doble clic para renombrar";
+  nameSpan.addEventListener("dblclick", async function(e) {
+    e.stopPropagation();
+    const newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
+    if (newName === null) return;
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === project.name) return;
+    project.name = trimmed;
+    saveProjects();
+    renderSidebar();
+    if (project.id === activeProjectId) activateProject(project.id);
+  });
+
+  const countSpan = document.createElement("span");
+  countSpan.className = "project-item-count";
+  countSpan.textContent = done + "/" + total;
+
+  const kebabBtn = document.createElement("button");
+  kebabBtn.type = "button";
+  kebabBtn.className = "project-kebab-btn";
+  kebabBtn.textContent = "⋯";
+  kebabBtn.title = "Opciones";
+  kebabBtn.addEventListener("click", function(e) {
+    e.stopPropagation();
+    showProjectMenu(project, kebabBtn);
+  });
+
+  const topRow = document.createElement("div");
+  topRow.className = "project-item-top";
+  topRow.appendChild(nameSpan);
+  topRow.appendChild(countSpan);
+  topRow.appendChild(kebabBtn);
+
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const bar = document.createElement("div");
+  bar.className = "project-progress-bar";
+  bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
+
+  li.appendChild(topRow);
+  if (total > 0) li.appendChild(bar);
+  li.addEventListener("click", function() { activateProject(project.id); });
+  projectListEl.appendChild(li);
 }
 
 function renderTasks() {
@@ -2022,6 +2085,17 @@ function saveProjects() {
   if (window.AnsoSync) AnsoSync.scheduleSave(projects);
 }
 
+function loadSections() {
+  try {
+    const raw = localStorage.getItem(SECTIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveSections() {
+  localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+}
+
 function loadMetadata() {
   try {
     const raw = localStorage.getItem(METADATA_KEY);
@@ -2037,6 +2111,7 @@ function sanitizeProject(p) {
     tasks:     sanitizeTasks(p.tasks),
     notes:     typeof p.notes === "string" ? p.notes : "",
     labels:    Array.isArray(p.labels) ? p.labels.filter(function(l){ return typeof l==="string" && l.length>0; }) : [],
+    sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
   };
 }
 
@@ -2218,21 +2293,48 @@ window.addEventListener("load", function() {
 // ═══════════════════════════════════════════════════════════════
 
 function _syncOnAuthChange(user) {
-  if (!syncSection) return;
+  // Update legacy hidden elements (backward compat)
+  if (syncUserAvatar) syncUserAvatar.textContent = user ? (user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "?")) : "A";
+  if (syncUserName)   syncUserName.textContent   = user ? (user.displayName || user.email || "") : "";
+  // Update profile menu
+  _updateProfileMenu(user);
+}
+
+function _updateProfileMenu(user) {
+  var pfSigninBtn    = document.getElementById("pf-signin-btn");
+  var pfSyncUser     = document.getElementById("pf-sync-user");
+  var pfSyncSep      = document.getElementById("pf-sync-sep");
+  var pfSyncName     = document.getElementById("pf-sync-name");
+  var pfSignoutBtn   = document.getElementById("pf-signout-btn");
+  var pfAvatar       = document.getElementById("profile-avatar");
+  var pfAvatarTop    = document.getElementById("profile-avatar-top");
+  var pfName         = document.getElementById("profile-name");
+  var pfNameTop      = document.getElementById("profile-name-top");
+  var pfSub          = document.getElementById("profile-sub");
+  var pfSubTop       = document.getElementById("profile-sub-top");
+
+  if (pfSyncSep)   pfSyncSep.hidden   = false;
+  if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
+  if (pfSyncUser)  pfSyncUser.hidden  = !user;
+
   if (user) {
-    if (syncSigninBtn) syncSigninBtn.hidden = true;
-    if (syncUserInfo)  syncUserInfo.hidden  = false;
-    if (syncUserAvatar) {
-      syncUserAvatar.textContent = user.displayName
-        ? user.displayName.charAt(0).toUpperCase()
-        : (user.email ? user.email.charAt(0).toUpperCase() : "?");
-    }
-    if (syncUserName) {
-      syncUserName.textContent = user.displayName || user.email || "";
-    }
+    var initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
+    var displayName = user.displayName || user.email || "Usuario";
+    if (pfAvatar)    pfAvatar.textContent    = initial;
+    if (pfAvatarTop) pfAvatarTop.textContent = initial;
+    if (pfName)      pfName.textContent      = displayName;
+    if (pfNameTop)   pfNameTop.textContent   = displayName;
+    if (pfSub)       pfSub.textContent       = "Sincronizado";
+    if (pfSubTop)    pfSubTop.textContent    = "Sincronización activa";
+    if (pfSyncName)  pfSyncName.textContent  = user.email || user.displayName || "";
+    if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { AnsoSync.signOut(); });
   } else {
-    if (syncSigninBtn) syncSigninBtn.hidden = false;
-    if (syncUserInfo)  syncUserInfo.hidden  = true;
+    if (pfAvatar)    pfAvatar.textContent    = "A";
+    if (pfAvatarTop) pfAvatarTop.textContent = "A";
+    if (pfName)      pfName.textContent      = "antask";
+    if (pfNameTop)   pfNameTop.textContent   = "antask";
+    if (pfSub)       pfSub.textContent       = "Local";
+    if (pfSubTop)    pfSubTop.textContent    = "Almacenamiento local";
   }
 }
 
