@@ -227,6 +227,7 @@
               </button>
               <div class="mobile-actions-dropdown" id="mobile-actions-dropdown" hidden>
                 <button type="button" id="mobile-notes-btn">⬡ Notas del proyecto</button>
+                <button type="button" id="mobile-agenda-btn">⏱ Vista de agenda</button>
                 <button type="button" id="mobile-select-btn">⊡ Seleccionar tareas</button>
                 <button type="button" class="danger" id="mobile-delete-project-btn">✕ Eliminar proyecto</button>
                 <button type="button" class="danger" id="mobile-clear-done">✕ Limpiar hechas</button>
@@ -288,6 +289,7 @@
             <button type="button" class="subtask-add-btn">+ Sub</button>
             <button type="button" class="delete-btn" aria-label="Eliminar tarea">✕</button>
             <span class="expand-indicator" aria-hidden="true">▾</span>
+            <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea">⋯</button>
           </div>
         </div>
         <div class="task-extra-content">
@@ -532,7 +534,29 @@
 
       if (sheetBackdrop) sheetBackdrop.addEventListener("click", closeSheet);
 
+      // ── Kebab de tarea → action sheet ────────────────────────
       var taskListEl = document.getElementById("task-list");
+      if (taskListEl) {
+        taskListEl.addEventListener("click", function(e) {
+          if (!isMobile()) return;
+          var kebab = e.target.closest(".task-kebab-btn");
+          if (!kebab) return;
+          e.stopPropagation();
+          var taskNode = kebab.closest(".task-item");
+          if (taskNode) openSheet(taskNode);
+        });
+      }
+
+      // ── Agenda en menú móvil ──────────────────────────────────
+      var mobileAgendaBtn = document.getElementById("mobile-agenda-btn");
+      if (mobileAgendaBtn) {
+        mobileAgendaBtn.addEventListener("click", function() {
+          if (actionsDropdown) { actionsDropdown.hidden = true; }
+          if (actionsBtn) actionsBtn.classList.remove("open");
+          if (window.showAgendaPanel) window.showAgendaPanel();
+        });
+      }
+
       if (actionSheet) {
         actionSheet.addEventListener("click", function(e) {
           var btn = e.target.closest("[data-sheet-action]");
