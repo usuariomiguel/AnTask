@@ -47,14 +47,14 @@
       <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
       <header class="mobile-header" id="mobile-header">
         <div class="mobile-header-left">
-          <button type="button" class="mobile-icon-btn" id="mobile-menu-btn" aria-label="Abrir menú de proyectos">☰</button>
+          <button type="button" class="mobile-icon-btn" id="mobile-menu-btn" aria-label="Abrir menú de proyectos"><i data-lucide="menu"></i></button>
         </div>
         <div class="mobile-header-center">
           <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
           <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
         </div>
         <div class="mobile-header-right">
-          <button type="button" class="mobile-icon-btn" id="mobile-theme-toggle" aria-label="Cambiar tema">🌙</button>
+          <button type="button" class="mobile-icon-btn" id="mobile-theme-toggle" aria-label="Cambiar tema"><i data-lucide="sun-moon"></i></button>
         </div>
       </header>
 
@@ -70,7 +70,7 @@
           <div class="sidebar-header-top">
             <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
             <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
-            <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos">◀</button>
+            <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos"><i data-lucide="panel-left-close"></i></button>
           </div>
           <p class="subtitle">// proyectos</p>
         </div>
@@ -79,13 +79,13 @@
 
         <div class="sidebar-footer">
           <div class="sidebar-search-row">
-            <button type="button" id="global-search-btn" class="global-search-btn">⌕ Buscar tareas</button>
-            <button type="button" id="agenda-btn" class="agenda-nav-btn" title="Vista de agenda — tareas con fecha (A)">⏱</button>
+            <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> Buscar tareas</button>
+            <button type="button" id="agenda-btn" class="agenda-nav-btn" title="Vista de agenda — tareas con fecha (A)"><i data-lucide="calendar-range"></i></button>
           </div>
           <div class="sidebar-footer-row">
-            <button type="button" id="new-project-btn" class="new-project-btn">+ Nuevo proyecto</button>
-            <button type="button" id="new-section-btn" class="new-section-btn" title="Nueva sección de proyectos">⊟</button>
-            <button type="button" id="shortcuts-btn" class="shortcuts-help-btn" title="Atajos de teclado (?)">⌨</button>
+            <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Nuevo proyecto</button>
+            <button type="button" id="new-section-btn" class="new-section-btn" title="Nueva sección de proyectos"><i data-lucide="layers"></i></button>
+            <button type="button" id="shortcuts-btn" class="shortcuts-help-btn" title="Atajos de teclado (?)"><i data-lucide="keyboard"></i></button>
           </div>
           <!-- Legacy sync nodes (hidden, JS still references them internally) -->
           <div id="sync-section" hidden style="display:none!important">
@@ -115,15 +115,15 @@
                 </div>
               </div>
               <div class="profile-sep"></div>
-              <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico">↑</span> Exportar workspace</button>
-              <label class="profile-item" for="pf-import-input"><span class="profile-item-ico">↓</span> Importar workspace</label>
+              <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico"><i data-lucide="upload"></i></span> Exportar workspace</button>
+              <label class="profile-item" for="pf-import-input"><span class="profile-item-ico"><i data-lucide="download"></i></span> Importar workspace</label>
               <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
               <div class="profile-sep"></div>
-              <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico">🌙</span> Cambiar tema</button>
+              <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> Cambiar tema</button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
-              <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico">☁</span> Sincronizar con Google</button>
+              <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
               <div id="pf-sync-user" hidden>
-                <div class="profile-sync-row"><span class="profile-item-ico">☁</span><span id="pf-sync-name"></span></div>
+                <div class="profile-sync-row"><span class="profile-item-ico"><i data-lucide="cloud"></i></span><span id="pf-sync-name"></span></div>
                 <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn">Desconectar</button>
               </div>
             </div>
@@ -136,8 +136,8 @@
 
         <!-- Estado vacío: ningún proyecto seleccionado -->
         <div class="empty-state" id="empty-state">
-          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
-          <div class="empty-state-icon">⬡</div>
+          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
+          <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
           <p class="empty-state-title">Ningún proyecto seleccionado</p>
           <p class="empty-state-sub">Crea o selecciona un proyecto desde la barra lateral</p>
         </div>
@@ -146,7 +146,7 @@
         <div class="agenda-panel" id="agenda-panel" hidden>
           <div class="agenda-header">
             <div class="agenda-header-left">
-              <button type="button" id="agenda-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+              <button type="button" id="agenda-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
               <div>
                 <h2 class="project-title">// Agenda</h2>
                 <p class="subtitle">Tareas con fecha límite — todos los proyectos</p>
@@ -161,14 +161,14 @@
 
           <div class="tasks-header">
             <div class="tasks-header-left">
-              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
               <div>
                 <h2 id="project-title" class="project-title"></h2>
                 <p class="subtitle" id="project-subtitle"></p>
               </div>
             </div>
             <div class="header-actions">
-              <a id="notes-link" href="#" class="notes-link">⬡ Notas del proyecto</a>
+              <a id="notes-link" href="#" class="notes-link"><i data-lucide="file-text"></i> Notas</a>
             </div>
           </div>
 
@@ -181,29 +181,29 @@
               autocomplete="off"
               required
             />
-            <button type="submit">+ Añadir</button>
+            <button type="submit"><i data-lucide="plus"></i> Añadir</button>
           </form>
 
           <section class="toolbar">
             <div class="sort-wrapper">
               <select id="filter-select" class="sort-select" title="Filtrar tareas">
-                <option value="all">⬡ Todas</option>
-                <option value="pending">○ Pendientes</option>
+                <option value="all">Todas</option>
+                <option value="pending">Pendientes</option>
                 <option value="done">✓ Hechas</option>
               </select>
             </div>
             <div class="sort-wrapper">
               <select id="sort-select" class="sort-select" title="Ordenar tareas">
-                <option value="manual">↕ Orden manual</option>
-                <option value="priority">▲ Prioridad</option>
-                <option value="due">⏱ Fecha límite</option>
-                <option value="az">A→Z Nombre</option>
+                <option value="manual">↕ Manual</option>
+                <option value="priority">↑ Prioridad</option>
+                <option value="due">Fecha límite</option>
+                <option value="az">A–Z Nombre</option>
               </select>
             </div>
             <input id="import-file" type="file" accept="application/json" style="display:none" />
             <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
-            <button type="button" id="clear-done">✕ Limpiar hechas</button>
-            <button type="button" id="select-mode-btn" class="select-mode-btn">⊡ Seleccionar</button>
+            <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
+            <button type="button" id="select-mode-btn" class="select-mode-btn"><i data-lucide="square-check-big"></i> Seleccionar</button>
           </section>
 
           <!-- ── MOBILE TOOLBAR ─────────────────────────────── -->
@@ -212,31 +212,31 @@
             <div style="position:relative">
               <button type="button" class="mobile-filter-btn" id="mobile-filter-btn">
                 <span id="mobile-filter-label">Todas</span>
-                <span class="caret">▾</span>
+                <i data-lucide="chevron-down" class="caret"></i>
               </button>
               <div class="mobile-filter-dropdown" id="mobile-filter-dropdown" hidden>
-                <button type="button" data-filter="all" class="active">⬡ Todas</button>
-                <button type="button" data-filter="pending">○ Pendientes</button>
+                <button type="button" data-filter="all" class="active">Todas</button>
+                <button type="button" data-filter="pending">Pendientes</button>
                 <button type="button" data-filter="done">✓ Hechas</button>
               </div>
             </div>
             <!-- Secondary actions dropdown -->
             <div style="position:relative">
               <button type="button" class="mobile-actions-btn" id="mobile-actions-btn">
-                Acciones <span class="caret">▾</span>
+                Acciones <i data-lucide="chevron-down" class="caret"></i>
               </button>
               <div class="mobile-actions-dropdown" id="mobile-actions-dropdown" hidden>
-                <button type="button" id="mobile-notes-btn">⬡ Notas del proyecto</button>
-                <button type="button" id="mobile-agenda-btn">⏱ Vista de agenda</button>
-                <button type="button" id="mobile-select-btn">⊡ Seleccionar tareas</button>
-                <button type="button" class="danger" id="mobile-delete-project-btn">✕ Eliminar proyecto</button>
-                <button type="button" class="danger" id="mobile-clear-done">✕ Limpiar hechas</button>
+                <button type="button" id="mobile-notes-btn"><i data-lucide="file-text"></i> Notas del proyecto</button>
+                <button type="button" id="mobile-agenda-btn"><i data-lucide="calendar-range"></i> Vista de agenda</button>
+                <button type="button" id="mobile-select-btn"><i data-lucide="square-check-big"></i> Seleccionar tareas</button>
+                <button type="button" class="danger" id="mobile-delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
+                <button type="button" class="danger" id="mobile-clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
                 <label class="mobile-sort-label">Ordenar:</label>
                 <select id="sort-select-mobile" class="sort-select-mobile">
                   <option value="manual">↕ Manual</option>
-                  <option value="priority">▲ Prioridad</option>
-                  <option value="due">⏱ Fecha límite</option>
-                  <option value="az">A→Z Nombre</option>
+                  <option value="priority">↑ Prioridad</option>
+                  <option value="due">Fecha límite</option>
+                  <option value="az">A–Z Nombre</option>
                 </select>
               </div>
             </div>
@@ -252,9 +252,9 @@
 
           <div class="bulk-action-bar" id="bulk-action-bar" hidden>
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
-            <button type="button" id="bulk-done-btn">✓ Marcar hechas</button>
-            <button type="button" id="bulk-pending-btn">○ Pendientes</button>
-            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn">✕ Eliminar</button>
+            <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> Marcar hechas</button>
+            <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> Pendientes</button>
+            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> Eliminar</button>
             <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn">Cancelar</button>
           </div>
 
@@ -273,7 +273,7 @@
       <li class="task-item" tabindex="0" role="button" aria-expanded="false">
         <div class="task-main-row">
           <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
-          <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+          <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
           <div class="task-summary">
             <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
             <span class="task-text"></span>
@@ -281,15 +281,15 @@
             <span class="task-labels-container"></span>
           </div>
           <div class="task-actions">
-            <button type="button" class="priority-btn" title="Cambiar prioridad">◇ Prior.</button>
-            <button type="button" class="status-btn">⬡ Estado</button>
-            <button type="button" class="date-btn" aria-label="Establecer fecha límite">⏱ Fecha</button>
-            <button type="button" class="comment-btn">Comentario</button>
-            <button type="button" class="label-add-btn" title="Gestionar etiquetas">⊞ Etiquetas</button>
-            <button type="button" class="subtask-add-btn">+ Sub</button>
-            <button type="button" class="delete-btn" aria-label="Eliminar tarea">✕</button>
-            <span class="expand-indicator" aria-hidden="true">▾</span>
-            <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea">⋯</button>
+            <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
+            <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
+            <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
+            <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
+            <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Tags</button>
+            <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub</button>
+            <button type="button" class="delete-btn" aria-label="Eliminar tarea"><i data-lucide="x"></i></button>
+            <span class="expand-indicator" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+            <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
           </div>
         </div>
         <div class="task-extra-content">
@@ -308,13 +308,13 @@
       <div class="task-action-sheet-handle"></div>
       <p class="task-action-sheet-title" id="sheet-task-title">Opciones</p>
       <div class="task-action-sheet-body">
-        <button type="button" class="sheet-action-btn" data-sheet-action="priority">◇ Prioridad</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="status">⬡ Estado</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="date">⏱ Fecha</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="comment">💬 Comentario</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="labels">⊞ Etiquetas</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="subtask">+ Subtarea</button>
-        <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete">✕ Eliminar tarea</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="priority"><i data-lucide="flag"></i> Prioridad</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="status"><i data-lucide="circle-dashed"></i> Estado</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="date"><i data-lucide="calendar"></i> Fecha</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="comment"><i data-lucide="message-circle"></i> Comentario</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
+        <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
       </div>
     </div>
 
@@ -344,6 +344,7 @@
     </div>
 
     <!-- Firebase SDK (compat v10) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -659,6 +660,7 @@
           });
         });
       }
+      if (window.lucide) lucide.createIcons();
     </script>
 
   </body>

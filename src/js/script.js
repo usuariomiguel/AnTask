@@ -1337,6 +1337,7 @@ function renderTasks() {
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — antask"
     : project.name + " — antask";
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderSubtasks(task, subtaskList) {
@@ -1439,11 +1440,12 @@ function applyStatusToNode(node, task) {
 
 function updateStatusBtn(btn, task) {
   if (task.done || !task.status) {
-    btn.textContent = "⬡ Estado";
+    btn.innerHTML = '<i data-lucide="circle-dashed"></i> Estado';
     btn.className = "status-btn";
   } else {
+    const icons = { progress: "play-circle", waiting: "pause-circle" };
     const cfg = STATUS_CONFIG[task.status];
-    btn.textContent = cfg.label;
+    btn.innerHTML = '<i data-lucide="' + (icons[task.status] || "circle-dashed") + '"></i> ' + cfg.label.replace(/^[^\s]+ /, "");
     btn.className = "status-btn " + cfg.cls + "-btn";
   }
 }
@@ -1463,11 +1465,11 @@ function applyPriorityToNode(node, task) {
 
 function updatePriorityBtn(btn, task) {
   if (!task.priority) {
-    btn.textContent = "◇ Prior.";
+    btn.innerHTML = '<i data-lucide="flag"></i> Prior.';
     btn.className = "priority-btn";
   } else {
     const cfg = PRIORITY_CONFIG[task.priority];
-    btn.textContent = cfg.label;
+    btn.innerHTML = '<i data-lucide="flag"></i> ' + cfg.label.replace(/^[^\s]+ /, "");
     btn.className = "priority-btn " + cfg.cls + "-btn";
   }
 }

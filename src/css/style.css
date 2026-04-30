@@ -100,6 +100,32 @@
   --glow-pink: 0 0 0 3px rgba(225, 29, 72, 0.15);
 }
 
+/* ─── LUCIDE ICONS ───────────────────────────────────────────── */
+.lucide {
+  display: inline-block;
+  vertical-align: -0.13em;
+  flex-shrink: 0;
+  pointer-events: none;
+  width: 1em;
+  height: 1em;
+  stroke-width: 1.75;
+}
+
+.task-actions > button .lucide       { width: 11px; height: 11px; stroke-width: 2; }
+.drag-handle .lucide                  { width: 13px; height: 13px; stroke-width: 2; color: var(--t-muted); }
+.expand-indicator .lucide             { width: 12px; height: 12px; stroke-width: 2; }
+.task-kebab-btn .lucide               { width: 14px; height: 14px; }
+.sidebar-collapse-btn .lucide,
+.sidebar-expand-btn .lucide           { width: 13px; height: 13px; stroke-width: 2; }
+.mobile-icon-btn .lucide              { width: 18px; height: 18px; stroke-width: 2; }
+.global-search-btn .lucide            { width: 13px; height: 13px; stroke-width: 2; }
+.agenda-nav-btn .lucide               { width: 15px; height: 15px; stroke-width: 2; }
+.new-section-btn .lucide,
+.shortcuts-help-btn .lucide           { width: 14px; height: 14px; stroke-width: 1.75; }
+.sheet-action-btn .lucide             { width: 16px; height: 16px; stroke-width: 1.75; }
+.empty-state-icon .lucide             { width: 48px; height: 48px; stroke-width: 1.25; }
+.profile-item-ico .lucide             { width: 13px; height: 13px; stroke-width: 2; }
+
 /* ─── RESET ──────────────────────────────────────────────────── */
 *,
 *::before,
@@ -526,7 +552,7 @@ body {
 }
 
 .empty-state-icon {
-  font-size: 2.8rem;
+  display: flex;
   color: var(--t-muted);
   animation: pulse 3s ease-in-out infinite;
 }
@@ -3257,8 +3283,9 @@ input.inline-edit {
     padding: 2rem 1.4rem;
   }
 
-  .empty-state-icon {
-    font-size: 2.2rem;
+  .empty-state-icon .lucide {
+    width: 38px;
+    height: 38px;
   }
 
   .modal-box {
