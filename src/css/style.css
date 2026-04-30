@@ -145,6 +145,7 @@ body {
   font-size: 15px;
   color: var(--t-primary);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   align-items: stretch;
@@ -219,6 +220,7 @@ body {
   display: flex;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -2873,7 +2875,8 @@ input.inline-edit {
   }
 
   .task-main-row {
-    gap: 0.40rem;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.40rem;
     align-items: center;
   }
 
@@ -2910,6 +2913,21 @@ input.inline-edit {
     flex-shrink: 0;
     display: flex;
     align-items: center;
+    gap: 0.20rem;
+  }
+
+  /* Two-row layout only when there are visible badges */
+  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-summary {
+    flex: 0 0 100%;
+  }
+
+  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-actions {
+    flex: 0 0 100%;
+    padding-left: calc(1rem + 0.45rem);
+  }
+
+  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-actions .task-kebab-btn {
+    margin-left: auto;
   }
 
   .task-actions .priority-btn,
@@ -2920,6 +2938,12 @@ input.inline-edit {
   .task-actions .subtask-add-btn,
   .task-actions .delete-btn {
     display: none;
+  }
+
+  .task-actions .due-badge {
+    margin-right: 0;
+    font-size: 0.60rem;
+    padding: 0.12rem 0.36rem;
   }
 
   .task-actions .priority-high-btn,
@@ -3841,6 +3865,49 @@ mark.search-hl {
 
   .notes-side-panel.notes-side-open {
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Prevent iOS Safari zoom on contenteditable/input focus */
+  .notes-editor {
+    font-size: 16px;
+  }
+
+  /* Hide keyboard shortcuts button — not useful on touch */
+  .shortcuts-help-btn {
+    display: none;
+  }
+
+  /* Notes button directly in mobile toolbar */
+  .mobile-notes-direct-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--t-soft);
+    background: transparent;
+    border: 1px solid var(--b-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.40rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+  }
+
+  .mobile-notes-direct-btn:hover,
+  .mobile-notes-direct-btn:active {
+    border-color: rgba(129, 140, 248, 0.28);
+    color: var(--c-cyan);
+    background: rgba(129, 140, 248, 0.06);
+  }
+
+  .mobile-notes-direct-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
   }
 }
 

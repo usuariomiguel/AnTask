@@ -54,7 +54,6 @@
           <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
         </div>
         <div class="mobile-header-right">
-          <button type="button" class="mobile-icon-btn" id="mobile-theme-toggle" aria-label="Cambiar tema"><i data-lucide="sun-moon"></i></button>
         </div>
       </header>
 
@@ -220,13 +219,14 @@
                 <button type="button" data-filter="done">✓ Hechas</button>
               </div>
             </div>
+            <!-- Notes button — visible directly in toolbar -->
+            <button type="button" id="mobile-notes-btn" class="mobile-notes-direct-btn"><i data-lucide="file-text"></i> Notas</button>
             <!-- Secondary actions dropdown -->
             <div style="position:relative">
               <button type="button" class="mobile-actions-btn" id="mobile-actions-btn">
                 Acciones <i data-lucide="chevron-down" class="caret"></i>
               </button>
               <div class="mobile-actions-dropdown" id="mobile-actions-dropdown" hidden>
-                <button type="button" id="mobile-notes-btn"><i data-lucide="file-text"></i> Notas del proyecto</button>
                 <button type="button" id="mobile-agenda-btn"><i data-lucide="calendar-range"></i> Vista de agenda</button>
                 <button type="button" id="mobile-select-btn"><i data-lucide="square-check-big"></i> Seleccionar tareas</button>
                 <button type="button" class="danger" id="mobile-delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
@@ -277,10 +277,10 @@
           <div class="task-summary">
             <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
             <span class="task-text"></span>
-            <span class="task-due-container"></span>
             <span class="task-labels-container"></span>
           </div>
           <div class="task-actions">
+            <span class="task-due-container"></span>
             <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
             <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
             <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
@@ -382,33 +382,6 @@
         });
       }
 
-      // ── Mobile theme toggle ───────────────────────────────────
-      var mobileThemeBtn = document.getElementById("mobile-theme-toggle");
-      var desktopThemeBtn = document.getElementById("theme-toggle");
-      var THEME_KEY = "mis-tareas-theme";
-
-      function syncMobileThemeIcon() {
-        var theme = document.documentElement.dataset.theme;
-        if (mobileThemeBtn) mobileThemeBtn.textContent = theme === "dark" ? "🌙" : "☀️";
-      }
-
-      if (mobileThemeBtn) {
-        mobileThemeBtn.addEventListener("click", function() {
-          if (window.toggleThemeWithTransition) {
-            window.toggleThemeWithTransition(mobileThemeBtn);
-            return;
-          }
-          var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-          document.documentElement.dataset.theme = next;
-          localStorage.setItem(THEME_KEY, next);
-          if (desktopThemeBtn) desktopThemeBtn.textContent = next === "dark" ? "🌙" : "☀️";
-          mobileThemeBtn.textContent = next === "dark" ? "🌙" : "☀️";
-        });
-      }
-
-      var themeObserver = new MutationObserver(syncMobileThemeIcon);
-      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-      syncMobileThemeIcon();
 
       // ── Mobile filter dropdown ────────────────────────────────
       var filterBtn      = document.getElementById("mobile-filter-btn");
@@ -614,27 +587,25 @@
           b.textContent = opt.label;
           b.addEventListener("click", function(e) {
             e.stopPropagation();
-            // Click the desktop button the right number of times to cycle to the right value
             var taskNode = currentTaskNode;
-            var desktopBtn = taskNode.querySelector(action === "priority" ? ".priority-btn" : ".status-btn");
-            if (desktopBtn) {
-              // Cycle until we hit the desired value, max 5 clicks to avoid infinite loop
-              var cycles = 0;
-              function cycleToValue() {
-                if (cycles++ > 5) return;
-                desktopBtn.click();
-                // Check current state from class on task item
-                var reached = false;
-                if (action === "priority") {
-                  if (opt.value === "none")   reached = !taskNode.classList.contains("priority-high") && !taskNode.classList.contains("priority-medium") && !taskNode.classList.contains("priority-low");
-                  else                        reached = taskNode.classList.contains("priority-" + opt.value);
-                } else {
-                  if (opt.value === "none")   reached = !taskNode.classList.contains("status-progress") && !taskNode.classList.contains("status-waiting");
-                  else                        reached = taskNode.classList.contains("status-" + opt.value);
+            var taskId = taskNode && taskNode.dataset.taskId;
+            if (action === "status") {
+              if (taskId && window.setTaskStatus) window.setTaskStatus(taskId, opt.value);
+            } else {
+              // Priority: cycle the desktop button to the target value
+              var desktopBtn = taskNode && taskNode.querySelector(".priority-btn");
+              if (desktopBtn) {
+                var cycles = 0;
+                function cycleToValue() {
+                  if (cycles++ > 5) return;
+                  desktopBtn.click();
+                  var reached = false;
+                  if (opt.value === "none") reached = !taskNode.classList.contains("priority-high") && !taskNode.classList.contains("priority-medium") && !taskNode.classList.contains("priority-low");
+                  else                     reached = taskNode.classList.contains("priority-" + opt.value);
+                  if (!reached) setTimeout(cycleToValue, 30);
                 }
-                if (!reached) setTimeout(cycleToValue, 30);
+                cycleToValue();
               }
-              cycleToValue();
             }
             closeSheet();
           });

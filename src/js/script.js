@@ -1432,6 +1432,20 @@ function cycleStatus(task) {
   saveAndRender();
 }
 
+window.setTaskStatus = function(taskId, status) {
+  for (var i = 0; i < projects.length; i++) {
+    var tasks = projects[i].tasks;
+    if (!tasks) continue;
+    for (var j = 0; j < tasks.length; j++) {
+      if (tasks[j].id === taskId) {
+        tasks[j].status = (status === "none") ? null : status;
+        saveAndRender();
+        return;
+      }
+    }
+  }
+};
+
 function applyStatusToNode(node, task) {
   node.classList.remove("status-progress", "status-waiting");
   if (task.done || !task.status) return;
