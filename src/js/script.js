@@ -251,6 +251,20 @@ document.addEventListener("keydown", function(e) {
     }
     return;
   }
+
+  if (e.key === "s" || e.key === "S") {
+    e.preventDefault();
+    (async function() {
+      var name = await modalPrompt("// Nueva sección", "", "Nombre de la sección");
+      if (name === null) return;
+      var trimmed = name.trim();
+      if (!trimmed) return;
+      sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
+      saveSections();
+      renderSidebar();
+    })();
+    return;
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -588,6 +602,7 @@ exportBtn.addEventListener("click", function() {
     version: 2,
     exportedAt: new Date().toISOString(),
     projects: projects,
+    sections: sections,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -615,13 +630,26 @@ importFile.addEventListener("change", async function() {
       );
       if (!confirmed) return;
       projects = parsed.projects.map(sanitizeProject);
+      if (Array.isArray(parsed.sections)) {
+        sections = parsed.sections.filter(function(s) {
+          return s && typeof s.id === "string" && typeof s.name === "string";
+        }).map(function(s) {
+          return { id: s.id, name: s.name, collapsed: !!s.collapsed };
+        });
+        saveSections();
+      }
       activeProjectId = projects.length > 0 ? projects[0].id : null;
       if (activeProjectId) localStorage.setItem(ACTIVE_KEY, activeProjectId);
       else localStorage.removeItem(ACTIVE_KEY);
       saveProjects();
       renderSidebar();
       activateProject(activeProjectId);
-      await modalAlert("Workspace restaurado con " + projects.length + " proyecto(s).", "info");
+      var secCount = Array.isArray(parsed.sections) ? parsed.sections.length : 0;
+      await modalAlert(
+        "Workspace restaurado con " + projects.length + " proyecto(s)" +
+        (secCount > 0 ? " y " + secCount + " sección(es)" : "") + ".",
+        "info"
+      );
       return;
     }
 
@@ -2128,6 +2156,7 @@ function showShortcutsHelp() {
     '<table class="shortcuts-table">' +
       '<tbody>' +
         '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
+        '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
         '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
         '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
