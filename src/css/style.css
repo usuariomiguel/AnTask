@@ -4133,50 +4133,129 @@ kbd {
   width: 118px;
   height: 118px;
   overflow: visible;
-  filter: drop-shadow(0 0 24px rgba(139, 124, 246, 0.30));
+  filter: drop-shadow(0 0 28px rgba(99, 102, 241, 0.35))
+          drop-shadow(0 0 10px rgba(139, 92, 246, 0.25));
 }
 
 @media (min-width: 768px) {
   .splash-icon {
     width: 148px;
     height: 148px;
-    filter: drop-shadow(0 0 32px rgba(139, 124, 246, 0.28));
   }
 }
 
-/* Hex ring draws in from upper-right, clockwise */
-.splash-hex {
+/* ── Ant body parts — scale in with spring from center ── */
+.splash-abdomen,
+.splash-petiole,
+.splash-thorax,
+.splash-head {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.splash-abdomen {
+  animation: splash-body-pop 0.40s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both;
+}
+.splash-petiole {
+  animation: splash-body-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) 0.16s both;
+}
+.splash-thorax {
+  animation: splash-body-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) 0.22s both;
+}
+.splash-head {
+  animation: splash-body-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.30s both;
+}
+
+@keyframes splash-body-pop {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+
+/* ── Eyes — bounce pop after head ── */
+.splash-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: splash-eyes-pop 0.28s cubic-bezier(0.34, 1.8, 0.64, 1) 0.44s both;
+}
+
+@keyframes splash-eyes-pop {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Legs — draw outward from thorax ── */
+.splash-leg {
   fill: none;
-  stroke-dasharray: 312;
-  stroke-dashoffset: 312;
-  animation: splash-hex-draw 0.72s cubic-bezier(0.4, 0, 0.2, 1) 0.06s both;
+  stroke-dasharray: 42;
+  stroke-dashoffset: 42;
+  animation: splash-stroke-draw 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.34s both;
 }
 
-@keyframes splash-hex-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
+/* ── Antennae — draw outward from head ── */
+.splash-antenna {
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+  animation: splash-stroke-draw 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.38s both;
 }
 
-/* Checkmark draws in after hex */
+.splash-antenna-tip {
+  animation: splash-fade-in 0.20s ease 0.68s both;
+}
+
+@keyframes splash-stroke-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Checkmark — draws in last, seals the animation ── */
 .splash-check {
   fill: none;
-  stroke-dasharray: 99;
-  stroke-dashoffset: 99;
-  animation: splash-check-draw 0.58s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.40s both;
+  stroke-dasharray: 46;
+  stroke-dashoffset: 46;
+  animation: splash-stroke-draw 0.50s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.52s both;
 }
 
-@keyframes splash-check-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
+/* ── Idle breathing on abdomen after entrance ── */
+.splash-abdomen {
+  animation:
+    splash-body-pop 0.40s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both,
+    splash-breathe  2.8s ease-in-out 1.10s infinite;
 }
 
+@keyframes splash-breathe {
+  0%, 100% { transform: scaleY(1);    }
+  50%       { transform: scaleY(1.06); }
+}
+
+/* ── Antennae gentle sway after entrance ── */
+.splash-antenna:first-of-type {
+  transform-box: fill-box;
+  transform-origin: 70px 18px;
+  animation:
+    splash-stroke-draw 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.38s both,
+    splash-sway-l      3.2s ease-in-out 1.10s infinite;
+}
+
+.splash-antenna:last-of-type {
+  transform-box: fill-box;
+  transform-origin: 80px 18px;
+  animation:
+    splash-stroke-draw 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.38s both,
+    splash-sway-r      3.2s ease-in-out 1.10s infinite;
+}
+
+@keyframes splash-sway-l {
+  0%, 100% { transform: rotate(0deg);  }
+  50%       { transform: rotate(-6deg); }
+}
+
+@keyframes splash-sway-r {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(6deg); }
+}
 
 @keyframes splash-fade-in {
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Wordmark ── */
@@ -4184,12 +4263,11 @@ kbd {
   display: flex;
   font-family: var(--font-display);
   font-size: 46px;
-  font-weight: 700;
   letter-spacing: -2.5px;
   line-height: 1;
   opacity: 0;
   transform: translateY(14px);
-  animation: splash-rise 0.50s cubic-bezier(0.2, 0, 0.1, 1) 0.52s both;
+  animation: splash-rise 0.50s cubic-bezier(0.2, 0, 0.1, 1) 0.72s both;
 }
 
 @media (min-width: 768px) {
@@ -4200,18 +4278,28 @@ kbd {
 }
 
 @keyframes splash-rise {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .splash-an {
-  color: var(--t-primary);
+  font-weight: 300;
+  color: rgba(241, 240, 249, 0.60);
 }
 
 .splash-task {
-  background: linear-gradient(135deg, #b09dfc 0%, #5b3de8 100%);
+  font-weight: 800;
+  background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root[data-theme="light"] .splash-an {
+  color: rgba(26, 23, 48, 0.45);
+}
+
+:root[data-theme="light"] .splash-task {
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -4223,7 +4311,7 @@ kbd {
   letter-spacing: 0.025em;
   color: var(--t-soft);
   opacity: 0;
-  animation: splash-fade-in 0.40s ease 0.72s both;
+  animation: splash-fade-in 0.40s ease 0.90s both;
   margin-top: -10px;
 }
 

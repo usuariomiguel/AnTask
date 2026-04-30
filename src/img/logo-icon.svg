@@ -1,25 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="brand" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%"   stop-color="#b09dfc"/>
-      <stop offset="50%"  stop-color="#8b7cf6"/>
-      <stop offset="100%" stop-color="#5b3de8"/>
+    <linearGradient id="ag" gradientUnits="userSpaceOnUse" x1="50" y1="4" x2="50" y2="97">
+      <stop offset="0%"   stop-color="#a5b4fc"/>
+      <stop offset="45%"  stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
     </linearGradient>
   </defs>
 
-  <!-- Flat-top hexagon (hollow outline), cx=50 cy=50 R=42 -->
-  <polygon
-    points="92,50 71,13.6 29,13.6 8,50 29,86.4 71,86.4"
-    fill="none"
-    stroke="url(#brand)"
-    stroke-width="5.5"
-    stroke-linejoin="round"/>
+  <!-- ── LEGS ───────────────────────────────────────── -->
+  <polyline points="36,40 22,30 14,37" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="36,44 18,42 8,51"  fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="36,51 22,63 15,71" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="64,40 78,30 86,37" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="64,44 82,42 92,51" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="64,51 78,63 85,71" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Checkmark — stays inside the hex -->
-  <path d="M 22,53 L 41,70 L 75,28"
-    fill="none"
-    stroke="url(#brand)"
-    stroke-width="6.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"/>
+  <!-- ── ABDOMEN ────────────────────────────────────── -->
+  <ellipse cx="50" cy="80" rx="23" ry="17" fill="url(#ag)"/>
+
+  <!-- ── PETIOLE ────────────────────────────────────── -->
+  <ellipse cx="50" cy="61" rx="6"  ry="5"  fill="url(#ag)"/>
+
+  <!-- ── THORAX ─────────────────────────────────────── -->
+  <ellipse cx="50" cy="44" rx="14" ry="14" fill="url(#ag)"/>
+
+  <!-- ── CHECKMARK ──────────────────────────────────── -->
+  <path d="M 38,44 L 46,53 L 63,34"
+    fill="none" stroke="rgba(255,255,255,0.95)"
+    stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- ── HEAD ───────────────────────────────────────── -->
+  <ellipse cx="50" cy="19" rx="13" ry="11" fill="url(#ag)"/>
+
+  <!-- ── EYES ───────────────────────────────────────── -->
+  <circle cx="44" cy="18" r="3"   fill="white"/>
+  <circle cx="56" cy="18" r="3"   fill="white"/>
+
+  <!-- ── ANTENNAE ───────────────────────────────────── -->
+  <path d="M 45,10 Q 33,5 22,4"
+    fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="22" cy="4"  r="4"   fill="url(#ag)"/>
+  <path d="M 55,10 Q 67,5 78,4"
+    fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="78" cy="4"  r="4"   fill="url(#ag)"/>
 </svg>

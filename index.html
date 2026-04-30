@@ -20,21 +20,52 @@
       <div class="splash-inner">
         <svg class="splash-icon" viewBox="0 0 150 148" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="sg" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%"   stop-color="#b09dfc"/>
-              <stop offset="50%"  stop-color="#8b7cf6"/>
-              <stop offset="100%" stop-color="#5b3de8"/>
+            <linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="75" y1="8" x2="75" y2="116">
+              <stop offset="0%"   stop-color="#a5b4fc"/>
+              <stop offset="45%"  stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#5b21b6"/>
             </linearGradient>
           </defs>
-          <!-- Flat-top hexagon, starting upper-right, clockwise. R=52, cx=75, cy=85 -->
-          <path class="splash-hex"
-            d="M 101,40 L 127,85 L 101,130 L 49,130 L 23,85 L 49,40 Z"
-            stroke="url(#sg)" stroke-width="6" stroke-linejoin="round"/>
-          <!-- Checkmark — stays inside the hex -->
+
+          <!-- ── LEGS (drawn behind body) ─────────────── -->
+          <polyline class="splash-leg" points="59,47 41,36 30,44"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline class="splash-leg" points="59,55 38,53 25,63"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline class="splash-leg" points="59,64 43,76 35,83"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline class="splash-leg" points="91,47 109,36 120,44" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline class="splash-leg" points="91,55 112,53 125,63" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline class="splash-leg" points="91,64 107,76 115,83" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- ── ABDOMEN ──────────────────────────────── -->
+          <ellipse class="splash-abdomen" cx="75" cy="95" rx="25" ry="19" fill="url(#sg)"/>
+
+          <!-- ── PETIOLE (waist) ─────────────────────── -->
+          <ellipse class="splash-petiole" cx="75" cy="74" rx="7" ry="5.5" fill="url(#sg)"/>
+
+          <!-- ── THORAX ──────────────────────────────── -->
+          <ellipse class="splash-thorax" cx="75" cy="55" rx="16" ry="15" fill="url(#sg)"/>
+
+          <!-- ── CHECKMARK on thorax ─────────────────── -->
           <path class="splash-check"
-            d="M 40,89 L 64,110 L 106,58"
-            stroke="url(#sg)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            d="M 62,55 L 71,65 L 89,43"
+            stroke="rgba(255,255,255,0.95)" stroke-width="5.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- ── HEAD ────────────────────────────────── -->
+          <ellipse class="splash-head" cx="75" cy="28" rx="14" ry="12" fill="url(#sg)"/>
+
+          <!-- ── EYES ────────────────────────────────── -->
+          <circle class="splash-eyes" cx="69"  cy="26" r="3.8" fill="white"/>
+          <circle class="splash-eyes" cx="81" cy="26" r="3.8" fill="white"/>
+
+          <!-- ── ANTENNAE ─────────────────────────────── -->
+          <path class="splash-antenna" d="M 70,18 Q 58,10 48,8"
+            stroke="url(#sg)" stroke-width="4" stroke-linecap="round"/>
+          <circle class="splash-antenna-tip" cx="48" cy="8" r="4.5" fill="url(#sg)"/>
+          <path class="splash-antenna" d="M 80,18 Q 92,10 102,8"
+            stroke="url(#sg)" stroke-width="4" stroke-linecap="round"/>
+          <circle class="splash-antenna-tip" cx="102" cy="8" r="4.5" fill="url(#sg)"/>
         </svg>
+
         <div class="splash-wordmark" aria-label="antask">
           <span class="splash-an">an</span><span class="splash-task">task</span>
         </div>
