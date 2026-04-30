@@ -78,7 +78,10 @@
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
 
         <div class="sidebar-footer">
-          <button type="button" id="global-search-btn" class="global-search-btn">⌕ Buscar tareas</button>
+          <div class="sidebar-search-row">
+            <button type="button" id="global-search-btn" class="global-search-btn">⌕ Buscar tareas</button>
+            <button type="button" id="agenda-btn" class="agenda-nav-btn" title="Vista de agenda — tareas con fecha (A)">⏱</button>
+          </div>
           <div class="sidebar-footer-row">
             <button type="button" id="new-project-btn" class="new-project-btn">+ Nuevo proyecto</button>
             <button type="button" id="new-section-btn" class="new-section-btn" title="Nueva sección de proyectos">⊟</button>
@@ -137,6 +140,20 @@
           <div class="empty-state-icon">⬡</div>
           <p class="empty-state-title">Ningún proyecto seleccionado</p>
           <p class="empty-state-sub">Crea o selecciona un proyecto desde la barra lateral</p>
+        </div>
+
+        <!-- Panel de agenda (tareas con fecha de todos los proyectos) -->
+        <div class="agenda-panel" id="agenda-panel" hidden>
+          <div class="agenda-header">
+            <div class="agenda-header-left">
+              <button type="button" id="agenda-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos">▶</button>
+              <div>
+                <h2 class="project-title">// Agenda</h2>
+                <p class="subtitle">Tareas con fecha límite — todos los proyectos</p>
+              </div>
+            </div>
+          </div>
+          <div id="agenda-content" class="agenda-content"></div>
         </div>
 
         <!-- Panel de tareas (se muestra cuando hay proyecto activo) -->

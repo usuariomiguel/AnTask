@@ -265,6 +265,12 @@ document.addEventListener("keydown", function(e) {
     })();
     return;
   }
+
+  if (e.key === "a" || e.key === "A") {
+    e.preventDefault();
+    showAgendaPanel();
+    return;
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -733,6 +739,12 @@ function activateProject(id) {
   activeProjectId = id;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
+
+  // Cierra el panel de agenda si estaba abierto
+  var agendaPanel = document.getElementById("agenda-panel");
+  if (agendaPanel) agendaPanel.hidden = true;
+  var agendaBtn = document.getElementById("agenda-btn");
+  if (agendaBtn) agendaBtn.classList.remove("active");
 
   const project = getActiveProject();
   const hasProject = Boolean(project);
@@ -2145,6 +2157,194 @@ function updateNotesFmtButtons() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// VISTA DE AGENDA
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
+  var agendaBtn = document.getElementById("agenda-btn");
+  if (agendaBtn) {
+    agendaBtn.addEventListener("click", function() { showAgendaPanel(); });
+  }
+  var agendaExpandBtn = document.getElementById("agenda-expand-btn");
+  if (agendaExpandBtn) {
+    agendaExpandBtn.addEventListener("click", function() {
+      var layout = document.querySelector(".layout");
+      if (layout) {
+        layout.classList.remove("sidebar-is-collapsed");
+        var sidebar = document.querySelector(".sidebar");
+        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
+        localStorage.removeItem("sidebar-collapsed");
+      }
+    });
+  }
+})();
+
+function showAgendaPanel() {
+  var agendaPanel = document.getElementById("agenda-panel");
+  var agendaBtn   = document.getElementById("agenda-btn");
+  if (!agendaPanel) return;
+
+  // Toggle: si ya está abierta, cerrar y volver al estado anterior
+  if (!agendaPanel.hidden) {
+    agendaPanel.hidden = true;
+    if (agendaBtn) agendaBtn.classList.remove("active");
+    var project = getActiveProject();
+    emptyState.hidden  = Boolean(project);
+    tasksPanel.hidden  = !project;
+    return;
+  }
+
+  emptyState.hidden = true;
+  tasksPanel.hidden = true;
+  agendaPanel.hidden = false;
+  if (agendaBtn) agendaBtn.classList.add("active");
+  renderAgenda();
+}
+
+function renderAgenda() {
+  var content = document.getElementById("agenda-content");
+  if (!content) return;
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  var groups = { overdue: [], today: [], week: [], later: [] };
+
+  projects.forEach(function(project) {
+    (project.tasks || []).forEach(function(task) {
+      if (!task.dueDate || task.done) return;
+      var due  = new Date(task.dueDate + "T00:00:00");
+      var diff = Math.floor((due - today) / 86400000);
+      var key  = diff < 0 ? "overdue" : diff === 0 ? "today" : diff <= 7 ? "week" : "later";
+      groups[key].push({ task: task, project: project });
+    });
+  });
+
+  ["overdue", "today", "week", "later"].forEach(function(key) {
+    groups[key].sort(function(a, b) {
+      return a.task.dueDate < b.task.dueDate ? -1 : a.task.dueDate > b.task.dueDate ? 1 : 0;
+    });
+  });
+
+  content.innerHTML = "";
+
+  var total = groups.overdue.length + groups.today.length + groups.week.length + groups.later.length;
+
+  if (total === 0) {
+    var empty = document.createElement("div");
+    empty.className = "agenda-empty";
+    var icon = document.createElement("span");
+    icon.className = "agenda-empty-icon";
+    icon.textContent = "⏱";
+    var msg = document.createElement("p");
+    msg.textContent = "No hay tareas con fecha límite pendientes";
+    empty.appendChild(icon);
+    empty.appendChild(msg);
+    content.appendChild(empty);
+    return;
+  }
+
+  var groupDefs = [
+    { key: "overdue", label: "Vencidas" },
+    { key: "today",   label: "Hoy" },
+    { key: "week",    label: "Esta semana" },
+    { key: "later",   label: "Más adelante" },
+  ];
+
+  groupDefs.forEach(function(def) {
+    var items = groups[def.key];
+    if (!items.length) return;
+
+    var section = document.createElement("div");
+    section.className = "agenda-group agenda-group-" + def.key;
+
+    var header = document.createElement("div");
+    header.className = "agenda-group-header";
+
+    var labelEl = document.createElement("span");
+    labelEl.className = "agenda-group-label";
+    labelEl.textContent = def.label;
+
+    var countEl = document.createElement("span");
+    countEl.className = "agenda-group-count";
+    countEl.textContent = items.length;
+
+    header.appendChild(labelEl);
+    header.appendChild(countEl);
+    section.appendChild(header);
+
+    var list = document.createElement("ul");
+    list.className = "agenda-task-list";
+
+    items.forEach(function(item) {
+      list.appendChild(buildAgendaTaskItem(item.task, item.project, today));
+    });
+
+    section.appendChild(list);
+    content.appendChild(section);
+  });
+}
+
+function buildAgendaTaskItem(task, project, today) {
+  var due  = new Date(task.dueDate + "T00:00:00");
+  var diff = Math.floor((due - today) / 86400000);
+
+  var dateLabel = diff === 0  ? "Hoy"
+    : diff === 1  ? "Mañana"
+    : diff === -1 ? "Ayer"
+    : due.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+
+  var li = document.createElement("li");
+  li.className = "agenda-task-item";
+  if (task.priority) li.classList.add("agenda-priority-" + task.priority);
+
+  var main = document.createElement("div");
+  main.className = "agenda-task-main";
+
+  var textEl = document.createElement("span");
+  textEl.className = "agenda-task-text";
+  textEl.textContent = task.text;
+  main.appendChild(textEl);
+
+  var badges = document.createElement("div");
+  badges.className = "agenda-task-badges";
+
+  if (task.priority) {
+    var pb = document.createElement("span");
+    pb.className = "agenda-badge agenda-badge-priority agenda-badge-" + task.priority;
+    pb.textContent = task.priority === "high" ? "▲ Alta"
+      : task.priority === "medium" ? "◆ Media" : "▽ Baja";
+    badges.appendChild(pb);
+  }
+
+  if (task.status) {
+    var sb = document.createElement("span");
+    sb.className = "agenda-badge agenda-badge-status agenda-badge-" + task.status;
+    sb.textContent = task.status === "progress" ? "▶ Progreso" : "⏸ Espera";
+    badges.appendChild(sb);
+  }
+
+  var projBadge = document.createElement("span");
+  projBadge.className = "agenda-badge agenda-badge-project";
+  projBadge.textContent = project.name;
+  badges.appendChild(projBadge);
+
+  var dateEl = document.createElement("span");
+  dateEl.className = "agenda-badge agenda-badge-date";
+  dateEl.textContent = dateLabel;
+  badges.appendChild(dateEl);
+
+  main.appendChild(badges);
+  li.appendChild(main);
+
+  li.addEventListener("click", function() {
+    activateProject(project.id);
+  });
+
+  return li;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // ATAJOS DE TECLADO — MODAL DE AYUDA
 // ═══════════════════════════════════════════════════════════════
 
@@ -2157,6 +2357,7 @@ function showShortcutsHelp() {
       '<tbody>' +
         '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
         '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
+        '<tr><td><kbd>A</kbd></td><td>Vista de agenda</td></tr>' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
         '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
         '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +

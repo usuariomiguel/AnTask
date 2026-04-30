@@ -3233,7 +3233,6 @@ input.inline-edit {
    ═══════════════════════════════════════════════════════════════ */
 
 .global-search-btn {
-  width: 100%;
   background: transparent;
   border: 1px solid var(--b-subtle);
   color: var(--t-muted);
@@ -3247,7 +3246,6 @@ input.inline-edit {
   letter-spacing: 0;
   text-transform: none;
   transition: border-color 0.14s, color 0.14s, background 0.14s;
-  margin-bottom: 0.4rem;
 }
 
 .global-search-btn:hover {
@@ -3780,6 +3778,16 @@ kbd {
 .shortcuts-sep td {
   padding: 0.20rem 0;
   border-top: 1px solid var(--b-subtle);
+}
+
+.sidebar-search-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.sidebar-search-row .global-search-btn {
+  flex: 1;
 }
 
 .sidebar-footer-row {
@@ -4389,5 +4397,296 @@ kbd {
   padding: 0.32rem 0.75rem;
   font-size: 0.72rem;
   color: var(--t-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOTÓN AGENDA (sidebar footer)
+   ═══════════════════════════════════════════════════════════════ */
+
+.agenda-nav-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--b-subtle);
+  color: var(--t-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.46rem 0.60rem;
+  font-size: 0.80rem;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.agenda-nav-btn:hover,
+.agenda-nav-btn.active {
+  color: var(--c-cyan);
+  border-color: var(--b-active);
+  background: rgba(129, 140, 248, 0.08);
+  box-shadow: none;
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL AGENDA
+   ═══════════════════════════════════════════════════════════════ */
+
+.agenda-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1.4rem 1.6rem;
+  animation: panelIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.agenda-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  flex-shrink: 0;
+}
+
+.agenda-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.agenda-header-left .sidebar-expand-btn {
+  margin-top: 0.3rem;
+}
+
+/* Scroll container */
+.agenda-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(129, 140, 248, 0.18) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  padding-bottom: 2rem;
+}
+
+.agenda-content::-webkit-scrollbar { width: 4px; }
+.agenda-content::-webkit-scrollbar-track { background: transparent; }
+.agenda-content::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.18);
+  border-radius: 999px;
+}
+
+/* ── Grupo ─────────────────────────────────────────────────── */
+.agenda-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agenda-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--b-subtle);
+}
+
+.agenda-group-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+}
+
+.agenda-group-count {
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  font-weight: 700;
+  padding: 0.06rem 0.44rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--t-muted);
+}
+
+/* Colores por grupo */
+.agenda-group-overdue .agenda-group-label { color: var(--c-pink); }
+.agenda-group-overdue .agenda-group-count  { background: rgba(251, 113, 133, 0.12); color: var(--c-pink); }
+
+.agenda-group-today .agenda-group-label { color: var(--c-gold); }
+.agenda-group-today .agenda-group-count  { background: rgba(251, 191, 36, 0.12); color: var(--c-gold); }
+
+.agenda-group-week .agenda-group-label { color: var(--c-blue); }
+.agenda-group-week .agenda-group-count  { background: rgba(96, 165, 250, 0.12); color: var(--c-blue); }
+
+.agenda-group-later .agenda-group-label { color: var(--t-soft); }
+.agenda-group-later .agenda-group-count  { background: rgba(255, 255, 255, 0.06); color: var(--t-soft); }
+
+/* ── Lista de tareas ────────────────────────────────────────── */
+.agenda-task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.agenda-task-item {
+  padding: 0.68rem 0.9rem 0.68rem 1.1rem;
+  background: var(--bg-item);
+  border: 1px solid var(--b-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+  overflow: hidden;
+  animation: itemIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Barra lateral de color por prioridad */
+.agenda-task-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background 0.15s;
+}
+
+.agenda-task-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(129, 140, 248, 0.24);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.20);
+}
+
+.agenda-priority-high::before   { background: var(--c-pink); }
+.agenda-priority-medium::before { background: var(--c-gold); }
+.agenda-priority-low::before    { background: var(--c-blue); }
+
+/* Vencidas — borde izquierdo rojo aunque no tengan prioridad */
+.agenda-group-overdue .agenda-task-item:not(.agenda-priority-high):not(.agenda-priority-medium):not(.agenda-priority-low)::before {
+  background: rgba(251, 113, 133, 0.50);
+}
+
+.agenda-task-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.agenda-task-text {
+  font-size: 0.90rem;
+  font-weight: 450;
+  color: var(--t-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+.agenda-task-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.agenda-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.08rem 0.46rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.agenda-badge-priority.agenda-badge-high   { color: var(--c-pink); background: rgba(251, 113, 133, 0.09); border-color: rgba(251, 113, 133, 0.28); }
+.agenda-badge-priority.agenda-badge-medium { color: var(--c-gold); background: rgba(251, 191, 36,  0.09); border-color: rgba(251, 191, 36,  0.28); }
+.agenda-badge-priority.agenda-badge-low    { color: var(--c-blue); background: rgba(96,  165, 250, 0.09); border-color: rgba(96,  165, 250, 0.28); }
+
+.agenda-badge-status.agenda-badge-progress { color: var(--c-green); background: rgba(52, 211, 153, 0.09); border-color: rgba(52, 211, 153, 0.28); }
+.agenda-badge-status.agenda-badge-waiting  { color: var(--c-gold);  background: rgba(251, 191, 36, 0.09); border-color: rgba(251, 191, 36, 0.28); }
+
+.agenda-badge-project {
+  color: var(--c-cyan);
+  background: rgba(129, 140, 248, 0.09);
+  border-color: rgba(129, 140, 248, 0.22);
+}
+
+.agenda-badge-date {
+  color: var(--t-muted);
+  margin-left: auto;
+}
+
+.agenda-group-overdue .agenda-badge-date { color: var(--c-pink); }
+.agenda-group-today   .agenda-badge-date { color: var(--c-gold); }
+
+/* ── Estado vacío ──────────────────────────────────────────── */
+.agenda-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 4rem 2rem;
+  color: var(--t-muted);
+  text-align: center;
+}
+
+.agenda-empty-icon {
+  font-size: 2.6rem;
+  opacity: 0.35;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.agenda-empty p {
+  font-size: 0.90rem;
+  line-height: 1.55;
+}
+
+/* ── Light theme ────────────────────────────────────────────── */
+:root[data-theme="light"] .agenda-task-item {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .agenda-task-item:hover {
+  background: #fff;
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+:root[data-theme="light"] .agenda-badge-project {
+  background: rgba(79, 70, 229, 0.07);
+  border-color: rgba(79, 70, 229, 0.18);
+}
+
+:root[data-theme="light"] .agenda-group-count {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Mobile ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .agenda-panel {
+    padding: 0.85rem 0.85rem 0;
+  }
+
+  .agenda-header {
+    margin-bottom: 1rem;
+  }
+
+  .agenda-content {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
+  }
 }
 
