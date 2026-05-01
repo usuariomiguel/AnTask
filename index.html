@@ -83,8 +83,13 @@
         <div class="mobile-header-center">
           <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
           <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
+          <div class="mobile-header-project">
+            <span class="mobile-header-title" id="mobile-header-title"></span>
+            <span class="mobile-header-count" id="mobile-header-count"></span>
+          </div>
         </div>
         <div class="mobile-header-right">
+          <button type="button" class="mobile-icon-btn mobile-header-notes-btn" id="mobile-header-notes-btn" aria-label="Notas del proyecto"><i data-lucide="file-text"></i></button>
         </div>
       </header>
 
@@ -250,8 +255,7 @@
                 <button type="button" data-filter="done">✓ Hechas</button>
               </div>
             </div>
-            <!-- Notes button — visible directly in toolbar -->
-            <button type="button" id="mobile-notes-btn" class="mobile-notes-direct-btn"><i data-lucide="file-text"></i> Notas</button>
+            <button type="button" id="mobile-notes-btn" style="display:none" aria-hidden="true"></button>
             <!-- Secondary actions dropdown -->
             <div style="position:relative">
               <button type="button" class="mobile-actions-btn" id="mobile-actions-btn">
@@ -501,6 +505,10 @@
 
       if (mobileNotesBtn && desktopNotesLink)
         mobileNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
+
+      var mobileHeaderNotesBtn = document.getElementById("mobile-header-notes-btn");
+      if (mobileHeaderNotesBtn && desktopNotesLink)
+        mobileHeaderNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
 
       if (mobileDeleteProjectBtn && desktopDeleteProjectBtn)
         mobileDeleteProjectBtn.addEventListener("click", function() { desktopDeleteProjectBtn.click(); });

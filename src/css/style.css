@@ -2498,6 +2498,56 @@ input.inline-edit {
     margin-bottom: 0;
   }
 
+  /* Project title block in header (hidden until project is active) */
+  .mobile-header-project {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    overflow: hidden;
+    max-width: 200px;
+  }
+
+  .mobile-header-title {
+    font-size: 0.90rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--t-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.2;
+  }
+
+  .mobile-header-count {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--t-muted);
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* Notes button in header (hidden until project is active) */
+  .mobile-header-notes-btn {
+    display: none;
+  }
+
+  /* When a project is active: show title block + notes btn, hide logos */
+  .mobile-header--project .mobile-header-project {
+    display: flex;
+  }
+
+  .mobile-header--project .brand-logo--dark,
+  .mobile-header--project .brand-logo--light {
+    display: none !important;
+  }
+
+  /* Hide tasks-header on mobile — title and notes are in the top header */
+  .tasks-header {
+    display: none;
+  }
+
   .mobile-icon-btn {
     width: 36px;
     height: 36px;

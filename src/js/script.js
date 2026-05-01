@@ -753,6 +753,18 @@ function activateProject(id) {
   tasksPanel.hidden = !hasProject;
   if (!hasProject) document.title = "antask";
 
+  // Update mobile header: show project title or logo
+  var mobileHeader = document.getElementById("mobile-header");
+  var mobileHeaderTitle = document.getElementById("mobile-header-title");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeader) {
+    mobileHeader.classList.toggle("mobile-header--project", hasProject);
+    if (mobileHeaderTitle) mobileHeaderTitle.textContent = hasProject ? project.name : "";
+    if (mobileHeaderCount) mobileHeaderCount.textContent = hasProject
+      ? project.tasks.filter(function(t) { return !t.done; }).length + " pendientes"
+      : "";
+  }
+
   if (!hasProject) { renderSidebar(); return; }
 
   projectTitleEl.textContent = project.name;
@@ -1334,6 +1346,8 @@ function renderTasks() {
   const pending = project.tasks.filter(function(t) { return !t.done; }).length;
   taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   projectSubtitle.textContent = "// " + project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — antask"
     : project.name + " — antask";
