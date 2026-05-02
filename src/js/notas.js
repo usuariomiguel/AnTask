@@ -218,6 +218,9 @@ newProjectBtn.addEventListener("click", async function() {
 if (typeof setupPasteHandler === "function") {
   setupPasteHandler(editor, saveNotes);
 }
+if (typeof setupImageResizer === "function") {
+  setupImageResizer(editor);
+}
 
 // ── Guardado automático ───────────────────────────────────────
 editor.addEventListener("input", saveNotes);

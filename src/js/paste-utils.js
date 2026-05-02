@@ -112,3 +112,105 @@
     if (btnFormat) btnFormat.addEventListener("click", function () { applyPaste(true); });
   });
 })();
+
+// ── Image resizer ────────────────────────────────────────────────────────────
+(function () {
+  var overlay    = null;
+  var activeImg  = null;
+  var activeEl   = null;  // the editor element that owns activeImg
+  var dragStartX = 0;
+  var dragStartW = 0;
+  var dragging   = false;
+
+  function px(n) { return n + "px"; }
+
+  function clientX(e) {
+    return (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+  }
+
+  function buildOverlay() {
+    var o = document.createElement("div");
+    o.id        = "img-resize-overlay";
+    o.className = "img-resize-overlay";
+    o.innerHTML =
+      '<span class="img-rh img-rh-nw"></span>' +
+      '<span class="img-rh img-rh-ne"></span>' +
+      '<span class="img-rh img-rh-sw"></span>' +
+      '<span class="img-rh img-rh-se" title="Arrastrar para redimensionar"></span>';
+    document.body.appendChild(o);
+
+    var se = o.querySelector(".img-rh-se");
+    se.addEventListener("mousedown",  onDragStart);
+    se.addEventListener("touchstart", onDragStart, { passive: false });
+    return o;
+  }
+
+  function reposition() {
+    if (!activeImg || !overlay) return;
+    var r = activeImg.getBoundingClientRect();
+    overlay.style.left   = px(r.left   + window.scrollX);
+    overlay.style.top    = px(r.top    + window.scrollY);
+    overlay.style.width  = px(r.width);
+    overlay.style.height = px(r.height);
+  }
+
+  function showFor(img) {
+    if (!overlay) overlay = buildOverlay();
+    activeImg = img;
+    reposition();
+    overlay.classList.add("img-resize-visible");
+  }
+
+  function hide() {
+    if (overlay) overlay.classList.remove("img-resize-visible");
+    activeImg = null;
+    activeEl  = null;
+  }
+
+  function onDragStart(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragging   = true;
+    dragStartX = clientX(e);
+    dragStartW = activeImg ? activeImg.getBoundingClientRect().width : 0;
+  }
+
+  function onMove(e) {
+    if (!dragging || !activeImg) return;
+    var newW = Math.max(40, dragStartW + (clientX(e) - dragStartX));
+    activeImg.style.width  = px(newW);
+    activeImg.style.height = "auto";
+    reposition();
+  }
+
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    if (activeEl) activeEl.dispatchEvent(new Event("input"));
+  }
+
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup",   onUp);
+  document.addEventListener("touchmove", onMove, { passive: true });
+  document.addEventListener("touchend",  onUp);
+
+  // Reposition while editor or window scrolls
+  window.addEventListener("scroll",  reposition, true);
+  window.addEventListener("resize",  reposition);
+
+  document.addEventListener("click", function (e) {
+    if (!activeImg) return;
+    if (e.target === activeImg) return;
+    if (overlay && overlay.contains(e.target)) return;
+    hide();
+  });
+
+  window.setupImageResizer = function (editorEl) {
+    editorEl.addEventListener("click", function (e) {
+      if (e.target.tagName !== "IMG" || !editorEl.contains(e.target)) return;
+      e.stopPropagation();
+      activeEl = editorEl;
+      showFor(e.target);
+    });
+  };
+})();

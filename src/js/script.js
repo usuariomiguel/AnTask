@@ -190,6 +190,9 @@ if (notesSideClose) {
 if (notesSideEditor && typeof setupPasteHandler === "function") {
   setupPasteHandler(notesSideEditor, saveNotesSide);
 }
+if (notesSideEditor && typeof setupImageResizer === "function") {
+  setupImageResizer(notesSideEditor);
+}
 
 if (notesSideEditor) {
   notesSideEditor.addEventListener("input", function() {
