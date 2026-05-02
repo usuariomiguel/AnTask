@@ -214,6 +214,11 @@ newProjectBtn.addEventListener("click", async function() {
   activateProject(project.id);
 });
 
+// ── Opciones de pegado (con/sin formato) ─────────────────────
+if (typeof setupPasteHandler === "function") {
+  setupPasteHandler(editor, saveNotes);
+}
+
 // ── Guardado automático ───────────────────────────────────────
 editor.addEventListener("input", saveNotes);
 

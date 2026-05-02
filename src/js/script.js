@@ -186,7 +186,11 @@ if (notesSideClose) {
   notesSideClose.addEventListener("click", function() { closeNotesPanel(); });
 }
 
-// Editor de notas: guardado y formato
+// Editor de notas: opciones de pegado y guardado
+if (notesSideEditor && typeof setupPasteHandler === "function") {
+  setupPasteHandler(notesSideEditor, saveNotesSide);
+}
+
 if (notesSideEditor) {
   notesSideEditor.addEventListener("input", function() {
     if (_notesSaveTimer) clearTimeout(_notesSaveTimer);

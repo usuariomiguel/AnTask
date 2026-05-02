@@ -5007,3 +5007,83 @@ kbd {
   }
 }
 
+/* ── Paste options toast ───────────────────────────────────────────── */
+.paste-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(130%);
+  background: #22223a;
+  border: 1px solid rgba(129, 140, 248, 0.32);
+  border-radius: 9px;
+  padding: 0.60rem 0.85rem 0.50rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  font-size: 0.82rem;
+  transition: transform 0.24s cubic-bezier(.34, 1.56, .64, 1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+:root[data-theme="light"] .paste-toast {
+  background: #fff;
+  border-color: rgba(79, 70, 229, 0.20);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.paste-toast-visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.paste-toast-msg {
+  color: var(--t-soft);
+  margin-right: 0.15rem;
+}
+
+.paste-toast-btn {
+  background: transparent;
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  color: var(--t-soft);
+  padding: 0.26rem 0.70rem;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.paste-toast-btn:hover {
+  background: rgba(129, 140, 248, 0.10);
+  box-shadow: none;
+  transform: none;
+}
+
+.paste-toast-btn-fmt {
+  border-color: rgba(129, 140, 248, 0.55);
+  color: var(--c-cyan);
+  font-weight: 600;
+}
+
+.paste-toast-btn-fmt:hover {
+  background: rgba(129, 140, 248, 0.14);
+}
+
+.paste-toast-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--c-cyan);
+  transform-origin: left;
+}
+
+@keyframes paste-bar-shrink {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
