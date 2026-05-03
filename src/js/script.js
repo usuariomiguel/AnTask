@@ -2767,12 +2767,32 @@ window.addEventListener("load", function() {
 // CLOUD SYNC CALLBACKS
 // ═══════════════════════════════════════════════════════════════
 
+var _syncWasConnected = false;
+
 function _syncOnAuthChange(user) {
   // Update legacy hidden elements (backward compat)
   if (syncUserAvatar) syncUserAvatar.textContent = user ? (user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "?")) : "A";
   if (syncUserName)   syncUserName.textContent   = user ? (user.displayName || user.email || "") : "";
   // Update profile menu
   _updateProfileMenu(user);
+  // Si había sesión activa y se desconecta, limpiar datos locales
+  if (!user && _syncWasConnected) {
+    _clearLocalData();
+  }
+  _syncWasConnected = Boolean(user);
+}
+
+function _clearLocalData() {
+  projects = [];
+  sections = [];
+  activeProjectId = null;
+  localStorage.removeItem(PROJECTS_KEY);
+  localStorage.removeItem(SECTIONS_KEY);
+  localStorage.removeItem(METADATA_KEY);
+  localStorage.removeItem(ACTIVE_KEY);
+  renderSidebar();
+  renderTasks();
+  renderLabelFilterBar();
 }
 
 function _updateProfileMenu(user) {
@@ -2856,3 +2876,81 @@ function _syncApplyRemote(remoteProjects, remoteSections) {
     console.warn("AnsoSync: error aplicando cambios remotos:", e);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// NOTES PANEL DRAG-TO-RESIZE (mobile / tablet — altura)
+// ═══════════════════════════════════════════════════════════════
+(function () {
+  var panel  = document.getElementById("notes-side-panel");
+  var handle = document.getElementById("notes-drag-handle");
+  if (!panel || !handle) return;
+
+  var _startY = 0;
+  var _startH = 0;
+
+  function onStart(e) {
+    _startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+    _startH = panel.offsetHeight;
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("mouseup",   onEnd);
+    document.addEventListener("touchend",  onEnd);
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    var y     = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+    var delta = _startY - y;
+    var newH  = Math.min(Math.max(_startH + delta, 180), window.innerHeight * 0.96);
+    panel.style.height = newH + "px";
+    e.preventDefault();
+  }
+
+  function onEnd() {
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("mouseup",   onEnd);
+    document.removeEventListener("touchend",  onEnd);
+  }
+
+  handle.addEventListener("mousedown",  onStart);
+  handle.addEventListener("touchstart", onStart, { passive: false });
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// NOTES PANEL DRAG-TO-RESIZE (escritorio — ancho)
+// ═══════════════════════════════════════════════════════════════
+(function () {
+  var panel  = document.getElementById("notes-side-panel");
+  var handle = document.getElementById("notes-resize-handle");
+  if (!panel || !handle) return;
+
+  var _startX = 0;
+  var _startW = 0;
+
+  function onStart(e) {
+    if (window.innerWidth <= 768) return;
+    _startX = e.clientX;
+    _startW = panel.offsetWidth;
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup",   onEnd);
+    document.body.style.cursor    = "ew-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    var delta = _startX - e.clientX;
+    var newW  = Math.min(Math.max(_startW + delta, 260), window.innerWidth * 0.55);
+    panel.style.width = newW + "px";
+  }
+
+  function onEnd() {
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup",   onEnd);
+    document.body.style.cursor    = "";
+    document.body.style.userSelect = "";
+  }
+
+  handle.addEventListener("mousedown", onStart);
+})();
