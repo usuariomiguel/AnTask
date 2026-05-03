@@ -1121,7 +1121,7 @@ async function showProjectMenu(project, anchor) {
 
 function renderTasks() {
   const project = getActiveProject();
-  if (!project) return;
+  if (!project) { taskList.innerHTML = ""; return; }
 
   taskList.innerHTML = "";
   getVisibleTasks(project).forEach(function(task) {
