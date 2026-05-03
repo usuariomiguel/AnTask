@@ -380,12 +380,21 @@
       <p id="notes-side-status" class="save-status notes-side-status">Sin cambios recientes</p>
     </div>
 
+    <!-- Paste options toast -->
+    <div class="paste-toast" id="paste-toast" role="status" aria-live="polite">
+      <span class="paste-toast-msg">Pegar como:</span>
+      <button class="paste-toast-btn" id="paste-btn-plain" type="button">Sin formato</button>
+      <button class="paste-toast-btn paste-toast-btn-fmt" id="paste-btn-format" type="button">Con formato</button>
+      <div class="paste-toast-bar"></div>
+    </div>
+
     <!-- Firebase SDK (compat v10) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="./src/js/firebase-sync.js"></script>
+    <script src="./src/js/paste-utils.js"></script>
     <script src="./src/js/script.js"></script>
     <script src="./src/js/sections-and-profile.js"></script>
     <script>
