@@ -5012,7 +5012,7 @@ kbd {
   position: fixed;
   bottom: 2rem;
   left: 50%;
-  transform: translateX(-50%) translateY(200%);
+  transform: translateX(-50%) translateY(100vh);
   visibility: hidden;
   background: #22223a;
   border: 1px solid rgba(129, 140, 248, 0.32);
