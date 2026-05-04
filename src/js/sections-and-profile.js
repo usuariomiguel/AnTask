@@ -20,7 +20,13 @@
   }
 
   function syncThemeIcon() {
-    if (pfThemeIco) pfThemeIco.textContent = document.documentElement.dataset.theme === "dark" ? "🌙" : "☀️";
+    if (!pfThemeIco) return;
+    var isDark = document.documentElement.dataset.theme === "dark";
+    var ico = pfThemeIco.querySelector("i[data-lucide]");
+    if (ico) {
+      ico.setAttribute("data-lucide", isDark ? "moon" : "sun");
+      if (window.lucide) lucide.createIcons({ nodes: [pfThemeIco] });
+    }
   }
 
   profileBtn.addEventListener("click", function(e) {

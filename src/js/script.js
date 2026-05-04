@@ -30,16 +30,16 @@ function migrateStorageIfNeeded() {
 // ─── ESTADO DE CICLO ─────────────────────────────────────────
 const STATUS_CYCLE = [null, "progress", "waiting"];
 const STATUS_CONFIG = {
-  progress: { label: "▶ Progreso", cls: "status-progress" },
-  waiting:  { label: "⏸ En espera", cls: "status-waiting" },
+  progress: { label: "Progreso", cls: "status-progress" },
+  waiting:  { label: "En espera", cls: "status-waiting" },
 };
 
 // ─── PRIORIDAD ────────────────────────────────────────────────
 const PRIORITY_CYCLE  = [null, "high", "medium", "low"];
 const PRIORITY_CONFIG = {
-  high:   { label: "▲ Alta",   cls: "priority-high",   short: "▲" },
-  medium: { label: "◆ Media",  cls: "priority-medium", short: "◆" },
-  low:    { label: "▽ Baja",   cls: "priority-low",    short: "▽" },
+  high:   { label: "Alta",   cls: "priority-high",   short: "H" },
+  medium: { label: "Media",  cls: "priority-medium", short: "M" },
+  low:    { label: "Baja",   cls: "priority-low",    short: "L" },
 };
 
 // ─── ELEMENTOS DOM ───────────────────────────────────────────
@@ -89,8 +89,11 @@ let currentFilter      = "all";
 let currentSort        = "manual";
 let currentLabelFilter = null;   // null = sin filtro de etiqueta
 const expandedTaskIds  = new Set();
-let dragSrcId   = null;   // id de la tarea que se arrastra
-let dropIndicator = null; // línea visual de posición
+let dragSrcId          = null;
+let dropIndicator      = null;
+let dragSrcProjectId   = null;
+let projectDropIndicator = null;
+let dragSrcSectionId   = null;
 
 // ─── UNDO ESTADO ─────────────────────────────────────────────
 let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indices }
@@ -402,7 +405,9 @@ function modalConfirm(message, confirmLabel) {
 function modalAlert(message, type) {
   return new Promise(function(resolve) {
     const { overlay, box } = createModalBase();
-    const icon = type === "error" ? "✕" : "⬡";
+    const icon = type === "error"
+      ? '<i data-lucide="circle-x"></i>'
+      : '<i data-lucide="info"></i>';
     const cls  = type === "error" ? "modal-label modal-label-error" : "modal-label";
 
     box.innerHTML =
@@ -411,6 +416,7 @@ function modalAlert(message, type) {
       '<div class="modal-actions">' +
         '<button class="modal-btn modal-btn-confirm">Entendido</button>' +
       '</div>';
+    if (window.lucide) lucide.createIcons({ nodes: [box] });
 
     const btn = box.querySelector(".modal-btn-confirm");
     function doClose() { closeModal(overlay); resolve(); }
@@ -467,7 +473,7 @@ function modalDate(current) {
       '</div>' +
       '<input class="modal-input modal-input-date" type="date" />' +
       '<div class="modal-actions modal-actions-date">' +
-        '<button class="modal-btn modal-btn-clear">✕ Quitar</button>' +
+        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
         '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
         '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
       '</div>';
@@ -566,7 +572,7 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
   if (!project) return;
   const confirmed = await modalConfirm(
     'Eliminar <strong>' + project.name + '</strong> y todas sus tareas?',
-    "✕ Eliminar"
+    "Eliminar"
   );
   if (!confirmed) return;
   projects = projects.filter(function(p) { return p.id !== project.id; });
@@ -639,7 +645,7 @@ importFile.addEventListener("change", async function() {
     if (parsed.version === 2 && Array.isArray(parsed.projects)) {
       const confirmed = await modalConfirm(
         "Esto reemplazará <strong>todos los proyectos actuales</strong> con el backup. ¿Continuar?",
-        "↓ Restaurar workspace"
+        "Restaurar workspace"
       );
       if (!confirmed) return;
       projects = parsed.projects.map(sanitizeProject);
@@ -823,15 +829,24 @@ function renderSidebar() {
       sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
     }
   });
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderSectionHeader(section, sectionProjects) {
   const li = document.createElement("li");
   li.className = "section-header";
+  li.setAttribute("data-section-id", section.id);
+
+  const sectionDragHandle = document.createElement("span");
+  sectionDragHandle.className = "section-drag-handle";
+  sectionDragHandle.innerHTML = '<i data-lucide="grip-vertical"></i>';
+  sectionDragHandle.setAttribute("aria-hidden", "true");
 
   const chevron = document.createElement("span");
   chevron.className = "section-chevron";
-  chevron.textContent = section.collapsed ? "▶" : "▼";
+  chevron.innerHTML = section.collapsed
+    ? '<i data-lucide="chevron-right"></i>'
+    : '<i data-lucide="chevron-down"></i>';
 
   const nameEl = document.createElement("span");
   nameEl.className = "section-name";
@@ -844,22 +859,27 @@ function renderSectionHeader(section, sectionProjects) {
   const menuBtn = document.createElement("button");
   menuBtn.type = "button";
   menuBtn.className = "section-menu-btn";
-  menuBtn.textContent = "⋯";
+  menuBtn.innerHTML = '<i data-lucide="ellipsis"></i>';
   menuBtn.title = "Opciones de sección";
   menuBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     showSectionMenu(section, menuBtn);
   });
 
+  li.appendChild(sectionDragHandle);
   li.appendChild(chevron);
   li.appendChild(nameEl);
   li.appendChild(countEl);
   li.appendChild(menuBtn);
-  li.addEventListener("click", function() {
+  li.addEventListener("click", function(e) {
+    if (e.target.closest(".section-drag-handle") || e.target.closest(".section-menu-btn")) return;
     section.collapsed = !section.collapsed;
     saveSections();
     renderSidebar();
   });
+
+  initSectionDropTarget(li, section);
+  initSectionDragDrop(li, section.id);
   projectListEl.appendChild(li);
 }
 
@@ -894,15 +914,22 @@ function renderProjectItem(project, indented) {
   const kebabBtn = document.createElement("button");
   kebabBtn.type = "button";
   kebabBtn.className = "project-kebab-btn";
-  kebabBtn.textContent = "⋯";
+  kebabBtn.innerHTML = '<i data-lucide="ellipsis"></i>';
   kebabBtn.title = "Opciones";
   kebabBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     showProjectMenu(project, kebabBtn);
   });
 
+  const dragHandle = document.createElement("span");
+  dragHandle.className = "project-drag-handle";
+  dragHandle.innerHTML = '<i data-lucide="grip-vertical"></i>';
+  dragHandle.title = "Arrastrar para reordenar";
+  dragHandle.setAttribute("aria-hidden", "true");
+
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
+  topRow.appendChild(dragHandle);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
   topRow.appendChild(kebabBtn);
@@ -912,9 +939,11 @@ function renderProjectItem(project, indented) {
   bar.className = "project-progress-bar";
   bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
 
+  li.setAttribute("draggable", "false");
   li.appendChild(topRow);
   if (total > 0) li.appendChild(bar);
   li.addEventListener("click", function() { activateProject(project.id); });
+  initProjectDragDrop(li, project.id);
   projectListEl.appendChild(li);
 }
 
@@ -1010,7 +1039,7 @@ async function showSectionMenu(section, anchor) {
       action: async function() {
         var ok = await modalConfirm(
           "¿Eliminar la sección <strong>" + section.name + "</strong>? Los proyectos pasarán a sin sección.",
-          "✕ Eliminar"
+          "Eliminar"
         );
         if (!ok) return;
         projects.forEach(function(p) {
@@ -1041,7 +1070,7 @@ async function showProjectMenu(project, anchor) {
 
   var sectionOptions = sections.map(function(s) {
     return {
-      label: (project.sectionId === s.id ? "✓ " : "    ") + s.name,
+      label: (project.sectionId === s.id ? "• " : "  ") + s.name,
       action: function() {
         project.sectionId = project.sectionId === s.id ? null : s.id;
         saveProjects();
@@ -1075,7 +1104,7 @@ async function showProjectMenu(project, anchor) {
       action: async function() {
         var ok = await modalConfirm(
           "¿Eliminar el proyecto <strong>" + project.name + "</strong> y todas sus tareas?",
-          "✕ Eliminar"
+          "Eliminar"
         );
         if (!ok) return;
         projects = projects.filter(function(p) { return p.id !== project.id; });
@@ -1386,7 +1415,7 @@ function renderSubtasks(task, subtaskList) {
     const del = document.createElement("button");
     del.type = "button";
     del.className = "subtask-delete-btn";
-    del.textContent = "✕";
+    del.innerHTML = '<i data-lucide="x"></i>';
     del.setAttribute("aria-label", "Eliminar subtarea");
     del.addEventListener("click", function() {
       task.subtasks = task.subtasks.filter(function(s) { return s.id !== subtask.id; });
@@ -1480,7 +1509,7 @@ function updateStatusBtn(btn, task) {
   } else {
     const icons = { progress: "play-circle", waiting: "pause-circle" };
     const cfg = STATUS_CONFIG[task.status];
-    btn.innerHTML = '<i data-lucide="' + (icons[task.status] || "circle-dashed") + '"></i> ' + cfg.label.replace(/^[^\s]+ /, "");
+    btn.innerHTML = '<i data-lucide="' + (icons[task.status] || "circle-dashed") + '"></i> ' + cfg.label;
     btn.className = "status-btn " + cfg.cls + "-btn";
   }
 }
@@ -1504,7 +1533,7 @@ function updatePriorityBtn(btn, task) {
     btn.className = "priority-btn";
   } else {
     const cfg = PRIORITY_CONFIG[task.priority];
-    btn.innerHTML = '<i data-lucide="flag"></i> ' + cfg.label.replace(/^[^\s]+ /, "");
+    btn.innerHTML = '<i data-lucide="flag"></i> ' + cfg.label;
     btn.className = "priority-btn " + cfg.cls + "-btn";
   }
 }
@@ -1597,7 +1626,7 @@ async function showLabelPicker(task) {
               '<input type="checkbox" value="' + escHtml(l) + '" ' + checked + ' />' +
               '<span class="label-picker-dot" style="background:' + color + '"></span>' +
               '<span class="label-picker-name">' + escHtml(l) + '</span>' +
-              '<button type="button" class="label-delete-btn" data-label="' + escHtml(l) + '" title="Eliminar etiqueta">✕</button>' +
+              '<button type="button" class="label-delete-btn" data-label="' + escHtml(l) + '" title="Eliminar etiqueta"><i data-lucide="x"></i></button>' +
               '</label>';
           }).join("");
 
@@ -1612,6 +1641,7 @@ async function showLabelPicker(task) {
           '<button class="modal-btn modal-btn-cancel">Cerrar</button>' +
           '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
         '</div>';
+      if (window.lucide) lucide.createIcons({ nodes: [box] });
 
       // delete label buttons
       box.querySelectorAll(".label-delete-btn").forEach(function(btn) {
@@ -1969,6 +1999,168 @@ function removeDropIndicator() {
   if (dropIndicator) { dropIndicator.remove(); dropIndicator = null; }
 }
 
+// ─── PROJECT DRAG & DROP ──────────────────────────────────────
+function initProjectDragDrop(li, projectId) {
+  const handle = li.querySelector(".project-drag-handle");
+  if (!handle) return;
+
+  handle.addEventListener("mousedown", function() {
+    li.setAttribute("draggable", "true");
+  });
+  handle.addEventListener("touchstart", function() {
+    li.setAttribute("draggable", "true");
+  }, { passive: true });
+
+  li.addEventListener("dragstart", function(e) {
+    dragSrcProjectId = projectId;
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
+  });
+
+  li.addEventListener("dragend", function() {
+    li.classList.remove("drag-ghost");
+    li.setAttribute("draggable", "false");
+    removeProjectDropIndicator();
+    dragSrcProjectId = null;
+  });
+
+  li.addEventListener("dragover", function(e) {
+    if (!dragSrcProjectId || dragSrcProjectId === projectId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    showProjectDropIndicator(li, e.clientY);
+  });
+
+  li.addEventListener("dragleave", function(e) {
+    if (!e.relatedTarget || !projectListEl.contains(e.relatedTarget)) {
+      removeProjectDropIndicator();
+    }
+  });
+
+  li.addEventListener("drop", function(e) {
+    e.preventDefault();
+    if (!dragSrcProjectId || dragSrcProjectId === projectId) {
+      removeProjectDropIndicator(); return;
+    }
+    const srcIdx  = projects.findIndex(function(p) { return p.id === dragSrcProjectId; });
+    const destIdx = projects.findIndex(function(p) { return p.id === projectId; });
+    if (srcIdx === -1 || destIdx === -1) { removeProjectDropIndicator(); return; }
+
+    // Inherit section membership from drop target (handles move in/out of sections)
+    const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
+    const destSection = projects[destIdx].sectionId;
+    projects[srcIdx].sectionId = (destSection && knownSectionIds.has(destSection)) ? destSection : null;
+
+    const rect = li.getBoundingClientRect();
+    const isAfter = e.clientY > rect.top + rect.height / 2;
+
+    const [moved] = projects.splice(srcIdx, 1);
+    var newIdx = destIdx > srcIdx ? destIdx - 1 : destIdx;
+    if (isAfter) newIdx += 1;
+    projects.splice(Math.max(0, Math.min(newIdx, projects.length)), 0, moved);
+
+    removeProjectDropIndicator();
+    saveProjects();
+    renderSidebar();
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+function initSectionDropTarget(li, section) {
+  li.addEventListener("dragover", function(e) {
+    if (!dragSrcProjectId) return;
+    e.preventDefault();
+    li.classList.add("section-drop-target");
+  });
+  li.addEventListener("dragleave", function(e) {
+    if (!e.relatedTarget || !projectListEl.contains(e.relatedTarget)) {
+      li.classList.remove("section-drop-target");
+    }
+  });
+  li.addEventListener("drop", function(e) {
+    e.preventDefault();
+    li.classList.remove("section-drop-target");
+    if (!dragSrcProjectId) return;
+    const srcIdx = projects.findIndex(function(p) { return p.id === dragSrcProjectId; });
+    if (srcIdx === -1) return;
+    projects[srcIdx].sectionId = section.id;
+    // Move to end of this section's block in the array
+    const [moved] = projects.splice(srcIdx, 1);
+    var insertAt = projects.reduce(function(last, p, i) {
+      return p.sectionId === section.id ? i + 1 : last;
+    }, projects.length);
+    projects.splice(insertAt, 0, moved);
+    removeProjectDropIndicator();
+    saveProjects();
+    renderSidebar();
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+function initSectionDragDrop(li, sectionId) {
+  const handle = li.querySelector(".section-drag-handle");
+  if (!handle) return;
+
+  handle.addEventListener("mousedown", function() { li.setAttribute("draggable", "true"); });
+  handle.addEventListener("touchstart", function() { li.setAttribute("draggable", "true"); }, { passive: true });
+
+  li.addEventListener("dragstart", function(e) {
+    if (dragSrcProjectId) return; // project drag takes priority
+    dragSrcSectionId = sectionId;
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
+  });
+
+  li.addEventListener("dragend", function() {
+    li.classList.remove("drag-ghost");
+    li.setAttribute("draggable", "false");
+    removeProjectDropIndicator();
+    dragSrcSectionId = null;
+  });
+
+  li.addEventListener("dragover", function(e) {
+    if (!dragSrcSectionId || dragSrcSectionId === sectionId) return;
+    e.preventDefault();
+    showProjectDropIndicator(li, e.clientY);
+  });
+
+  li.addEventListener("drop", function(e) {
+    e.preventDefault();
+    li.classList.remove("section-drop-target");
+    if (!dragSrcSectionId || dragSrcSectionId === sectionId) { removeProjectDropIndicator(); return; }
+
+    const srcIdx  = sections.findIndex(function(s) { return s.id === dragSrcSectionId; });
+    const destIdx = sections.findIndex(function(s) { return s.id === sectionId; });
+    if (srcIdx === -1 || destIdx === -1) { removeProjectDropIndicator(); return; }
+
+    const rect = li.getBoundingClientRect();
+    const isAfter = e.clientY > rect.top + rect.height / 2;
+    const [moved] = sections.splice(srcIdx, 1);
+    var newIdx = destIdx > srcIdx ? destIdx - 1 : destIdx;
+    if (isAfter) newIdx += 1;
+    sections.splice(Math.max(0, Math.min(newIdx, sections.length)), 0, moved);
+
+    removeProjectDropIndicator();
+    saveSections();
+    renderSidebar();
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+function showProjectDropIndicator(targetNode, clientY) {
+  removeProjectDropIndicator();
+  const rect = targetNode.getBoundingClientRect();
+  const isAfter = clientY > rect.top + rect.height / 2;
+  projectDropIndicator = document.createElement("div");
+  projectDropIndicator.className = "drop-indicator";
+  if (isAfter) targetNode.after(projectDropIndicator);
+  else         targetNode.before(projectDropIndicator);
+}
+
+function removeProjectDropIndicator() {
+  if (projectDropIndicator) { projectDropIndicator.remove(); projectDropIndicator = null; }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // UNDO TOAST
 // ═══════════════════════════════════════════════════════════════
@@ -2054,8 +2246,9 @@ function enterSelectMode() {
   selectedTaskIds.clear();
   taskList.classList.add("select-mode");
   if (selectModeBtn) {
-    selectModeBtn.textContent = "✕ Cancelar";
+    selectModeBtn.innerHTML = '<i data-lucide="x"></i> Cancelar';
     selectModeBtn.classList.add("active");
+    if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
   }
   renderBulkBar();
   renderTasks();
@@ -2067,8 +2260,9 @@ function exitSelectMode() {
   selectedTaskIds.clear();
   taskList.classList.remove("select-mode");
   if (selectModeBtn) {
-    selectModeBtn.textContent = "⊡ Seleccionar";
+    selectModeBtn.innerHTML = '<i data-lucide="square-check-big"></i> Seleccionar';
     selectModeBtn.classList.remove("active");
+    if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
   }
   if (bulkActionBar) bulkActionBar.hidden = true;
   renderTasks();
@@ -2349,15 +2543,15 @@ function buildAgendaTaskItem(task, project, today) {
   if (task.priority) {
     var pb = document.createElement("span");
     pb.className = "agenda-badge agenda-badge-priority agenda-badge-" + task.priority;
-    pb.textContent = task.priority === "high" ? "▲ Alta"
-      : task.priority === "medium" ? "◆ Media" : "▽ Baja";
+    pb.textContent = task.priority === "high" ? "Alta"
+      : task.priority === "medium" ? "Media" : "Baja";
     badges.appendChild(pb);
   }
 
   if (task.status) {
     var sb = document.createElement("span");
     sb.className = "agenda-badge agenda-badge-status agenda-badge-" + task.status;
-    sb.textContent = task.status === "progress" ? "▶ Progreso" : "⏸ Espera";
+    sb.textContent = task.status === "progress" ? "Progreso" : "Espera";
     badges.appendChild(sb);
   }
 
@@ -2484,7 +2678,7 @@ function renderSearchResults(container, q, closeCallback) {
 
       const hl = highlightMatch(task.text, q);
       item.innerHTML =
-        '<span class="search-result-check">' + (task.done ? "✓" : "○") + '</span>' +
+        '<span class="search-result-check">' + (task.done ? '<i data-lucide="check"></i>' : '<i data-lucide="circle"></i>') + '</span>' +
         '<span class="search-result-text">' + hl + '</span>';
 
       if (task.comment && task.comment.toLowerCase().includes(q)) {
@@ -2508,6 +2702,8 @@ function renderSearchResults(container, q, closeCallback) {
   if (total === 0) {
     container.innerHTML = '<p class="search-hint">Sin resultados para <em>' + escHtml(q) + '</em></p>';
   }
+
+  if (window.lucide) lucide.createIcons({ nodes: [container] });
 }
 
 function highlightMatch(text, q) {
