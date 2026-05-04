@@ -5424,7 +5424,7 @@ kbd {
   background: rgba(0, 0, 0, 0.06);
 }
 
-/* ── Mobile ───────────────────────────────────────────────── */
+/* ── Mobile: tab-based single-column view ─────────────────── */
 @media (max-width: 768px) {
   .kanban-panel {
     padding: 0.85rem 0.85rem 0;
@@ -5434,14 +5434,111 @@ kbd {
     margin-bottom: 0.85rem;
   }
 
-  .kanban-board {
-    grid-template-columns: repeat(4, minmax(200px, 1fr));
+  /* Override grid: mobile renders as flex column via JS */
+  .kanban-board-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
   }
 
-  .kanban-col {
-    max-height: calc(100vh - 10rem);
+  .kanban-col-mobile {
+    max-height: none;
+    overflow-y: visible;
+    border: none;
+    background: none;
+    padding: 0.5rem 0 0;
   }
+}
+
+/* ── Kanban tabs (mobile) ─────────────────────────────────── */
+.kanban-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--b-subtle);
+  margin-bottom: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.kanban-tabs::-webkit-scrollbar { display: none; }
+
+.kanban-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.45rem 0.75rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.kanban-tab:hover {
+  color: var(--t-soft);
+}
+
+.kanban-tab-pending.kanban-tab-active  { color: var(--t-primary);  border-bottom-color: var(--t-muted);  }
+.kanban-tab-progress.kanban-tab-active { color: var(--c-green);    border-bottom-color: var(--c-green);  }
+.kanban-tab-waiting.kanban-tab-active  { color: var(--c-gold);     border-bottom-color: var(--c-gold);   }
+.kanban-tab-done.kanban-tab-active     { color: var(--c-cyan);     border-bottom-color: var(--c-cyan);   }
+
+.kanban-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 0.02rem 0.3rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--t-muted);
+  min-width: 1.3em;
+}
+:root[data-theme="light"] .kanban-tab-count {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+/* ── Mobile card action buttons ──────────────────────────── */
+.kanban-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.kanban-card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: 1px solid var(--b-subtle);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--t-muted);
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  transition: color 0.13s, border-color 0.13s, background 0.13s;
+}
+.kanban-card-action-btn:hover {
+  color: var(--t-soft);
+  border-color: rgba(129, 140, 248, 0.35);
+  background: rgba(129, 140, 248, 0.05);
+}
+.kanban-card-action-btn .lucide {
+  width: 10px;
+  height: 10px;
+  stroke-width: 2.5;
 }
 
 /* ── Paste options toast ───────────────────────────────────────────── */
