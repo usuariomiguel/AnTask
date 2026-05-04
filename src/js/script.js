@@ -3017,12 +3017,11 @@ function _syncOnAuthChange(user) {
 }
 
 function _clearLocalData() {
-  projects = [];
-  sections = [];
+  // Al cerrar sesión conservamos los proyectos en localStorage en modo local
+  // para que sigan visibles sin cuenta y para que al volver a entrar,
+  // _syncOnFirstConnect pueda comparar timestamps correctamente.
+  // Solo eliminamos la clave de proyecto activo para forzar una selección limpia.
   activeProjectId = null;
-  localStorage.removeItem(PROJECTS_KEY);
-  localStorage.removeItem(SECTIONS_KEY);
-  localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
   renderSidebar();
   renderTasks();
@@ -3069,18 +3068,31 @@ function _updateProfileMenu(user) {
 
 function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
-    // Sin datos en la nube: subir datos locales
+    // Sin datos en la nube: subir datos locales solo si hay algo que subir
     if (projects.length > 0) AnsoSync.scheduleSave(projects, sections);
     return;
   }
-  // Comparar timestamps: tomar el más reciente
+
+  // Si no hay metadatos locales (localStorage borrado o sesión nueva),
+  // siempre prevalecen los datos de la nube — nunca sobreescribir con vacío.
   var localMeta = loadMetadata();
-  var localTime = localMeta.lastSavedAt ? new Date(localMeta.lastSavedAt).getTime() : 0;
-  var cloudTime = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
-  if (cloudTime > localTime) {
+  if (!localMeta.lastSavedAt) {
     _syncApplyRemote(cloudData.projects, cloudData.sections || []);
-  } else {
+    return;
+  }
+
+  var localTime = new Date(localMeta.lastSavedAt).getTime();
+  var cloudTime = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
+
+  if (cloudTime >= localTime) {
+    // La nube es igual de reciente o más — aplicar datos remotos
+    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
+  } else if (projects.length > 0) {
+    // Local es más reciente y tiene datos — subir a la nube
     AnsoSync.scheduleSave(projects, sections);
+  } else {
+    // Local más reciente pero vacío — situación anómala, preferir nube
+    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
   }
 }
 
