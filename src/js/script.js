@@ -1157,7 +1157,6 @@ function renderTasks() {
     const node       = template.content.firstElementChild.cloneNode(true);
     const checkbox   = node.querySelector(".task-toggle");
     const text       = node.querySelector(".task-text");
-    const expandedTx = node.querySelector(".task-text-expanded");
     const comment    = node.querySelector(".task-comment");
     const commentBtn = node.querySelector(".comment-btn");
     const deleteBtn  = node.querySelector(".delete-btn");
@@ -1169,8 +1168,6 @@ function renderTasks() {
 
     checkbox.checked       = task.done;
     text.textContent       = task.text;
-    expandedTx.textContent = task.text;
-    expandedTx.hidden      = true;
     comment.textContent    = task.comment || "Sin comentario";
     node.classList.toggle("done", task.done);
 
@@ -1298,6 +1295,7 @@ function renderTasks() {
 
     node.addEventListener("click", function(e) {
       if (e.target.closest("button")) return;
+      if (e.target.closest(".subtask-list")) return;
       if (selectMode) {
         e.preventDefault();
         toggleTaskSelection(task.id, node);
@@ -1319,8 +1317,7 @@ function renderTasks() {
       if (e.key === "e" || e.key === "E") {
         e.preventDefault();
         const textSpan = node.querySelector(".task-text");
-        const expandedTx = node.querySelector(".task-text-expanded");
-        if (textSpan) startInlineEdit(textSpan, task, expandedTx);
+        if (textSpan) startInlineEdit(textSpan, task);
         return;
       }
 
@@ -1374,9 +1371,6 @@ function renderTasks() {
       initSwipeGesture(node, task, project);
     }
     taskList.appendChild(node);
-    requestAnimationFrame(function() {
-      expandedTx.hidden = !(text.scrollWidth > text.clientWidth);
-    });
   });
 
   const pending = project.tasks.filter(function(t) { return !t.done; }).length;
@@ -1402,16 +1396,24 @@ function renderSubtasks(task, subtaskList) {
   task.subtasks.forEach(function(subtask) {
     const item = document.createElement("li");
     item.className = "subtask-item";
-    const label = document.createElement("label");
-    label.className = "subtask-label";
+
     const cb = document.createElement("input");
     cb.type = "checkbox";
+    cb.className = "subtask-checkbox";
     cb.checked = subtask.done;
     cb.addEventListener("change", function() { subtask.done = cb.checked; saveAndRender(); });
+
     const span = document.createElement("span");
     span.className = "subtask-text";
     span.textContent = subtask.text;
     span.classList.toggle("done", subtask.done);
+    span.title = "Doble clic para renombrar";
+    span.addEventListener("dblclick", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      startSubtaskInlineEdit(span, subtask);
+    });
+
     const del = document.createElement("button");
     del.type = "button";
     del.className = "subtask-delete-btn";
@@ -1421,8 +1423,8 @@ function renderSubtasks(task, subtaskList) {
       task.subtasks = task.subtasks.filter(function(s) { return s.id !== subtask.id; });
       saveAndRender();
     });
-    label.append(cb, span);
-    item.append(label, del);
+
+    item.append(cb, span, del);
     subtaskList.appendChild(item);
   });
 }
@@ -1715,7 +1717,7 @@ function escHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-function startInlineEdit(textSpan, task, expandedText) {
+function startInlineEdit(textSpan, task) {
   if (textSpan.querySelector("input.inline-edit")) return;
   const current = task.text;
   const input = document.createElement("input");
@@ -1735,7 +1737,6 @@ function startInlineEdit(textSpan, task, expandedText) {
       saveAndRender();
     } else {
       textSpan.textContent = current;
-      if (expandedText) expandedText.textContent = current;
     }
   }
   input.addEventListener("keydown", function(e) {
@@ -1747,6 +1748,36 @@ function startInlineEdit(textSpan, task, expandedText) {
   input.addEventListener("click", function(e) { e.stopPropagation(); });
 }
 
+function startSubtaskInlineEdit(textSpan, subtask) {
+  if (textSpan.querySelector("input.inline-edit")) return;
+  const current = subtask.text;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "inline-edit subtask-inline-edit";
+  input.value = current;
+  input.maxLength = 120;
+  textSpan.textContent = "";
+  textSpan.appendChild(input);
+  input.focus();
+  input.select();
+
+  function commit() {
+    const newText = input.value.trim().slice(0, 120);
+    if (newText && newText !== current) {
+      subtask.text = newText;
+      saveAndRender();
+    } else {
+      textSpan.textContent = current;
+    }
+  }
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter")  { e.preventDefault(); input.blur(); }
+    if (e.key === "Escape") { input.value = current; input.blur(); }
+    e.stopPropagation();
+  });
+  input.addEventListener("blur", commit);
+  input.addEventListener("click", function(e) { e.stopPropagation(); });
+}
 
 // ─── FECHA LÍMITE ─────────────────────────────────────────────
 function getDueDateState(dueDate) {

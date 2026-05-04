@@ -1213,6 +1213,12 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
+.task-item.expanded .task-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
 .task-item.done {
   opacity: 0.42;
 }
@@ -1317,15 +1323,6 @@ button:focus-visible {
   margin-top: 0.55rem;
 }
 
-.task-text-expanded {
-  margin: 0;
-  color: var(--t-primary);
-  font-size: 0.88rem;
-  line-height: 1.55;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
 .task-comment {
   margin: 0;
   padding: 0.5rem 0.75rem;
@@ -1379,24 +1376,29 @@ button:focus-visible {
   border-color: rgba(0, 0, 0, 0.07);
 }
 
-.subtask-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  flex: 1;
+.subtask-checkbox {
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .subtask-text {
   font-size: 0.86rem;
   color: var(--t-primary);
   overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 0;
+  cursor: text;
 }
 
 .subtask-text.done {
   text-decoration: line-through;
   color: var(--t-muted);
   opacity: 0.65;
+}
+
+.subtask-inline-edit {
+  font-size: 0.86rem;
+  padding: 0.05rem 0.32rem;
 }
 
 .subtask-delete-btn {
@@ -3312,6 +3314,10 @@ input.inline-edit {
 
   .subtask-item .subtask-text {
     font-size: 0.80rem;
+  }
+
+  .subtask-inline-edit {
+    font-size: 1rem;
   }
 
   .mobile-inline-actions {
