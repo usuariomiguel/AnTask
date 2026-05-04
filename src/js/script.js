@@ -281,6 +281,12 @@ document.addEventListener("keydown", function(e) {
     showAgendaPanel();
     return;
   }
+
+  if (e.key === "k" || e.key === "K") {
+    e.preventDefault();
+    showKanbanPanel();
+    return;
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -753,11 +759,15 @@ function activateProject(id) {
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
 
-  // Cierra el panel de agenda si estaba abierto
+  // Cierra paneles alternativos si estaban abiertos
   var agendaPanel = document.getElementById("agenda-panel");
   if (agendaPanel) agendaPanel.hidden = true;
   var agendaBtn = document.getElementById("agenda-btn");
   if (agendaBtn) agendaBtn.classList.remove("active");
+  var kanbanPanel = document.getElementById("kanban-panel");
+  if (kanbanPanel) kanbanPanel.hidden = true;
+  var kanbanBtn = document.getElementById("kanban-btn");
+  if (kanbanBtn) kanbanBtn.classList.remove("active");
 
   const project = getActiveProject();
   const hasProject = Boolean(project);
@@ -2441,6 +2451,217 @@ function updateNotesFmtButtons() {
   }
 })();
 
+// ═══════════════════════════════════════════════════════════════
+// KANBAN
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
+  var kanbanBtn = document.getElementById("kanban-btn");
+  if (kanbanBtn) kanbanBtn.addEventListener("click", function() { showKanbanPanel(); });
+
+  var kanbanExpandBtn = document.getElementById("kanban-expand-btn");
+  if (kanbanExpandBtn) {
+    kanbanExpandBtn.addEventListener("click", function() {
+      var layout = document.querySelector(".layout");
+      if (layout) {
+        layout.classList.remove("sidebar-is-collapsed");
+        var sidebar = document.querySelector(".sidebar");
+        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
+        localStorage.removeItem("sidebar-collapsed");
+      }
+    });
+  }
+})();
+
+window.showKanbanPanel = showKanbanPanel;
+function showKanbanPanel() {
+  var kanbanPanel = document.getElementById("kanban-panel");
+  var kanbanBtn   = document.getElementById("kanban-btn");
+  var agendaPanel = document.getElementById("agenda-panel");
+  var agendaBtn   = document.getElementById("agenda-btn");
+  if (!kanbanPanel) return;
+
+  if (!kanbanPanel.hidden) {
+    kanbanPanel.hidden = true;
+    if (kanbanBtn) kanbanBtn.classList.remove("active");
+    var project = getActiveProject();
+    emptyState.hidden = Boolean(project);
+    tasksPanel.hidden = !project;
+    return;
+  }
+
+  // Cerrar agenda si estaba abierta
+  if (agendaPanel) agendaPanel.hidden = true;
+  if (agendaBtn) agendaBtn.classList.remove("active");
+
+  emptyState.hidden = true;
+  tasksPanel.hidden = true;
+  kanbanPanel.hidden = false;
+  if (kanbanBtn) kanbanBtn.classList.add("active");
+  renderKanban();
+}
+
+var _kanbanDragTaskId = null;
+
+function renderKanban() {
+  var board = document.getElementById("kanban-board");
+  if (!board) return;
+  board.innerHTML = "";
+
+  var project = getActiveProject();
+  var titleEl = document.getElementById("kanban-project-title");
+  if (titleEl) titleEl.textContent = project ? "// " + project.name : "// Kanban";
+
+  if (!project) {
+    board.innerHTML = '<p class="kanban-no-project">Selecciona un proyecto para ver el Kanban.</p>';
+    return;
+  }
+
+  var columns = [
+    { id: "pending",  label: "Pendiente",   icon: "circle-dashed", accentVar: "--t-muted" },
+    { id: "progress", label: "En progreso", icon: "play-circle",   accentVar: "--c-green" },
+    { id: "waiting",  label: "En espera",   icon: "pause-circle",  accentVar: "--c-gold"  },
+    { id: "done",     label: "Completado",  icon: "check-circle-2",accentVar: "--c-cyan"  },
+  ];
+
+  columns.forEach(function(col) {
+    var colTasks = project.tasks.filter(function(t) {
+      if (col.id === "done")     return t.done;
+      if (col.id === "pending")  return !t.done && !t.status;
+      return !t.done && t.status === col.id;
+    });
+
+    var colEl = document.createElement("div");
+    colEl.className = "kanban-col kanban-col-" + col.id;
+
+    var header = document.createElement("div");
+    header.className = "kanban-col-header";
+    header.style.setProperty("--col-accent", "var(" + col.accentVar + ")");
+    header.innerHTML =
+      '<span class="kanban-col-icon"><i data-lucide="' + col.icon + '"></i></span>' +
+      '<span class="kanban-col-label">' + col.label + '</span>' +
+      '<span class="kanban-col-count">' + colTasks.length + '</span>';
+    colEl.appendChild(header);
+
+    var cardsEl = document.createElement("ul");
+    cardsEl.className = "kanban-cards";
+
+    colTasks.forEach(function(task) {
+      cardsEl.appendChild(_buildKanbanCard(task, project));
+    });
+
+    if (colTasks.length === 0) {
+      var empty = document.createElement("li");
+      empty.className = "kanban-empty";
+      empty.textContent = "Sin tareas";
+      cardsEl.appendChild(empty);
+    }
+
+    cardsEl.addEventListener("dragover", function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      colEl.classList.add("kanban-drop-active");
+    });
+    cardsEl.addEventListener("dragleave", function(e) {
+      if (!colEl.contains(e.relatedTarget)) colEl.classList.remove("kanban-drop-active");
+    });
+    colEl.addEventListener("dragover", function(e) { e.preventDefault(); });
+    colEl.addEventListener("drop", function(e) {
+      e.preventDefault();
+      colEl.classList.remove("kanban-drop-active");
+      var taskId = e.dataTransfer.getData("text/plain");
+      if (!taskId) return;
+      var task = project.tasks.find(function(t) { return t.id === taskId; });
+      if (!task) return;
+      if (col.id === "done") {
+        task.done = true;
+      } else {
+        task.done = false;
+        task.status = col.id === "pending" ? null : col.id;
+      }
+      saveProjects();
+      renderKanban();
+      renderSidebar();
+    });
+
+    colEl.appendChild(cardsEl);
+    board.appendChild(colEl);
+  });
+
+  if (window.lucide) lucide.createIcons({ nodes: [board] });
+}
+
+function _buildKanbanCard(task, project) {
+  var li = document.createElement("li");
+  li.className = "kanban-card" + (task.priority ? " kanban-priority-" + task.priority : "");
+  li.draggable = true;
+
+  li.addEventListener("dragstart", function(e) {
+    e.dataTransfer.setData("text/plain", task.id);
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(function() { li.classList.add("kanban-card-dragging"); }, 0);
+  });
+  li.addEventListener("dragend", function() {
+    li.classList.remove("kanban-card-dragging");
+  });
+
+  li.addEventListener("click", function(e) {
+    if (e.defaultPrevented) return;
+    showKanbanPanel(); // cierra kanban
+    activateProject(project.id);
+    setTimeout(function() { navigateToTask(project.id, task.id); }, 80);
+  });
+
+  var title = document.createElement("p");
+  title.className = "kanban-card-title";
+  title.textContent = task.text;
+  li.appendChild(title);
+
+  // Badges row
+  var hasBadges = task.dueDate || task.priority || (task.labels && task.labels.length) || (task.subtasks && task.subtasks.length);
+  if (hasBadges) {
+    var row = document.createElement("div");
+    row.className = "kanban-card-badges";
+
+    if (task.dueDate) {
+      var ds = getDueDateState(task.dueDate);
+      if (ds) {
+        var db = document.createElement("span");
+        db.className = "kanban-badge kanban-badge-due " + ds.cls;
+        db.innerHTML = '<i data-lucide="calendar"></i> ' + ds.label;
+        row.appendChild(db);
+      }
+    }
+
+    if (task.priority) {
+      var prioLabels = { high: "Alta", medium: "Media", low: "Baja" };
+      var pb = document.createElement("span");
+      pb.className = "kanban-badge kanban-badge-priority-" + task.priority;
+      pb.innerHTML = '<i data-lucide="flag"></i> ' + (prioLabels[task.priority] || task.priority);
+      row.appendChild(pb);
+    }
+
+    if (task.subtasks && task.subtasks.length > 0) {
+      var done = task.subtasks.filter(function(s) { return s.done; }).length;
+      var sb = document.createElement("span");
+      sb.className = "kanban-badge kanban-badge-subtasks" + (done === task.subtasks.length ? " kanban-badge-complete" : "");
+      sb.innerHTML = '<i data-lucide="list-checks"></i> ' + done + "/" + task.subtasks.length;
+      row.appendChild(sb);
+    }
+
+    if (task.labels && task.labels.length > 0) {
+      var lb = document.createElement("span");
+      lb.className = "kanban-badge kanban-badge-labels";
+      lb.innerHTML = '<i data-lucide="tag"></i> ' + task.labels.length;
+      row.appendChild(lb);
+    }
+
+    li.appendChild(row);
+  }
+
+  return li;
+}
+
 function showAgendaPanel() {
   var agendaPanel = document.getElementById("agenda-panel");
   var agendaBtn   = document.getElementById("agenda-btn");
@@ -2770,6 +2991,8 @@ function saveAndRender() {
   renderTasks();
   renderSidebar();
   renderLabelFilterBar();
+  var kp = document.getElementById("kanban-panel");
+  if (kp && !kp.hidden) renderKanban();
 }
 
 // ─── PERSISTENCIA ────────────────────────────────────────────
