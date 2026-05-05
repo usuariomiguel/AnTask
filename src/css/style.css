@@ -2941,8 +2941,9 @@ input.inline-edit {
     display: none;
   }
 
+  /* Siempre dos filas: texto arriba, badges+kebab abajo → altura uniforme */
   .task-summary {
-    flex: 1;
+    flex: 0 0 100%;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -2960,23 +2961,15 @@ input.inline-edit {
   }
 
   .task-actions {
-    flex-shrink: 0;
+    flex: 0 0 100%;
     display: flex;
     align-items: center;
     gap: 0.20rem;
-  }
-
-  /* Two-row layout only when there are visible badges */
-  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-summary {
-    flex: 0 0 100%;
-  }
-
-  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-actions {
-    flex: 0 0 100%;
     padding-left: calc(1rem + 0.45rem);
+    min-height: 26px;
   }
 
-  .task-main-row:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn) .task-actions .task-kebab-btn {
+  .task-actions .task-kebab-btn {
     margin-left: auto;
   }
 
