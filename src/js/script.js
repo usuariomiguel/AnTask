@@ -99,6 +99,10 @@ let dragSrcSectionId   = null;
 let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indices }
 let _undoTimer = null;
 
+// ─── CRONÓMETRO ───────────────────────────────────────────────
+var _timerState    = null;  // { taskId, taskText, elapsedMs, startedAt, running }
+var _timerInterval = null;
+
 // ─── MULTI-SELECT ─────────────────────────────────────────────
 let selectMode = false;
 const selectedTaskIds = new Set();
@@ -603,6 +607,8 @@ taskForm.addEventListener("submit", function(event) {
     done: false,
     status: null,
     dueDate: null,
+    recurDays: null,
+    timeLogged: 0,
     subtasks: [],
   });
   taskInput.value = "";
@@ -1168,6 +1174,8 @@ function renderTasks() {
     const statusBtn     = node.querySelector(".status-btn");
     const priorityBtn   = node.querySelector(".priority-btn");
     const labelsContainer = node.querySelector(".task-labels-container");
+    const recurBtn   = node.querySelector(".recur-btn");
+    const timerBtn   = node.querySelector(".timer-btn");
 
     checkbox.checked       = task.done;
     text.textContent       = task.text;
@@ -1192,7 +1200,24 @@ function renderTasks() {
       if (task.done) task.status = null;
       if (task.done) {
         node.classList.add("task-completing");
-        setTimeout(function() { saveAndRender(); }, 320);
+        setTimeout(function() {
+          if (task.recurDays) {
+            task.done = false;
+            task.status = null;
+            var next = new Date();
+            if (task.dueDate) {
+              next = new Date(task.dueDate + "T00:00:00");
+              next.setDate(next.getDate() + task.recurDays);
+            } else {
+              next.setDate(next.getDate() + task.recurDays);
+            }
+            task.dueDate = next.toISOString().slice(0, 10);
+            saveAndRender();
+            _showRecurToast(task.recurDays, task.dueDate);
+          } else {
+            saveAndRender();
+          }
+        }, 320);
       } else {
         node.classList.add("task-uncompleting");
         setTimeout(function() { saveAndRender(); }, 220);
@@ -1220,6 +1245,26 @@ function renderTasks() {
     // ── Fecha límite ──────────────────────────────────────
     const dueBadgeContainer = node.querySelector(".task-due-container");
     renderDueBadge(task, dueBadgeContainer);
+
+    // ── Recurrencia ───────────────────────────────────────
+    renderRecurBadge(task, node.querySelector(".task-recur-container"));
+    updateRecurBtn(recurBtn, task);
+    recurBtn.addEventListener("click", async function(e) {
+      e.stopPropagation();
+      var current = task.recurDays ? String(task.recurDays) : "";
+      var val = await modalPrompt("// Repetir cada cuántos días (0 = desactivar)", current, "ej: 7");
+      if (val === null) return;
+      var days = parseInt(val, 10);
+      task.recurDays = (isNaN(days) || days <= 0) ? null : Math.min(days, 3650);
+      saveAndRender();
+    });
+
+    // ── Cronómetro ────────────────────────────────────────
+    renderTimerBadge(task, node.querySelector(".task-timer-container"));
+    timerBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      startTimer(task);
+    });
 
     const dateBtn = node.querySelector(".date-btn");
     dateBtn.addEventListener("click", function(e) {
@@ -1812,6 +1857,198 @@ function renderDueBadge(task, container) {
   container.appendChild(badge);
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// RECURRENCIA
+// ═══════════════════════════════════════════════════════════════
+
+function renderRecurBadge(task, container) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!task.recurDays) return;
+  var badge = document.createElement("span");
+  badge.className = "recur-badge";
+  badge.innerHTML = '<i data-lucide="repeat"></i> ' + task.recurDays + 'd';
+  container.appendChild(badge);
+}
+
+function updateRecurBtn(btn, task) {
+  if (!btn) return;
+  btn.classList.toggle("recur-active", Boolean(task.recurDays));
+  btn.title = task.recurDays
+    ? "Repetir cada " + task.recurDays + " días (clic para cambiar)"
+    : "Establecer repetición";
+}
+
+function _showRecurToast(days, nextDate) {
+  var msg = "↻ Tarea regenerada";
+  if (nextDate) {
+    var d = new Date(nextDate + "T00:00:00");
+    msg += " · vence " + d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+  }
+  var toast = document.createElement("div");
+  toast.className = "recur-toast";
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(function() { toast.classList.add("recur-toast-visible"); });
+  setTimeout(function() {
+    toast.classList.remove("recur-toast-visible");
+    toast.addEventListener("transitionend", function() { toast.remove(); }, { once: true });
+    setTimeout(function() { toast.remove(); }, 500);
+  }, 2800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CRONÓMETRO
+// ═══════════════════════════════════════════════════════════════
+
+function _timerPad(n) { return n < 10 ? "0" + n : String(n); }
+
+function _timerFmt(ms) {
+  var s = Math.floor(ms / 1000);
+  var m = Math.floor(s / 60);
+  var h = Math.floor(m / 60);
+  s = s % 60; m = m % 60;
+  return h > 0
+    ? h + ":" + _timerPad(m) + ":" + _timerPad(s)
+    : _timerPad(m) + ":" + _timerPad(s);
+}
+
+function _timerElapsed() {
+  if (!_timerState) return 0;
+  var base = _timerState.elapsedMs || 0;
+  if (_timerState.running) base += Date.now() - _timerState.startedAt;
+  return base;
+}
+
+function startTimer(task) {
+  if (_timerState && _timerState.taskId === task.id) {
+    if (_timerState.running) {
+      _timerState.elapsedMs += Date.now() - _timerState.startedAt;
+      _timerState.running = false;
+      clearInterval(_timerInterval);
+      _timerInterval = null;
+    } else {
+      _timerState.startedAt = Date.now();
+      _timerState.running = true;
+      _timerInterval = setInterval(_timerTick, 1000);
+    }
+    _updateTimerBar();
+    return;
+  }
+  if (_timerState) _timerStop(true);
+  _timerState = {
+    taskId:   task.id,
+    taskText: task.text,
+    elapsedMs: 0,
+    startedAt: Date.now(),
+    running:  true,
+  };
+  _timerInterval = setInterval(_timerTick, 1000);
+  _updateTimerBar();
+}
+
+function _timerStop(silent) {
+  if (!_timerState) return;
+  var elapsed = _timerElapsed();
+  clearInterval(_timerInterval);
+  _timerInterval = null;
+  if (elapsed >= 1000) {
+    var taskId = _timerState.taskId;
+    var found = null;
+    for (var i = 0; i < projects.length; i++) {
+      found = projects[i].tasks.find(function(t) { return t.id === taskId; });
+      if (found) break;
+    }
+    if (found) {
+      found.timeLogged = (found.timeLogged || 0) + elapsed;
+      saveProjects();
+    }
+  }
+  _timerState = null;
+  _updateTimerBar();
+  if (!silent) renderTasks();
+}
+
+function _timerTick() {
+  _updateTimerBar();
+  if (_timerState) {
+    var node = taskList.querySelector('[data-task-id="' + _timerState.taskId + '"]');
+    if (node) {
+      var container = node.querySelector(".task-timer-container");
+      if (container) _renderTimerBadgeInContainer(_timerState.taskId, container);
+    }
+  }
+}
+
+function _updateTimerBar() {
+  var bar = document.getElementById("timer-bar");
+  if (!bar) return;
+  if (!_timerState) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+  var labelEl  = document.getElementById("timer-bar-task");
+  var timeEl   = document.getElementById("timer-bar-time");
+  var toggleBtn = document.getElementById("timer-toggle-btn");
+  if (labelEl) labelEl.textContent = _timerState.taskText.length > 35
+    ? _timerState.taskText.slice(0, 35) + "…"
+    : _timerState.taskText;
+  if (timeEl) timeEl.textContent = _timerFmt(_timerElapsed());
+  if (toggleBtn) {
+    var ico = toggleBtn.querySelector("i[data-lucide]");
+    if (ico) {
+      var nextIcon = _timerState.running ? "pause" : "play";
+      if (ico.getAttribute("data-lucide") !== nextIcon) {
+        ico.setAttribute("data-lucide", nextIcon);
+        if (window.lucide) lucide.createIcons({ nodes: [toggleBtn] });
+      }
+    }
+  }
+}
+
+function renderTimerBadge(task, container) {
+  if (!container) return;
+  container.innerHTML = "";
+  var isActive = _timerState && _timerState.taskId === task.id;
+  var ms = isActive ? _timerElapsed() : (task.timeLogged || 0);
+  if (ms < 1000) return;
+  _renderTimerBadgeInContainer(task.id, container, ms);
+}
+
+function _renderTimerBadgeInContainer(taskId, container, ms) {
+  var isActive = _timerState && _timerState.taskId === taskId;
+  var elapsed  = ms !== undefined ? ms : (isActive ? _timerElapsed() : 0);
+  if (elapsed < 1000) { container.innerHTML = ""; return; }
+  container.innerHTML = "";
+  var badge = document.createElement("span");
+  badge.className = "timer-badge" + (isActive && _timerState.running ? " timer-running" : "");
+  badge.innerHTML = '<i data-lucide="timer"></i> ' + _timerFmt(elapsed);
+  container.appendChild(badge);
+  if (window.lucide) lucide.createIcons({ nodes: [container] });
+}
+
+// ─── Botones del timer bar ────────────────────────────────────
+(function() {
+  var toggleBtn = document.getElementById("timer-toggle-btn");
+  var stopBtn   = document.getElementById("timer-stop-btn");
+  if (toggleBtn) toggleBtn.addEventListener("click", function() {
+    if (!_timerState) return;
+    if (_timerState.running) {
+      _timerState.elapsedMs += Date.now() - _timerState.startedAt;
+      _timerState.running = false;
+      clearInterval(_timerInterval);
+      _timerInterval = null;
+    } else {
+      _timerState.startedAt = Date.now();
+      _timerState.running = true;
+      _timerInterval = setInterval(_timerTick, 1000);
+    }
+    _updateTimerBar();
+  });
+  if (stopBtn) stopBtn.addEventListener("click", function() { _timerStop(false); });
+})();
 
 // ═══════════════════════════════════════════════════════════════
 // SWIPE GESTURES (mobile)
@@ -2467,6 +2704,8 @@ function updateNotesFmtButtons() {
 })();
 
 window.showKanbanPanel = showKanbanPanel;
+window.activateProject = activateProject;
+window.navigateToTask  = navigateToTask;
 function showKanbanPanel() {
   var kanbanPanel = document.getElementById("kanban-panel");
   var kanbanBtn   = document.getElementById("kanban-btn");
@@ -3234,7 +3473,9 @@ function sanitizeTasks(input) {
         status:   validStatuses.has(i.status) ? i.status : null,
         priority: ["high","medium","low"].includes(i.priority) ? i.priority : null,
         labels:   Array.isArray(i.labels) ? i.labels.filter(function(l){ return typeof l==="string" && l.length>0; }).slice(0,10) : [],
-        dueDate:  typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
+        dueDate:   typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
+        recurDays: (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
+        timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
         subtasks: sanitizeSubtasks(i.subtasks),
       };
     })

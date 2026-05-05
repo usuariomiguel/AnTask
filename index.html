@@ -155,6 +155,21 @@
               <label class="profile-item" for="pf-import-input"><span class="profile-item-ico"><i data-lucide="download"></i></span> Importar workspace</label>
               <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
               <div class="profile-sep"></div>
+              <button type="button" class="profile-item profile-item-toggle" id="pf-notif-btn">
+                <span class="profile-item-ico" id="pf-notif-ico"><i data-lucide="bell"></i></span>
+                <span class="profile-item-label" id="pf-notif-label">Activar avisos</span>
+                <span class="profile-toggle-pill" id="pf-notif-pill">OFF</span>
+              </button>
+              <div class="profile-notif-options" id="pf-notif-options" hidden>
+                <label class="profile-notif-time-row" for="pf-notif-time">
+                  <span>Hora del aviso diario</span>
+                  <input type="time" id="pf-notif-time" value="09:00">
+                </label>
+                <button type="button" class="profile-notif-test-btn" id="pf-notif-test">
+                  <i data-lucide="bell-ring"></i> Probar aviso
+                </button>
+              </div>
+              <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> Cambiar tema</button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
@@ -333,9 +348,13 @@
           </div>
           <div class="task-actions">
             <span class="task-due-container"></span>
+            <span class="task-recur-container"></span>
+            <span class="task-timer-container"></span>
             <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
             <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
             <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
+            <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
+            <button type="button" class="timer-btn" title="Cronómetro"><i data-lucide="timer"></i> Timer</button>
             <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
             <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Tags</button>
             <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub</button>
@@ -365,6 +384,8 @@
         <button type="button" class="sheet-action-btn" data-sheet-action="comment"><i data-lucide="message-circle"></i> Comentario</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="recur"><i data-lucide="repeat"></i> Repetición</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="timer"><i data-lucide="timer"></i> Cronómetro</button>
         <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
       </div>
     </div>
@@ -404,6 +425,15 @@
       <div class="paste-toast-bar"></div>
     </div>
 
+    <!-- ── TIMER BAR ─────────────────────────────────────────────── -->
+    <div id="timer-bar" class="timer-bar" hidden>
+      <span class="timer-bar-icon"><i data-lucide="timer"></i></span>
+      <span class="timer-bar-task" id="timer-bar-task"></span>
+      <span class="timer-bar-time" id="timer-bar-time">00:00</span>
+      <button type="button" id="timer-toggle-btn" class="timer-ctrl-btn" aria-label="Pausar/Reanudar"><i data-lucide="pause"></i></button>
+      <button type="button" id="timer-stop-btn" class="timer-ctrl-btn timer-ctrl-stop" aria-label="Detener y guardar"><i data-lucide="square"></i></button>
+    </div>
+
     <!-- Firebase SDK (compat v10) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -411,6 +441,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="./src/js/firebase-sync.js"></script>
     <script src="./src/js/paste-utils.js"></script>
+    <script src="./src/js/notifications.js"></script>
     <script src="./src/js/script.js"></script>
     <script src="./src/js/sections-and-profile.js"></script>
     <script>
@@ -623,6 +654,8 @@
                     action === "comment"  ? ".comment-btn" :
                     action === "labels"   ? ".label-add-btn" :
                     action === "subtask"  ? ".subtask-add-btn" :
+                    action === "recur"    ? ".recur-btn" :
+                    action === "timer"    ? ".timer-btn" :
                     action === "delete"   ? ".delete-btn" : null;
           var target = sel && currentTaskNode.querySelector(sel);
           closeSheet();

@@ -1,5 +1,5 @@
-const CACHE_NAME = "ansotask-v1";
-const CORE_ASSETS = ["./", "./index.html", "./src/css/style.css", "./src/js/script.js", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE_NAME = "ansotask-v2";
+const CORE_ASSETS = ["./", "./index.html", "./src/css/style.css", "./src/js/script.js", "./src/js/notifications.js", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -45,4 +45,28 @@ self.addEventListener("fetch", (event) => {
         .catch(() => caches.match("./index.html"));
     })
   );
+});
+
+// ─── NOTIFICACIONES ─────────────────────────────────────────────
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const data = event.notification.data || {};
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of allClients) {
+      const url = new URL(client.url);
+      if (url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) {
+        client.postMessage({ type: "antask-notif-click", data: data });
+        return client.focus();
+      }
+    }
+    if (self.clients.openWindow) {
+      let target = "./";
+      if (data.projectId) {
+        target += "?project=" + encodeURIComponent(data.projectId);
+        if (data.taskId) target += "&task=" + encodeURIComponent(data.taskId);
+      }
+      return self.clients.openWindow(target);
+    }
+  })());
 });
