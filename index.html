@@ -115,8 +115,6 @@
         <div class="sidebar-footer">
           <div class="sidebar-search-row">
             <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> Buscar tareas</button>
-            <button type="button" id="agenda-btn" class="agenda-nav-btn" title="Vista de agenda — tareas con fecha (A)"><i data-lucide="calendar-range"></i></button>
-            <button type="button" id="kanban-btn" class="agenda-nav-btn" title="Vista Kanban — columnas por estado (K)"><i data-lucide="layout-dashboard"></i></button>
           </div>
           <div class="sidebar-footer-row">
             <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Nuevo proyecto</button>
@@ -199,36 +197,8 @@
           <p class="empty-state-sub">Crea o selecciona un proyecto desde la barra lateral</p>
         </div>
 
-        <!-- Panel de kanban (tareas del proyecto activo por columnas) -->
-        <div class="kanban-panel" id="kanban-panel" hidden>
-          <div class="kanban-header">
-            <div class="kanban-header-left">
-              <button type="button" id="kanban-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
-              <div>
-                <h2 id="kanban-project-title" class="project-title">// Kanban</h2>
-                <p class="subtitle">Vista de columnas por estado</p>
-              </div>
-            </div>
-          </div>
-          <div id="kanban-board" class="kanban-board"></div>
-        </div>
-
-        <!-- Panel de agenda (tareas con fecha de todos los proyectos) -->
-        <div class="agenda-panel" id="agenda-panel" hidden>
-          <div class="agenda-header">
-            <div class="agenda-header-left">
-              <button type="button" id="agenda-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
-              <div>
-                <h2 class="project-title">// Agenda</h2>
-                <p class="subtitle">Tareas con fecha límite — todos los proyectos</p>
-              </div>
-            </div>
-          </div>
-          <div id="agenda-content" class="agenda-content"></div>
-        </div>
-
-        <!-- Panel de tareas (se muestra cuando hay proyecto activo) -->
-        <div class="tasks-panel" id="tasks-panel" hidden>
+        <!-- Barra de control persistente: header + form + nav de vistas -->
+        <div class="ctrl-bar" id="ctrl-bar" hidden>
 
           <div class="tasks-header">
             <div class="tasks-header-left">
@@ -244,85 +214,76 @@
           </div>
 
           <form id="task-form" class="task-form">
-            <input
-              id="task-input"
-              type="text"
-              placeholder="// nueva tarea..."
-              maxlength="120"
-              autocomplete="off"
-              required
-            />
+            <input id="task-input" type="text" placeholder="// nueva tarea..." maxlength="120" autocomplete="off" required />
             <button type="submit"><i data-lucide="plus"></i> Añadir</button>
           </form>
 
-          <section class="toolbar">
-            <div class="sort-wrapper">
-              <select id="filter-select" class="sort-select" title="Filtrar tareas">
-                <option value="all">Todas</option>
-                <option value="pending">Pendientes</option>
-                <option value="done">✓ Hechas</option>
-              </select>
-            </div>
-            <div class="sort-wrapper">
-              <select id="sort-select" class="sort-select" title="Ordenar tareas">
-                <option value="manual">↕ Manual</option>
-                <option value="priority">↑ Prioridad</option>
-                <option value="due">Fecha límite</option>
-                <option value="az">A–Z Nombre</option>
-              </select>
-            </div>
-            <input id="import-file" type="file" accept="application/json" style="display:none" />
-            <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
-            <button id="delete-project-btn" type="button" style="display:none" aria-hidden="true"></button>
-            <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
-            <button type="button" id="select-mode-btn" class="select-mode-btn"><i data-lucide="square-check-big"></i> Seleccionar</button>
-          </section>
-
-          <!-- ── MOBILE TOOLBAR ─────────────────────────────── -->
-          <div class="mobile-toolbar" id="mobile-toolbar">
-            <!-- Filter dropdown -->
-            <div style="position:relative">
-              <button type="button" class="mobile-filter-btn" id="mobile-filter-btn">
-                <span id="mobile-filter-label">Todas</span>
-                <i data-lucide="chevron-down" class="caret"></i>
+          <!-- Nav de vistas + filtro unificado -->
+          <div class="view-nav" id="view-nav">
+            <div class="view-nav-tabs" id="view-nav-tabs">
+              <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
+                <i data-lucide="list-todo"></i><span>Lista</span>
               </button>
-              <div class="mobile-filter-dropdown" id="mobile-filter-dropdown" hidden>
-                <button type="button" data-filter="all" class="active">Todas</button>
-                <button type="button" data-filter="pending">Pendientes</button>
-                <button type="button" data-filter="done">✓ Hechas</button>
-              </div>
-            </div>
-            <button type="button" id="mobile-notes-btn" style="display:none" aria-hidden="true"></button>
-            <!-- Secondary actions dropdown -->
-            <div style="position:relative">
-              <button type="button" class="mobile-actions-btn" id="mobile-actions-btn">
-                Acciones <i data-lucide="chevron-down" class="caret"></i>
+              <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
+                <i data-lucide="calendar-range"></i><span>Agenda</span>
               </button>
-              <div class="mobile-actions-dropdown" id="mobile-actions-dropdown" hidden>
-                <button type="button" id="mobile-agenda-btn"><i data-lucide="calendar-range"></i> Vista de agenda</button>
-                <button type="button" id="mobile-kanban-btn"><i data-lucide="layout-dashboard"></i> Vista Kanban</button>
-                <button type="button" id="mobile-select-btn"><i data-lucide="square-check-big"></i> Seleccionar tareas</button>
-                <button type="button" class="danger" id="mobile-delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
-                <button type="button" class="danger" id="mobile-clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
-                <label class="mobile-sort-label">Ordenar:</label>
-                <select id="sort-select-mobile" class="sort-select-mobile">
-                  <option value="manual">↕ Manual</option>
-                  <option value="priority">↑ Prioridad</option>
-                  <option value="due">Fecha límite</option>
-                  <option value="az">A–Z Nombre</option>
-                </select>
-              </div>
+              <button type="button" class="view-tab" data-view="kanban" id="view-tab-kanban">
+                <i data-lucide="layout-dashboard"></i><span>Kanban</span>
+              </button>
+              <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
+                <i data-lucide="calendar-days"></i><span>Cal.</span>
+              </button>
             </div>
-            <input id="import-file-mobile" type="file" accept="application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" />
+            <div class="view-nav-right">
+              <!-- Filtrar unificado (sólo en vista Lista) -->
+              <div class="filter-wrap" id="filter-wrap" style="position:relative">
+                <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
+                  <i data-lucide="sliders-horizontal"></i>
+                  <span id="filter-trigger-label">Filtrar</span>
+                  <i data-lucide="chevron-down" class="filter-caret"></i>
+                </button>
+                <div class="filter-panel" id="filter-panel" hidden>
+                  <div class="filter-panel-section">
+                    <span class="filter-panel-label">Mostrar</span>
+                    <div class="filter-panel-opts">
+                      <button type="button" class="filter-opt filter-opt--active" data-filter="all">Todas</button>
+                      <button type="button" class="filter-opt" data-filter="pending">Pendientes</button>
+                      <button type="button" class="filter-opt" data-filter="done">✓ Hechas</button>
+                    </div>
+                  </div>
+                  <div class="filter-panel-sep"></div>
+                  <div class="filter-panel-section">
+                    <span class="filter-panel-label">Ordenar</span>
+                    <div class="filter-panel-opts">
+                      <button type="button" class="filter-opt filter-opt--active" data-sort="manual">↕ Manual</button>
+                      <button type="button" class="filter-opt" data-sort="priority">↑ Prioridad</button>
+                      <button type="button" class="filter-opt" data-sort="due">Fecha límite</button>
+                      <button type="button" class="filter-opt" data-sort="az">A–Z</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Seleccionar (sólo en vista Lista) -->
+              <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas"><i data-lucide="square-check-big"></i></button>
+              <!-- Más acciones (sólo en vista Lista) -->
+              <div style="position:relative" id="more-actions-wrap">
+                <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones"><i data-lucide="ellipsis"></i></button>
+                <div class="more-actions-panel" id="more-actions-panel" hidden>
+                  <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
+                  <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
+                </div>
+              </div>
+              <!-- Refs ocultos que el JS necesita -->
+              <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
+              <input id="import-file" type="file" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+            </div>
           </div>
 
+        </div><!-- /.ctrl-bar -->
 
-
-          <!-- <section class="backup-tools" aria-label="Respaldo de tareas">
-          </section> -->
-
+        <!-- Vista Lista (tareas) -->
+        <div class="tasks-panel" id="tasks-panel" hidden>
           <div id="label-filter-bar" class="label-filter-bar" hidden></div>
-
           <div class="bulk-action-bar" id="bulk-action-bar" hidden>
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
             <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> Marcar hechas</button>
@@ -330,14 +291,33 @@
             <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> Eliminar</button>
             <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn">Cancelar</button>
           </div>
-
           <ul id="task-list" class="task-list" aria-live="polite"></ul>
-
           <footer class="stats">
             <span id="task-counter">0 pendientes</span>
             <span id="save-status" class="save-status">Sin cambios recientes</span>
           </footer>
         </div>
+
+        <!-- Vista Agenda -->
+        <div class="alt-panel agenda-panel" id="agenda-panel" hidden>
+          <div id="agenda-content" class="agenda-content"></div>
+        </div>
+
+        <!-- Vista Kanban -->
+        <div class="alt-panel kanban-panel" id="kanban-panel" hidden>
+          <div id="kanban-board" class="kanban-board"></div>
+        </div>
+
+        <!-- Vista Calendario -->
+        <div class="alt-panel cal-panel" id="cal-panel" hidden>
+          <div class="cal-month-nav">
+            <button type="button" id="cal-prev-btn" class="cal-nav-btn" aria-label="Mes anterior"><i data-lucide="chevron-left"></i></button>
+            <span id="cal-month-label" class="cal-month-label"></span>
+            <button type="button" id="cal-next-btn" class="cal-nav-btn" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
+          </div>
+          <div id="cal-content" class="cal-content"></div>
+        </div>
+
       </main>
       </div><!-- /.mobile-body -->
     </div>
@@ -476,105 +456,11 @@
       }
 
 
-      // ── Mobile filter dropdown ────────────────────────────────
-      var filterBtn      = document.getElementById("mobile-filter-btn");
-      var filterDropdown = document.getElementById("mobile-filter-dropdown");
-      var filterLabelEl  = document.getElementById("mobile-filter-label");
-      var actionsBtn     = document.getElementById("mobile-actions-btn");
-      var actionsDropdown= document.getElementById("mobile-actions-dropdown");
-      var filterLabels   = { all: "Todas", pending: "Pendientes", done: "Hechas" };
-
-      if (filterBtn && filterDropdown) {
-        filterBtn.addEventListener("click", function(e) {
-          e.stopPropagation();
-          var isOpen = !filterDropdown.hidden;
-          filterDropdown.hidden = isOpen;
-          filterBtn.classList.toggle("open", !isOpen);
-          if (actionsDropdown && !actionsDropdown.hidden) {
-            actionsDropdown.hidden = true;
-            if (actionsBtn) actionsBtn.classList.remove("open");
-          }
-        });
-
-        filterDropdown.addEventListener("click", function(e) {
-          var btn = e.target.closest("[data-filter]");
-          if (!btn) return;
-          var filter = btn.dataset.filter;
-          if (window.applyFilter) window.applyFilter(filter);
-          filterDropdown.hidden = true;
-          filterBtn.classList.remove("open");
-        });
-
-        document.addEventListener("click", function() {
-          filterDropdown.hidden = true;
-          filterBtn.classList.remove("open");
-          if (actionsDropdown) actionsDropdown.hidden = true;
-          if (actionsBtn) actionsBtn.classList.remove("open");
-        });
-      }
-
-      if (actionsBtn && actionsDropdown) {
-        actionsBtn.addEventListener("click", function(e) {
-          e.stopPropagation();
-          var isOpen = !actionsDropdown.hidden;
-          actionsDropdown.hidden = isOpen;
-          actionsBtn.classList.toggle("open", !isOpen);
-          if (filterDropdown && !filterDropdown.hidden) {
-            filterDropdown.hidden = true;
-            if (filterBtn) filterBtn.classList.remove("open");
-          }
-        });
-
-        actionsDropdown.addEventListener("click", function(e) {
-          if (e.target.closest("button, label")) {
-            actionsDropdown.hidden = true;
-            actionsBtn.classList.remove("open");
-          }
-        });
-      }
-
-      // ── Mobile export/import/clear ────────────────────────────
-      var mobileExportBtn  = document.getElementById("mobile-export-btn");
-      var mobileImportFile = document.getElementById("import-file-mobile");
-      var mobileClearBtn   = document.getElementById("mobile-clear-done");
-      var mobileNotesBtn   = document.getElementById("mobile-notes-btn");
-      var mobileDeleteProjectBtn = document.getElementById("mobile-delete-project-btn");
-      var desktopExportBtn = document.getElementById("export-btn");
-      var desktopImportFile = document.getElementById("import-file");
-      var desktopClearBtn  = document.getElementById("clear-done");
-      var desktopNotesLink = document.getElementById("notes-link");
-      var desktopDeleteProjectBtn = document.getElementById("delete-project-btn");
-
-      if (mobileExportBtn && desktopExportBtn)
-        mobileExportBtn.addEventListener("click", function() { desktopExportBtn.click(); });
-
-      if (mobileImportFile && desktopImportFile) {
-        mobileImportFile.addEventListener("change", function(e) {
-          var dt = new DataTransfer();
-          if (e.target.files[0]) dt.items.add(e.target.files[0]);
-          desktopImportFile.files = dt.files;
-          desktopImportFile.dispatchEvent(new Event("change", { bubbles: true }));
-          mobileImportFile.value = "";
-        });
-      }
-
-      if (mobileClearBtn && desktopClearBtn)
-        mobileClearBtn.addEventListener("click", function() { desktopClearBtn.click(); });
-
-      if (mobileNotesBtn && desktopNotesLink)
-        mobileNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
-
+      // ── Mobile notes button ───────────────────────────────────
       var mobileHeaderNotesBtn = document.getElementById("mobile-header-notes-btn");
+      var desktopNotesLink     = document.getElementById("notes-link");
       if (mobileHeaderNotesBtn && desktopNotesLink)
         mobileHeaderNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
-
-      if (mobileDeleteProjectBtn && desktopDeleteProjectBtn)
-        mobileDeleteProjectBtn.addEventListener("click", function() { desktopDeleteProjectBtn.click(); });
-
-      var mobileSelectBtn  = document.getElementById("mobile-select-btn");
-      var desktopSelectBtn = document.getElementById("select-mode-btn");
-      if (mobileSelectBtn && desktopSelectBtn)
-        mobileSelectBtn.addEventListener("click", function() { desktopSelectBtn.click(); });
 
       // ── Task action sheet ─────────────────────────────────────
       var actionSheet   = document.getElementById("task-action-sheet");
@@ -618,25 +504,6 @@
         });
       }
 
-      // ── Agenda en menú móvil ──────────────────────────────────
-      var mobileAgendaBtn = document.getElementById("mobile-agenda-btn");
-      if (mobileAgendaBtn) {
-        mobileAgendaBtn.addEventListener("click", function() {
-          if (actionsDropdown) { actionsDropdown.hidden = true; }
-          if (actionsBtn) actionsBtn.classList.remove("open");
-          if (window.showAgendaPanel) window.showAgendaPanel();
-        });
-      }
-
-      // ── Kanban en menú móvil ──────────────────────────────────
-      var mobileKanbanBtn = document.getElementById("mobile-kanban-btn");
-      if (mobileKanbanBtn) {
-        mobileKanbanBtn.addEventListener("click", function() {
-          if (actionsDropdown) { actionsDropdown.hidden = true; }
-          if (actionsBtn) actionsBtn.classList.remove("open");
-          if (window.showKanbanPanel) window.showKanbanPanel();
-        });
-      }
 
       if (actionSheet) {
         actionSheet.addEventListener("click", function(e) {

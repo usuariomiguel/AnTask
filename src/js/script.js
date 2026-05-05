@@ -47,6 +47,7 @@ const themeToggle      = document.getElementById("theme-toggle");
 const projectListEl    = document.getElementById("project-list");
 const newProjectBtn    = document.getElementById("new-project-btn");
 const emptyState       = document.getElementById("empty-state");
+const ctrlBar          = document.getElementById("ctrl-bar");
 const tasksPanel       = document.getElementById("tasks-panel");
 const projectTitleEl   = document.getElementById("project-title");
 const projectSubtitle  = document.getElementById("project-subtitle");
@@ -290,6 +291,12 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "k" || e.key === "K") {
     e.preventDefault();
     showKanbanPanel();
+    return;
+  }
+
+  if (e.key === "c" || e.key === "C") {
+    e.preventDefault();
+    showCalendarPanel();
     return;
   }
 });
@@ -711,40 +718,46 @@ var _filterLabels = { all: "Todas", pending: "Pendientes", done: "Hechas" };
 
 function applyFilter(value) {
   currentFilter = value;
-  var filterEl = document.getElementById("filter-select");
-  if (filterEl && filterEl.value !== value) filterEl.value = value;
-  // sync mobile label & active state
-  var filterLabelEl = document.getElementById("mobile-filter-label");
-  if (filterLabelEl) filterLabelEl.textContent = _filterLabels[value] || "Todas";
-  document.querySelectorAll("#mobile-filter-dropdown [data-filter]").forEach(function(b) {
-    b.classList.toggle("active", b.dataset.filter === value);
+  document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
+    b.classList.toggle("filter-opt--active", b.dataset.filter === value);
   });
+  _updateFilterTriggerLabel();
   renderTasks();
 }
 window.applyFilter = applyFilter;
 
-var filterSelect = document.getElementById("filter-select");
-if (filterSelect) {
-  filterSelect.addEventListener("change", function() { applyFilter(filterSelect.value); });
-}
-
 // ─── ORDENACIÓN ──────────────────────────────────────────────
 function applySort(value) {
   currentSort = value;
-  var sortEl  = document.getElementById("sort-select");
-  var sortElM = document.getElementById("sort-select-mobile");
-  if (sortEl  && sortEl.value  !== value) sortEl.value  = value;
-  if (sortElM && sortElM.value !== value) sortElM.value = value;
+  document.querySelectorAll("#filter-panel [data-sort]").forEach(function(b) {
+    b.classList.toggle("filter-opt--active", b.dataset.sort === value);
+  });
+  _updateFilterTriggerLabel();
   renderTasks();
 }
 
-var sortSelect = document.getElementById("sort-select");
-if (sortSelect) {
-  sortSelect.addEventListener("change", function() { applySort(sortSelect.value); });
+function _syncFilterPanel(filter, sort) {
+  document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
+    b.classList.toggle("filter-opt--active", b.dataset.filter === filter);
+  });
+  document.querySelectorAll("#filter-panel [data-sort]").forEach(function(b) {
+    b.classList.toggle("filter-opt--active", b.dataset.sort === sort);
+  });
+  var triggerBtn = document.getElementById("filter-trigger-btn");
+  if (triggerBtn) triggerBtn.classList.remove("filter-trigger-btn--active");
+  var labelEl = document.getElementById("filter-trigger-label");
+  if (labelEl) labelEl.textContent = "Filtrar";
 }
-var sortSelectMobile = document.getElementById("sort-select-mobile");
-if (sortSelectMobile) {
-  sortSelectMobile.addEventListener("change", function() { applySort(sortSelectMobile.value); });
+
+function _updateFilterTriggerLabel() {
+  var labelEl    = document.getElementById("filter-trigger-label");
+  var triggerBtn = document.getElementById("filter-trigger-btn");
+  if (!labelEl) return;
+  var parts = [];
+  if (currentFilter !== "all")    parts.push(currentFilter === "pending" ? "Pendientes" : "Hechas");
+  if (currentSort   !== "manual") parts.push(currentSort === "priority" ? "Prioridad" : currentSort === "due" ? "Fecha" : "A–Z");
+  if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
+  labelEl.textContent = parts.length > 0 ? parts.join(", ") : "Filtrar";
 }
 
 // ─── STORAGE EVENT ───────────────────────────────────────────
@@ -773,7 +786,9 @@ function activateProject(id) {
   const hasProject = Boolean(project);
 
   emptyState.hidden = hasProject;
+  if (ctrlBar) { ctrlBar.hidden = !hasProject; ctrlBar.classList.remove("ctrl-bar--alt"); }
   tasksPanel.hidden = !hasProject;
+  if (hasProject) _setActiveViewTab("tasks");
   if (!hasProject) document.title = "antask";
 
   // Update mobile header: show project title or logo
@@ -798,12 +813,7 @@ function activateProject(id) {
   currentFilter = "all";
   currentSort   = "manual";
   currentLabelFilter = null;
-  var filterEl = document.getElementById("filter-select");
-  if (filterEl) filterEl.value = "all";
-  var sortEl = document.getElementById("sort-select");
-  var sortElM = document.getElementById("sort-select-mobile");
-  if (sortEl)  sortEl.value  = "manual";
-  if (sortElM) sortElM.value = "manual";
+  _syncFilterPanel("all", "manual");
 
   expandedTaskIds.clear();
   renderSidebar();
@@ -2724,27 +2734,72 @@ function updateNotesFmtButtons() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// VISTA DE AGENDA
+// VIEW-NAV: TABS + FILTER PANEL + MORE-ACTIONS
 // ═══════════════════════════════════════════════════════════════
 
 (function() {
-  var agendaBtn = document.getElementById("agenda-btn");
-  if (agendaBtn) {
-    agendaBtn.addEventListener("click", function() { showAgendaPanel(); });
-  }
-  var agendaExpandBtn = document.getElementById("agenda-expand-btn");
-  if (agendaExpandBtn) {
-    agendaExpandBtn.addEventListener("click", function() {
-      var layout = document.querySelector(".layout");
-      if (layout) {
-        layout.classList.remove("sidebar-is-collapsed");
-        var sidebar = document.querySelector(".sidebar");
-        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
-        localStorage.removeItem("sidebar-collapsed");
-      }
+  // ── Tab clicks ───────────────────────────────────────────────
+  var viewNavTabs = document.getElementById("view-nav-tabs");
+  if (viewNavTabs) {
+    viewNavTabs.addEventListener("click", function(e) {
+      var tab = e.target.closest(".view-tab");
+      if (!tab) return;
+      var view = tab.dataset.view;
+      if (view === "tasks")  { _closeAllAltPanels(); _restoreMainPanel(); }
+      else if (view === "agenda")  showAgendaPanel();
+      else if (view === "kanban")  showKanbanPanel();
+      else if (view === "cal")     showCalendarPanel();
     });
   }
+
+  // ── Filter panel toggle ──────────────────────────────────────
+  var filterTriggerBtn = document.getElementById("filter-trigger-btn");
+  var filterPanel      = document.getElementById("filter-panel");
+  if (filterTriggerBtn && filterPanel) {
+    filterTriggerBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var opening = filterPanel.hidden;
+      filterPanel.hidden = !opening;
+      filterTriggerBtn.classList.toggle("open", opening);
+    });
+  }
+
+  // ── Filter options ───────────────────────────────────────────
+  if (filterPanel) {
+    filterPanel.addEventListener("click", function(e) {
+      var btn = e.target.closest("[data-filter]");
+      if (btn) { applyFilter(btn.dataset.filter); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); return; }
+      var sortBtn = e.target.closest("[data-sort]");
+      if (sortBtn) { applySort(sortBtn.dataset.sort); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); }
+    });
+  }
+
+  // ── More-actions panel toggle ─────────────────────────────────
+  var moreActionsBtn   = document.getElementById("more-actions-btn");
+  var moreActionsPanel = document.getElementById("more-actions-panel");
+  if (moreActionsBtn && moreActionsPanel) {
+    moreActionsBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      moreActionsPanel.hidden = !moreActionsPanel.hidden;
+    });
+    moreActionsPanel.addEventListener("click", function() {
+      moreActionsPanel.hidden = true;
+    });
+  }
+
+  // ── Close dropdowns on outside click ─────────────────────────
+  document.addEventListener("click", function() {
+    if (filterPanel)      filterPanel.hidden = true;
+    if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
+    if (moreActionsPanel) moreActionsPanel.hidden = true;
+  });
 })();
+
+window.showAgendaPanel  = showAgendaPanel;
+
+// ═══════════════════════════════════════════════════════════════
+// VISTA DE AGENDA
+// ═══════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════
 // KANBAN
@@ -2773,7 +2828,6 @@ window.activateProject = activateProject;
 window.navigateToTask  = navigateToTask;
 function showKanbanPanel() {
   var kanbanPanel = document.getElementById("kanban-panel");
-  var kanbanBtn   = document.getElementById("kanban-btn");
   if (!kanbanPanel) return;
 
   if (!kanbanPanel.hidden) {
@@ -2784,9 +2838,10 @@ function showKanbanPanel() {
 
   _closeAllAltPanels();
   emptyState.hidden = true;
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
   tasksPanel.hidden = true;
   kanbanPanel.hidden = false;
-  if (kanbanBtn) kanbanBtn.classList.add("active");
+  _setActiveViewTab("kanban");
   renderKanban();
 }
 
@@ -3132,21 +3187,318 @@ function _closeAllAltPanels() {
   var agendaBtn   = document.getElementById("agenda-btn");
   var kanbanPanel = document.getElementById("kanban-panel");
   var kanbanBtn   = document.getElementById("kanban-btn");
+  var calPanel    = document.getElementById("cal-panel");
+  var calBtn      = document.getElementById("cal-btn");
   if (agendaPanel) agendaPanel.hidden = true;
   if (agendaBtn)   agendaBtn.classList.remove("active");
   if (kanbanPanel) kanbanPanel.hidden = true;
   if (kanbanBtn)   kanbanBtn.classList.remove("active");
+  if (calPanel)    calPanel.hidden = true;
+  if (calBtn)      calBtn.classList.remove("active");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALENDARIO
+// ═══════════════════════════════════════════════════════════════
+
+var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+(function() {
+  var calBtn = document.getElementById("cal-btn");
+  if (calBtn) calBtn.addEventListener("click", function() { showCalendarPanel(); });
+
+  var calExpandBtn = document.getElementById("cal-expand-btn");
+  if (calExpandBtn) {
+    calExpandBtn.addEventListener("click", function() {
+      var layout = document.querySelector(".layout");
+      if (layout) {
+        layout.classList.remove("sidebar-is-collapsed");
+        var sidebar = document.querySelector(".sidebar");
+        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
+        localStorage.removeItem("sidebar-collapsed");
+      }
+    });
+  }
+
+  var prevBtn = document.getElementById("cal-prev-btn");
+  var nextBtn = document.getElementById("cal-next-btn");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", function() {
+      calState.month--;
+      if (calState.month < 0) { calState.month = 11; calState.year--; }
+      renderCalendar();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", function() {
+      calState.month++;
+      if (calState.month > 11) { calState.month = 0; calState.year++; }
+      renderCalendar();
+    });
+  }
+})();
+
+window.showCalendarPanel = showCalendarPanel;
+
+function showCalendarPanel() {
+  var calPanel = document.getElementById("cal-panel");
+  if (!calPanel) return;
+
+  if (!calPanel.hidden) {
+    _closeAllAltPanels();
+    _restoreMainPanel();
+    return;
+  }
+
+  _closeAllAltPanels();
+  emptyState.hidden = true;
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
+  tasksPanel.hidden = true;
+  calPanel.hidden = false;
+  _setActiveViewTab("cal");
+  renderCalendar();
+}
+
+function renderCalendar() {
+  var content    = document.getElementById("cal-content");
+  var monthLabel = document.getElementById("cal-month-label");
+  if (!content) return;
+
+  var year  = calState.year;
+  var month = calState.month;
+
+  var monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  if (monthLabel) monthLabel.textContent = monthNames[month] + " " + year;
+
+  // Recopilar tareas del mes (incluyendo hechas para mostrar en el calendario)
+  var tasksByDay = {};
+  projects.forEach(function(project) {
+    (project.tasks || []).forEach(function(task) {
+      if (!task.dueDate) return;
+      var tYear  = parseInt(task.dueDate.slice(0, 4), 10);
+      var tMonth = parseInt(task.dueDate.slice(5, 7), 10) - 1;
+      if (tYear !== year || tMonth !== month) return;
+      var key = task.dueDate;
+      if (!tasksByDay[key]) tasksByDay[key] = [];
+      tasksByDay[key].push({ task: task, project: project });
+    });
+  });
+
+  content.innerHTML = "";
+
+  // Cabecera de días
+  var dayHeaders = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
+  var headerRow = document.createElement("div");
+  headerRow.className = "cal-day-headers";
+  dayHeaders.forEach(function(d) {
+    var el = document.createElement("div");
+    el.className = "cal-day-header";
+    el.textContent = d;
+    headerRow.appendChild(el);
+  });
+  content.appendChild(headerRow);
+
+  var firstDay   = new Date(year, month, 1);
+  var lastDay    = new Date(year, month + 1, 0);
+  var today      = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Offset para que la semana empiece el lunes
+  var startDow    = firstDay.getDay(); // 0=Dom
+  var startOffset = startDow === 0 ? 6 : startDow - 1;
+
+  var grid = document.createElement("div");
+  grid.className = "cal-grid";
+
+  // Días del mes anterior (relleno)
+  var prevLast = new Date(year, month, 0).getDate();
+  for (var i = startOffset - 1; i >= 0; i--) {
+    grid.appendChild(_buildCalCell(null, prevLast - i, true, [], today));
+  }
+
+  // Días del mes actual
+  for (var d = 1; d <= lastDay.getDate(); d++) {
+    var dateStr  = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+    var cellDate = new Date(year, month, d);
+    var isToday  = cellDate.getTime() === today.getTime();
+    grid.appendChild(_buildCalCell(dateStr, d, false, tasksByDay[dateStr] || [], today, isToday));
+  }
+
+  // Relleno al final
+  var totalCells = startOffset + lastDay.getDate();
+  var tail       = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (var i = 1; i <= tail; i++) {
+    grid.appendChild(_buildCalCell(null, i, true, [], today));
+  }
+
+  content.appendChild(grid);
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function _buildCalCell(dateStr, dayNum, isOther, taskItems, today, isToday) {
+  var cell = document.createElement("div");
+  cell.className = "cal-cell";
+  if (isOther)  cell.classList.add("cal-cell-other");
+  if (isToday)  cell.classList.add("cal-cell-today");
+  if (!isOther && taskItems.length > 0) cell.classList.add("cal-cell-has-tasks");
+  if (dateStr) cell.dataset.calDate = dateStr;
+
+  var numEl = document.createElement("span");
+  numEl.className = "cal-cell-num";
+  numEl.textContent = dayNum;
+  cell.appendChild(numEl);
+
+  if (!isOther && taskItems.length > 0) {
+    // Dots row — visible on mobile
+    var dotsRow = document.createElement("div");
+    dotsRow.className = "cal-dots";
+    var MAX_DOTS = 5;
+    taskItems.slice(0, MAX_DOTS).forEach(function(item) {
+      var dot = document.createElement("span");
+      dot.className = "cal-dot" + (item.task.priority ? " cal-dot-" + item.task.priority : "") + (item.task.done ? " cal-dot-done" : "");
+      dotsRow.appendChild(dot);
+    });
+    if (taskItems.length > MAX_DOTS) {
+      var xtra = document.createElement("span");
+      xtra.className = "cal-dot-extra";
+      xtra.textContent = "+" + (taskItems.length - MAX_DOTS);
+      dotsRow.appendChild(xtra);
+    }
+    cell.appendChild(dotsRow);
+
+    // Text chips — visible on desktop
+    var MAX = 3;
+    var visible  = taskItems.slice(0, MAX);
+    var overflow = taskItems.length - MAX;
+
+    visible.forEach(function(item) {
+      var chip = document.createElement("div");
+      chip.className = "cal-task-chip";
+      if (item.task.priority) chip.classList.add("cal-chip-" + item.task.priority);
+      if (item.task.done)     chip.classList.add("cal-chip-done");
+      chip.textContent = item.task.text;
+      chip.title = item.task.text + " — " + item.project.name;
+      chip.addEventListener("click", function(e) {
+        e.stopPropagation();
+        activateProject(item.project.id);
+      });
+      cell.appendChild(chip);
+    });
+
+    if (overflow > 0) {
+      var more = document.createElement("div");
+      more.className = "cal-task-more";
+      more.textContent = "+" + overflow + " más";
+      cell.appendChild(more);
+    }
+
+    // Click → day detail (works on both mobile and desktop)
+    cell.addEventListener("click", function() {
+      _showCalDayDetail(dateStr, taskItems, cell);
+    });
+  }
+
+  return cell;
+}
+
+function _showCalDayDetail(dateStr, taskItems, cellEl) {
+  var content = document.getElementById("cal-content");
+  if (!content) return;
+
+  // Remove active state from all cells
+  content.querySelectorAll(".cal-cell-selected").forEach(function(c) {
+    c.classList.remove("cal-cell-selected");
+  });
+
+  // Toggle: tap same day again to close
+  var existing = content.querySelector(".cal-day-detail");
+  if (existing) {
+    var wasDate = existing.dataset.detailDate;
+    existing.remove();
+    if (wasDate === dateStr) return;
+  }
+
+  if (cellEl) cellEl.classList.add("cal-cell-selected");
+
+  var due      = new Date(dateStr + "T00:00:00");
+  var detail   = document.createElement("div");
+  detail.className       = "cal-day-detail";
+  detail.dataset.detailDate = dateStr;
+
+  var titleEl = document.createElement("div");
+  titleEl.className   = "cal-day-detail-title";
+  titleEl.textContent = due.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  detail.appendChild(titleEl);
+
+  var list = document.createElement("ul");
+  list.className = "cal-day-detail-list";
+
+  taskItems.forEach(function(item) {
+    var li = document.createElement("li");
+    li.className = "cal-day-detail-item";
+    if (item.task.priority) li.classList.add("cal-detail-priority-" + item.task.priority);
+    if (item.task.done)     li.classList.add("cal-detail-done");
+
+    var left = document.createElement("div");
+    left.className = "cal-day-detail-left";
+
+    var dot = document.createElement("span");
+    dot.className = "cal-day-detail-dot";
+
+    var textEl = document.createElement("span");
+    textEl.className   = "cal-day-detail-text";
+    textEl.textContent = item.task.text;
+
+    left.appendChild(dot);
+    left.appendChild(textEl);
+
+    var projEl = document.createElement("span");
+    projEl.className   = "cal-day-detail-proj";
+    projEl.textContent = item.project.name;
+
+    li.appendChild(left);
+    li.appendChild(projEl);
+
+    li.addEventListener("click", function() {
+      activateProject(item.project.id);
+    });
+
+    list.appendChild(li);
+  });
+
+  detail.appendChild(list);
+  content.appendChild(detail);
+  setTimeout(function() { detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50);
 }
 
 function _restoreMainPanel() {
   var project = getActiveProject();
   emptyState.hidden = Boolean(project);
+  if (ctrlBar) { ctrlBar.hidden = !project; ctrlBar.classList.remove("ctrl-bar--alt"); }
   tasksPanel.hidden = !project;
+  _setActiveViewTab("tasks");
+}
+
+function _setActiveViewTab(view) {
+  document.querySelectorAll(".view-tab").forEach(function(t) {
+    t.classList.toggle("view-tab--active", t.dataset.view === view);
+  });
+  var filterWrap     = document.getElementById("filter-wrap");
+  var selectModeBtn  = document.getElementById("select-mode-btn");
+  var moreActionsWrap = document.getElementById("more-actions-wrap");
+  var isTasksView    = (view === "tasks");
+  if (filterWrap)      filterWrap.style.display     = isTasksView ? "" : "none";
+  if (selectModeBtn)   selectModeBtn.style.display   = isTasksView ? "" : "none";
+  if (moreActionsWrap) moreActionsWrap.style.display  = isTasksView ? "" : "none";
+  // Ocultar task-form en vistas alternativas
+  var taskFormEl = document.getElementById("task-form");
+  if (taskFormEl) taskFormEl.style.display = isTasksView ? "" : "none";
 }
 
 function showAgendaPanel() {
   var agendaPanel = document.getElementById("agenda-panel");
-  var agendaBtn   = document.getElementById("agenda-btn");
   if (!agendaPanel) return;
 
   if (!agendaPanel.hidden) {
@@ -3157,9 +3509,10 @@ function showAgendaPanel() {
 
   _closeAllAltPanels();
   emptyState.hidden = true;
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
   tasksPanel.hidden = true;
   agendaPanel.hidden = false;
-  if (agendaBtn) agendaBtn.classList.add("active");
+  _setActiveViewTab("agenda");
   renderAgenda();
 }
 
@@ -3320,6 +3673,8 @@ function showShortcutsHelp() {
         '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
         '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
         '<tr><td><kbd>A</kbd></td><td>Vista de agenda</td></tr>' +
+        '<tr><td><kbd>K</kbd></td><td>Vista Kanban</td></tr>' +
+        '<tr><td><kbd>C</kbd></td><td>Vista calendario</td></tr>' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
         '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
         '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +

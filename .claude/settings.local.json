@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Get-ChildItem \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\\\\src\\\\css\\\\\" -Force)"
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\\\\src\\\\css\\\\\" -Force)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }
