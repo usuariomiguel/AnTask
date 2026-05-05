@@ -1896,13 +1896,16 @@ input.inline-edit {
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 0.12rem 0.40rem;
+  padding: 0 0.40rem;
   border-radius: 2px;
   border: 1px solid transparent;
   white-space: nowrap;
   flex-shrink: 0;
   margin-right: 0.45rem;
   text-transform: uppercase;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .due-future {
@@ -3404,6 +3407,19 @@ input.inline-edit {
 
   .sidebar-backdrop {
     display: none !important;
+  }
+
+  /* Altura uniforme en todas las tareas no expandidas */
+  .task-item:not(.expanded) {
+    min-height: 2.4rem;
+  }
+
+  /* Asegurar que todos los elementos de task-actions tienen la misma altura */
+  .task-actions > * {
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
   }
 }
 
