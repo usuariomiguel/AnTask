@@ -100,7 +100,8 @@ let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indi
 let _undoTimer = null;
 
 // ─── CRONÓMETRO ───────────────────────────────────────────────
-var _timerState    = null;  // { taskId, taskText, elapsedMs, startedAt, running }
+// Map<taskId, { taskId, taskText, elapsedMs, startedAt, running }>
+var _timers        = Object.create(null);
 var _timerInterval = null;
 
 // ─── MULTI-SELECT ─────────────────────────────────────────────
@@ -1914,50 +1915,64 @@ function _timerFmt(ms) {
     : _timerPad(m) + ":" + _timerPad(s);
 }
 
-function _timerElapsed() {
-  if (!_timerState) return 0;
-  var base = _timerState.elapsedMs || 0;
-  if (_timerState.running) base += Date.now() - _timerState.startedAt;
+function _hasAnyRunningTimer() {
+  for (var k in _timers) {
+    if (_timers[k] && _timers[k].running) return true;
+  }
+  return false;
+}
+
+function _ensureTimerInterval() {
+  if (_hasAnyRunningTimer()) {
+    if (!_timerInterval) _timerInterval = setInterval(_timerTick, 1000);
+  } else if (_timerInterval) {
+    clearInterval(_timerInterval);
+    _timerInterval = null;
+  }
+}
+
+function _timerElapsedFor(taskId) {
+  var t = _timers[taskId];
+  if (!t) return 0;
+  var base = t.elapsedMs || 0;
+  if (t.running) base += Date.now() - t.startedAt;
   return base;
 }
 
+function _hasTimer(taskId)   { return !!_timers[taskId]; }
+function _isTimerRunning(id) { return !!(_timers[id] && _timers[id].running); }
+
 function startTimer(task) {
-  if (_timerState && _timerState.taskId === task.id) {
-    if (_timerState.running) {
-      _timerState.elapsedMs += Date.now() - _timerState.startedAt;
-      _timerState.running = false;
-      clearInterval(_timerInterval);
-      _timerInterval = null;
+  var t = _timers[task.id];
+  if (t) {
+    if (t.running) {
+      t.elapsedMs += Date.now() - t.startedAt;
+      t.running    = false;
     } else {
-      _timerState.startedAt = Date.now();
-      _timerState.running = true;
-      _timerInterval = setInterval(_timerTick, 1000);
+      t.startedAt = Date.now();
+      t.running   = true;
     }
-    _updateTimerBar();
-    return;
+  } else {
+    _timers[task.id] = {
+      taskId:   task.id,
+      taskText: task.text,
+      elapsedMs: 0,
+      startedAt: Date.now(),
+      running:  true,
+    };
   }
-  if (_timerState) _timerStop(true);
-  _timerState = {
-    taskId:   task.id,
-    taskText: task.text,
-    elapsedMs: 0,
-    startedAt: Date.now(),
-    running:  true,
-  };
-  _timerInterval = setInterval(_timerTick, 1000);
+  _ensureTimerInterval();
   _updateTimerBar();
 }
 
-function _timerStop(silent) {
-  if (!_timerState) return;
-  var elapsed = _timerElapsed();
-  clearInterval(_timerInterval);
-  _timerInterval = null;
+function _timerStopForTask(taskId, silent) {
+  var t = _timers[taskId];
+  if (!t) return;
+  var elapsed = _timerElapsedFor(taskId);
   if (elapsed >= 1000) {
-    var taskId = _timerState.taskId;
     var found = null;
     for (var i = 0; i < projects.length; i++) {
-      found = projects[i].tasks.find(function(t) { return t.id === taskId; });
+      found = projects[i].tasks.find(function(x) { return x.id === taskId; });
       if (found) break;
     }
     if (found) {
@@ -1965,89 +1980,139 @@ function _timerStop(silent) {
       saveProjects();
     }
   }
-  _timerState = null;
+  delete _timers[taskId];
+  _ensureTimerInterval();
   _updateTimerBar();
   if (!silent) renderTasks();
 }
 
+function _timerToggleTask(taskId) {
+  var t = _timers[taskId];
+  if (!t) return;
+  if (t.running) {
+    t.elapsedMs += Date.now() - t.startedAt;
+    t.running    = false;
+  } else {
+    t.startedAt = Date.now();
+    t.running   = true;
+  }
+  _ensureTimerInterval();
+  _updateTimerBar();
+}
+
 function _timerTick() {
   _updateTimerBar();
-  if (_timerState) {
-    var node = taskList.querySelector('[data-task-id="' + _timerState.taskId + '"]');
-    if (node) {
-      var container = node.querySelector(".task-timer-container");
-      if (container) _renderTimerBadgeInContainer(_timerState.taskId, container);
-    }
+  for (var k in _timers) {
+    var node = taskList.querySelector('[data-task-id="' + k + '"]');
+    if (!node) continue;
+    var container = node.querySelector(".task-timer-container");
+    if (container) _renderTimerBadgeInContainer(k, container);
   }
+}
+
+function _activeTimerIds() {
+  var ids = [];
+  for (var k in _timers) ids.push(k);
+  return ids;
 }
 
 function _updateTimerBar() {
   var bar = document.getElementById("timer-bar");
   if (!bar) return;
-  if (!_timerState) {
+  var ids = _activeTimerIds();
+  if (ids.length === 0) {
     bar.hidden = true;
+    bar.innerHTML = "";
     return;
   }
   bar.hidden = false;
-  var labelEl  = document.getElementById("timer-bar-task");
-  var timeEl   = document.getElementById("timer-bar-time");
-  var toggleBtn = document.getElementById("timer-toggle-btn");
-  if (labelEl) labelEl.textContent = _timerState.taskText.length > 35
-    ? _timerState.taskText.slice(0, 35) + "…"
-    : _timerState.taskText;
-  if (timeEl) timeEl.textContent = _timerFmt(_timerElapsed());
-  if (toggleBtn) {
-    var ico = toggleBtn.querySelector("i[data-lucide]");
-    if (ico) {
-      var nextIcon = _timerState.running ? "pause" : "play";
-      if (ico.getAttribute("data-lucide") !== nextIcon) {
-        ico.setAttribute("data-lucide", nextIcon);
+
+  var existing = {};
+  Array.prototype.forEach.call(bar.querySelectorAll(".timer-bar-row"), function(row) {
+    existing[row.dataset.timerTaskId] = row;
+  });
+
+  // Remove rows for stopped timers
+  Object.keys(existing).forEach(function(id) {
+    if (!_timers[id]) { existing[id].remove(); delete existing[id]; }
+  });
+
+  ids.forEach(function(id) {
+    var t = _timers[id];
+    var row = existing[id];
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "timer-bar-row";
+      row.dataset.timerTaskId = id;
+      row.innerHTML =
+        '<span class="timer-bar-icon"><i data-lucide="timer"></i></span>' +
+        '<span class="timer-bar-task"></span>' +
+        '<span class="timer-bar-time"></span>' +
+        '<button type="button" class="timer-ctrl-btn timer-bar-toggle" aria-label="Pausar/Reanudar"><i data-lucide="pause"></i></button>' +
+        '<button type="button" class="timer-ctrl-btn timer-ctrl-stop timer-bar-stop" aria-label="Detener y guardar"><i data-lucide="square"></i></button>';
+      bar.appendChild(row);
+      if (window.lucide) lucide.createIcons({ nodes: [row] });
+    }
+
+    var labelEl = row.querySelector(".timer-bar-task");
+    var timeEl  = row.querySelector(".timer-bar-time");
+    if (labelEl) labelEl.textContent = t.taskText.length > 35 ? t.taskText.slice(0, 35) + "…" : t.taskText;
+    if (timeEl)  timeEl.textContent  = _timerFmt(_timerElapsedFor(id));
+
+    var toggleBtn = row.querySelector(".timer-bar-toggle");
+    if (toggleBtn) {
+      var nextIcon = t.running ? "pause" : "play";
+      var curSvg = toggleBtn.querySelector("svg[data-lucide]");
+      var curIco = toggleBtn.querySelector("i[data-lucide]");
+      var curIcon = curSvg
+        ? curSvg.getAttribute("data-lucide")
+        : (curIco ? curIco.getAttribute("data-lucide") : null);
+      if (curIcon !== nextIcon) {
+        toggleBtn.innerHTML = '<i data-lucide="' + nextIcon + '"></i>';
         if (window.lucide) lucide.createIcons({ nodes: [toggleBtn] });
       }
     }
-  }
+
+    row.classList.toggle("timer-bar-row-paused", !t.running);
+  });
 }
 
 function renderTimerBadge(task, container) {
   if (!container) return;
   container.innerHTML = "";
-  var isActive = _timerState && _timerState.taskId === task.id;
-  var ms = isActive ? _timerElapsed() : (task.timeLogged || 0);
+  var isActive = _hasTimer(task.id);
+  var ms = isActive ? _timerElapsedFor(task.id) : (task.timeLogged || 0);
   if (ms < 1000) return;
   _renderTimerBadgeInContainer(task.id, container, ms);
 }
 
 function _renderTimerBadgeInContainer(taskId, container, ms) {
-  var isActive = _timerState && _timerState.taskId === taskId;
-  var elapsed  = ms !== undefined ? ms : (isActive ? _timerElapsed() : 0);
+  var isActive = _hasTimer(taskId);
+  var elapsed  = ms !== undefined ? ms : (isActive ? _timerElapsedFor(taskId) : 0);
   if (elapsed < 1000) { container.innerHTML = ""; return; }
   container.innerHTML = "";
   var badge = document.createElement("span");
-  badge.className = "timer-badge" + (isActive && _timerState.running ? " timer-running" : "");
+  badge.className = "timer-badge" + (isActive && _isTimerRunning(taskId) ? " timer-running" : "");
   badge.innerHTML = '<i data-lucide="timer"></i> ' + _timerFmt(elapsed);
   container.appendChild(badge);
   if (window.lucide) lucide.createIcons({ nodes: [container] });
 }
 
-// ─── Botones del timer bar ────────────────────────────────────
+// ─── Botones del timer bar (event delegation) ────────────────
 (function() {
-  var toggleBtn = document.getElementById("timer-toggle-btn");
-  var stopBtn   = document.getElementById("timer-stop-btn");
-  if (toggleBtn) toggleBtn.addEventListener("click", function() {
-    if (!_timerState) return;
-    if (_timerState.running) {
-      _timerState.elapsedMs += Date.now() - _timerState.startedAt;
-      _timerState.running = false;
-      clearInterval(_timerInterval);
-      _timerInterval = null;
-    } else {
-      _timerState.startedAt = Date.now();
-      _timerState.running = true;
-      _timerInterval = setInterval(_timerTick, 1000);
+  var bar = document.getElementById("timer-bar");
+  if (!bar) return;
+  bar.addEventListener("click", function(e) {
+    var row = e.target.closest(".timer-bar-row");
+    if (!row) return;
+    var taskId = row.dataset.timerTaskId;
+    if (!taskId) return;
+    if (e.target.closest(".timer-bar-toggle")) {
+      _timerToggleTask(taskId);
+    } else if (e.target.closest(".timer-bar-stop")) {
+      _timerStopForTask(taskId, false);
     }
-    _updateTimerBar();
   });
-  if (stopBtn) stopBtn.addEventListener("click", function() { _timerStop(false); });
 })();
 
 // ═══════════════════════════════════════════════════════════════

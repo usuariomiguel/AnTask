@@ -105,13 +105,40 @@
   }
 
   // ─── Notificaciones ──────────────────────────────────────────
-  var pfNotifBtn     = document.getElementById("pf-notif-btn");
-  var pfNotifLabel   = document.getElementById("pf-notif-label");
-  var pfNotifPill    = document.getElementById("pf-notif-pill");
-  var pfNotifIco     = document.getElementById("pf-notif-ico");
-  var pfNotifOptions = document.getElementById("pf-notif-options");
-  var pfNotifTime    = document.getElementById("pf-notif-time");
-  var pfNotifTest    = document.getElementById("pf-notif-test");
+  var pfNotifBtn       = document.getElementById("pf-notif-btn");
+  var pfNotifLabel     = document.getElementById("pf-notif-label");
+  var pfNotifPill      = document.getElementById("pf-notif-pill");
+  var pfNotifIco       = document.getElementById("pf-notif-ico");
+  var pfNotifOptions   = document.getElementById("pf-notif-options");
+  var pfNotifTimesList = document.getElementById("pf-notif-times-list");
+  var pfNotifNewTime   = document.getElementById("pf-notif-new-time");
+  var pfNotifAddBtn    = document.getElementById("pf-notif-add");
+  var pfNotifTest      = document.getElementById("pf-notif-test");
+
+  function renderNotifTimes() {
+    if (!pfNotifTimesList || !window.AnsoNotif) return;
+    var times = AnsoNotif.getTimes();
+    pfNotifTimesList.innerHTML = "";
+    times.forEach(function(t) {
+      var chip = document.createElement("span");
+      chip.className = "profile-notif-time-chip";
+      chip.innerHTML = '<span class="profile-notif-time-text">' + t + '</span>' +
+        '<button type="button" class="profile-notif-time-del" aria-label="Quitar hora">' +
+        '<i data-lucide="x"></i></button>';
+      var delBtn = chip.querySelector(".profile-notif-time-del");
+      delBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        if (AnsoNotif.getTimes().length <= 1) {
+          alert("Debe quedar al menos una hora de aviso. Si no quieres avisos, desactívalos arriba.");
+          return;
+        }
+        AnsoNotif.removeTime(t);
+        renderNotifTimes();
+      });
+      pfNotifTimesList.appendChild(chip);
+    });
+    if (window.lucide) lucide.createIcons({ nodes: [pfNotifTimesList] });
+  }
 
   function refreshNotifUI() {
     if (!window.AnsoNotif || !pfNotifBtn) return;
@@ -134,7 +161,7 @@
         if (window.lucide) lucide.createIcons({ nodes: [pfNotifIco] });
       }
       if (pfNotifOptions) pfNotifOptions.hidden = false;
-      if (pfNotifTime) pfNotifTime.value = AnsoNotif.getTime();
+      renderNotifTimes();
     } else {
       pfNotifLabel.textContent = perm === "denied" ? "Avisos bloqueados" : "Activar avisos";
       pfNotifPill.textContent  = "OFF";
@@ -169,9 +196,15 @@
     });
   }
 
-  if (pfNotifTime && window.AnsoNotif) {
-    pfNotifTime.addEventListener("change", function() {
-      AnsoNotif.setTime(pfNotifTime.value);
+  if (pfNotifAddBtn && pfNotifNewTime && window.AnsoNotif) {
+    pfNotifAddBtn.addEventListener("click", function() {
+      var v = pfNotifNewTime.value;
+      if (!v) return;
+      var ok = AnsoNotif.addTime(v);
+      if (!ok) {
+        // ya existe — silencioso, solo refrescar
+      }
+      renderNotifTimes();
     });
   }
 

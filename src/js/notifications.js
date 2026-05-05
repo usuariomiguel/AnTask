@@ -1,46 +1,76 @@
 // ═══════════════════════════════════════════════════════════════
-// NOTIFICACIONES DE TAREAS VENCIDAS
+// NOTIFICACIONES DE TAREAS VENCIDAS (varios recordatorios al día)
 // ═══════════════════════════════════════════════════════════════
 
 window.AnsoNotif = (function() {
-  var ENABLED_KEY   = "anso-notif-enabled";
-  var TIME_KEY      = "anso-notif-time";
-  var LAST_DATE_KEY = "anso-notif-last-fire-date";
-  var DEFAULT_TIME  = "09:00";
+  var ENABLED_KEY    = "anso-notif-enabled";
+  var TIMES_KEY      = "anso-notif-times";       // JSON array ["HH:MM", ...]
+  var FIRED_KEY      = "anso-notif-fired";       // JSON { date, times: ["HH:MM"] }
+  var LEGACY_TIME    = "anso-notif-time";        // single HH:MM (compat)
+  var LEGACY_LAST    = "anso-notif-last-fire-date";
+  var DEFAULT_TIMES  = ["09:00"];
 
   var _scheduleTimer = null;
 
-  function isSupported() {
-    return typeof window !== "undefined" && "Notification" in window;
-  }
-
-  function permission() {
-    return isSupported() ? Notification.permission : "unsupported";
-  }
-
-  function isEnabled() {
+  function isSupported() { return typeof window !== "undefined" && "Notification" in window; }
+  function permission()  { return isSupported() ? Notification.permission : "unsupported"; }
+  function isEnabled()   {
     if (!isSupported()) return false;
     return localStorage.getItem(ENABLED_KEY) === "1" && Notification.permission === "granted";
   }
 
-  function getTime() {
-    var t = localStorage.getItem(TIME_KEY);
-    return /^\d{2}:\d{2}$/.test(t || "") ? t : DEFAULT_TIME;
+  function _validTime(t)  { return /^\d{2}:\d{2}$/.test(t || ""); }
+  function _normalize(arr) {
+    var seen = {}, out = [];
+    (arr || []).forEach(function(t) {
+      if (_validTime(t) && !seen[t]) { seen[t] = true; out.push(t); }
+    });
+    out.sort();
+    return out;
   }
 
-  function setTime(hhmm) {
-    if (!/^\d{2}:\d{2}$/.test(hhmm)) return false;
-    localStorage.setItem(TIME_KEY, hhmm);
+  function getTimes() {
+    var raw = localStorage.getItem(TIMES_KEY);
+    if (raw) {
+      try {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          var norm = _normalize(arr);
+          if (norm.length) return norm;
+        }
+      } catch (e) {}
+    }
+    var legacy = localStorage.getItem(LEGACY_TIME);
+    if (_validTime(legacy)) return [legacy];
+    return DEFAULT_TIMES.slice();
+  }
+
+  function setTimes(arr) {
+    var norm = _normalize(arr);
+    if (!norm.length) return false;
+    localStorage.setItem(TIMES_KEY, JSON.stringify(norm));
     _rescheduleNext();
     return true;
+  }
+
+  function addTime(hhmm)    {
+    if (!_validTime(hhmm)) return false;
+    var cur = getTimes();
+    if (cur.indexOf(hhmm) !== -1) return false;
+    cur.push(hhmm);
+    return setTimes(cur);
+  }
+
+  function removeTime(hhmm) {
+    var cur = getTimes().filter(function(t) { return t !== hhmm; });
+    if (!cur.length) return false; // no permitir lista vacía
+    return setTimes(cur);
   }
 
   function requestEnable() {
     if (!isSupported()) return Promise.resolve(false);
     var current = Notification.permission;
-    var p = current === "default"
-      ? Notification.requestPermission()
-      : Promise.resolve(current);
+    var p = current === "default" ? Notification.requestPermission() : Promise.resolve(current);
     return p.then(function(perm) {
       if (perm !== "granted") {
         localStorage.setItem(ENABLED_KEY, "0");
@@ -72,32 +102,68 @@ window.AnsoNotif = (function() {
 
   function _todayStr() {
     var d = new Date();
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, "0");
-    var day = String(d.getDate()).padStart(2, "0");
-    return y + "-" + m + "-" + day;
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
   }
 
   function _parseTime(hhmm) {
-    var parts = hhmm.split(":");
-    return { h: parseInt(parts[0], 10), m: parseInt(parts[1], 10) };
+    var p = hhmm.split(":");
+    return { h: parseInt(p[0], 10), m: parseInt(p[1], 10) };
   }
 
-  function _isPastDailyTime() {
+  function _nowMin() {
+    var n = new Date();
+    return n.getHours() * 60 + n.getMinutes();
+  }
+
+  function _firedToday() {
+    var raw = localStorage.getItem(FIRED_KEY);
+    if (!raw) return [];
+    try {
+      var obj = JSON.parse(raw);
+      if (obj && obj.date === _todayStr() && Array.isArray(obj.times)) return obj.times;
+    } catch (e) {}
+    return [];
+  }
+
+  function _markFired(hhmm) {
+    var fired = _firedToday();
+    if (fired.indexOf(hhmm) === -1) fired.push(hhmm);
+    localStorage.setItem(FIRED_KEY, JSON.stringify({ date: _todayStr(), times: fired }));
+  }
+
+  function _pendingTimes() {
+    var fired = _firedToday();
+    var now   = _nowMin();
+    return getTimes().filter(function(t) {
+      if (fired.indexOf(t) !== -1) return false;
+      var pt = _parseTime(t);
+      return (pt.h * 60 + pt.m) <= now;
+    });
+  }
+
+  function _msUntilNextTime() {
+    var times = getTimes();
     var now = new Date();
-    var t = _parseTime(getTime());
     var nowMin = now.getHours() * 60 + now.getMinutes();
-    var thresholdMin = t.h * 60 + t.m;
-    return nowMin >= thresholdMin;
-  }
-
-  function _msUntilNextDailyTime() {
-    var now = new Date();
-    var t = _parseTime(getTime());
-    var next = new Date();
-    next.setHours(t.h, t.m, 0, 0);
-    if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
-    return next.getTime() - now.getTime();
+    var nextToday = null;
+    times.forEach(function(t) {
+      var pt = _parseTime(t);
+      var min = pt.h * 60 + pt.m;
+      if (min > nowMin && (nextToday === null || min < nextToday)) nextToday = min;
+    });
+    if (nextToday !== null) {
+      var d = new Date();
+      d.setHours(0, nextToday, 0, 0);
+      return d.getTime() - now.getTime();
+    }
+    // primera hora de mañana
+    var first = _parseTime(times[0]);
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(first.h, first.m, 0, 0);
+    return tomorrow.getTime() - now.getTime();
   }
 
   function _gatherDueTasks() {
@@ -111,8 +177,7 @@ window.AnsoNotif = (function() {
     projects.forEach(function(p) {
       if (!Array.isArray(p.tasks)) return;
       p.tasks.forEach(function(t) {
-        if (t.done) return;
-        if (!t.dueDate) return;
+        if (t.done || !t.dueDate) return;
         if (t.dueDate <= today) {
           due.push({
             projectId:   p.id,
@@ -130,30 +195,30 @@ window.AnsoNotif = (function() {
 
   function _checkAndFire() {
     if (!isEnabled()) return;
-    var today = _todayStr();
-    var lastDate = localStorage.getItem(LAST_DATE_KEY);
-    if (lastDate === today) return;
-    if (!_isPastDailyTime()) return;
-
+    var pending = _pendingTimes();
+    if (!pending.length) return;
     var due = _gatherDueTasks();
-    if (due.length > 0) _fireNotifications(due);
-    localStorage.setItem(LAST_DATE_KEY, today);
+    pending.forEach(function(time) {
+      if (due.length > 0) _fireNotificationsAt(due, time);
+      _markFired(time);
+    });
   }
 
-  function _fireNotifications(due) {
+  function _fireNotificationsAt(due, time) {
+    var dateTag = _todayStr() + "-" + time;
     if (due.length === 1) {
       var d = due[0];
       _showNotification(
         d.overdue ? "Tarea vencida" : "Tarea vence hoy",
         "[" + d.projectName + "] " + d.taskText,
-        "antask-due-" + d.taskId,
+        "antask-due-" + d.taskId + "-" + dateTag,
         { projectId: d.projectId, taskId: d.taskId }
       );
       return;
     }
     var overdue = due.filter(function(x) { return x.overdue; }).length;
-    var title = due.length + " tareas pendientes";
-    var lines = due.slice(0, 5).map(function(x) {
+    var title   = due.length + " tareas pendientes";
+    var lines   = due.slice(0, 5).map(function(x) {
       return (x.overdue ? "⚠ " : "· ") + x.taskText.slice(0, 60);
     });
     if (due.length > 5) lines.push("…y " + (due.length - 5) + " más");
@@ -161,7 +226,7 @@ window.AnsoNotif = (function() {
       title = overdue + " vencida" + (overdue === 1 ? "" : "s") +
               " · " + (due.length - overdue) + " hoy";
     }
-    _showNotification(title, lines.join("\n"), "antask-daily-" + _todayStr());
+    _showNotification(title, lines.join("\n"), "antask-daily-" + dateTag);
   }
 
   function _showNotification(title, body, tag, data) {
@@ -189,7 +254,7 @@ window.AnsoNotif = (function() {
   function _rescheduleNext() {
     if (_scheduleTimer) { clearTimeout(_scheduleTimer); _scheduleTimer = null; }
     if (!isEnabled()) return;
-    var ms = Math.max(1000, Math.min(_msUntilNextDailyTime(), 24 * 60 * 60 * 1000));
+    var ms = Math.max(1000, Math.min(_msUntilNextTime(), 24 * 60 * 60 * 1000));
     _scheduleTimer = setTimeout(function() {
       _checkAndFire();
       _rescheduleNext();
@@ -198,12 +263,13 @@ window.AnsoNotif = (function() {
 
   function init() {
     if (!isSupported()) return;
+    // Limpieza migración legacy
+    if (localStorage.getItem(LEGACY_LAST)) localStorage.removeItem(LEGACY_LAST);
     _checkAndFire();
     _rescheduleNext();
     document.addEventListener("visibilitychange", function() {
       if (!document.hidden) _checkAndFire();
     });
-    // Navegación al hacer clic en una notificación (si SW manda mensaje)
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", function(event) {
         if (!event.data || event.data.type !== "antask-notif-click") return;
@@ -231,8 +297,10 @@ window.AnsoNotif = (function() {
     isSupported:   isSupported,
     permission:    permission,
     isEnabled:     isEnabled,
-    getTime:       getTime,
-    setTime:       setTime,
+    getTimes:      getTimes,
+    setTimes:      setTimes,
+    addTime:       addTime,
+    removeTime:    removeTime,
     requestEnable: requestEnable,
     disable:       disable,
     fireTest:      fireTest,

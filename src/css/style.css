@@ -2085,15 +2085,15 @@ input.inline-edit {
   transform: none;
 }
 
-/* ─── TIMER BAR (floating) ───────────────────────────────────── */
+/* ─── TIMER BAR (floating, apila timers en filas) ───────────── */
 .timer-bar {
   position: fixed;
   bottom: 1.2rem;
   right: 1.4rem;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.7rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0.5rem;
   background: var(--bg-glass);
   border: 1px solid rgba(52, 211, 153, 0.35);
   border-radius: var(--radius-md);
@@ -2102,10 +2102,31 @@ input.inline-edit {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30);
   animation: timerBarIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
   max-width: calc(100vw - 2.8rem);
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
 }
 @keyframes timerBarIn {
   from { opacity: 0; transform: translateY(12px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.timer-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.20rem 0.30rem;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s;
+}
+.timer-bar-row + .timer-bar-row {
+  border-top: 1px solid rgba(52, 211, 153, 0.15);
+  padding-top: 0.40rem;
+}
+.timer-bar-row-paused .timer-bar-time {
+  color: var(--t-muted);
+}
+.timer-bar-row-paused .timer-bar-icon {
+  color: var(--t-muted);
 }
 
 .timer-bar-icon {
@@ -3927,8 +3948,8 @@ mark.search-hl {
 /* ─── MULTI-SELECT ───────────────────────────────────────────── */
 .task-select-cb {
   display: none;
-  width: 15px;
-  height: 15px;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
   accent-color: var(--c-cyan);
@@ -5113,32 +5134,105 @@ kbd {
   border-bottom: 1px solid var(--b-subtle);
 }
 
-.profile-notif-time-row {
+.profile-notif-times-block {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  color: var(--t-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
+  flex-direction: column;
+  gap: 0.40rem;
 }
 
-.profile-notif-time-row input[type="time"] {
+.profile-notif-times-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--t-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-notif-times-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.30rem;
+  min-height: 1.4rem;
+}
+
+.profile-notif-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.30rem 0.18rem 0.50rem;
+  background: rgba(129, 140, 248, 0.10);
+  border: 1px solid rgba(129, 140, 248, 0.30);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--t-primary);
+  letter-spacing: 0.04em;
+}
+
+.profile-notif-time-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--t-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.profile-notif-time-del:hover {
+  background: rgba(251, 113, 133, 0.20);
+  color: var(--c-pink);
+}
+.profile-notif-time-del .lucide { width: 11px; height: 11px; stroke-width: 2.5; }
+
+.profile-notif-times-add {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.profile-notif-times-add input[type="time"] {
+  flex: 1;
   background: var(--bg-glass);
   border: 1px solid var(--b-subtle);
   border-radius: var(--radius-sm);
   padding: 0.20rem 0.40rem;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--t-primary);
   color-scheme: dark;
 }
-:root[data-theme="light"] .profile-notif-time-row input[type="time"] {
+:root[data-theme="light"] .profile-notif-times-add input[type="time"] {
   color-scheme: light;
 }
+
+.profile-notif-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.32);
+  border-radius: var(--radius-sm);
+  color: var(--c-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.26rem 0.45rem;
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+.profile-notif-add-btn:hover {
+  background: rgba(34, 211, 238, 0.16);
+  border-color: rgba(34, 211, 238, 0.55);
+}
+.profile-notif-add-btn .lucide { width: 11px; height: 11px; stroke-width: 2.5; }
 
 .profile-notif-test-btn {
   display: inline-flex;

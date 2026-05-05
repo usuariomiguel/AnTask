@@ -161,10 +161,16 @@
                 <span class="profile-toggle-pill" id="pf-notif-pill">OFF</span>
               </button>
               <div class="profile-notif-options" id="pf-notif-options" hidden>
-                <label class="profile-notif-time-row" for="pf-notif-time">
-                  <span>Hora del aviso diario</span>
-                  <input type="time" id="pf-notif-time" value="09:00">
-                </label>
+                <div class="profile-notif-times-block">
+                  <span class="profile-notif-times-label">Horas de aviso</span>
+                  <div class="profile-notif-times-list" id="pf-notif-times-list"></div>
+                  <div class="profile-notif-times-add">
+                    <input type="time" id="pf-notif-new-time" value="12:00">
+                    <button type="button" class="profile-notif-add-btn" id="pf-notif-add">
+                      <i data-lucide="plus"></i> Añadir
+                    </button>
+                  </div>
+                </div>
                 <button type="button" class="profile-notif-test-btn" id="pf-notif-test">
                   <i data-lucide="bell-ring"></i> Probar aviso
                 </button>
@@ -425,14 +431,8 @@
       <div class="paste-toast-bar"></div>
     </div>
 
-    <!-- ── TIMER BAR ─────────────────────────────────────────────── -->
-    <div id="timer-bar" class="timer-bar" hidden>
-      <span class="timer-bar-icon"><i data-lucide="timer"></i></span>
-      <span class="timer-bar-task" id="timer-bar-task"></span>
-      <span class="timer-bar-time" id="timer-bar-time">00:00</span>
-      <button type="button" id="timer-toggle-btn" class="timer-ctrl-btn" aria-label="Pausar/Reanudar"><i data-lucide="pause"></i></button>
-      <button type="button" id="timer-stop-btn" class="timer-ctrl-btn timer-ctrl-stop" aria-label="Detener y guardar"><i data-lucide="square"></i></button>
-    </div>
+    <!-- ── TIMER BAR (rows inyectadas dinámicamente) ────────────── -->
+    <div id="timer-bar" class="timer-bar" hidden></div>
 
     <!-- Firebase SDK (compat v10) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
