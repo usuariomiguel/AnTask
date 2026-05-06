@@ -3495,6 +3495,12 @@ function _setActiveViewTab(view) {
   // Ocultar task-form en vistas alternativas
   var taskFormEl = document.getElementById("task-form");
   if (taskFormEl) taskFormEl.style.display = isTasksView ? "" : "none";
+  // Eyebrow que indica la vista actual encima del título
+  var eyebrow = document.getElementById("view-eyebrow");
+  if (eyebrow) {
+    var labels = { tasks: "Vista lista", agenda: "Vista agenda", kanban: "Vista kanban", cal: "Vista mes" };
+    eyebrow.textContent = labels[view] || "";
+  }
 }
 
 function showAgendaPanel() {

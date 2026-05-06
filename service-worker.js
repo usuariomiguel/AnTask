@@ -1,4 +1,4 @@
-const CACHE_NAME = "ansotask-v3";
+const CACHE_NAME = "ansotask-v7";
 const CORE_ASSETS = ["./", "./index.html", "./src/css/style.css", "./src/js/script.js", "./src/js/notifications.js", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

@@ -73,6 +73,14 @@
     });
   }
 
+  var shortcutsItem = document.getElementById("shortcuts-btn");
+  if (shortcutsItem) {
+    shortcutsItem.addEventListener("click", function() {
+      profileDropdown.hidden = true;
+      profileBtn.setAttribute("aria-expanded", "false");
+    });
+  }
+
   if (pfThemeBtn) {
     pfThemeBtn.addEventListener("click", function() {
       profileDropdown.hidden = true;

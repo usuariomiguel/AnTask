@@ -105,9 +105,11 @@
           <div class="sidebar-header-top">
             <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
             <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
-            <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos"><i data-lucide="panel-left-close"></i></button>
+            <div class="sidebar-header-actions">
+              <button type="button" id="new-section-btn" class="sidebar-icon-btn" aria-label="Nueva sección de proyectos" title="Nueva sección de proyectos"><i data-lucide="layers"></i></button>
+              <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn sidebar-icon-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos"><i data-lucide="panel-left-close"></i></button>
+            </div>
           </div>
-          <p class="subtitle">// proyectos</p>
         </div>
 
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
@@ -116,11 +118,7 @@
           <div class="sidebar-search-row">
             <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> Buscar tareas</button>
           </div>
-          <div class="sidebar-footer-row">
-            <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Nuevo proyecto</button>
-            <button type="button" id="new-section-btn" class="new-section-btn" title="Nueva sección de proyectos"><i data-lucide="layers"></i></button>
-            <button type="button" id="shortcuts-btn" class="shortcuts-help-btn" title="Atajos de teclado (?)"><i data-lucide="keyboard"></i></button>
-          </div>
+          <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Nuevo proyecto</button>
           <!-- Legacy sync nodes (hidden, JS still references them internally) -->
           <div id="sync-section" hidden style="display:none!important">
             <button id="sync-signin-btn" type="button"></button>
@@ -175,6 +173,7 @@
               </div>
               <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> Cambiar tema</button>
+              <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> Atajos de teclado</button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
               <div id="pf-sync-user" hidden>
@@ -203,7 +202,8 @@
           <div class="tasks-header">
             <div class="tasks-header-left">
               <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
-              <div>
+              <div class="tasks-header-titleblock">
+                <span class="view-eyebrow" id="view-eyebrow">Vista lista</span>
                 <h2 id="project-title" class="project-title"></h2>
                 <p class="subtitle" id="project-subtitle"></p>
               </div>
@@ -231,7 +231,7 @@
                 <i data-lucide="layout-dashboard"></i><span>Kanban</span>
               </button>
               <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
-                <i data-lucide="calendar-days"></i><span>Cal.</span>
+                <i data-lucide="calendar-days"></i><span>Mes</span>
               </button>
             </div>
             <div class="view-nav-right">
@@ -340,10 +340,10 @@
             <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
             <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
             <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
-            <button type="button" class="timer-btn" title="Cronómetro"><i data-lucide="timer"></i> Timer</button>
+            <button type="button" class="timer-btn" title="Cronómetro"><i data-lucide="timer"></i> Crono</button>
             <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
-            <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Tags</button>
-            <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub</button>
+            <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Etiq.</button>
+            <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub.</button>
             <button type="button" class="delete-btn" aria-label="Eliminar tarea"><i data-lucide="x"></i></button>
             <span class="expand-indicator" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
             <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
