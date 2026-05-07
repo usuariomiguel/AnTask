@@ -3,7 +3,14 @@
     "allow": [
       "Bash(Get-ChildItem \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\\\\src\\\\css\\\\\" -Force)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\" -Force)",
-      "Bash(Select-Object Name, PSIsContainer)"
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(inkscape --version)",
+      "Bash(magick --version)",
+      "Bash(convert --version)",
+      "Bash(node -e \"require\\('fs'\\)\")",
+      "Bash(node -e \"const {createCanvas} = require\\('canvas'\\); console.log\\('canvas-ok'\\)\")",
+      "Bash(npx --yes svgexport \"src/img/logo-icon.svg\" \"icons/icon-192.png\" 192:192)",
+      "Bash(npx svgexport *)"
     ]
   }
 }
