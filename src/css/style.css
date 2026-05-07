@@ -343,7 +343,7 @@ body {
 /* ─── BRAND LOGO ─────────────────────────────────────────────── */
 .brand-logo {
   display: block;
-  height: 29px;
+  height: 35px;
   width: auto;
   max-width: 100%;
   flex-shrink: 0;
@@ -471,8 +471,8 @@ body {
 
 .sidebar-icon-btn .lucide,
 .sidebar-collapse-btn .lucide {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2;
 }
 
