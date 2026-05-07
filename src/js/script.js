@@ -1620,7 +1620,9 @@ function renderTaskLabels(task, container) {
     const badge = document.createElement("span");
     badge.className = "label-badge";
     badge.textContent = labelName;
-    badge.style.setProperty("--label-color", getLabelColor(labelName));
+    var _slot = getLabelSlot(labelName);
+    badge.style.setProperty("--tag-bg", "var(--tag-" + _slot + "-bg)");
+    badge.style.setProperty("--tag-fg", "var(--tag-" + _slot + "-fg)");
     badge.addEventListener("click", function(e) {
       e.stopPropagation();
       currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
@@ -1656,7 +1658,9 @@ function renderLabelFilterBar() {
     btn.type = "button";
     btn.className = "label-filter-btn" + (currentLabelFilter === labelName ? " active" : "");
     btn.textContent = labelName;
-    btn.style.setProperty("--label-color", getLabelColor(labelName));
+    var _slot2 = getLabelSlot(labelName);
+    btn.style.setProperty("--tag-bg", "var(--tag-" + _slot2 + "-bg)");
+    btn.style.setProperty("--tag-fg", "var(--tag-" + _slot2 + "-fg)");
     btn.addEventListener("click", function() {
       currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
       renderLabelFilterBar();
@@ -1764,12 +1768,14 @@ async function showLabelPicker(task) {
   });
 }
 
+var _TAG_SLOTS = ["violet","blue","green","amber","pink","rose","cyan","slate"];
+function getLabelSlot(name) {
+  var hash = 0;
+  for (var i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return _TAG_SLOTS[hash % _TAG_SLOTS.length];
+}
 function getLabelColor(name) {
-  // deterministic color from label name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  const hue = hash % 360;
-  return "hsl(" + hue + ", 70%, 55%)";
+  return "var(--tag-" + getLabelSlot(name) + "-fg)";
 }
 
 function escHtml(str) {

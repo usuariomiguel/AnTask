@@ -1,46 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="ag" gradientUnits="userSpaceOnUse" x1="50" y1="4" x2="50" y2="97">
-      <stop offset="0%"   stop-color="#a5b4fc"/>
-      <stop offset="45%"  stop-color="#6366f1"/>
+    <linearGradient id="ag" x1="18" y1="9" x2="82" y2="83" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ddd6fe"/>
+      <stop offset="50%"  stop-color="#8b5cf6"/>
       <stop offset="100%" stop-color="#5b21b6"/>
+    </linearGradient>
+    <linearGradient id="og" x1="10" y1="34" x2="91" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
     </linearGradient>
   </defs>
 
-  <!-- ── LEGS ───────────────────────────────────────── -->
-  <polyline points="36,40 22,30 14,37" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="36,44 18,42 8,51"  fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="36,51 22,63 15,71" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="64,40 78,30 86,37" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="64,44 82,42 92,51" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="64,51 78,63 85,71" fill="none" stroke="url(#ag)" stroke-width="4"   stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Orbital ring — back arc (upper half, behind the A) -->
+  <path d="M 90.8,33.5 A 44,15 -22 0,0 9.2,66.5"
+        fill="none" stroke="url(#og)" stroke-width="5.5"
+        stroke-linecap="round" stroke-opacity="0.35"/>
 
-  <!-- ── ABDOMEN ────────────────────────────────────── -->
-  <ellipse cx="50" cy="80" rx="23" ry="17" fill="url(#ag)"/>
+  <!-- A mark -->
+  <path d="M 18,83 L 50,9 L 82,83"
+        fill="none" stroke="url(#ag)" stroke-width="12"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 30,55 L 70,55"
+        fill="none" stroke="url(#ag)" stroke-width="12"
+        stroke-linecap="round"/>
 
-  <!-- ── PETIOLE ────────────────────────────────────── -->
-  <ellipse cx="50" cy="61" rx="6"  ry="5"  fill="url(#ag)"/>
-
-  <!-- ── THORAX ─────────────────────────────────────── -->
-  <ellipse cx="50" cy="44" rx="14" ry="14" fill="url(#ag)"/>
-
-  <!-- ── CHECKMARK ──────────────────────────────────── -->
-  <path d="M 38,44 L 46,53 L 63,34"
-    fill="none" stroke="rgba(255,255,255,0.95)"
-    stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- ── HEAD ───────────────────────────────────────── -->
-  <ellipse cx="50" cy="19" rx="13" ry="11" fill="url(#ag)"/>
-
-  <!-- ── EYES ───────────────────────────────────────── -->
-  <circle cx="44" cy="18" r="3"   fill="white"/>
-  <circle cx="56" cy="18" r="3"   fill="white"/>
-
-  <!-- ── ANTENNAE ───────────────────────────────────── -->
-  <path d="M 45,10 Q 33,5 22,4"
-    fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="22" cy="4"  r="4"   fill="url(#ag)"/>
-  <path d="M 55,10 Q 67,5 78,4"
-    fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="78" cy="4"  r="4"   fill="url(#ag)"/>
+  <!-- Orbital ring — front arc (lower half, in front of A) -->
+  <path d="M 9.2,66.5 A 44,15 -22 0,1 90.8,33.5"
+        fill="none" stroke="url(#og)" stroke-width="5.5"
+        stroke-linecap="round"/>
 </svg>
