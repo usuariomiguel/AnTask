@@ -56,6 +56,13 @@ const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
 const taskList         = document.getElementById("task-list");
+
+// ─── MOBILE FAB REFS ─────────────────────────────────────────
+const mobileFab    = document.getElementById("mobile-fab");
+const fabBackdrop  = document.getElementById("fab-backdrop");
+const fabSheet     = document.getElementById("fab-sheet");
+const fabForm      = document.getElementById("fab-form");
+const fabInput     = document.getElementById("fab-input");
 const taskCounter      = document.getElementById("task-counter");
 const saveStatus       = document.getElementById("save-status");
 const clearDoneBtn     = document.getElementById("clear-done");
@@ -623,6 +630,59 @@ taskForm.addEventListener("submit", function(event) {
   saveAndRender();
 });
 
+// ─── MOBILE FAB ──────────────────────────────────────────────
+function openFabSheet() {
+  if (!mobileFab || !fabSheet || !fabBackdrop) return;
+  mobileFab.classList.add("open");
+  fabSheet.classList.add("open");
+  fabBackdrop.classList.add("active");
+  fabSheet.setAttribute("aria-hidden", "false");
+  setTimeout(function() { if (fabInput) fabInput.focus(); }, 60);
+}
+
+function closeFabSheet() {
+  if (!mobileFab || !fabSheet || !fabBackdrop) return;
+  mobileFab.classList.remove("open");
+  fabSheet.classList.remove("open");
+  fabBackdrop.classList.remove("active");
+  fabSheet.setAttribute("aria-hidden", "true");
+  if (fabInput) fabInput.value = "";
+}
+
+if (mobileFab) {
+  mobileFab.addEventListener("click", function() {
+    fabSheet && fabSheet.classList.contains("open") ? closeFabSheet() : openFabSheet();
+  });
+}
+if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
+
+if (fabForm) {
+  fabForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+    const project = getActiveProject();
+    if (!project) return;
+    const text = fabInput ? fabInput.value.trim() : "";
+    if (!text) return;
+    project.tasks.unshift({
+      id: generateId(),
+      text: text,
+      comment: "",
+      done: false,
+      status: null,
+      dueDate: null,
+      recurDays: null,
+      timeLogged: 0,
+      subtasks: [],
+    });
+    closeFabSheet();
+    saveAndRender();
+  });
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape" && fabSheet && fabSheet.classList.contains("open")) closeFabSheet();
+});
+
 // ─── LIMPIAR HECHAS ──────────────────────────────────────────
 clearDoneBtn.addEventListener("click", function() {
   const project = getActiveProject();
@@ -787,6 +847,7 @@ function activateProject(id) {
 
   emptyState.hidden = hasProject;
   if (ctrlBar) { ctrlBar.hidden = !hasProject; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (mobileFab) mobileFab.classList.toggle("visible", hasProject);
   tasksPanel.hidden = !hasProject;
   if (hasProject) _setActiveViewTab("tasks");
   if (!hasProject) document.title = "antask";

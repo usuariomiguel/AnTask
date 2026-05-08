@@ -319,6 +319,21 @@
         </div>
 
       </main>
+
+      <!-- ── MOBILE FAB + CREATION SHEET ──────────────────── -->
+      <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
+        <i data-lucide="plus" class="fab-icon-plus"></i>
+        <i data-lucide="x"    class="fab-icon-close"></i>
+      </button>
+      <div class="fab-backdrop" id="fab-backdrop"></div>
+      <div class="fab-sheet" id="fab-sheet" aria-hidden="true">
+        <div class="fab-sheet-drag"></div>
+        <form id="fab-form" class="fab-form" novalidate>
+          <input id="fab-input" type="text" placeholder="Nueva tarea..." maxlength="120" autocomplete="off" />
+          <button type="submit"><i data-lucide="plus"></i> Añadir</button>
+        </form>
+      </div>
+
       </div><!-- /.mobile-body -->
     </div>
 
