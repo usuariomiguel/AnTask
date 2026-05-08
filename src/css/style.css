@@ -3579,34 +3579,49 @@ input.inline-edit {
     animation: none;
   }
 
-  /* ── View nav mobile ──────────────────────────────────── */
+  /* ── View nav mobile: dos filas (tabs completo + acciones) ── */
   .view-nav {
+    flex-wrap: wrap;
+    gap: 0;
     margin-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    gap: 0.35rem;
-    flex-wrap: nowrap;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   .view-nav-tabs {
-    gap: 2px;
-    flex-shrink: 1;
-    min-width: 0;
+    flex: 0 0 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    min-width: unset;
+    border-radius: var(--r-md);
+    overflow: hidden;
   }
 
   .view-tab {
+    flex: unset;
+    justify-content: center;
     font-size: 0.68rem;
-    padding: 0.28rem 0.5rem;
-    gap: 0.28rem;
+    padding: 0.40rem 0.25rem;
+    gap: 0.25rem;
+    border-radius: 0;
+    min-height: 36px;
   }
+  .view-tab:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+  .view-tab:last-child  { border-radius: 0 var(--r-md) var(--r-md) 0; }
 
   .view-tab svg { width: 12px; height: 12px; }
 
-  /* Keep text labels on mobile but compact */
   .view-tab span { font-size: 0.65rem; }
 
   .view-nav-right {
-    gap: 0.2rem;
-    flex-shrink: 0;
+    flex: 0 0 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    padding: 0.45rem 0 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .filter-trigger-btn {
@@ -3699,11 +3714,11 @@ input.inline-edit {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 0.5rem 0.72rem;
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
   }
 
   .undo-toast {
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
   }
 
   .task-item {
@@ -4090,30 +4105,9 @@ input.inline-edit {
     transform: none;
   }
 
-  /* Task form — at the top of the task list on mobile */
+  /* Task form oculto en móvil — sustituido por el FAB */
   .task-form {
-    position: static;
-    margin: 0;
-    padding: 0.60rem 0rem;
-    background: transparent;
-    border-top: none;
-    border-bottom: 1px solid var(--b-subtle);
-    backdrop-filter: none;
-    box-shadow: none;
-    gap: 0.45rem;
-    flex-shrink: 0;
-  }
-
-  :root[data-theme="light"] .task-form {
-    background: transparent;
-    border-bottom-color: rgba(0, 0, 0, 0.08);
-    box-shadow: none;
-  }
-
-  .task-form input {
-    font-size: 1rem;
-    /* ≥16px evita el zoom automático de iOS Safari */
-    padding: 0.60rem 0.80rem;
+    display: none;
   }
 
   input.inline-edit {
@@ -4122,12 +4116,6 @@ input.inline-edit {
 
   .modal-input {
     font-size: 1rem;
-  }
-
-  .task-form button {
-    padding: 0.60rem 0.88rem;
-    font-size: 0.76rem;
-    flex-shrink: 0;
   }
 
   .stats {
@@ -4195,6 +4183,126 @@ input.inline-edit {
   .notes-panel {
     padding: 0;
   }
+
+  /* ── FAB ─────────────────────────────────────────────────── */
+  .mobile-fab {
+    position: fixed;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
+    right: 1.25rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--grad-primary);
+    border: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      0 0 0 1px rgba(139,92,246,0.30),
+      0 6px 24px rgba(139,92,246,0.50);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 380;
+    transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+    padding: 0;
+  }
+  .mobile-fab.visible { display: flex; }
+  .mobile-fab svg { width: 22px; height: 22px; stroke-width: 2.5; }
+  .mobile-fab:active {
+    transform: scale(0.90);
+    box-shadow: 0 2px 10px rgba(139,92,246,0.35);
+  }
+  .fab-icon-close { display: none; }
+  .mobile-fab.open .fab-icon-plus  { display: none; }
+  .mobile-fab.open .fab-icon-close { display: block; }
+
+  /* ── FAB backdrop ───────────────────────────────────────── */
+  .fab-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 420;
+    background: rgba(0,0,0,0.50);
+    backdrop-filter: blur(4px);
+    display: none;
+    animation: fadeIn 0.18s ease both;
+  }
+  .fab-backdrop.active { display: block; }
+
+  /* ── FAB bottom sheet ───────────────────────────────────── */
+  .fab-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 430;
+    background: #16162a;
+    border-top: 2px solid rgba(139,92,246,0.50);
+    border-radius: 20px 20px 0 0;
+    padding: 0.55rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 0));
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.65);
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+    display: block;
+  }
+  .fab-sheet.open { transform: translateY(0); }
+
+  :root[data-theme="light"] .fab-sheet {
+    background: #fafafd;
+    border-top-color: rgba(124,58,237,0.40);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+  }
+
+  .fab-sheet-drag {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 auto 0.85rem;
+  }
+  :root[data-theme="light"] .fab-sheet-drag { background: rgba(0,0,0,0.12); }
+
+  .fab-form {
+    display: flex;
+    gap: 0.55rem;
+  }
+  .fab-form input {
+    flex: 1;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: var(--surface-input);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    padding: 0.72rem 0.9rem;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+  }
+  .fab-form input::placeholder { color: var(--text-tertiary); }
+  .fab-form input:focus {
+    border-color: var(--c-primary-500);
+    box-shadow: var(--ring-primary);
+  }
+  .fab-form button[type="submit"] {
+    color: #fff;
+    background: var(--grad-primary);
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    padding: 0.72rem var(--sp-5);
+    border-radius: var(--r-md);
+    box-shadow:
+      0 0 0 1px rgba(139,92,246,0.30),
+      0 4px 14px rgba(139,92,246,0.40);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .fab-form button[type="submit"]:active {
+    transform: scale(0.97);
+  }
+  .fab-form button[type="submit"] svg { width: 13px; height: 13px; }
 }
 
 @media (min-width: 769px) {
