@@ -1651,11 +1651,11 @@ function applyPriorityToNode(node, task) {
 
 function updatePriorityBtn(btn, task) {
   if (!task.priority) {
-    btn.innerHTML = '<i data-lucide="flag"></i> Prior.';
+    btn.innerHTML = '<i data-lucide="flag"></i>';
     btn.className = "priority-btn";
   } else {
     const cfg = PRIORITY_CONFIG[task.priority];
-    btn.innerHTML = '<i data-lucide="flag"></i> ' + cfg.label;
+    btn.innerHTML = cfg.label;
     btn.className = "priority-btn " + cfg.cls + "-btn";
   }
 }
@@ -1931,7 +1931,7 @@ function renderDueBadge(task, container) {
   if (!state) return;
   const badge = document.createElement("span");
   badge.className = "due-badge " + state.cls;
-  badge.textContent = "⏱ " + state.label;
+  badge.textContent = state.label;
   container.appendChild(badge);
 }
 
