@@ -10,7 +10,8 @@
       "Bash(node -e \"require\\('fs'\\)\")",
       "Bash(node -e \"const {createCanvas} = require\\('canvas'\\); console.log\\('canvas-ok'\\)\")",
       "Bash(npx --yes svgexport \"src/img/logo-icon.svg\" \"icons/icon-192.png\" 192:192)",
-      "Bash(npx svgexport *)"
+      "Bash(npx svgexport *)",
+      "Bash(awk -F: '$1+0 >= 3700 && $1+0 <= 4200')"
     ]
   }
 }

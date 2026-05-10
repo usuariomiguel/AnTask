@@ -227,7 +227,7 @@
               <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
                 <i data-lucide="calendar-range"></i><span>Agenda</span>
               </button>
-              <button type="button" class="view-tab" data-view="kanban" id="view-tab-kanban">
+              <button type="button" class="view-tab view-tab--desktop-only" data-view="kanban" id="view-tab-kanban">
                 <i data-lucide="layout-dashboard"></i><span>Kanban</span>
               </button>
               <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
@@ -342,13 +342,11 @@
           <i data-lucide="layers"></i>
           <span>Proyectos</span>
         </button>
+        <!-- FAB se posiciona entre los dos botones via CSS (left:50%) -->
+        <div class="mobile-bottom-spacer" aria-hidden="true"></div>
         <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
           <i data-lucide="search"></i>
           <span>Buscar</span>
-        </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-settings-btn">
-          <i data-lucide="settings-2"></i>
-          <span>Ajustes</span>
         </button>
       </nav>
 
