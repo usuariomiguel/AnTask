@@ -78,7 +78,7 @@
       <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
       <header class="mobile-header" id="mobile-header">
         <div class="mobile-header-left">
-          <button type="button" class="mobile-icon-btn" id="mobile-menu-btn" aria-label="Abrir menú de proyectos"><i data-lucide="menu"></i></button>
+          <button type="button" class="mobile-icon-btn" id="mobile-settings-btn" aria-label="Ajustes"><i data-lucide="settings"></i></button>
         </div>
         <div class="mobile-header-center">
           <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
@@ -661,6 +661,18 @@
             var pb = document.getElementById("profile-btn");
             if (pb && !document.getElementById("profile-dropdown").hidden === false) pb.click();
             else if (pb) pb.click();
+          }, 300);
+        });
+      }
+
+      // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil
+      var mobileSettingsBtn = document.getElementById("mobile-settings-btn");
+      if (mobileSettingsBtn) {
+        mobileSettingsBtn.addEventListener("click", function() {
+          openSidebar();
+          setTimeout(function() {
+            var pb = document.getElementById("profile-btn");
+            if (pb) pb.click();
           }, 300);
         });
       }

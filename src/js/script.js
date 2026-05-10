@@ -1,3 +1,8 @@
+function capitalizeFirst(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // ─── CLAVES DE ALMACENAMIENTO ────────────────────────────────
 const PROJECTS_KEY   = "anso-projects";
 const ACTIVE_KEY     = "anso-active-project";
@@ -581,7 +586,7 @@ newProjectBtn.addEventListener("click", async function() {
   if (!name) return;
   const project = {
     id: generateId(),
-    name: name.trim().slice(0, 60),
+    name: capitalizeFirst(name.trim()).slice(0, 60),
     createdAt: new Date().toISOString(),
     tasks: [],
   };
@@ -613,7 +618,7 @@ taskForm.addEventListener("submit", function(event) {
   event.preventDefault();
   const project = getActiveProject();
   if (!project) return;
-  const text = taskInput.value.trim();
+  const text = capitalizeFirst(taskInput.value.trim());
   if (!text) return;
   project.tasks.unshift({
     id: generateId(),
@@ -661,7 +666,7 @@ if (fabForm) {
     e.preventDefault();
     const project = getActiveProject();
     if (!project) return;
-    const text = fabInput ? fabInput.value.trim() : "";
+    const text = fabInput ? capitalizeFirst(fabInput.value.trim()) : "";
     if (!text) return;
     project.tasks.unshift({
       id: generateId(),
@@ -980,7 +985,7 @@ function renderProjectItem(project, indented) {
     e.stopPropagation();
     const newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
     if (newName === null) return;
-    const trimmed = newName.trim();
+    const trimmed = capitalizeFirst(newName.trim());
     if (!trimmed || trimmed === project.name) return;
     project.name = trimmed;
     saveProjects();
@@ -1106,7 +1111,7 @@ async function showSectionMenu(section, anchor) {
       action: async function() {
         var newName = await modalPrompt("// Cambiar nombre de sección", section.name, section.name);
         if (newName === null) return;
-        var trimmed = newName.trim();
+        var trimmed = capitalizeFirst(newName.trim());
         if (!trimmed || trimmed === section.name) return;
         section.name = trimmed;
         saveSections();
@@ -1170,7 +1175,7 @@ async function showProjectMenu(project, anchor) {
       action: async function() {
         var newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
         if (newName === null) return;
-        var trimmed = newName.trim();
+        var trimmed = capitalizeFirst(newName.trim());
         if (!trimmed || trimmed === project.name) return;
         project.name = trimmed;
         saveProjects();
@@ -1857,7 +1862,7 @@ function startInlineEdit(textSpan, task) {
   input.select();
 
   function commit() {
-    const newText = input.value.trim().slice(0, 120);
+    const newText = capitalizeFirst(input.value.trim()).slice(0, 120);
     if (newText && newText !== current) {
       task.text = newText;
       saveAndRender();
@@ -1888,7 +1893,7 @@ function startSubtaskInlineEdit(textSpan, subtask) {
   input.select();
 
   function commit() {
-    const newText = input.value.trim().slice(0, 120);
+    const newText = capitalizeFirst(input.value.trim()).slice(0, 120);
     if (newText && newText !== current) {
       subtask.text = newText;
       saveAndRender();
