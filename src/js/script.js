@@ -183,10 +183,12 @@ if (shortcutsBtn) {
 if (selectModeBtn) selectModeBtn.addEventListener("click", toggleSelectMode);
 var _bulkDoneBtn   = document.getElementById("bulk-done-btn");
 var _bulkPendingBtn= document.getElementById("bulk-pending-btn");
+var _bulkMoveBtn   = document.getElementById("bulk-move-btn");
 var _bulkDeleteBtn = document.getElementById("bulk-delete-btn");
 var _bulkCancelBtn = document.getElementById("bulk-cancel-btn");
 if (_bulkDoneBtn)    _bulkDoneBtn.addEventListener("click",    bulkMarkDone);
 if (_bulkPendingBtn) _bulkPendingBtn.addEventListener("click", bulkMarkPending);
+if (_bulkMoveBtn)    _bulkMoveBtn.addEventListener("click",    bulkMoveToProject);
 if (_bulkDeleteBtn)  _bulkDeleteBtn.addEventListener("click",  bulkDelete);
 if (_bulkCancelBtn)  _bulkCancelBtn.addEventListener("click",  exitSelectMode);
 
@@ -463,6 +465,53 @@ function modalAlert(message, type) {
   });
 }
 
+
+/**
+ * Modal para seleccionar un proyecto de destino
+ * @param {string} excludeProjectId — ID del proyecto actual (excluirlo de la lista)
+ * @returns {Promise<string|null>} — ID del proyecto elegido o null si cancela
+ */
+function modalProjectPicker(excludeProjectId) {
+  return new Promise(function(resolve) {
+    var available = projects.filter(function(p) { return p.id !== excludeProjectId; });
+    if (available.length === 0) {
+      modalAlert("No hay otros proyectos disponibles.", "info");
+      resolve(null);
+      return;
+    }
+    var { overlay, box } = createModalBase();
+    var listHtml = available.map(function(p) {
+      var done  = p.tasks.filter(function(t) { return t.done; }).length;
+      var total = p.tasks.length;
+      return '<button type="button" class="modal-project-item" data-id="' + p.id + '">' +
+        '<span class="modal-project-name">' + p.name + '</span>' +
+        '<span class="modal-project-count">' + done + '/' + total + '</span>' +
+        '</button>';
+    }).join('');
+    box.innerHTML =
+      '<p class="modal-label">// Mover a proyecto</p>' +
+      '<div class="modal-project-list">' + listHtml + '</div>' +
+      '<div class="modal-actions">' +
+        '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+      '</div>';
+    function doCancel() { closeModal(overlay); resolve(null); }
+    overlay._cancel = doCancel;
+    box.querySelector('.modal-btn-cancel').addEventListener('click', doCancel);
+    box.querySelectorAll('.modal-project-item').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        closeModal(overlay);
+        resolve(btn.dataset.id);
+      });
+    });
+    document.addEventListener('keydown', function handler(e) {
+      if (e.key === 'Escape') { doCancel(); document.removeEventListener('keydown', handler); }
+    });
+    setTimeout(function() {
+      var first = box.querySelector('.modal-project-item');
+      if (first) first.focus();
+    }, 50);
+  });
+}
 
 /**
  * Modal para seleccionar fecha límite
@@ -1029,6 +1078,11 @@ function renderProjectItem(project, indented) {
   li.appendChild(topRow);
   if (total > 0) li.appendChild(bar);
   li.addEventListener("click", function() { activateProject(project.id); });
+  li.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showProjectMenu(project, kebabBtn);
+  });
   initProjectDragDrop(li, project.id);
   projectListEl.appendChild(li);
 }
@@ -1475,6 +1529,45 @@ function renderTasks() {
         if (idx < items.length - 1) items[idx + 1].focus();
         return;
       }
+    });
+
+    // ── Menú contextual (click derecho) ──────────────────────
+    node.addEventListener("contextmenu", async function(e) {
+      if (e.target.closest("button, input")) return;
+      e.preventDefault();
+      if (selectMode) return;
+      closeCtxMenu();
+      var items = [
+        {
+          label: "Mover a proyecto...",
+          action: async function() {
+            var targetId = await modalProjectPicker(project.id);
+            if (!targetId) return;
+            var target = projects.find(function(p) { return p.id === targetId; });
+            if (!target) return;
+            var idx = project.tasks.findIndex(function(t) { return t.id === task.id; });
+            if (idx === -1) return;
+            var moved = project.tasks.splice(idx, 1)[0];
+            expandedTaskIds.delete(moved.id);
+            target.tasks.unshift(moved);
+            saveAndRender();
+          }
+        }
+      ];
+      var menu = _buildCtxMenu(items);
+      var fakeAnchor = {
+        getBoundingClientRect: function() {
+          return { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
+        }
+      };
+      positionCtxMenu(menu, fakeAnchor);
+      _ctxMenu = menu;
+      requestAnimationFrame(function() {
+        _ctxCloseHandler = function(ev) {
+          if (!menu.contains(ev.target)) closeCtxMenu();
+        };
+        document.addEventListener("mousedown", _ctxCloseHandler);
+      });
     });
 
     // ── Checkbox de selección ─────────────────────────────────
@@ -2664,7 +2757,7 @@ function enterSelectMode() {
   selectedTaskIds.clear();
   taskList.classList.add("select-mode");
   if (selectModeBtn) {
-    selectModeBtn.innerHTML = '<i data-lucide="x"></i> Cancelar';
+    selectModeBtn.innerHTML = '<i data-lucide="x"></i>';
     selectModeBtn.classList.add("active");
     if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
   }
@@ -2678,7 +2771,7 @@ function exitSelectMode() {
   selectedTaskIds.clear();
   taskList.classList.remove("select-mode");
   if (selectModeBtn) {
-    selectModeBtn.innerHTML = '<i data-lucide="square-check-big"></i> Seleccionar';
+    selectModeBtn.innerHTML = '<i data-lucide="square-check-big"></i>';
     selectModeBtn.classList.remove("active");
     if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
   }
@@ -2745,6 +2838,20 @@ function bulkDelete() {
   exitSelectMode();
   saveAndRender();
   showUndoToast();
+}
+
+async function bulkMoveToProject() {
+  var project = getActiveProject();
+  if (!project || selectedTaskIds.size === 0) return;
+  var targetId = await modalProjectPicker(project.id);
+  if (!targetId) return;
+  var target = projects.find(function(p) { return p.id === targetId; });
+  if (!target) return;
+  var toMove = project.tasks.filter(function(t) { return selectedTaskIds.has(t.id); });
+  project.tasks = project.tasks.filter(function(t) { return !selectedTaskIds.has(t.id); });
+  toMove.reverse().forEach(function(t) { target.tasks.unshift(t); });
+  exitSelectMode();
+  saveAndRender();
 }
 
 // ═══════════════════════════════════════════════════════════════

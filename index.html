@@ -18,56 +18,25 @@
     <!-- ── SPLASH / LOADING SCREEN ──────────────────────────── -->
     <div id="splash" aria-hidden="true" role="status" aria-label="Cargando antask">
       <div class="splash-inner">
-        <svg class="splash-icon" viewBox="0 0 150 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="splash-icon" viewBox="0 0 92 80" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="75" y1="8" x2="75" y2="116">
-              <stop offset="0%"   stop-color="#a5b4fc"/>
-              <stop offset="45%"  stop-color="#6366f1"/>
-              <stop offset="100%" stop-color="#5b21b6"/>
+            <linearGradient id="sg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7C3AED"/>
+              <stop offset="0.5" stop-color="#EC4899"/>
+              <stop offset="1" stop-color="#06B6DA"/>
             </linearGradient>
+            <filter id="sg-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
           </defs>
-
-          <!-- ── LEGS (drawn behind body) ─────────────── -->
-          <polyline class="splash-leg" points="59,47 41,36 30,44"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline class="splash-leg" points="59,55 38,53 25,63"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline class="splash-leg" points="59,64 43,76 35,83"  stroke="url(#sg)" stroke-width="5"  stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline class="splash-leg" points="91,47 109,36 120,44" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline class="splash-leg" points="91,55 112,53 125,63" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline class="splash-leg" points="91,64 107,76 115,83" stroke="url(#sg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-
-          <!-- ── ABDOMEN ──────────────────────────────── -->
-          <ellipse class="splash-abdomen" cx="75" cy="95" rx="25" ry="19" fill="url(#sg)"/>
-
-          <!-- ── PETIOLE (waist) ─────────────────────── -->
-          <ellipse class="splash-petiole" cx="75" cy="74" rx="7" ry="5.5" fill="url(#sg)"/>
-
-          <!-- ── THORAX ──────────────────────────────── -->
-          <ellipse class="splash-thorax" cx="75" cy="55" rx="16" ry="15" fill="url(#sg)"/>
-
-          <!-- ── CHECKMARK on thorax ─────────────────── -->
-          <path class="splash-check"
-            d="M 62,55 L 71,65 L 89,43"
-            stroke="rgba(255,255,255,0.95)" stroke-width="5.5"
-            stroke-linecap="round" stroke-linejoin="round"/>
-
-          <!-- ── HEAD ────────────────────────────────── -->
-          <ellipse class="splash-head" cx="75" cy="28" rx="14" ry="12" fill="url(#sg)"/>
-
-          <!-- ── EYES ────────────────────────────────── -->
-          <circle class="splash-eyes" cx="69"  cy="26" r="3.8" fill="white"/>
-          <circle class="splash-eyes" cx="81" cy="26" r="3.8" fill="white"/>
-
-          <!-- ── ANTENNAE ─────────────────────────────── -->
-          <path class="splash-antenna" d="M 70,18 Q 58,10 48,8"
-            stroke="url(#sg)" stroke-width="4" stroke-linecap="round"/>
-          <circle class="splash-antenna-tip" cx="48" cy="8" r="4.5" fill="url(#sg)"/>
-          <path class="splash-antenna" d="M 80,18 Q 92,10 102,8"
-            stroke="url(#sg)" stroke-width="4" stroke-linecap="round"/>
-          <circle class="splash-antenna-tip" cx="102" cy="8" r="4.5" fill="url(#sg)"/>
+          <path class="splash-mark"
+            d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z"
+            fill="url(#sg)"/>
         </svg>
 
         <div class="splash-wordmark" aria-label="antask">
-          <span class="splash-an">an</span><span class="splash-task">task</span>
+          <span class="splash-an">antask</span>
         </div>
         <p class="splash-tagline">Gestión de tareas inteligente</p>
       </div>
@@ -288,6 +257,7 @@
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
             <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> Marcar hechas</button>
             <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> Pendientes</button>
+            <button type="button" id="bulk-move-btn" class="bulk-move-btn"><i data-lucide="folder-input"></i> Mover a...</button>
             <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> Eliminar</button>
             <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn">Cancelar</button>
           </div>
@@ -411,7 +381,7 @@
       <div class="notes-drag-handle" id="notes-drag-handle" aria-hidden="true"></div>
       <div class="notes-resize-handle" id="notes-resize-handle" aria-hidden="true"></div>
       <div class="notes-side-header">
-        <span class="notes-side-title">// notas</span>
+        <span class="notes-side-title">// Notas</span>
         <div class="notes-side-toolbar" role="toolbar" aria-label="Formato de notas">
           <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
           <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
