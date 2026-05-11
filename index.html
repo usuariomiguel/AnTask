@@ -83,6 +83,8 @@
 
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
 
+        <div id="archived-section" class="archived-section-wrap"></div>
+
         <div class="sidebar-footer">
           <div class="sidebar-search-row">
             <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> Buscar tareas</button>
@@ -202,6 +204,9 @@
               <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
                 <i data-lucide="calendar-days"></i><span>Mes</span>
               </button>
+              <button type="button" class="view-tab" data-view="stats" id="view-tab-stats">
+                <i data-lucide="bar-chart-2"></i><span>Stats</span>
+              </button>
             </div>
             <div class="view-nav-right">
               <!-- Filtrar unificado (sólo en vista Lista) -->
@@ -277,6 +282,9 @@
         <div class="alt-panel kanban-panel" id="kanban-panel" hidden>
           <div id="kanban-board" class="kanban-board"></div>
         </div>
+
+        <!-- Vista Stats -->
+        <div class="alt-panel stats-panel" id="stats-panel" hidden></div>
 
         <!-- Vista Calendario -->
         <div class="alt-panel cal-panel" id="cal-panel" hidden>

@@ -112,6 +112,9 @@ let dragSrcSectionId   = null;
 let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indices }
 let _undoTimer = null;
 
+// ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
+let _archivedExpanded = false;
+
 // ─── CRONÓMETRO ───────────────────────────────────────────────
 // Map<taskId, { taskId, taskText, elapsedMs, startedAt, running }>
 var _timers        = Object.create(null);
@@ -465,6 +468,69 @@ function modalAlert(message, type) {
   });
 }
 
+
+function showIconPicker(project) {
+  var { overlay, box } = createModalBase();
+
+  var emojis = [
+    "📁","📂","🗂️","📋","📌","📎","🗒️","📝","✏️","🖊️",
+    "💼","🏢","🏗️","🔧","⚙️","🛠️","🔬","🧪","💡","🔋",
+    "🚀","🎯","🏆","🥇","🎖️","⭐","🌟","💎","🔥","⚡",
+    "📊","📈","📉","💰","💳","🧾","📣","🔔","📡","🌐",
+    "🎨","🎵","🎬","📸","🎮","🕹️","🎲","🧩","🎭","🎪",
+    "🏠","🌱","🌿","🍀","🌸","🌊","🌍","☀️","🌙","❄️",
+    "👥","🤝","🧠","💪","🏃","🧘","❤️","🦋","🐝","🦄",
+    "📚","🎓","🏫","🔑","🗝️","🔐","🛡️","⚖️","🧭","🗺️",
+  ];
+
+  var gridHtml = emojis.map(function(e) {
+    return '<button type="button" class="icon-picker-emoji' +
+      (project.icon === e ? ' icon-picker-emoji--active' : '') +
+      '" data-emoji="' + e + '">' + e + '</button>';
+  }).join('');
+
+  box.innerHTML =
+    '<p class="modal-label">// Icono del proyecto</p>' +
+    '<div class="icon-picker-grid">' + gridHtml + '</div>' +
+    '<div class="icon-picker-custom">' +
+      '<input class="modal-input icon-picker-input" type="text" maxlength="4"' +
+        ' placeholder="O escribe un emoji..." autocomplete="off"/>' +
+    '</div>' +
+    '<div class="modal-actions">' +
+      (project.icon ? '<button type="button" class="modal-btn modal-btn-cancel icon-picker-clear">Quitar icono</button>' : '') +
+      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+    '</div>';
+
+  function apply(emoji) {
+    project.icon = emoji;
+    saveProjects();
+    renderSidebar();
+    closeModal(overlay);
+  }
+
+  overlay._cancel = function() { closeModal(overlay); };
+
+  box.querySelector('.modal-btn-cancel:last-child').addEventListener('click', function() { closeModal(overlay); });
+
+  var clearBtn = box.querySelector('.icon-picker-clear');
+  if (clearBtn) clearBtn.addEventListener('click', function() { apply(''); });
+
+  box.querySelectorAll('.icon-picker-emoji').forEach(function(btn) {
+    btn.addEventListener('click', function() { apply(btn.dataset.emoji); });
+  });
+
+  var customInput = box.querySelector('.icon-picker-input');
+  customInput.addEventListener('input', function() {
+    var val = Array.from(customInput.value).slice(0, 2).join('');
+    if (val) apply(val);
+  });
+
+  document.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Escape') { closeModal(overlay); document.removeEventListener('keydown', handler); }
+  });
+
+  setTimeout(function() { customInput.focus(); }, 50);
+}
 
 /**
  * Modal para seleccionar un proyecto de destino
@@ -945,9 +1011,11 @@ function activateProject(id) {
 function renderSidebar() {
   projectListEl.innerHTML = "";
   const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
-  const ungrouped = projects.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
+  const active   = projects.filter(function(p) { return !p.archived; });
+  const archived = projects.filter(function(p) { return  p.archived; });
+  const ungrouped = active.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
 
-  if (projects.length === 0 && sections.length === 0) {
+  if (active.length === 0 && sections.length === 0 && archived.length === 0) {
     const li = document.createElement("li");
     li.className = "project-empty";
     li.textContent = "Sin proyectos aún";
@@ -958,13 +1026,48 @@ function renderSidebar() {
   ungrouped.forEach(function(p) { renderProjectItem(p); });
 
   sections.forEach(function(section) {
-    const sectionProjects = projects.filter(function(p) { return p.sectionId === section.id; });
+    const sectionProjects = active.filter(function(p) { return p.sectionId === section.id; });
     renderSectionHeader(section, sectionProjects);
     if (!section.collapsed) {
       sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
     }
   });
+
   if (window.lucide) lucide.createIcons();
+  renderArchivedWidget();
+}
+
+function renderArchivedWidget() {
+  var wrap = document.getElementById("archived-section");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  var archived = projects.filter(function(p) { return p.archived; });
+  if (archived.length === 0) return;
+
+  var toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "archived-section-toggle";
+  toggle.innerHTML =
+    '<i data-lucide="' + (_archivedExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
+    '<i data-lucide="archive"></i>' +
+    '<span>Archivados</span>' +
+    '<span class="archived-section-count">' + archived.length + '</span>';
+  toggle.addEventListener("click", function() {
+    _archivedExpanded = !_archivedExpanded;
+    renderArchivedWidget();
+    if (window.lucide) lucide.createIcons({ nodes: [wrap] });
+  });
+  wrap.appendChild(toggle);
+
+  if (_archivedExpanded) {
+    var list = document.createElement("ul");
+    list.className = "archived-project-list";
+    archived.forEach(function(p) { renderProjectItem(p, false, true, list); });
+    wrap.appendChild(list);
+  }
+
+  if (window.lucide) lucide.createIcons({ nodes: [wrap] });
 }
 
 function renderSectionHeader(section, sectionProjects) {
@@ -1018,13 +1121,26 @@ function renderSectionHeader(section, sectionProjects) {
   projectListEl.appendChild(li);
 }
 
-function renderProjectItem(project, indented) {
+function renderProjectItem(project, indented, isArchived, parentEl) {
+  const target = parentEl || projectListEl;
   const li = document.createElement("li");
-  li.className = "project-item" + (indented ? " project-item-indented" : "");
+  li.className = "project-item" + (indented ? " project-item-indented" : "") + (isArchived ? " project-item-archived" : "");
   if (project.id === activeProjectId) li.classList.add("active");
 
   const done  = project.tasks.filter(function(t) { return t.done; }).length;
   const total = project.tasks.length;
+
+  const iconBtn = project.icon ? document.createElement("button") : null;
+  if (iconBtn) {
+    iconBtn.type = "button";
+    iconBtn.className = "project-item-icon";
+    iconBtn.textContent = project.icon;
+    iconBtn.title = "Cambiar icono";
+    iconBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      showIconPicker(project);
+    });
+  }
 
   const nameSpan = document.createElement("span");
   nameSpan.className = "project-item-name";
@@ -1065,6 +1181,7 @@ function renderProjectItem(project, indented) {
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
   topRow.appendChild(dragHandle);
+  if (iconBtn) topRow.appendChild(iconBtn);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
   topRow.appendChild(kebabBtn);
@@ -1084,7 +1201,7 @@ function renderProjectItem(project, indented) {
     showProjectMenu(project, kebabBtn);
   });
   initProjectDragDrop(li, project.id);
-  projectListEl.appendChild(li);
+  target.appendChild(li);
 }
 
 // ── Context menus for sections and projects ─────────────────────────────────
@@ -1223,40 +1340,93 @@ async function showProjectMenu(project, anchor) {
     ? [{ label: "Mover a sección", header: true }].concat(sectionOptions).concat([null])
     : [];
 
-  var items = assignGroup.concat([
-    {
-      label: "Renombrar proyecto",
-      action: async function() {
-        var newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
-        if (newName === null) return;
-        var trimmed = capitalizeFirst(newName.trim());
-        if (!trimmed || trimmed === project.name) return;
-        project.name = trimmed;
-        saveProjects();
-        renderSidebar();
-        if (project.id === activeProjectId) activateProject(project.id);
-      }
-    },
-    null,
-    {
-      label: "Eliminar proyecto",
-      danger: true,
-      action: async function() {
-        var ok = await modalConfirm(
-          "¿Eliminar el proyecto <strong>" + project.name + "</strong> y todas sus tareas?",
-          "Eliminar"
-        );
-        if (!ok) return;
-        projects = projects.filter(function(p) { return p.id !== project.id; });
-        if (activeProjectId === project.id) {
-          activeProjectId = projects.length > 0 ? projects[0].id : null;
+  var archiveItems = project.archived
+    ? [
+        {
+          label: "Restaurar proyecto",
+          action: function() {
+            project.archived = false;
+            saveProjects();
+            renderSidebar();
+          }
+        },
+        null,
+        {
+          label: "Eliminar permanentemente",
+          danger: true,
+          action: async function() {
+            var ok = await modalConfirm(
+              "¿Eliminar permanentemente <strong>" + project.name + "</strong> y todas sus tareas? Esta acción no se puede deshacer.",
+              "Eliminar"
+            );
+            if (!ok) return;
+            projects = projects.filter(function(p) { return p.id !== project.id; });
+            if (activeProjectId === project.id) {
+              var active = projects.filter(function(p) { return !p.archived; });
+              activeProjectId = active.length > 0 ? active[0].id : null;
+            }
+            saveProjects();
+            renderSidebar();
+            renderTasks();
+          }
         }
-        saveProjects();
-        renderSidebar();
-        renderTasks();
-      }
-    }
-  ]);
+      ]
+    : [
+        {
+          label: "Cambiar icono",
+          action: function() { showIconPicker(project); }
+        },
+        {
+          label: "Renombrar proyecto",
+          action: async function() {
+            var newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
+            if (newName === null) return;
+            var trimmed = capitalizeFirst(newName.trim());
+            if (!trimmed || trimmed === project.name) return;
+            project.name = trimmed;
+            saveProjects();
+            renderSidebar();
+            if (project.id === activeProjectId) activateProject(project.id);
+          }
+        },
+        null,
+        {
+          label: "Archivar proyecto",
+          action: function() {
+            project.archived = true;
+            project.sectionId = null;
+            if (activeProjectId === project.id) {
+              var active = projects.filter(function(p) { return !p.archived; });
+              activeProjectId = active.length > 0 ? active[0].id : null;
+            }
+            _archivedExpanded = true;
+            saveProjects();
+            renderSidebar();
+            renderTasks();
+          }
+        },
+        {
+          label: "Eliminar proyecto",
+          danger: true,
+          action: async function() {
+            var ok = await modalConfirm(
+              "¿Eliminar el proyecto <strong>" + project.name + "</strong> y todas sus tareas?",
+              "Eliminar"
+            );
+            if (!ok) return;
+            projects = projects.filter(function(p) { return p.id !== project.id; });
+            if (activeProjectId === project.id) {
+              var active = projects.filter(function(p) { return !p.archived; });
+              activeProjectId = active.length > 0 ? active[0].id : null;
+            }
+            saveProjects();
+            renderSidebar();
+            renderTasks();
+          }
+        }
+      ];
+
+  var items = assignGroup.concat(archiveItems);
 
   var menu = _buildCtxMenu(items);
   positionCtxMenu(menu, anchor);
@@ -2928,6 +3098,7 @@ function updateNotesFmtButtons() {
       else if (view === "agenda")  showAgendaPanel();
       else if (view === "kanban")  showKanbanPanel();
       else if (view === "cal")     showCalendarPanel();
+      else if (view === "stats")   showStatsPanel();
     });
   }
 
@@ -3374,6 +3545,8 @@ function _closeAllAltPanels() {
   if (kanbanBtn)   kanbanBtn.classList.remove("active");
   if (calPanel)    calPanel.hidden = true;
   if (calBtn)      calBtn.classList.remove("active");
+  var statsPanel = document.getElementById("stats-panel");
+  if (statsPanel)  statsPanel.hidden = true;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3652,6 +3825,178 @@ function _showCalDayDetail(dateStr, taskItems, cellEl) {
   setTimeout(function() { detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// VISTA STATS
+// ═══════════════════════════════════════════════════════════════
+
+function showStatsPanel() {
+  var statsPanel = document.getElementById("stats-panel");
+  if (!statsPanel) return;
+  if (!statsPanel.hidden) { _closeAllAltPanels(); _restoreMainPanel(); return; }
+  _closeAllAltPanels();
+  emptyState.hidden = true;
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
+  tasksPanel.hidden = true;
+  statsPanel.hidden = false;
+  _setActiveViewTab("stats");
+  renderStats();
+}
+
+function renderStats() {
+  var panel = document.getElementById("stats-panel");
+  if (!panel) return;
+
+  var active   = projects.filter(function(p) { return !p.archived; });
+  var allTasks = [];
+  active.forEach(function(p) { allTasks = allTasks.concat(p.tasks); });
+
+  var total   = allTasks.length;
+  var done    = allTasks.filter(function(t) { return t.done; }).length;
+  var pending = total - done;
+  var today   = new Date().toISOString().slice(0, 10);
+  var overdue = allTasks.filter(function(t) { return !t.done && t.dueDate && t.dueDate < today; }).length;
+
+  var kpis = [
+    { label: "Total tareas", value: total,   cls: "primary" },
+    { label: "Completadas",  value: done,     cls: "green"   },
+    { label: "Pendientes",   value: pending,  cls: "blue"    },
+    { label: "Vencidas",     value: overdue,  cls: "red"     },
+  ];
+
+  var kpiHtml = '<div class="stats-kpi-row">' +
+    kpis.map(function(k) {
+      return '<div class="stats-card stats-card--' + k.cls + '">' +
+        '<span class="stats-card-value">' + k.value + '</span>' +
+        '<span class="stats-card-label">' + k.label + '</span>' +
+        '</div>';
+    }).join('') + '</div>';
+
+  var chartsHtml = '<div class="stats-charts-grid">' +
+    '<div class="stats-chart-block stats-chart-block--donut">' +
+      '<p class="stats-chart-title">Progreso global</p>' +
+      _statsDonut(done, pending, total) +
+    '</div>' +
+    '<div class="stats-chart-block">' +
+      '<p class="stats-chart-title">Por proyecto</p>' +
+      _statsProjectBars(active) +
+    '</div>' +
+    '<div class="stats-chart-block">' +
+      '<p class="stats-chart-title">Por prioridad</p>' +
+      _statsPriorityBars(allTasks) +
+    '</div>';
+
+  var labelsHtml = _statsLabels(allTasks);
+  if (labelsHtml) {
+    chartsHtml += '<div class="stats-chart-block">' +
+      '<p class="stats-chart-title">Etiquetas más usadas</p>' +
+      labelsHtml + '</div>';
+  }
+  chartsHtml += '</div>';
+
+  panel.innerHTML = kpiHtml + chartsHtml;
+
+  requestAnimationFrame(function() {
+    panel.querySelectorAll('.stats-hbar-fill[data-w]').forEach(function(el) {
+      el.style.width = el.dataset.w + '%';
+    });
+    panel.querySelectorAll('.stats-donut-arc').forEach(function(el) {
+      el.style.strokeDasharray = el.dataset.dash;
+    });
+  });
+}
+
+function _statsDonut(done, pending, total) {
+  if (total === 0) return '<div class="stats-empty">Sin tareas aún</div>';
+  var r    = 50;
+  var cx   = 66, cy = 66;
+  var circ = parseFloat((2 * Math.PI * r).toFixed(2));
+  var arc  = parseFloat(((done / total) * circ).toFixed(2));
+  var pct  = Math.round((done / total) * 100);
+
+  return '<div class="stats-donut-wrap">' +
+    '<svg class="stats-donut" viewBox="0 0 132 132">' +
+      '<defs><linearGradient id="sdg" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0%" stop-color="#7C3AED"/>' +
+        '<stop offset="100%" stop-color="#06B6DA"/>' +
+      '</linearGradient></defs>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none"' +
+        ' stroke="rgba(139,92,246,0.10)" stroke-width="12"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none"' +
+        ' stroke="url(#sdg)" stroke-width="12" stroke-linecap="round"' +
+        ' stroke-dasharray="0 ' + circ + '"' +
+        ' data-dash="' + arc + ' ' + (circ - arc) + '"' +
+        ' transform="rotate(-90 ' + cx + ' ' + cy + ')"' +
+        ' class="stats-donut-arc"/>' +
+      '<text x="' + cx + '" y="' + (cy - 5) + '" class="stats-donut-pct">' + pct + '%</text>' +
+      '<text x="' + cx + '" y="' + (cy + 14) + '" class="stats-donut-sub">completado</text>' +
+    '</svg>' +
+    '<div class="stats-donut-legend">' +
+      '<div class="stats-legend-row"><span class="stats-legend-dot stats-legend-dot--done"></span>' + done + ' hechas</div>' +
+      '<div class="stats-legend-row"><span class="stats-legend-dot stats-legend-dot--pend"></span>' + pending + ' pendientes</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function _statsProjectBars(activeProjects) {
+  if (activeProjects.length === 0) return '<div class="stats-empty">Sin proyectos</div>';
+  var sorted = activeProjects.slice().sort(function(a, b) {
+    var pa = a.tasks.length ? a.tasks.filter(function(t) { return t.done; }).length / a.tasks.length : 0;
+    var pb = b.tasks.length ? b.tasks.filter(function(t) { return t.done; }).length / b.tasks.length : 0;
+    return pb - pa;
+  }).slice(0, 10);
+  return '<div class="stats-hbars">' + sorted.map(function(p) {
+    var t   = p.tasks.length;
+    var d   = p.tasks.filter(function(x) { return x.done; }).length;
+    var pct = t > 0 ? Math.round((d / t) * 100) : 0;
+    return '<div class="stats-hbar-row">' +
+      '<span class="stats-hbar-name">' + p.name + '</span>' +
+      '<div class="stats-hbar-track"><div class="stats-hbar-fill" data-w="' + pct + '" style="width:0"></div></div>' +
+      '<span class="stats-hbar-meta">' + d + '/' + t + '</span>' +
+      '</div>';
+  }).join('') + '</div>';
+}
+
+function _statsPriorityBars(tasks) {
+  var pend = tasks.filter(function(t) { return !t.done; });
+  if (pend.length === 0) return '<div class="stats-empty">Sin tareas pendientes</div>';
+  var counts = { high: 0, medium: 0, low: 0, none: 0 };
+  pend.forEach(function(t) { var k = t.priority || "none"; counts[k] = (counts[k] || 0) + 1; });
+  var bars = [
+    { label: "Alta",  count: counts.high,   bg: "var(--c-danger)"  },
+    { label: "Media", count: counts.medium, bg: "var(--c-warning)" },
+    { label: "Baja",  count: counts.low,    bg: "var(--c-success)" },
+    { label: "—",     count: counts.none,   bg: "rgba(139,92,246,0.40)" },
+  ];
+  var max = Math.max.apply(null, bars.map(function(b) { return b.count; })) || 1;
+  return '<div class="stats-hbars">' + bars.map(function(b) {
+    var pct = Math.round((b.count / max) * 100);
+    return '<div class="stats-hbar-row">' +
+      '<span class="stats-hbar-name">' + b.label + '</span>' +
+      '<div class="stats-hbar-track"><div class="stats-hbar-fill" data-w="' + pct +
+        '" style="width:0;background:' + b.bg + '"></div></div>' +
+      '<span class="stats-hbar-meta">' + b.count + '</span>' +
+      '</div>';
+  }).join('') + '</div>';
+}
+
+function _statsLabels(tasks) {
+  var freq = {};
+  tasks.forEach(function(t) {
+    if (Array.isArray(t.labels)) t.labels.forEach(function(l) { freq[l] = (freq[l] || 0) + 1; });
+  });
+  var keys = Object.keys(freq).sort(function(a, b) { return freq[b] - freq[a]; }).slice(0, 8);
+  if (keys.length === 0) return '';
+  var max = freq[keys[0]];
+  return '<div class="stats-hbars">' + keys.map(function(l) {
+    var pct = Math.round((freq[l] / max) * 100);
+    return '<div class="stats-hbar-row">' +
+      '<span class="stats-hbar-name stats-hbar-name--tag">' + l + '</span>' +
+      '<div class="stats-hbar-track"><div class="stats-hbar-fill stats-hbar-fill--label" data-w="' + pct + '" style="width:0"></div></div>' +
+      '<span class="stats-hbar-meta">' + freq[l] + '</span>' +
+      '</div>';
+  }).join('') + '</div>';
+}
+
 function _restoreMainPanel() {
   var project = getActiveProject();
   emptyState.hidden = Boolean(project);
@@ -3677,7 +4022,7 @@ function _setActiveViewTab(view) {
   // Eyebrow que indica la vista actual encima del título
   var eyebrow = document.getElementById("view-eyebrow");
   if (eyebrow) {
-    var labels = { tasks: "Vista lista", agenda: "Vista agenda", kanban: "Vista kanban", cal: "Vista mes" };
+    var labels = { tasks: "Vista lista", agenda: "Vista agenda", kanban: "Vista kanban", cal: "Vista mes", stats: "Estadísticas" };
     eyebrow.textContent = labels[view] || "";
   }
 }
@@ -4061,6 +4406,8 @@ function sanitizeProject(p) {
     notes:     typeof p.notes === "string" ? p.notes : "",
     labels:    Array.isArray(p.labels) ? p.labels.filter(function(l){ return typeof l==="string" && l.length>0; }) : [],
     sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
+    archived:  !!p.archived,
+    icon:      typeof p.icon === "string" ? p.icon : "",
   };
 }
 
