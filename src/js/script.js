@@ -1633,7 +1633,7 @@ function renderTasks() {
 
     text.addEventListener("dblclick", function(e) {
       e.stopPropagation();
-      startInlineEdit(text, task, expandedTx);
+      startInlineEdit(text, task);
     });
     text.title = "Doble clic para renombrar";
 
