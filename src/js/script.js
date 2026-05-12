@@ -278,10 +278,14 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "n" || e.key === "N") {
     e.preventDefault();
     const input = document.getElementById("task-input");
-    if (input && tasksPanel && !tasksPanel.hidden) {
-      input.focus();
-      input.select();
+    if (!input || !tasksPanel) return;
+    if (tasksPanel.hidden && activeProjectId) {
+      _closeAllAltPanels();
+      tasksPanel.hidden = false;
+      if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+      _setActiveViewTab("tasks");
     }
+    setTimeout(function() { input.focus(); input.select(); }, 50);
     return;
   }
 
@@ -530,6 +534,65 @@ function showIconPicker(project) {
   });
 
   setTimeout(function() { customInput.focus(); }, 50);
+}
+
+function showColorPicker(project) {
+  var { overlay, box } = createModalBase();
+
+  var colors = [
+    { name: "Rojo",      hex: "#ef4444" },
+    { name: "Naranja",   hex: "#f97316" },
+    { name: "Ámbar",     hex: "#f59e0b" },
+    { name: "Oro",       hex: "#d97706" },
+    { name: "Lima",      hex: "#84cc16" },
+    { name: "Verde",     hex: "#22c55e" },
+    { name: "Esmeralda", hex: "#10b981" },
+    { name: "Cian",      hex: "#06b6d4" },
+    { name: "Azul",      hex: "#3b82f6" },
+    { name: "Índigo",    hex: "#6366f1" },
+    { name: "Violeta",   hex: "#8b5cf6" },
+    { name: "Púrpura",   hex: "#a855f7" },
+    { name: "Rosa",      hex: "#ec4899" },
+    { name: "Marrón",    hex: "#78716c" },
+    { name: "Gris",      hex: "#64748b" },
+    { name: "Plateado",  hex: "#94a3b8" },
+  ];
+
+  var swatchesHtml = colors.map(function(c) {
+    return '<button type="button" class="color-picker-swatch' +
+      (project.color === c.hex ? " color-picker-swatch--active" : "") +
+      '" data-color="' + c.hex + '" title="' + c.name +
+      '" style="background:' + c.hex + '"></button>';
+  }).join("");
+
+  box.innerHTML =
+    '<p class="modal-label">// Color del proyecto</p>' +
+    '<div class="color-picker-grid">' + swatchesHtml + "</div>" +
+    '<div class="modal-actions">' +
+      (project.color ? '<button type="button" class="modal-btn modal-btn-cancel color-picker-clear">Sin color</button>' : "") +
+      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+    "</div>";
+
+  function apply(color) {
+    project.color = color;
+    saveProjects();
+    renderSidebar();
+    closeModal(overlay);
+  }
+
+  overlay._cancel = function() { closeModal(overlay); };
+  box.querySelector(".modal-btn-cancel:last-child").addEventListener("click", function() { closeModal(overlay); });
+
+  var clearBtn = box.querySelector(".color-picker-clear");
+  if (clearBtn) clearBtn.addEventListener("click", function() { apply(""); });
+
+  box.querySelectorAll(".color-picker-swatch").forEach(function(btn) {
+    btn.addEventListener("click", function() { apply(btn.dataset.color); });
+  });
+
+  document.addEventListener("keydown", function handler(e) {
+    if (e.key === "Escape") { closeModal(overlay); document.removeEventListener("keydown", handler); }
+  });
 }
 
 /**
@@ -1178,9 +1241,16 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   dragHandle.title = "Arrastrar para reordenar";
   dragHandle.setAttribute("aria-hidden", "true");
 
+  const colorDot = project.color ? document.createElement("span") : null;
+  if (colorDot) {
+    colorDot.className = "project-color-dot";
+    colorDot.style.background = project.color;
+  }
+
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
   topRow.appendChild(dragHandle);
+  if (colorDot) topRow.appendChild(colorDot);
   if (iconBtn) topRow.appendChild(iconBtn);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
@@ -1190,6 +1260,8 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const bar = document.createElement("div");
   bar.className = "project-progress-bar";
   bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
+
+  if (project.color) li.style.setProperty("--project-color", project.color);
 
   li.setAttribute("draggable", "false");
   li.appendChild(topRow);
@@ -1201,6 +1273,35 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
     showProjectMenu(project, kebabBtn);
   });
   initProjectDragDrop(li, project.id);
+
+  if (!isArchived) {
+    li.addEventListener("dragover", function(e) {
+      if (!dragSrcId || dragSrcProjectId) return;
+      if (project.id === activeProjectId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      li.classList.add("project-task-drop-target");
+    });
+    li.addEventListener("dragleave", function(e) {
+      if (!li.contains(e.relatedTarget)) {
+        li.classList.remove("project-task-drop-target");
+      }
+    });
+    li.addEventListener("drop", function(e) {
+      li.classList.remove("project-task-drop-target");
+      if (!dragSrcId || dragSrcProjectId) return;
+      if (project.id === activeProjectId) return;
+      e.preventDefault();
+      const srcProject = getActiveProject();
+      if (!srcProject) return;
+      const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
+      if (taskIdx === -1) return;
+      const [moved] = srcProject.tasks.splice(taskIdx, 1);
+      project.tasks.push(moved);
+      saveAndRender();
+    });
+  }
+
   target.appendChild(li);
 }
 
@@ -1375,6 +1476,10 @@ async function showProjectMenu(project, anchor) {
         {
           label: "Cambiar icono",
           action: function() { showIconPicker(project); }
+        },
+        {
+          label: "Cambiar color",
+          action: function() { showColorPicker(project); }
         },
         {
           label: "Renombrar proyecto",
@@ -2611,6 +2716,7 @@ function initDragDrop(node, taskId) {
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", taskId);
     setTimeout(function() { node.classList.add("drag-ghost"); }, 0);
+    document.body.classList.add("task-dragging");
   });
 
   node.addEventListener("dragend", function() {
@@ -2618,6 +2724,10 @@ function initDragDrop(node, taskId) {
     node.setAttribute("draggable", "false");
     removeDropIndicator();
     dragSrcId = null;
+    document.body.classList.remove("task-dragging");
+    document.querySelectorAll(".project-task-drop-target").forEach(function(el) {
+      el.classList.remove("project-task-drop-target");
+    });
   });
 
   node.addEventListener("dragover", function(e) {
@@ -2696,6 +2806,7 @@ function initProjectDragDrop(li, projectId) {
     dragSrcProjectId = projectId;
     e.dataTransfer.effectAllowed = "move";
     setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
+    document.body.classList.add("project-dragging");
   });
 
   li.addEventListener("dragend", function() {
@@ -2703,6 +2814,10 @@ function initProjectDragDrop(li, projectId) {
     li.setAttribute("draggable", "false");
     removeProjectDropIndicator();
     dragSrcProjectId = null;
+    document.body.classList.remove("project-dragging");
+    document.querySelectorAll(".section-drop-target").forEach(function(el) {
+      el.classList.remove("section-drop-target");
+    });
   });
 
   li.addEventListener("dragover", function(e) {
@@ -4408,6 +4523,7 @@ function sanitizeProject(p) {
     sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
     archived:  !!p.archived,
     icon:      typeof p.icon === "string" ? p.icon : "",
+    color:     typeof p.color === "string" ? p.color : "",
   };
 }
 
