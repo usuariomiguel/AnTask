@@ -85,11 +85,16 @@
 
         <div id="archived-section" class="archived-section-wrap"></div>
 
+        <div id="notes-sidebar-section" class="notes-sidebar-section-wrap"></div>
+
         <div class="sidebar-footer">
           <div class="sidebar-search-row">
             <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> Buscar tareas</button>
           </div>
-          <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Nuevo proyecto</button>
+          <div class="new-item-row">
+            <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Proyecto</button>
+            <button type="button" id="new-note-btn" class="new-note-btn"><i data-lucide="file-plus"></i> Nota</button>
+          </div>
           <!-- Legacy sync nodes (hidden, JS still references them internally) -->
           <div id="sync-section" hidden style="display:none!important">
             <button id="sync-signin-btn" type="button"></button>
@@ -285,6 +290,32 @@
 
         <!-- Vista Stats -->
         <div class="alt-panel stats-panel" id="stats-panel" hidden></div>
+
+        <!-- Vista Nota -->
+        <div class="note-panel" id="note-panel" hidden>
+          <div class="note-panel-header">
+            <h2 class="note-title" id="note-title" contenteditable="true" spellcheck="false" data-placeholder="Sin título"></h2>
+            <div class="note-toolbar">
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="strikeThrough" title="Tachado"><s>S</s></button>
+              <span class="note-toolbar-sep"></span>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertOrderedList" title="Lista numerada">1. Lista</button>
+            </div>
+            <span class="note-save-status" id="note-save-status"></span>
+          </div>
+          <div
+            id="note-editor"
+            class="note-editor"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            data-placeholder="Empieza a escribir..."
+            spellcheck="true"
+          ></div>
+        </div>
 
         <!-- Vista Calendario -->
         <div class="alt-panel cal-panel" id="cal-panel" hidden>

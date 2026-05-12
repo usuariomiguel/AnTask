@@ -7,6 +7,7 @@ function capitalizeFirst(str) {
 const PROJECTS_KEY   = "anso-projects";
 const ACTIVE_KEY     = "anso-active-project";
 const METADATA_KEY   = "anso-meta";
+const NOTES_KEY      = "antask-notes";
 const THEME_KEY      = "mis-tareas-theme";
 const SECTIONS_KEY   = "anso-sections";
 
@@ -97,7 +98,10 @@ migrateStorageIfNeeded();
 
 let projects        = loadProjects();
 let sections        = loadSections();
+let standaloneNotes = loadStandaloneNotes();
 let activeProjectId = localStorage.getItem(ACTIVE_KEY) || null;
+let activeNoteId    = null;
+let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
 let currentLabelFilter = null;   // null = sin filtro de etiqueta
@@ -114,6 +118,7 @@ let _undoTimer = null;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded = false;
+let _notesExpanded    = true;
 
 // ─── CRONÓMETRO ───────────────────────────────────────────────
 // Map<taskId, { taskId, taskText, elapsedMs, startedAt, running }>
@@ -1019,6 +1024,7 @@ window.addEventListener("storage", function(event) {
 
 function activateProject(id) {
   activeProjectId = id;
+  activeNoteId = null;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
 
@@ -1098,6 +1104,7 @@ function renderSidebar() {
 
   if (window.lucide) lucide.createIcons();
   renderArchivedWidget();
+  renderNotesSidebar();
 }
 
 function renderArchivedWidget() {
@@ -3662,6 +3669,8 @@ function _closeAllAltPanels() {
   if (calBtn)      calBtn.classList.remove("active");
   var statsPanel = document.getElementById("stats-panel");
   if (statsPanel)  statsPanel.hidden = true;
+  var notePanel = document.getElementById("note-panel");
+  if (notePanel)   notePanel.hidden = true;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4489,6 +4498,265 @@ function saveProjects() {
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   updateSaveStatus(now);
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTAS INDEPENDIENTES
+// ═══════════════════════════════════════════════════════════════
+
+function renderNotesSidebar() {
+  var wrap = document.getElementById("notes-sidebar-section");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  if (standaloneNotes.length === 0) return;
+
+  var toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "archived-section-toggle";
+  toggle.innerHTML =
+    '<i data-lucide="' + (_notesExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
+    '<i data-lucide="file-text"></i>' +
+    '<span>Notas</span>' +
+    '<span class="archived-section-count">' + standaloneNotes.length + "</span>";
+  toggle.addEventListener("click", function() {
+    _notesExpanded = !_notesExpanded;
+    renderNotesSidebar();
+    if (window.lucide) lucide.createIcons({ nodes: [wrap] });
+  });
+  wrap.appendChild(toggle);
+
+  if (_notesExpanded) {
+    var list = document.createElement("ul");
+    list.className = "archived-project-list";
+    standaloneNotes.forEach(function(note) {
+      var li = document.createElement("li");
+      li.className = "note-sidebar-item";
+      if (note.id === activeNoteId) li.classList.add("active");
+      if (note.color) li.style.setProperty("--project-color", note.color);
+
+      var icon = document.createElement("span");
+      icon.className = "note-sidebar-icon";
+      icon.innerHTML = '<i data-lucide="file-text"></i>';
+
+      var name = document.createElement("span");
+      name.className = "note-sidebar-name";
+      name.textContent = note.name;
+
+      var kebab = document.createElement("button");
+      kebab.type = "button";
+      kebab.className = "project-kebab-btn";
+      kebab.innerHTML = '<i data-lucide="ellipsis"></i>';
+      kebab.addEventListener("click", function(e) {
+        e.stopPropagation();
+        showNoteMenu(note, kebab);
+      });
+
+      li.appendChild(icon);
+      li.appendChild(name);
+      li.appendChild(kebab);
+      li.addEventListener("click", function() { activateNote(note.id); });
+      li.addEventListener("contextmenu", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showNoteMenu(note, kebab);
+      });
+      list.appendChild(li);
+    });
+    wrap.appendChild(list);
+  }
+
+  if (window.lucide) lucide.createIcons({ nodes: [wrap] });
+}
+
+function activateNote(noteId) {
+  activeNoteId = noteId;
+  activeProjectId = null;
+  localStorage.removeItem(ACTIVE_KEY);
+
+  _closeAllAltPanels();
+  var notePanel = document.getElementById("note-panel");
+  if (emptyState) emptyState.hidden = true;
+  if (ctrlBar)    ctrlBar.hidden = true;
+  if (tasksPanel) tasksPanel.hidden = true;
+  if (mobileFab)  mobileFab.classList.remove("visible");
+  if (notePanel)  notePanel.hidden = false;
+
+  var note = standaloneNotes.find(function(n) { return n.id === noteId; });
+  if (!note) return;
+
+  var noteEditor = document.getElementById("note-editor");
+  var noteTitleEl = document.getElementById("note-title");
+  if (noteEditor)  noteEditor.innerHTML = note.content || "";
+  if (noteTitleEl) noteTitleEl.textContent = note.name;
+
+  document.title = note.name + " — antask";
+  renderSidebar();
+}
+
+function saveActiveNote() {
+  var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
+  if (!note) return;
+  var noteEditor = document.getElementById("note-editor");
+  if (noteEditor) note.content = noteEditor.innerHTML;
+  saveStandaloneNotes();
+
+  var statusEl = document.getElementById("note-save-status");
+  if (statusEl) {
+    var t = new Date();
+    statusEl.textContent = "Guardado " + t.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    statusEl.classList.add("note-save-status--flash");
+    setTimeout(function() { statusEl.classList.remove("note-save-status--flash"); }, 800);
+  }
+}
+
+function showNoteMenu(note, anchor) {
+  closeCtxMenu();
+  var items = [
+    {
+      label: "Renombrar",
+      action: async function() {
+        var newName = await modalPrompt("// Renombrar nota", note.name, note.name);
+        if (newName === null) return;
+        var trimmed = newName.trim().slice(0, 80);
+        if (!trimmed || trimmed === note.name) return;
+        note.name = trimmed;
+        if (activeNoteId === note.id) {
+          var titleEl = document.getElementById("note-title");
+          if (titleEl) titleEl.textContent = note.name;
+          document.title = note.name + " — antask";
+        }
+        saveStandaloneNotes();
+        renderNotesSidebar();
+      }
+    },
+    null,
+    {
+      label: "Eliminar nota",
+      danger: true,
+      action: async function() {
+        var ok = await modalConfirm("¿Eliminar la nota <strong>" + note.name + "</strong>?", "Eliminar");
+        if (!ok) return;
+        standaloneNotes = standaloneNotes.filter(function(n) { return n.id !== note.id; });
+        saveStandaloneNotes();
+        if (activeNoteId === note.id) {
+          activeNoteId = null;
+          var notePanel = document.getElementById("note-panel");
+          if (notePanel) notePanel.hidden = true;
+          var firstActive = projects.find(function(p) { return !p.archived; });
+          if (firstActive) activateProject(firstActive.id);
+          else { if (emptyState) emptyState.hidden = false; if (ctrlBar) ctrlBar.hidden = true; }
+        }
+        renderSidebar();
+      }
+    }
+  ];
+  var menu = _buildCtxMenu(items);
+  positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) { if (!menu.contains(e.target)) closeCtxMenu(); };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+// ─── Inicialización del editor de notas independientes ────────
+(function() {
+  var noteEditor  = document.getElementById("note-editor");
+  var noteFmtBtns = document.querySelectorAll(".note-fmt-btn");
+  var noteTitleEl = document.getElementById("note-title");
+  var newNoteBtn  = document.getElementById("new-note-btn");
+
+  if (noteEditor) {
+    if (typeof setupPasteHandler  === "function") setupPasteHandler(noteEditor, saveActiveNote);
+    if (typeof setupImageResizer  === "function") setupImageResizer(noteEditor);
+
+    noteEditor.addEventListener("input", function() {
+      if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
+      _notePanelSaveTimer = setTimeout(saveActiveNote, 700);
+    });
+    noteEditor.addEventListener("keydown", function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        var cmd = { b: "bold", i: "italic", u: "underline", m: "strikeThrough" }[e.key.toLowerCase()];
+        if (cmd) { e.preventDefault(); document.execCommand(cmd, false, null); _syncNoteFmtBtns(); }
+      }
+      e.stopPropagation();
+    });
+    noteEditor.addEventListener("keyup",   _syncNoteFmtBtns);
+    noteEditor.addEventListener("mouseup", _syncNoteFmtBtns);
+  }
+
+  noteFmtBtns.forEach(function(btn) {
+    btn.addEventListener("mousedown", function(e) {
+      e.preventDefault();
+      document.execCommand(btn.dataset.cmd, false, null);
+      if (noteEditor) noteEditor.focus();
+      _syncNoteFmtBtns();
+    });
+  });
+
+  if (noteTitleEl) {
+    noteTitleEl.addEventListener("input", function() {
+      var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
+      if (!note) return;
+      note.name = (noteTitleEl.textContent || "").trim().slice(0, 80) || "Sin título";
+      document.title = note.name + " — antask";
+      if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
+      _notePanelSaveTimer = setTimeout(function() { saveStandaloneNotes(); renderNotesSidebar(); }, 700);
+    });
+    noteTitleEl.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") { e.preventDefault(); if (noteEditor) noteEditor.focus(); }
+      e.stopPropagation();
+    });
+    noteTitleEl.addEventListener("blur", function() {
+      if (!noteTitleEl.textContent.trim()) noteTitleEl.textContent = "Sin título";
+    });
+  }
+
+  if (newNoteBtn) {
+    newNoteBtn.addEventListener("click", async function() {
+      var name = await modalPrompt("// Nombre de la nota", "", "Mi nota...");
+      if (!name || !name.trim()) return;
+      var note = sanitizeStandaloneNote({
+        id:        "note-" + generateId(),
+        name:      capitalizeFirst(name.trim()).slice(0, 80),
+        content:   "",
+        createdAt: new Date().toISOString(),
+      });
+      standaloneNotes.push(note);
+      saveStandaloneNotes();
+      activateNote(note.id);
+      setTimeout(function() { if (noteEditor) noteEditor.focus(); }, 80);
+    });
+  }
+})();
+
+function _syncNoteFmtBtns() {
+  document.querySelectorAll(".note-fmt-btn").forEach(function(btn) {
+    try {
+      btn.classList.toggle("fmt-active", document.queryCommandState(btn.dataset.cmd));
+    } catch(e) {}
+  });
+}
+
+function loadStandaloneNotes() {
+  try {
+    const raw = localStorage.getItem(NOTES_KEY);
+    return raw ? JSON.parse(raw).map(sanitizeStandaloneNote) : [];
+  } catch(e) { return []; }
+}
+
+function saveStandaloneNotes() {
+  localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
+}
+
+function sanitizeStandaloneNote(n) {
+  return {
+    id:        typeof n.id === "string" ? n.id : "note-" + Date.now(),
+    name:      typeof n.name === "string" ? n.name.slice(0, 80) : "Sin título",
+    content:   typeof n.content === "string" ? n.content : "",
+    createdAt: n.createdAt || new Date().toISOString(),
+    color:     typeof n.color === "string" ? n.color : "",
+  };
 }
 
 function loadSections() {
