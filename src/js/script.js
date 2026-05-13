@@ -4497,6 +4497,8 @@ function saveProjects() {
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   updateSaveStatus(now);
+  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  if (user) _saveAccountCache(user.uid);
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
 }
 
@@ -4770,6 +4772,8 @@ function saveSections() {
   localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
+  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  if (user) _saveAccountCache(user.uid);
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
 }
 
@@ -4976,15 +4980,28 @@ window.addEventListener("load", function() {
 // CLOUD SYNC CALLBACKS
 // ═══════════════════════════════════════════════════════════════
 
+// ─── Claves por cuenta ────────────────────────────────────────
+// Cada usuario tiene su propio espacio en localStorage:
+//   anso-projects-{uid}, anso-sections-{uid}, anso-meta-{uid}
+// Las claves anónimas (sin uid) son exclusivas del modo local.
+
+function _acctKey(uid)      { return PROJECTS_KEY + "-" + uid; }
+function _acctSectKey(uid)  { return SECTIONS_KEY + "-" + uid; }
+function _acctMetaKey(uid)  { return METADATA_KEY + "-" + uid; }
+
+function _saveAccountCache(uid) {
+  var now = new Date().toISOString();
+  localStorage.setItem(_acctKey(uid),     JSON.stringify(projects));
+  localStorage.setItem(_acctSectKey(uid), JSON.stringify(sections));
+  localStorage.setItem(_acctMetaKey(uid), JSON.stringify({ lastSavedAt: now }));
+}
+
 var _syncWasConnected = false;
 
 function _syncOnAuthChange(user) {
-  // Update legacy hidden elements (backward compat)
   if (syncUserAvatar) syncUserAvatar.textContent = user ? (user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "?")) : "A";
   if (syncUserName)   syncUserName.textContent   = user ? (user.displayName || user.email || "") : "";
-  // Update profile menu
   _updateProfileMenu(user);
-  // Si había sesión activa y se desconecta, limpiar datos locales
   if (!user && _syncWasConnected) {
     _clearLocalData();
   }
@@ -4992,11 +5009,15 @@ function _syncOnAuthChange(user) {
 }
 
 function _clearLocalData() {
-  // Al cerrar sesión conservamos los proyectos en localStorage en modo local
-  // para que sigan visibles sin cuenta y para que al volver a entrar,
-  // _syncOnFirstConnect pueda comparar timestamps correctamente.
-  // Solo eliminamos la clave de proyecto activo para forzar una selección limpia.
+  // Al cerrar sesión: limpiamos el espacio anónimo para que no contamine
+  // el siguiente login. Los datos de la cuenta quedan en anso-projects-{uid}
+  // y en la nube — no se pierden.
+  projects = [];
+  sections = [];
   activeProjectId = null;
+  localStorage.removeItem(PROJECTS_KEY);
+  localStorage.removeItem(SECTIONS_KEY);
+  localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
   renderSidebar();
   renderTasks();
@@ -5042,40 +5063,119 @@ function _updateProfileMenu(user) {
 }
 
 function _syncOnFirstConnect(cloudData) {
+  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  if (!user) return;
+  var uid = user.uid;
+
+  // ── ¿Tiene esta cuenta caché propio en este dispositivo? ──────
+  var hasAccountCache = localStorage.getItem(_acctKey(uid)) !== null;
+
+  if (hasAccountCache) {
+    // Dispositivo ya usado con esta cuenta → comparar caché vs nube
+    if (!cloudData || !Array.isArray(cloudData.projects)) {
+      // Nube vacía → subir caché local
+      try {
+        projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
+        sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+        localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+        localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+        renderSidebar(); renderTasks();
+      } catch(e) {}
+      AnsoSync.scheduleSave(projects, sections);
+      return;
+    }
+    var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
+    var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
+    var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
+
+    if (cloudTime >= localTime) {
+      _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    } else {
+      // Caché local más reciente → restaurar y subir
+      try {
+        projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
+        sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+        localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+        localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+        renderSidebar(); renderTasks();
+      } catch(e) {}
+      AnsoSync.scheduleSave(projects, sections);
+    }
+    return;
+  }
+
+  // ── Primera vez con esta cuenta en este dispositivo ───────────
+  var hasAnonymousData = projects.length > 0;
+
   if (!cloudData || !Array.isArray(cloudData.projects)) {
-    // Sin datos en la nube: subir datos locales solo si hay algo que subir
+    // Sin datos en la nube → inicializar caché con lo que haya en local
+    _saveAccountCache(uid);
     if (projects.length > 0) AnsoSync.scheduleSave(projects, sections);
     return;
   }
 
-  // Si no hay metadatos locales (localStorage borrado o sesión nueva),
-  // siempre prevalecen los datos de la nube — nunca sobreescribir con vacío.
-  var localMeta = loadMetadata();
-  if (!localMeta.lastSavedAt) {
-    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
+  if (!hasAnonymousData) {
+    // Sin datos locales → usar nube directamente
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
     return;
   }
 
-  var localTime = new Date(localMeta.lastSavedAt).getTime();
-  var cloudTime = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
+  // ── Posible conflicto: hay datos locales Y datos en la nube ───
+  // Si los timestamps son muy cercanos, es probablemente la misma sesión
+  // (caso: usuario ya tenía cuenta y es la primera vez tras esta actualización)
+  var anonMeta   = loadMetadata();
+  var anonTime   = anonMeta.lastSavedAt ? new Date(anonMeta.lastSavedAt).getTime() : 0;
+  var cloudTime2 = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
 
-  if (cloudTime >= localTime) {
-    // La nube es igual de reciente o más — aplicar datos remotos
-    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
-  } else if (projects.length > 0) {
-    // Local es más reciente y tiene datos — subir a la nube
-    AnsoSync.scheduleSave(projects, sections);
-  } else {
-    // Local más reciente pero vacío — situación anómala, preferir nube
-    _syncApplyRemote(cloudData.projects, cloudData.sections || []);
+  if (Math.abs(cloudTime2 - anonTime) < 15000) {
+    // Menos de 15 s de diferencia → misma sesión, usar la más reciente
+    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    else { _saveAccountCache(uid); AnsoSync.scheduleSave(projects, sections); }
+    return;
   }
+
+  // Diferencia significativa → preguntar al usuario
+  _showSyncConflictModal(cloudData, uid);
+}
+
+function _showSyncConflictModal(cloudData, uid) {
+  var localCount = projects.length;
+  var cloudCount = Array.isArray(cloudData.projects) ? cloudData.projects.length : 0;
+  var { overlay, box } = createModalBase();
+
+  box.innerHTML =
+    '<p class="modal-label">// Conflicto de datos</p>' +
+    '<p style="font-size:0.88rem;color:var(--t-soft);margin-bottom:1.2rem;line-height:1.55">' +
+      'Tienes <strong>' + localCount + ' proyecto' + (localCount !== 1 ? "s" : "") + ' locales</strong> ' +
+      'y <strong>' + cloudCount + ' proyecto' + (cloudCount !== 1 ? "s" : "") + ' en la nube</strong>. ' +
+      '¿Cuáles quieres usar?' +
+    '</p>' +
+    '<div class="modal-actions" style="flex-direction:column;gap:0.5rem">' +
+      '<button type="button" class="modal-btn modal-btn-confirm" id="_sc-cloud">☁ Usar datos de la nube</button>' +
+      '<button type="button" class="modal-btn modal-btn-cancel" id="_sc-local">💻 Subir mis datos locales</button>' +
+    '</div>';
+
+  // No se puede cerrar con Escape — el usuario debe elegir
+  overlay._cancel = null;
+
+  box.querySelector("#_sc-cloud").addEventListener("click", function() {
+    closeModal(overlay);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+  });
+
+  box.querySelector("#_sc-local").addEventListener("click", function() {
+    closeModal(overlay);
+    _saveAccountCache(uid);
+    AnsoSync.scheduleSave(projects, sections);
+  });
 }
 
 function _syncOnRemoteChange(remoteProjects, remoteSections) {
-  _syncApplyRemote(remoteProjects, remoteSections || []);
+  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  _syncApplyRemote(remoteProjects, remoteSections || [], user ? user.uid : null);
 }
 
-function _syncApplyRemote(remoteProjects, remoteSections) {
+function _syncApplyRemote(remoteProjects, remoteSections, uid) {
   try {
     projects = remoteProjects.map(sanitizeProject);
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
@@ -5083,6 +5183,9 @@ function _syncApplyRemote(remoteProjects, remoteSections) {
       sections = remoteSections;
       localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
     }
+    // Actualizar caché por cuenta
+    if (uid) _saveAccountCache(uid);
+
     renderSidebar();
     var proj = getActiveProject();
     if (proj) {
