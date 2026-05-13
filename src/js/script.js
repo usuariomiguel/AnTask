@@ -8,6 +8,7 @@ const PROJECTS_KEY   = "anso-projects";
 const ACTIVE_KEY     = "anso-active-project";
 const METADATA_KEY   = "anso-meta";
 const NOTES_KEY      = "antask-notes";
+const TASK_PREFS_KEY = "antask-task-prefs";
 const THEME_KEY      = "mis-tareas-theme";
 const SECTIONS_KEY   = "anso-sections";
 
@@ -119,6 +120,7 @@ let _undoTimer = null;
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded = false;
 let _notesExpanded    = true;
+let taskPrefs         = loadTaskPrefs();
 
 // ─── CRONÓMETRO ───────────────────────────────────────────────
 // Map<taskId, { taskId, taskText, elapsedMs, startedAt, running }>
@@ -135,6 +137,7 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // ─── ARRANQUE ────────────────────────────────────────────────
 var _splashStart = performance.now();
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
+try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
 
@@ -189,6 +192,9 @@ if (shortcutsBtn) {
 
 // ─── ACCIÓN EN MASA — LISTENERS ──────────────────────────────
 if (selectModeBtn) selectModeBtn.addEventListener("click", toggleSelectMode);
+
+var _taskPrefsBtnEl = document.getElementById("task-prefs-btn");
+if (_taskPrefsBtnEl) _taskPrefsBtnEl.addEventListener("click", showTaskPrefsModal);
 var _bulkDoneBtn   = document.getElementById("bulk-done-btn");
 var _bulkPendingBtn= document.getElementById("bulk-pending-btn");
 var _bulkMoveBtn   = document.getElementById("bulk-move-btn");
@@ -264,6 +270,17 @@ document.addEventListener("keydown", function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
     showGlobalSearch();
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+    e.preventDefault();
+    var _sb = document.querySelector(".sidebar");
+    if (_sb) _sb.classList.toggle("sidebar-collapsed");
+    var _mp = document.getElementById("main-panel");
+    if (_mp) _mp.classList.toggle("sidebar-is-collapsed", _sb && _sb.classList.contains("sidebar-collapsed"));
+    var _collapsed = _sb && _sb.classList.contains("sidebar-collapsed");
+    localStorage.setItem("anso-sidebar-collapsed", _collapsed ? "1" : "0");
     return;
   }
 
@@ -4361,7 +4378,7 @@ function showGlobalSearch() {
 
   box.className = "modal-box modal-box-search";
   box.innerHTML =
-    '<p class="modal-label">// Buscar en todos los proyectos</p>' +
+    '<p class="modal-label">// Buscar en proyectos y notas</p>' +
     '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="escribe para buscar..." />' +
     '<div id="search-results" class="search-results"></div>' +
     '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">Cerrar</button></div>';
@@ -4387,6 +4404,12 @@ function showGlobalSearch() {
   setTimeout(function() { input.focus(); }, 50);
 }
 
+function _noteToPlainText(html) {
+  var tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
 function renderSearchResults(container, q, closeCallback) {
   container.innerHTML = "";
   if (q.length < 2) {
@@ -4394,53 +4417,118 @@ function renderSearchResults(container, q, closeCallback) {
     return;
   }
 
-  let total = 0;
+  var taskGroups = [];
   projects.forEach(function(project) {
-    const matches = project.tasks.filter(function(t) {
+    var matches = project.tasks.filter(function(t) {
       return t.text.toLowerCase().includes(q) ||
              (t.comment && t.comment.toLowerCase().includes(q));
     });
-    if (matches.length === 0) return;
-    total += matches.length;
+    if (matches.length > 0) taskGroups.push({ project: project, tasks: matches });
+  });
 
-    const group = document.createElement("div");
-    group.className = "search-group";
+  var noteMatches = standaloneNotes.filter(function(n) {
+    return n.name.toLowerCase().includes(q) ||
+           _noteToPlainText(n.content).toLowerCase().includes(q);
+  });
 
-    const heading = document.createElement("p");
-    heading.className = "search-group-heading";
-    heading.textContent = project.name;
-    group.appendChild(heading);
+  var total = taskGroups.reduce(function(s, g) { return s + g.tasks.length; }, 0) + noteMatches.length;
 
-    matches.forEach(function(task) {
-      const item = document.createElement("button");
+  if (total === 0) {
+    container.innerHTML = '<p class="search-hint">Sin resultados para <em>' + escHtml(q) + '</em></p>';
+    return;
+  }
+
+  // ── Sección tareas ────────────────────────────────────────────
+  if (taskGroups.length > 0) {
+    var tasksSection = document.createElement("div");
+    tasksSection.className = "search-section";
+    tasksSection.innerHTML =
+      '<div class="search-section-label search-section-label--tasks">' +
+        '<i data-lucide="check-square"></i><span>Tareas</span>' +
+      '</div>';
+
+    taskGroups.forEach(function(g) {
+      var group = document.createElement("div");
+      group.className = "search-group";
+
+      var heading = document.createElement("p");
+      heading.className = "search-group-heading";
+      if (g.project.color) heading.style.setProperty("--group-color", g.project.color);
+      heading.innerHTML =
+        '<span class="search-group-dot" style="background:' + (g.project.color || "var(--c-primary-500)") + '"></span>' +
+        escHtml(g.project.name);
+      group.appendChild(heading);
+
+      g.tasks.forEach(function(task) {
+        var item = document.createElement("button");
+        item.type = "button";
+        item.className = "search-result-item" + (task.done ? " search-result-done" : "");
+
+        item.innerHTML =
+          '<span class="search-result-check">' +
+            (task.done ? '<i data-lucide="check-circle-2"></i>' : '<i data-lucide="circle"></i>') +
+          '</span>' +
+          '<span class="search-result-text">' + highlightMatch(task.text, q) + '</span>';
+
+        if (task.comment && task.comment.toLowerCase().includes(q)) {
+          var snippet = document.createElement("span");
+          snippet.className = "search-result-snippet";
+          snippet.innerHTML = highlightMatch(task.comment.slice(0, 80), q);
+          item.appendChild(snippet);
+        }
+
+        item.addEventListener("click", function() {
+          closeCallback();
+          navigateToTask(g.project.id, task.id);
+        });
+
+        group.appendChild(item);
+      });
+
+      tasksSection.appendChild(group);
+    });
+
+    container.appendChild(tasksSection);
+  }
+
+  // ── Sección notas ─────────────────────────────────────────────
+  if (noteMatches.length > 0) {
+    var notesSection = document.createElement("div");
+    notesSection.className = "search-section";
+    notesSection.innerHTML =
+      '<div class="search-section-label search-section-label--notes">' +
+        '<i data-lucide="file-text"></i><span>Notas</span>' +
+      '</div>';
+
+    noteMatches.forEach(function(note) {
+      var plain = _noteToPlainText(note.content);
+      var item = document.createElement("button");
       item.type = "button";
-      item.className = "search-result-item" + (task.done ? " search-result-done" : "");
+      item.className = "search-result-item search-result-item--note";
 
-      const hl = highlightMatch(task.text, q);
       item.innerHTML =
-        '<span class="search-result-check">' + (task.done ? '<i data-lucide="check"></i>' : '<i data-lucide="circle"></i>') + '</span>' +
-        '<span class="search-result-text">' + hl + '</span>';
+        '<span class="search-result-check search-result-check--note"><i data-lucide="file-text"></i></span>' +
+        '<span class="search-result-text">' + highlightMatch(note.name, q) + '</span>';
 
-      if (task.comment && task.comment.toLowerCase().includes(q)) {
-        const snippet = document.createElement("span");
+      if (plain.toLowerCase().includes(q)) {
+        var idx = plain.toLowerCase().indexOf(q);
+        var start = Math.max(0, idx - 30);
+        var excerpt = (start > 0 ? "…" : "") + plain.slice(start, idx + q.length + 40);
+        var snippet = document.createElement("span");
         snippet.className = "search-result-snippet";
-        snippet.innerHTML = highlightMatch(task.comment.slice(0, 80), q);
+        snippet.innerHTML = highlightMatch(excerpt, q);
         item.appendChild(snippet);
       }
 
       item.addEventListener("click", function() {
         closeCallback();
-        navigateToTask(project.id, task.id);
+        activateNote(note.id);
       });
 
-      group.appendChild(item);
+      notesSection.appendChild(item);
     });
 
-    container.appendChild(group);
-  });
-
-  if (total === 0) {
-    container.innerHTML = '<p class="search-hint">Sin resultados para <em>' + escHtml(q) + '</em></p>';
+    container.appendChild(notesSection);
   }
 
   if (window.lucide) lucide.createIcons({ nodes: [container] });
@@ -4737,6 +4825,79 @@ function _syncNoteFmtBtns() {
     try {
       btn.classList.toggle("fmt-active", document.queryCommandState(btn.dataset.cmd));
     } catch(e) {}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PREFERENCIAS DE BOTONES DE TAREA
+// ═══════════════════════════════════════════════════════════════
+
+const TASK_BTN_DEFS = [
+  { key: "priority", label: "Prioridad",   icon: "flag"          },
+  { key: "status",   label: "Estado",      icon: "circle-dashed" },
+  { key: "date",     label: "Fecha",       icon: "calendar"      },
+  { key: "recur",    label: "Repetir",     icon: "repeat"        },
+  { key: "timer",    label: "Cronómetro",  icon: "timer"         },
+  { key: "comment",  label: "Nota rápida", icon: "message-circle"},
+  { key: "labels",   label: "Etiquetas",   icon: "tag"           },
+  { key: "subtasks", label: "Subtareas",   icon: "list-plus"     },
+];
+
+function loadTaskPrefs() {
+  try {
+    var raw = localStorage.getItem(TASK_PREFS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function saveTaskPrefs() {
+  localStorage.setItem(TASK_PREFS_KEY, JSON.stringify(taskPrefs));
+}
+
+function applyTaskPrefs() {
+  TASK_BTN_DEFS.forEach(function(def) {
+    document.body.classList.toggle("hide-task-" + def.key, taskPrefs[def.key] === false);
+  });
+}
+
+function showTaskPrefsModal() {
+  var { overlay, box } = createModalBase();
+
+  var rowsHtml = TASK_BTN_DEFS.map(function(def) {
+    var on = taskPrefs[def.key] !== false;
+    return '<label class="task-pref-row">' +
+      '<span class="task-pref-icon"><i data-lucide="' + def.icon + '"></i></span>' +
+      '<span class="task-pref-label">' + def.label + '</span>' +
+      '<span class="task-pref-toggle' + (on ? " task-pref-on" : "") + '" data-key="' + def.key + '">' +
+        '<span class="task-pref-thumb"></span>' +
+      '</span>' +
+    '</label>';
+  }).join("");
+
+  box.innerHTML =
+    '<p class="modal-label">Botones de tarea</p>' +
+    '<div class="task-pref-list">' + rowsHtml + '</div>' +
+    '<div class="modal-actions">' +
+      '<button class="modal-btn modal-btn-confirm">Listo</button>' +
+    '</div>';
+
+  if (window.lucide) lucide.createIcons({ nodes: [box] });
+
+  box.querySelectorAll(".task-pref-toggle").forEach(function(toggle) {
+    toggle.addEventListener("click", function() {
+      var key = toggle.dataset.key;
+      taskPrefs[key] = !toggle.classList.contains("task-pref-on");
+      toggle.classList.toggle("task-pref-on", taskPrefs[key]);
+      saveTaskPrefs();
+      applyTaskPrefs();
+    });
+  });
+
+  overlay._cancel = function() { closeModal(overlay); };
+  box.querySelector(".modal-btn-confirm").addEventListener("click", function() { closeModal(overlay); });
+
+  document.addEventListener("keydown", function handler(e) {
+    if (e.key === "Escape") { closeModal(overlay); document.removeEventListener("keydown", handler); }
   });
 }
 
