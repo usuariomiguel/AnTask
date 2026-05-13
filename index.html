@@ -167,9 +167,27 @@
         <!-- Estado vacío: ningún proyecto seleccionado -->
         <div class="empty-state" id="empty-state">
           <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
-          <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
-          <p class="empty-state-title">Ningún proyecto seleccionado</p>
-          <p class="empty-state-sub">Crea o selecciona un proyecto desde la barra lateral</p>
+          <div class="empty-state-visual">
+            <div class="empty-orb empty-orb--1"></div>
+            <div class="empty-orb empty-orb--2"></div>
+            <div class="empty-orb empty-orb--3"></div>
+            <div class="empty-orb empty-orb--4"></div>
+            <div class="empty-orb empty-orb--5"></div>
+            <div class="empty-ring empty-ring--1"><span class="empty-ring-dot"></span></div>
+            <div class="empty-ring empty-ring--2"><span class="empty-ring-dot"></span></div>
+            <svg class="empty-logo" viewBox="0 0 92 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="eg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#7C3AED"/>
+                  <stop offset="0.5" stop-color="#EC4899"/>
+                  <stop offset="1" stop-color="#06B6DA"/>
+                </linearGradient>
+              </defs>
+              <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
+            </svg>
+          </div>
+          <p class="empty-state-title">¿Qué quieres abrir?</p>
+          <p class="empty-state-sub">Selecciona un proyecto o una nota desde la barra lateral</p>
         </div>
 
         <!-- Barra de control persistente: header + form + nav de vistas -->
@@ -185,7 +203,8 @@
               </div>
             </div>
             <div class="header-actions">
-              <a id="notes-link" href="#" class="notes-link"><i data-lucide="file-text"></i> Notas</a>
+              <a id="notes-link" href="#" class="notes-link"><i data-lucide="file-text"></i> Notas del proyecto</a>
+              <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto"><i data-lucide="x"></i></button>
             </div>
           </div>
 
@@ -303,10 +322,30 @@
               <button type="button" class="fmt-btn note-fmt-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
               <button type="button" class="fmt-btn note-fmt-btn" data-cmd="strikeThrough" title="Tachado"><s>S</s></button>
               <span class="note-toolbar-sep"></span>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertUnorderedList" title="Lista">• Lista con viñetas</button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertOrderedList" title="Lista numerada">1. Lista Numérica</button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="1" title="Muy pequeño"  ><span style="font-size:0.60em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="2" title="Pequeño"      ><span style="font-size:0.78em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="3" title="Normal"       ><span style="font-size:0.95em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="5" title="Grande"       ><span style="font-size:1.20em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="7" title="Muy grande"   ><span style="font-size:1.50em;font-weight:700">A</span></button>
+              <span class="note-toolbar-sep"></span>
+              <div class="fmt-color-wrap">
+                <button type="button" class="fmt-btn note-fmt-btn fmt-color-btn" title="Color de texto"><span class="fmt-color-label">A</span></button>
+                <div class="fmt-color-palette" hidden>
+                  <button class="fmt-color-swatch" data-color="#ef4444" style="background:#ef4444" title="Rojo"></button>
+                  <button class="fmt-color-swatch" data-color="#f97316" style="background:#f97316" title="Naranja"></button>
+                  <button class="fmt-color-swatch" data-color="#eab308" style="background:#eab308" title="Amarillo"></button>
+                  <button class="fmt-color-swatch" data-color="#22c55e" style="background:#22c55e" title="Verde"></button>
+                  <button class="fmt-color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="Azul"></button>
+                  <button class="fmt-color-swatch" data-color="#a855f7" style="background:#a855f7" title="Morado"></button>
+                  <button class="fmt-color-swatch" data-color="#ec4899" style="background:#ec4899" title="Rosa"></button>
+                  <button class="fmt-color-swatch fmt-color-clear" data-color="" title="Quitar color">✕</button>
+                </div>
+              </div>
+              <span class="note-toolbar-sep"></span>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertUnorderedList" title="Lista con viñetas"><i data-lucide="list"></i></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertOrderedList"   title="Lista numerada" ><i data-lucide="list-ordered"></i></button>
             </div>
-            <span class="note-save-status" id="note-save-status"></span>
+            <button type="button" id="close-note-btn" class="close-panel-btn" title="Cerrar nota"><i data-lucide="x"></i></button>
           </div>
           <div
             id="note-editor"
@@ -428,6 +467,20 @@
           <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
           <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="underline" title="Subrayado (Ctrl+U)"><span style="text-decoration:underline">U</span></button>
           <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="strikeThrough" title="Tachado (Ctrl+M)"><span style="text-decoration:line-through">M</span></button>
+          <span class="note-toolbar-sep"></span>
+          <div class="fmt-color-wrap">
+            <button type="button" class="fmt-btn notes-fmt-btn fmt-color-btn" title="Color de texto"><span class="fmt-color-label">A</span></button>
+            <div class="fmt-color-palette" hidden>
+              <button class="fmt-color-swatch" data-color="#ef4444" style="background:#ef4444" title="Rojo"></button>
+              <button class="fmt-color-swatch" data-color="#f97316" style="background:#f97316" title="Naranja"></button>
+              <button class="fmt-color-swatch" data-color="#eab308" style="background:#eab308" title="Amarillo"></button>
+              <button class="fmt-color-swatch" data-color="#22c55e" style="background:#22c55e" title="Verde"></button>
+              <button class="fmt-color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="Azul"></button>
+              <button class="fmt-color-swatch" data-color="#a855f7" style="background:#a855f7" title="Morado"></button>
+              <button class="fmt-color-swatch" data-color="#ec4899" style="background:#ec4899" title="Rosa"></button>
+              <button class="fmt-color-swatch fmt-color-clear" data-color="" title="Quitar color">✕</button>
+            </div>
+          </div>
           <button type="button" id="notes-side-close" class="notes-side-close" aria-label="Cerrar panel de notas">✕</button>
         </div>
       </div>

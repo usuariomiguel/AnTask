@@ -195,6 +195,20 @@ if (selectModeBtn) selectModeBtn.addEventListener("click", toggleSelectMode);
 
 var _taskPrefsBtnEl = document.getElementById("task-prefs-btn");
 if (_taskPrefsBtnEl) _taskPrefsBtnEl.addEventListener("click", showTaskPrefsModal);
+
+var _closePanelBtn = document.getElementById("close-panel-btn");
+if (_closePanelBtn) _closePanelBtn.addEventListener("click", function() { activateProject(null); });
+
+var _closeNoteBtn = document.getElementById("close-note-btn");
+if (_closeNoteBtn) _closeNoteBtn.addEventListener("click", function() {
+  var notePanel = document.getElementById("note-panel");
+  if (notePanel) notePanel.hidden = true;
+  activeNoteId = null;
+  if (emptyState) emptyState.hidden = false;
+  if (mobileFab)  mobileFab.classList.remove("visible");
+  document.title = "antask";
+  renderSidebar();
+});
 var _bulkDoneBtn   = document.getElementById("bulk-done-btn");
 var _bulkPendingBtn= document.getElementById("bulk-pending-btn");
 var _bulkMoveBtn   = document.getElementById("bulk-move-btn");
@@ -254,10 +268,50 @@ if (notesSideEditor) {
 notesFmtBtns.forEach(function(btn) {
   btn.addEventListener("mousedown", function(e) {
     e.preventDefault();
-    document.execCommand(btn.dataset.cmd, false, null);
+    if (btn.classList.contains("fmt-color-btn")) return;
+    document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
     if (notesSideEditor) notesSideEditor.focus();
     updateNotesFmtButtons();
     saveNotesSide();
+  });
+});
+
+// Color palettes — notes side panel + standalone note panel
+document.querySelectorAll(".fmt-color-wrap").forEach(function(wrap) {
+  var colorBtn     = wrap.querySelector(".fmt-color-btn");
+  var palette      = wrap.querySelector(".fmt-color-palette");
+  var colorLabel   = wrap.querySelector(".fmt-color-label");
+  if (!colorBtn || !palette) return;
+
+  colorBtn.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    palette.hidden = !palette.hidden;
+  });
+
+  palette.querySelectorAll(".fmt-color-swatch").forEach(function(swatch) {
+    swatch.addEventListener("mousedown", function(e) {
+      e.preventDefault();
+      var color = swatch.dataset.color;
+      if (color) {
+        document.execCommand("styleWithCSS", false, true);
+        document.execCommand("foreColor", false, color);
+        if (colorLabel) colorLabel.style.color = color;
+      } else {
+        document.execCommand("removeFormat", false, null);
+        if (colorLabel) colorLabel.style.color = "";
+      }
+      palette.hidden = true;
+      var editor = wrap.closest("[contenteditable]") ||
+                   document.getElementById("notes-side-editor") ||
+                   document.getElementById("note-editor");
+      if (editor) editor.focus();
+      saveNotesSide();
+      if (typeof saveActiveNote === "function") saveActiveNote();
+    });
+  });
+
+  document.addEventListener("mousedown", function(e) {
+    if (!wrap.contains(e.target)) palette.hidden = true;
   });
 });
 
@@ -907,6 +961,7 @@ exportBtn.addEventListener("click", function() {
     exportedAt: new Date().toISOString(),
     projects: projects,
     sections: sections,
+    standaloneNotes: standaloneNotes,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -941,6 +996,10 @@ importFile.addEventListener("change", async function() {
           return { id: s.id, name: s.name, collapsed: !!s.collapsed };
         });
         saveSections();
+      }
+      if (Array.isArray(parsed.standaloneNotes)) {
+        standaloneNotes = parsed.standaloneNotes.map(sanitizeStandaloneNote);
+        localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
       }
       activeProjectId = projects.length > 0 ? projects[0].id : null;
       if (activeProjectId) localStorage.setItem(ACTIVE_KEY, activeProjectId);
@@ -4154,9 +4213,11 @@ function _setActiveViewTab(view) {
   var selectModeBtn  = document.getElementById("select-mode-btn");
   var moreActionsWrap = document.getElementById("more-actions-wrap");
   var isTasksView    = (view === "tasks");
-  if (filterWrap)      filterWrap.style.display     = isTasksView ? "" : "none";
-  if (selectModeBtn)   selectModeBtn.style.display   = isTasksView ? "" : "none";
-  if (moreActionsWrap) moreActionsWrap.style.display  = isTasksView ? "" : "none";
+  var taskPrefsBtnEl  = document.getElementById("task-prefs-btn");
+  if (filterWrap)      filterWrap.style.display      = isTasksView ? "" : "none";
+  if (selectModeBtn)   selectModeBtn.style.display    = isTasksView ? "" : "none";
+  if (moreActionsWrap) moreActionsWrap.style.display   = isTasksView ? "" : "none";
+  if (taskPrefsBtnEl)  taskPrefsBtnEl.style.display   = isTasksView ? "" : "none";
   // Ocultar task-form en vistas alternativas
   var taskFormEl = document.getElementById("task-form");
   if (taskFormEl) taskFormEl.style.display = isTasksView ? "" : "none";
@@ -4587,7 +4648,7 @@ function saveProjects() {
   updateSaveStatus(now);
   var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
   if (user) _saveAccountCache(user.uid);
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
+  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4778,7 +4839,8 @@ function showNoteMenu(note, anchor) {
   noteFmtBtns.forEach(function(btn) {
     btn.addEventListener("mousedown", function(e) {
       e.preventDefault();
-      document.execCommand(btn.dataset.cmd, false, null);
+      if (btn.classList.contains("fmt-color-btn")) return;
+      document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
       if (noteEditor) noteEditor.focus();
       _syncNoteFmtBtns();
     });
@@ -4858,6 +4920,7 @@ function applyTaskPrefs() {
   TASK_BTN_DEFS.forEach(function(def) {
     document.body.classList.toggle("hide-task-" + def.key, taskPrefs[def.key] === false);
   });
+  document.body.classList.toggle("tasks-compact", taskPrefs.compactView === true);
 }
 
 function showTaskPrefsModal() {
@@ -4874,8 +4937,19 @@ function showTaskPrefsModal() {
     '</label>';
   }).join("");
 
+  var compactOn = taskPrefs.compactView === true;
   box.innerHTML =
-    '<p class="modal-label">Botones de tarea</p>' +
+    '<p class="modal-label">Vista</p>' +
+    '<div class="task-pref-list">' +
+      '<label class="task-pref-row">' +
+        '<span class="task-pref-icon"><i data-lucide="rows-3"></i></span>' +
+        '<span class="task-pref-label">Vista compacta</span>' +
+        '<span class="task-pref-toggle' + (compactOn ? " task-pref-on" : "") + '" data-key="compactView" data-type="view">' +
+          '<span class="task-pref-thumb"></span>' +
+        '</span>' +
+      '</label>' +
+    '</div>' +
+    '<p class="modal-label" style="margin-top:1rem">Botones de tarea</p>' +
     '<div class="task-pref-list">' + rowsHtml + '</div>' +
     '<div class="modal-actions">' +
       '<button class="modal-btn modal-btn-confirm">Listo</button>' +
@@ -4910,6 +4984,7 @@ function loadStandaloneNotes() {
 
 function saveStandaloneNotes() {
   localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
+  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
 }
 
 function sanitizeStandaloneNote(n) {
@@ -4935,7 +5010,7 @@ function saveSections() {
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
   if (user) _saveAccountCache(user.uid);
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections);
+  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
 }
 
 function loadMetadata() {
@@ -5242,7 +5317,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      AnsoSync.scheduleSave(projects, sections);
+      AnsoSync.scheduleSave(projects, sections, standaloneNotes);
       return;
     }
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
@@ -5250,7 +5325,7 @@ function _syncOnFirstConnect(cloudData) {
     var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
 
     if (cloudTime >= localTime) {
-      _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+      _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
     } else {
       // Caché local más reciente → restaurar y subir
       try {
@@ -5260,7 +5335,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      AnsoSync.scheduleSave(projects, sections);
+      AnsoSync.scheduleSave(projects, sections, standaloneNotes);
     }
     return;
   }
@@ -5271,13 +5346,13 @@ function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
     _saveAccountCache(uid);
-    if (projects.length > 0) AnsoSync.scheduleSave(projects, sections);
+    if (projects.length > 0) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
     return;
   }
 
   if (!hasAnonymousData) {
     // Sin datos locales → usar nube directamente
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
     return;
   }
 
@@ -5290,8 +5365,8 @@ function _syncOnFirstConnect(cloudData) {
 
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
-    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
-    else { _saveAccountCache(uid); AnsoSync.scheduleSave(projects, sections); }
+    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
+    else { _saveAccountCache(uid); AnsoSync.scheduleSave(projects, sections, standaloneNotes); }
     return;
   }
 
@@ -5321,28 +5396,32 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.querySelector("#_sc-cloud").addEventListener("click", function() {
     closeModal(overlay);
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
   });
 
   box.querySelector("#_sc-local").addEventListener("click", function() {
     closeModal(overlay);
     _saveAccountCache(uid);
-    AnsoSync.scheduleSave(projects, sections);
+    AnsoSync.scheduleSave(projects, sections, standaloneNotes);
   });
 }
 
-function _syncOnRemoteChange(remoteProjects, remoteSections) {
+function _syncOnRemoteChange(remoteProjects, remoteSections, remoteStandaloneNotes) {
   var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
-  _syncApplyRemote(remoteProjects, remoteSections || [], user ? user.uid : null);
+  _syncApplyRemote(remoteProjects, remoteSections || [], remoteStandaloneNotes || [], user ? user.uid : null);
 }
 
-function _syncApplyRemote(remoteProjects, remoteSections, uid) {
+function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes, uid) {
   try {
     projects = remoteProjects.map(sanitizeProject);
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
     if (Array.isArray(remoteSections)) {
       sections = remoteSections;
       localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+    }
+    if (Array.isArray(remoteStandaloneNotes)) {
+      standaloneNotes = remoteStandaloneNotes.map(sanitizeStandaloneNote);
+      localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
     }
     // Actualizar caché por cuenta
     if (uid) _saveAccountCache(uid);

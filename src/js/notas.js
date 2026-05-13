@@ -239,10 +239,46 @@ editor.addEventListener("keydown", function(e) {
 fmtButtons.forEach(function(btn) {
   btn.addEventListener("mousedown", function(e) {
     e.preventDefault();
-    document.execCommand(btn.dataset.cmd, false, null);
+    if (btn.classList.contains("fmt-color-btn")) return;
+    document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
     editor.focus();
     updateActiveButtons();
     saveNotes();
+  });
+});
+
+// Color palette — notas.html
+document.querySelectorAll(".fmt-color-wrap").forEach(function(wrap) {
+  var colorBtn   = wrap.querySelector(".fmt-color-btn");
+  var palette    = wrap.querySelector(".fmt-color-palette");
+  var colorLabel = wrap.querySelector(".fmt-color-label");
+  if (!colorBtn || !palette) return;
+
+  colorBtn.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    palette.hidden = !palette.hidden;
+  });
+
+  palette.querySelectorAll(".fmt-color-swatch").forEach(function(swatch) {
+    swatch.addEventListener("mousedown", function(e) {
+      e.preventDefault();
+      var color = swatch.dataset.color;
+      if (color) {
+        document.execCommand("styleWithCSS", false, true);
+        document.execCommand("foreColor", false, color);
+        if (colorLabel) colorLabel.style.color = color;
+      } else {
+        document.execCommand("removeFormat", false, null);
+        if (colorLabel) colorLabel.style.color = "";
+      }
+      palette.hidden = true;
+      editor.focus();
+      saveNotes();
+    });
+  });
+
+  document.addEventListener("mousedown", function(e) {
+    if (!wrap.contains(e.target)) palette.hidden = true;
   });
 });
 

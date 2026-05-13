@@ -79,7 +79,7 @@
       var data = snap.data();
       if (data && Array.isArray(data.projects) &&
         typeof _onRemoteChange === "function") {
-        _onRemoteChange(data.projects, data.sections || [], data.updatedAt);
+        _onRemoteChange(data.projects, data.sections || [], data.standaloneNotes || [], data.updatedAt);
       }
     }, function (err) {
       console.warn("AnsoSync: error en listener:", err);
@@ -132,7 +132,7 @@
      * Guarda proyectos y secciones en la nube con un debounce de 2 s.
      * Pausa el listener para evitar el bucle de escritura→snapshot.
      */
-    scheduleSave: function (projects, sections) {
+    scheduleSave: function (projects, sections, standaloneNotes) {
       if (!_user) return;
       if (_saveTimer) clearTimeout(_saveTimer);
       _saveTimer = setTimeout(function () {
@@ -140,6 +140,7 @@
         docRef().set({
           projects: projects,
           sections: sections || [],
+          standaloneNotes: standaloneNotes || [],
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           version: 2
         }).then(function () {
