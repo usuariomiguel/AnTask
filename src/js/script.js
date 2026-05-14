@@ -106,6 +106,7 @@ let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
 let currentLabelFilter = null;   // null = sin filtro de etiqueta
+var _sidebarPrevCounts = {};
 const expandedTaskIds  = new Set();
 let dragSrcId          = null;
 let dropIndicator      = null;
@@ -402,6 +403,34 @@ document.addEventListener("keydown", function(e) {
 // SISTEMA DE MODALES
 // ═══════════════════════════════════════════════════════════════
 
+function spawnParticles(originEl) {
+  var rect   = originEl.getBoundingClientRect();
+  var cx     = rect.left + rect.width  / 2;
+  var cy     = rect.top  + rect.height / 2;
+  var colors = ["#8b5cf6","#a78bfa","#ec4899","#f43f5e","#06b6d4","#6366f1","#f59e0b","#34d399"];
+  var count  = 8;
+
+  for (var i = 0; i < count; i++) {
+    var angle = (i / count) * 2 * Math.PI + (Math.random() - 0.5) * 0.8;
+    var dist  = 38 + Math.random() * 28;
+    var size  = 4 + Math.random() * 4;
+    var color = colors[Math.floor(Math.random() * colors.length)];
+    var dx    = Math.cos(angle) * dist;
+    var dy    = Math.sin(angle) * dist;
+
+    var p = document.createElement("div");
+    p.className = "task-particle";
+    p.style.cssText =
+      "left:" + cx + "px;top:" + cy + "px;" +
+      "width:" + size + "px;height:" + size + "px;" +
+      "background:" + color + ";" +
+      "--dx:" + dx.toFixed(1) + "px;--dy:" + dy.toFixed(1) + "px;" +
+      "animation-duration:" + (0.45 + Math.random() * 0.25) + "s;";
+    document.body.appendChild(p);
+    p.addEventListener("animationend", function() { p.remove(); });
+  }
+}
+
 function createModalBase() {
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
@@ -439,12 +468,14 @@ function modalPrompt(label, value, placeholder) {
     const { overlay, box } = createModalBase();
 
     box.innerHTML =
+      '<div class="modal-icon"><i data-lucide="pencil-line"></i></div>' +
       '<p class="modal-label">' + label + '</p>' +
       '<input class="modal-input" type="text" maxlength="120" autocomplete="off" />' +
       '<div class="modal-actions">' +
         '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
         '<button class="modal-btn modal-btn-confirm">Aceptar</button>' +
       '</div>';
+    if (window.lucide) lucide.createIcons({ nodes: [box] });
 
     const input   = box.querySelector(".modal-input");
     const confirm = box.querySelector(".modal-btn-confirm");
@@ -487,11 +518,13 @@ function modalConfirm(message, confirmLabel) {
     const { overlay, box } = createModalBase();
 
     box.innerHTML =
+      '<div class="modal-icon modal-icon--danger"><i data-lucide="triangle-alert"></i></div>' +
       '<p class="modal-label">' + message + '</p>' +
       '<div class="modal-actions">' +
         '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
         '<button class="modal-btn modal-btn-danger">' + (confirmLabel || "Eliminar") + '</button>' +
       '</div>';
+    if (window.lucide) lucide.createIcons({ nodes: [box] });
 
     const confirm = box.querySelector(".modal-btn-danger");
     const cancel  = box.querySelector(".modal-btn-cancel");
@@ -642,12 +675,15 @@ function showColorPicker(project) {
   }).join("");
 
   box.innerHTML =
-    '<p class="modal-label">// Color del proyecto</p>' +
+    '<div class="modal-icon"><i data-lucide="palette"></i></div>' +
+    '<p class="modal-label">Color del proyecto</p>' +
     '<div class="color-picker-grid">' + swatchesHtml + "</div>" +
     '<div class="modal-actions">' +
       (project.color ? '<button type="button" class="modal-btn modal-btn-cancel color-picker-clear">Sin color</button>' : "") +
       '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
     "</div>";
+
+  if (window.lucide) lucide.createIcons({ nodes: [box] });
 
   function apply(color) {
     project.color = color;
@@ -1154,6 +1190,13 @@ function activateProject(id) {
 }
 
 function renderSidebar() {
+  // Capture previous counts so we can animate changes
+  _sidebarPrevCounts = {};
+  projectListEl.querySelectorAll("[data-project-id]").forEach(function(li) {
+    var id = li.dataset.projectId;
+    var span = li.querySelector(".project-item-count");
+    if (id && span) _sidebarPrevCounts[id] = span.textContent;
+  });
   projectListEl.innerHTML = "";
   const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
   const active   = projects.filter(function(p) { return !p.archived; });
@@ -1271,6 +1314,7 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const target = parentEl || projectListEl;
   const li = document.createElement("li");
   li.className = "project-item" + (indented ? " project-item-indented" : "") + (isArchived ? " project-item-archived" : "");
+  li.dataset.projectId = project.id;
   if (project.id === activeProjectId) li.classList.add("active");
 
   const done  = project.tasks.filter(function(t) { return t.done; }).length;
@@ -1305,8 +1349,12 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   });
 
   const countSpan = document.createElement("span");
+  const newCountText = done + "/" + total;
   countSpan.className = "project-item-count";
-  countSpan.textContent = done + "/" + total;
+  countSpan.textContent = newCountText;
+  if (_sidebarPrevCounts[project.id] !== undefined && _sidebarPrevCounts[project.id] !== newCountText) {
+    countSpan.classList.add("count-flip");
+  }
 
   const kebabBtn = document.createElement("button");
   kebabBtn.type = "button";
@@ -1688,6 +1736,7 @@ function renderTasks() {
       task.done = checkbox.checked;
       if (task.done) task.status = null;
       if (task.done) {
+        spawnParticles(checkbox);
         node.classList.add("task-completing");
         setTimeout(function() {
           if (task.recurDays) {
@@ -3729,6 +3778,7 @@ function _buildKanbanCard(task, project) {
 
   return li;
 }
+
 
 function _closeAllAltPanels() {
   var agendaPanel = document.getElementById("agenda-panel");
