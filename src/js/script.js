@@ -1,56 +1,109 @@
-function capitalizeFirst(str) {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
+// ─── IMPORTS ─────────────────────────────────────────────────
+import { escHtml }                          from "./utils/html.js";
+import { capitalizeFirst }                  from "./utils/string.js";
+import { getDueDateState, formatDueDate }   from "./utils/date.js";
+import { generateId }                       from "./utils/id.js";
+import {
+  createModalBase,
+  closeModal,
+  modalPrompt,
+  modalConfirm,
+  modalAlert,
+  modalDate,
+  modalRecurrence,
+} from "./ui/modal.js";
+import {
+  PROJECTS_KEY,
+  ACTIVE_KEY,
+  METADATA_KEY,
+  NOTES_KEY,
+  TASK_PREFS_KEY,
+  THEME_KEY,
+  SECTIONS_KEY,
+  migrateStorageIfNeeded,
+} from "./state/keys.js";
+import {
+  sanitizeProject,
+  sanitizeTasks,
+  sanitizeSubtasks,
+  sanitizeStandaloneNote,
+} from "./state/sanitize.js";
+import {
+  loadProjects,
+  loadSections,
+  loadStandaloneNotes,
+  loadMetadata,
+  loadTaskPrefs,
+} from "./state/persistence.js";
+import {
+  STATUS_CYCLE,
+  STATUS_CONFIG,
+  PRIORITY_CYCLE,
+  PRIORITY_CONFIG,
+  applyStatusToNode,
+  updateStatusBtn,
+  applyPriorityToNode,
+  updatePriorityBtn,
+  renderDueBadge,
+  renderRecurBadge,
+  updateRecurBtn,
+} from "./ui/task-badges.js";
+import {
+  getLabelSlot,
+  getLabelColor,
+  renderTaskLabels,
+} from "./ui/labels.js";
+import { renderSubtasks } from "./ui/subtasks.js";
+import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
+import {
+  initializeTheme,
+  toggleThemeWithTransition,
+} from "./ui/theme.js";
+import { renderCalendar as _renderCalendarModule } from "./ui/calendar.js";
+import { renderAgenda as _renderAgendaModule } from "./ui/agenda.js";
+
+/** Wrapper local que inyecta el estado actual al módulo de calendario. */
+function renderCalendar() {
+  _renderCalendarModule(calState.year, calState.month, projects, activateProject);
 }
 
-// ─── CLAVES DE ALMACENAMIENTO ────────────────────────────────
-const PROJECTS_KEY   = "anso-projects";
-const ACTIVE_KEY     = "anso-active-project";
-const METADATA_KEY   = "anso-meta";
-const NOTES_KEY      = "antask-notes";
-const TASK_PREFS_KEY = "antask-task-prefs";
-const THEME_KEY      = "mis-tareas-theme";
-const SECTIONS_KEY   = "anso-sections";
-
-const LEGACY_PROJECTS_KEY = "ans0-projects";
-const LEGACY_ACTIVE_KEY   = "ans0-active-project";
-const LEGACY_METADATA_KEY = "ans0-meta";
-
-function migrateStorageIfNeeded() {
-  try {
-    const hasNew = localStorage.getItem(PROJECTS_KEY) != null;
-    const hasOld = localStorage.getItem(LEGACY_PROJECTS_KEY) != null;
-    if (hasNew || !hasOld) return;
-
-    localStorage.setItem(PROJECTS_KEY, localStorage.getItem(LEGACY_PROJECTS_KEY));
-
-    const legacyActive = localStorage.getItem(LEGACY_ACTIVE_KEY);
-    if (legacyActive) localStorage.setItem(ACTIVE_KEY, legacyActive);
-
-    const legacyMeta = localStorage.getItem(LEGACY_METADATA_KEY);
-    if (legacyMeta) localStorage.setItem(METADATA_KEY, legacyMeta);
-  } catch (_) {
-    // ignore
-  }
+/** Wrapper local de agenda — inyecta proyectos y callback de navegación. */
+function renderAgenda() {
+  _renderAgendaModule(projects, activateProject);
 }
 
-// ─── ESTADO DE CICLO ─────────────────────────────────────────
-const STATUS_CYCLE = [null, "progress", "waiting"];
-const STATUS_CONFIG = {
-  progress: { label: "Progreso", cls: "status-progress" },
-  waiting:  { label: "En espera", cls: "status-waiting" },
-};
+// sections-and-profile.js usa window.toggleThemeWithTransition para
+// el fallback cuando se pulsa "Cambiar tema" sin View Transition API.
+window.toggleThemeWithTransition = toggleThemeWithTransition;
 
-// ─── PRIORIDAD ────────────────────────────────────────────────
-const PRIORITY_CYCLE  = [null, "high", "medium", "low"];
-const PRIORITY_CONFIG = {
-  high:   { label: "Alta",   cls: "priority-high",   short: "H" },
-  medium: { label: "Media",  cls: "priority-medium", short: "M" },
-  low:    { label: "Baja",   cls: "priority-low",    short: "L" },
-};
+/**
+ * Atajo no-args para la búsqueda global: inyecta los datos y los
+ * callbacks que el módulo necesita (que viven en este script).
+ * Se llama desde el sidebar, atajo Cmd+K, bottom-nav móvil, etc.
+ */
+function openGlobalSearch() {
+  _showGlobalSearch({
+    getProjects:        function() { return projects; },
+    getStandaloneNotes: function() { return standaloneNotes; },
+    onNavigateToTask:   navigateToTask,
+    onActivateNote:     activateNote,
+  });
+}
+// Lo expone también vía window porque el inline script de
+// index.html (bottom-nav móvil) usa esa referencia global.
+window.showGlobalSearch = openGlobalSearch;
+
+// Otros módulos (sections-and-profile.js) acceden a modalAlert vía window.
+window.modalAlert = modalAlert;
+
+// ─── ALIASES DE GLOBALES (de otros módulos cargados antes) ───
+// Capturamos los globales que exponen los demás módulos en window
+// para poder usarlos con sintaxis bare (`AnsoSync.foo()`).
+var AnsoSync          = window.AnsoSync          || null;
+var setupPasteHandler = window.setupPasteHandler || null;
+var setupImageResizer = window.setupImageResizer || null;
 
 // ─── ELEMENTOS DOM ───────────────────────────────────────────
-const themeToggle      = document.getElementById("theme-toggle");
 const projectListEl    = document.getElementById("project-list");
 const newProjectBtn    = document.getElementById("new-project-btn");
 const emptyState       = document.getElementById("empty-state");
@@ -58,7 +111,6 @@ const ctrlBar          = document.getElementById("ctrl-bar");
 const tasksPanel       = document.getElementById("tasks-panel");
 const projectTitleEl   = document.getElementById("project-title");
 const projectSubtitle  = document.getElementById("project-subtitle");
-const notesLink        = document.getElementById("notes-link");
 const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
@@ -78,30 +130,39 @@ const importFile       = document.getElementById("import-file");
 const filterButtons    = document.querySelectorAll("[data-filter]");
 const template         = document.getElementById("task-item-template");
 
-// ─── CLOUD SYNC DOM REFS ─────────────────────────────────────
-const syncSection    = document.getElementById("sync-section");
-const syncSigninBtn  = document.getElementById("sync-signin-btn");
-const syncUserInfo   = document.getElementById("sync-user-info");
-const syncUserAvatar = document.getElementById("sync-user-avatar");
-const syncUserName   = document.getElementById("sync-user-name");
-const syncSignoutBtn = document.getElementById("sync-signout-btn");
-
-// ─── PANEL DE NOTAS LATERAL ───────────────────────────────────
-const notesSidePanel  = document.getElementById("notes-side-panel");
-const notesSideClose  = document.getElementById("notes-side-close");
-const notesSideEditor = document.getElementById("notes-side-editor");
-const notesSideStatus = document.getElementById("notes-side-status");
-const notesFmtBtns    = document.querySelectorAll(".notes-fmt-btn");
-let _notesSaveTimer   = null;
-
 // ─── ESTADO ──────────────────────────────────────────────────
 migrateStorageIfNeeded();
+
+// Proyecto especial "Inbox" — siempre existe, fijo al tope de la sidebar.
+const INBOX_ID = "__inbox__";
 
 let projects        = loadProjects();
 let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
+
+// Asegura que el proyecto Inbox existe (sólo la primera vez).
+ensureInbox();
+
 let activeProjectId = localStorage.getItem(ACTIVE_KEY) || null;
 let activeNoteId    = null;
+// Vista activa: "project" (default) | "today" (vista Hoy virtual).
+let activeView      = "project";
+
+function ensureInbox() {
+  if (projects.some(function(p) { return p.id === INBOX_ID; })) return;
+  projects.unshift(sanitizeProject({
+    id:        INBOX_ID,
+    name:      "Inbox",
+    icon:      "📥",
+    color:     "",
+    createdAt: new Date().toISOString(),
+    tasks:     [],
+  }));
+  // Persistir directamente — saveProjects() todavía no está disponible
+  // (es una function declaration y JS las hoista, pero el resto de
+  // dependencias como AnsoSync sí podrían no estar). Mejor inline:
+  try { localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)); } catch (_) {}
+}
 let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
@@ -123,11 +184,6 @@ let _archivedExpanded = false;
 let _notesExpanded    = true;
 let taskPrefs         = loadTaskPrefs();
 
-// ─── CRONÓMETRO ───────────────────────────────────────────────
-// Map<taskId, { taskId, taskText, elapsedMs, startedAt, running }>
-var _timers        = Object.create(null);
-var _timerInterval = null;
-
 // ─── MULTI-SELECT ─────────────────────────────────────────────
 let selectMode = false;
 const selectedTaskIds = new Set();
@@ -136,54 +192,42 @@ const bulkCount      = document.getElementById("bulk-count");
 const selectModeBtn  = document.getElementById("select-mode-btn");
 
 // ─── ARRANQUE ────────────────────────────────────────────────
-var _splashStart = performance.now();
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
 
 // ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
+// Se desvanece en cuanto la app ha pintado el primer frame real.
 (function() {
   var splash = document.getElementById("splash");
   if (!splash) return;
-  var minMs = 1350;
-  var wait = Math.max(0, minMs - (performance.now() - _splashStart));
-  setTimeout(function() {
-    if (!splash.parentNode) return;
-    var removed = false;
-    function removeSplash() {
-      if (removed) return;
-      removed = true;
-      splash.remove();
-    }
-    splash.classList.add("splash-done");
-    splash.addEventListener("transitionend", removeSplash, { once: true });
-    setTimeout(removeSplash, 700);
-  }, wait);
+  var removed = false;
+  function removeSplash() {
+    if (removed || !splash.parentNode) return;
+    removed = true;
+    splash.remove();
+  }
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      if (!splash.parentNode) return;
+      splash.classList.add("splash-done");
+      splash.addEventListener("transitionend", removeSplash, { once: true });
+      setTimeout(removeSplash, 500);
+    });
+  });
 })();
 
 // ─── CLOUD SYNC INIT ─────────────────────────────────────────
+// El UI de sync vive ahora en el dropdown de perfil (sections-and-profile.js).
 if (window.AnsoSync) {
-  if (syncSection) syncSection.hidden = false;
-  if (syncSigninBtn) {
-    syncSigninBtn.addEventListener("click", function () {
-      AnsoSync.signIn().catch(function (err) {
-        if (err.code !== "auth/popup-closed-by-user") {
-          console.warn("AnsoSync: error en inicio de sesión:", err);
-        }
-      });
-    });
-  }
-  if (syncSignoutBtn) {
-    syncSignoutBtn.addEventListener("click", function () { AnsoSync.signOut(); });
-  }
-  AnsoSync.init(_syncOnRemoteChange, _syncOnAuthChange, _syncOnFirstConnect);
+  window.AnsoSync.init(_syncOnRemoteChange, _syncOnAuthChange, _syncOnFirstConnect);
 }
 
 // ─── BÚSQUEDA GLOBAL ─────────────────────────────────────────
 const globalSearchBtn = document.getElementById("global-search-btn");
 if (globalSearchBtn) {
-  globalSearchBtn.addEventListener("click", function() { showGlobalSearch(); });
+  globalSearchBtn.addEventListener("click", function() { openGlobalSearch(); });
 }
 
 const shortcutsBtn = document.getElementById("shortcuts-btn");
@@ -221,63 +265,7 @@ if (_bulkMoveBtn)    _bulkMoveBtn.addEventListener("click",    bulkMoveToProject
 if (_bulkDeleteBtn)  _bulkDeleteBtn.addEventListener("click",  bulkDelete);
 if (_bulkCancelBtn)  _bulkCancelBtn.addEventListener("click",  exitSelectMode);
 
-// Interceptar el enlace de notas para abrir panel lateral
-notesLink.addEventListener("click", function(e) {
-  e.preventDefault();
-  openNotesPanel();
-});
-
-// Cerrar panel de notas con el backdrop compartido (móvil)
-var _sheetBackdropEl = document.getElementById("sheet-backdrop");
-if (_sheetBackdropEl) {
-  _sheetBackdropEl.addEventListener("click", function() { closeNotesPanel(); });
-}
-
-// Cerrar panel de notas con el botón ✕
-if (notesSideClose) {
-  notesSideClose.addEventListener("click", function() { closeNotesPanel(); });
-}
-
-// Editor de notas: opciones de pegado y guardado
-if (notesSideEditor && typeof setupPasteHandler === "function") {
-  setupPasteHandler(notesSideEditor, saveNotesSide);
-}
-if (notesSideEditor && typeof setupImageResizer === "function") {
-  setupImageResizer(notesSideEditor);
-}
-
-if (notesSideEditor) {
-  notesSideEditor.addEventListener("input", function() {
-    if (_notesSaveTimer) clearTimeout(_notesSaveTimer);
-    _notesSaveTimer = setTimeout(saveNotesSide, 600);
-  });
-  notesSideEditor.addEventListener("keyup",    updateNotesFmtButtons);
-  notesSideEditor.addEventListener("mouseup",  updateNotesFmtButtons);
-  notesSideEditor.addEventListener("keydown", function(e) {
-    if (e.ctrlKey || e.metaKey) {
-      var cmd = { b: "bold", i: "italic", u: "underline", m: "strikeThrough" }[e.key.toLowerCase()];
-      if (cmd) {
-        e.preventDefault();
-        document.execCommand(cmd, false, null);
-        updateNotesFmtButtons();
-        saveNotesSide();
-      }
-    }
-  });
-}
-
-notesFmtBtns.forEach(function(btn) {
-  btn.addEventListener("mousedown", function(e) {
-    e.preventDefault();
-    if (btn.classList.contains("fmt-color-btn")) return;
-    document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
-    if (notesSideEditor) notesSideEditor.focus();
-    updateNotesFmtButtons();
-    saveNotesSide();
-  });
-});
-
-// Color palettes — notes side panel + standalone note panel
+// Color palettes — standalone note panel
 document.querySelectorAll(".fmt-color-wrap").forEach(function(wrap) {
   var colorBtn     = wrap.querySelector(".fmt-color-btn");
   var palette      = wrap.querySelector(".fmt-color-palette");
@@ -303,10 +291,8 @@ document.querySelectorAll(".fmt-color-wrap").forEach(function(wrap) {
       }
       palette.hidden = true;
       var editor = wrap.closest("[contenteditable]") ||
-                   document.getElementById("notes-side-editor") ||
                    document.getElementById("note-editor");
       if (editor) editor.focus();
-      saveNotesSide();
       if (typeof saveActiveNote === "function") saveActiveNote();
     });
   });
@@ -324,7 +310,7 @@ document.addEventListener("keydown", function(e) {
 
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
-    showGlobalSearch();
+    openGlobalSearch();
     return;
   }
 
@@ -386,12 +372,6 @@ document.addEventListener("keydown", function(e) {
     return;
   }
 
-  if (e.key === "k" || e.key === "K") {
-    e.preventDefault();
-    showKanbanPanel();
-    return;
-  }
-
   if (e.key === "c" || e.key === "C") {
     e.preventDefault();
     showCalendarPanel();
@@ -400,187 +380,9 @@ document.addEventListener("keydown", function(e) {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// SISTEMA DE MODALES
+// PICKERS / MODALES CON ESTADO DE LA APP
+// (los modales genéricos viven en ./ui/modal.js)
 // ═══════════════════════════════════════════════════════════════
-
-function spawnParticles(originEl) {
-  var rect   = originEl.getBoundingClientRect();
-  var cx     = rect.left + rect.width  / 2;
-  var cy     = rect.top  + rect.height / 2;
-  var colors = ["#8b5cf6","#a78bfa","#ec4899","#f43f5e","#06b6d4","#6366f1","#f59e0b","#34d399"];
-  var count  = 8;
-
-  for (var i = 0; i < count; i++) {
-    var angle = (i / count) * 2 * Math.PI + (Math.random() - 0.5) * 0.8;
-    var dist  = 38 + Math.random() * 28;
-    var size  = 4 + Math.random() * 4;
-    var color = colors[Math.floor(Math.random() * colors.length)];
-    var dx    = Math.cos(angle) * dist;
-    var dy    = Math.sin(angle) * dist;
-
-    var p = document.createElement("div");
-    p.className = "task-particle";
-    p.style.cssText =
-      "left:" + cx + "px;top:" + cy + "px;" +
-      "width:" + size + "px;height:" + size + "px;" +
-      "background:" + color + ";" +
-      "--dx:" + dx.toFixed(1) + "px;--dy:" + dy.toFixed(1) + "px;" +
-      "animation-duration:" + (0.45 + Math.random() * 0.25) + "s;";
-    document.body.appendChild(p);
-    p.addEventListener("animationend", function() { p.remove(); });
-  }
-}
-
-function createModalBase() {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-
-  const box = document.createElement("div");
-  box.className = "modal-box";
-  overlay.appendChild(box);
-
-  // Cerrar al hacer clic fuera
-  overlay.addEventListener("mousedown", function(e) {
-    if (e.target === overlay) overlay._cancel && overlay._cancel();
-  });
-
-  document.body.appendChild(overlay);
-  requestAnimationFrame(function() { overlay.classList.add("modal-visible"); });
-  return { overlay, box };
-}
-
-function closeModal(overlay) {
-  overlay.classList.remove("modal-visible");
-  overlay.addEventListener("transitionend", function() {
-    overlay.remove();
-  }, { once: true });
-}
-
-/**
- * Modal de entrada de texto (reemplaza window.prompt)
- * @param {string} label   — Título del modal
- * @param {string} [value] — Valor inicial del input
- * @param {string} [placeholder]
- * @returns {Promise<string|null>}  — texto ingresado o null si cancela
- */
-function modalPrompt(label, value, placeholder) {
-  return new Promise(function(resolve) {
-    const { overlay, box } = createModalBase();
-
-    box.innerHTML =
-      '<div class="modal-icon"><i data-lucide="pencil-line"></i></div>' +
-      '<p class="modal-label">' + label + '</p>' +
-      '<input class="modal-input" type="text" maxlength="120" autocomplete="off" />' +
-      '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Aceptar</button>' +
-      '</div>';
-    if (window.lucide) lucide.createIcons({ nodes: [box] });
-
-    const input   = box.querySelector(".modal-input");
-    const confirm = box.querySelector(".modal-btn-confirm");
-    const cancel  = box.querySelector(".modal-btn-cancel");
-
-    if (value)       input.value = value;
-    if (placeholder) input.placeholder = placeholder;
-
-    function doConfirm() {
-      const val = input.value.trim();
-      closeModal(overlay);
-      resolve(val || null);
-    }
-    function doCancel() {
-      closeModal(overlay);
-      resolve(null);
-    }
-
-    overlay._cancel = doCancel;
-    confirm.addEventListener("click", doConfirm);
-    cancel.addEventListener("click",  doCancel);
-    input.addEventListener("keydown", function(e) {
-      if (e.key === "Enter")  doConfirm();
-      if (e.key === "Escape") doCancel();
-    });
-
-    // Focus al input
-    setTimeout(function() { input.focus(); input.select(); }, 50);
-  });
-}
-
-/**
- * Modal de confirmación (reemplaza window.confirm)
- * @param {string} message
- * @param {string} [confirmLabel]
- * @returns {Promise<boolean>}
- */
-function modalConfirm(message, confirmLabel) {
-  return new Promise(function(resolve) {
-    const { overlay, box } = createModalBase();
-
-    box.innerHTML =
-      '<div class="modal-icon modal-icon--danger"><i data-lucide="triangle-alert"></i></div>' +
-      '<p class="modal-label">' + message + '</p>' +
-      '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-danger">' + (confirmLabel || "Eliminar") + '</button>' +
-      '</div>';
-    if (window.lucide) lucide.createIcons({ nodes: [box] });
-
-    const confirm = box.querySelector(".modal-btn-danger");
-    const cancel  = box.querySelector(".modal-btn-cancel");
-
-    function doConfirm() { closeModal(overlay); resolve(true); }
-    function doCancel()  { closeModal(overlay); resolve(false); }
-
-    overlay._cancel = doCancel;
-    confirm.addEventListener("click", doConfirm);
-    cancel.addEventListener("click",  doCancel);
-    document.addEventListener("keydown", function handler(e) {
-      if (e.key === "Escape") { doCancel(); document.removeEventListener("keydown", handler); }
-      if (e.key === "Enter")  { doConfirm(); document.removeEventListener("keydown", handler); }
-    });
-
-    setTimeout(function() { confirm.focus(); }, 50);
-  });
-}
-
-/**
- * Modal de alerta informativa (reemplaza window.alert)
- * @param {string} message
- * @param {"info"|"error"} [type]
- * @returns {Promise<void>}
- */
-function modalAlert(message, type) {
-  return new Promise(function(resolve) {
-    const { overlay, box } = createModalBase();
-    const icon = type === "error"
-      ? '<i data-lucide="circle-x"></i>'
-      : '<i data-lucide="info"></i>';
-    const cls  = type === "error" ? "modal-label modal-label-error" : "modal-label";
-
-    box.innerHTML =
-      '<div class="modal-icon">' + icon + '</div>' +
-      '<p class="' + cls + '">' + message + '</p>' +
-      '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-confirm">Entendido</button>' +
-      '</div>';
-    if (window.lucide) lucide.createIcons({ nodes: [box] });
-
-    const btn = box.querySelector(".modal-btn-confirm");
-    function doClose() { closeModal(overlay); resolve(); }
-
-    overlay._cancel = doClose;
-    btn.addEventListener("click", doClose);
-    document.addEventListener("keydown", function handler(e) {
-      if (e.key === "Escape" || e.key === "Enter") {
-        doClose(); document.removeEventListener("keydown", handler);
-      }
-    });
-
-    setTimeout(function() { btn.focus(); }, 50);
-  });
-}
-
 
 function showIconPicker(project) {
   var { overlay, box } = createModalBase();
@@ -725,7 +527,7 @@ function modalProjectPicker(excludeProjectId) {
       var done  = p.tasks.filter(function(t) { return t.done; }).length;
       var total = p.tasks.length;
       return '<button type="button" class="modal-project-item" data-id="' + p.id + '">' +
-        '<span class="modal-project-name">' + p.name + '</span>' +
+        '<span class="modal-project-name">' + escHtml(p.name) + '</span>' +
         '<span class="modal-project-count">' + done + '/' + total + '</span>' +
         '</button>';
     }).join('');
@@ -754,121 +556,7 @@ function modalProjectPicker(excludeProjectId) {
   });
 }
 
-/**
- * Modal para seleccionar fecha límite
- * @param {string|null} current — valor ISO actual (YYYY-MM-DD) o null
- * @returns {Promise<string|null|"clear">}
- */
-function modalDate(current) {
-  return new Promise(function(resolve) {
-    const { overlay, box } = createModalBase();
-
-    const now = new Date();
-    const dow = now.getDay(); // 0=Dom … 6=Sáb
-
-    function toDateStr(d) { return d.toISOString().slice(0, 10); }
-    function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
-
-    const todayStr    = toDateStr(now);
-    const tomorrowStr = toDateStr(addDays(now, 1));
-    const daysToFri   = (5 - dow + 7) % 7 || 7;   // días hasta el próximo viernes
-    const daysToMon   = (1 - dow + 7) % 7 || 7;   // días hasta el próximo lunes
-    const thisFriStr  = toDateStr(addDays(now, daysToFri));
-    const nextMonStr  = toDateStr(addDays(now, daysToMon));
-
-    const quickPicks = [
-      { label: "Hoy",            value: todayStr    },
-      { label: "Mañana",         value: tomorrowStr },
-      { label: "Este viernes",   value: thisFriStr  },
-      { label: "Próximo lunes",  value: nextMonStr  },
-    ];
-
-    box.innerHTML =
-      '<p class="modal-label">// Fecha límite</p>' +
-      '<div class="date-quick-picks">' +
-        quickPicks.map(function(p) {
-          const active = current === p.value ? ' active' : '';
-          return '<button type="button" class="date-quick-btn' + active + '" data-value="' + p.value + '">' + p.label + '</button>';
-        }).join('') +
-      '</div>' +
-      '<input class="modal-input modal-input-date" type="date" />' +
-      '<div class="modal-actions modal-actions-date">' +
-        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
-      '</div>';
-
-    const input   = box.querySelector(".modal-input-date");
-    const confirm = box.querySelector(".modal-btn-confirm");
-    const cancel  = box.querySelector(".modal-btn-cancel");
-    const clear   = box.querySelector(".modal-btn-clear");
-
-    input.min   = todayStr;
-    input.value = current || "";
-
-    // Click en botón rápido → confirma directamente
-    box.querySelectorAll(".date-quick-btn").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        closeModal(overlay);
-        resolve(btn.dataset.value);
-      });
-    });
-
-    // Resaltar botón rápido cuando el input cambia manualmente
-    input.addEventListener("input", function() {
-      box.querySelectorAll(".date-quick-btn").forEach(function(btn) {
-        btn.classList.toggle("active", btn.dataset.value === input.value);
-      });
-    });
-
-    function doConfirm() { closeModal(overlay); resolve(input.value || null); }
-    function doCancel()  { closeModal(overlay); resolve(undefined); }
-    function doClear()   { closeModal(overlay); resolve("clear"); }
-
-    overlay._cancel = doCancel;
-    confirm.addEventListener("click", doConfirm);
-    cancel.addEventListener("click",  doCancel);
-    clear.addEventListener("click",   doClear);
-    input.addEventListener("keydown", function(e) {
-      if (e.key === "Enter")  doConfirm();
-      if (e.key === "Escape") doCancel();
-    });
-
-    setTimeout(function() { input.focus(); }, 50);
-  });
-}
-
-// ─── TEMA ────────────────────────────────────────────────────
-function setTheme(nextTheme) {
-  applyTheme(nextTheme);
-  localStorage.setItem(THEME_KEY, nextTheme);
-}
-
-function toggleThemeWithTransition(sourceEl) {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  const root = document.documentElement;
-  const rect = sourceEl && sourceEl.getBoundingClientRect ? sourceEl.getBoundingClientRect() : null;
-  const x = rect ? rect.left + rect.width / 2 : window.innerWidth - 30;
-  const y = rect ? rect.top + rect.height / 2 : 30;
-
-  root.style.setProperty("--vt-x", x + "px");
-  root.style.setProperty("--vt-y", y + "px");
-
-  if (!document.startViewTransition) {
-    setTheme(next);
-    return;
-  }
-
-  document.startViewTransition(function() {
-    setTheme(next);
-  });
-}
-
-window.toggleThemeWithTransition = toggleThemeWithTransition;
-
-if (themeToggle) themeToggle.addEventListener("click", function() {
-  toggleThemeWithTransition(themeToggle);
-});
+// Tema vive en ./ui/theme.js (export window arriba)
 
 // ─── NUEVO PROYECTO ──────────────────────────────────────────
 newProjectBtn.addEventListener("click", async function() {
@@ -891,7 +579,7 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
   const project = getActiveProject();
   if (!project) return;
   const confirmed = await modalConfirm(
-    'Eliminar <strong>' + project.name + '</strong> y todas sus tareas?',
+    'Eliminar <strong>' + escHtml(project.name) + '</strong> y todas sus tareas?',
     "Eliminar"
   );
   if (!confirmed) return;
@@ -906,8 +594,13 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
 // ─── FORMULARIO DE TAREA ─────────────────────────────────────
 taskForm.addEventListener("submit", function(event) {
   event.preventDefault();
-  const project = getActiveProject();
-  if (!project) return;
+  // Fallback: si no hay proyecto activo (ej. usuario sale del último proyecto)
+  // mandamos la tarea al Inbox automáticamente.
+  let project = getActiveProject();
+  if (!project) {
+    project = projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!project) return;
+  }
   const text = capitalizeFirst(taskInput.value.trim());
   if (!text) return;
   project.tasks.unshift({
@@ -954,8 +647,11 @@ if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
 if (fabForm) {
   fabForm.addEventListener("submit", function(e) {
     e.preventDefault();
-    const project = getActiveProject();
-    if (!project) return;
+    let project = getActiveProject();
+    if (!project) {
+      project = projects.find(function(p) { return p.id === INBOX_ID; });
+      if (!project) return;
+    }
     const text = fabInput ? capitalizeFirst(fabInput.value.trim()) : "";
     if (!text) return;
     project.tasks.unshift({
@@ -1134,7 +830,11 @@ window.addEventListener("storage", function(event) {
 // FUNCIONES CORE
 // ═══════════════════════════════════════════════════════════════
 
+// Expuesto a window para que notifications.js pueda saltar al
+// proyecto cuando el usuario pulsa una notificación.
+window.activateProject = function(id) { return activateProject(id); };
 function activateProject(id) {
+  activeView = "project";
   activeProjectId = id;
   activeNoteId = null;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
@@ -1150,6 +850,8 @@ function activateProject(id) {
   if (ctrlBar) { ctrlBar.hidden = !hasProject; ctrlBar.classList.remove("ctrl-bar--alt"); }
   if (mobileFab) mobileFab.classList.toggle("visible", hasProject);
   tasksPanel.hidden = !hasProject;
+  // Restauramos el formulario por si veníamos de la vista Hoy.
+  if (taskForm) taskForm.style.display = hasProject ? "" : "none";
   if (hasProject) _setActiveViewTab("tasks");
   if (!hasProject) document.title = "antask";
 
@@ -1169,7 +871,6 @@ function activateProject(id) {
 
   projectTitleEl.textContent = project.name;
   projectSubtitle.textContent = "// " + project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
-  notesLink.href = "./notas.html?project=" + project.id;
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -1182,11 +883,104 @@ function activateProject(id) {
   renderTasks();
   renderLabelFilterBar();
   updateSaveStatus(loadMetadata().lastSavedAt);
+}
 
-  if (notesSidePanel && notesSidePanel.classList.contains("notes-side-open")) {
-    notesSideEditor.innerHTML = project.notes || "";
-    updateNotesSideStatus();
+/**
+ * Activa la vista virtual "Hoy" — muestra todas las tareas
+ * pendientes con dueDate <= hoy de todos los proyectos.
+ */
+function activateTodayView() {
+  activeView = "today";
+  activeProjectId = null;
+  activeNoteId = null;
+  localStorage.removeItem(ACTIVE_KEY);
+
+  _closeAllAltPanels();
+
+  emptyState.hidden = true;
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (mobileFab) mobileFab.classList.remove("visible");
+  tasksPanel.hidden = false;
+  _setActiveViewTab("tasks");
+
+  // El task-form no aplica en Hoy — ocultar input.
+  if (taskForm) taskForm.style.display = "none";
+
+  // Mobile header
+  var mobileHeader = document.getElementById("mobile-header");
+  var mobileHeaderTitle = document.getElementById("mobile-header-title");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeader) mobileHeader.classList.add("mobile-header--project");
+  if (mobileHeaderTitle) mobileHeaderTitle.textContent = "Hoy";
+  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
+
+  document.title = "Hoy — antask";
+  if (projectTitleEl)  projectTitleEl.textContent  = "Hoy";
+  if (projectSubtitle) projectSubtitle.textContent = "// vencidas y de hoy, todos los proyectos";
+
+  if (selectMode) exitSelectMode();
+  currentFilter = "all";
+  currentSort   = "manual";
+  currentLabelFilter = null;
+  _syncFilterPanel("all", "manual");
+
+  expandedTaskIds.clear();
+  renderSidebar();
+  renderTasks();
+  if (typeof renderLabelFilterBar === "function") {
+    var bar = document.getElementById("label-filter-bar");
+    if (bar) bar.hidden = true;  // sin filtro de etiquetas en Hoy
   }
+}
+
+/**
+ * Pinta los items fijos al tope de la sidebar: vista "Hoy" + proyecto Inbox.
+ * Se redibujan en cada renderSidebar().
+ */
+function renderPinnedItems(inboxProject) {
+  // ── Item "Hoy" — vista virtual ─────────────────────────────────
+  var today = new Date().toISOString().slice(0, 10);
+  var todayCount = 0;
+  projects.forEach(function(p) {
+    (p.tasks || []).forEach(function(t) {
+      if (!t.done && t.dueDate && t.dueDate <= today) todayCount++;
+    });
+  });
+
+  var hoy = document.createElement("li");
+  hoy.className = "project-item project-item-pinned project-item-today" +
+    (activeView === "today" ? " active" : "");
+  hoy.innerHTML =
+    '<div class="project-item-top">' +
+      '<span class="project-item-icon project-item-icon--system">☀️</span>' +
+      '<span class="project-item-name">Hoy</span>' +
+      (todayCount > 0 ? '<span class="project-item-count">' + todayCount + '</span>' : "") +
+    '</div>';
+  hoy.addEventListener("click", function() { activateTodayView(); });
+  projectListEl.appendChild(hoy);
+
+  // ── Item Inbox — proyecto real, fijado ─────────────────────────
+  if (inboxProject) {
+    var pending = (inboxProject.tasks || []).filter(function(t) { return !t.done; }).length;
+    var inbox = document.createElement("li");
+    inbox.className = "project-item project-item-pinned project-item-inbox" +
+      (activeView === "project" && activeProjectId === INBOX_ID ? " active" : "");
+    inbox.dataset.projectId = INBOX_ID;
+    inbox.innerHTML =
+      '<div class="project-item-top">' +
+        '<span class="project-item-icon">📥</span>' +
+        '<span class="project-item-name">Inbox</span>' +
+        (pending > 0 ? '<span class="project-item-count">' + pending + '</span>' : "") +
+      '</div>';
+    inbox.addEventListener("click", function() { activateProject(INBOX_ID); });
+    projectListEl.appendChild(inbox);
+  }
+
+  // ── Separador visual ───────────────────────────────────────────
+  var sep = document.createElement("li");
+  sep.className = "project-pinned-sep";
+  sep.setAttribute("aria-hidden", "true");
+  projectListEl.appendChild(sep);
 }
 
 function renderSidebar() {
@@ -1199,22 +993,23 @@ function renderSidebar() {
   });
   projectListEl.innerHTML = "";
   const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
-  const active   = projects.filter(function(p) { return !p.archived; });
-  const archived = projects.filter(function(p) { return  p.archived; });
-  const ungrouped = active.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
+  // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
+  const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
+  const realActive   = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
+  const archived     = projects.filter(function(p) { return p.archived; });
+  const ungrouped    = realActive.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
 
-  if (active.length === 0 && sections.length === 0 && archived.length === 0) {
-    const li = document.createElement("li");
-    li.className = "project-empty";
-    li.textContent = "Sin proyectos aún";
-    projectListEl.appendChild(li);
+  // ── Items fijados al tope: Hoy + Inbox ───────────────────────
+  renderPinnedItems(inboxProject);
+
+  if (realActive.length === 0 && sections.length === 0 && archived.length === 0) {
     return;
   }
 
   ungrouped.forEach(function(p) { renderProjectItem(p); });
 
   sections.forEach(function(section) {
-    const sectionProjects = active.filter(function(p) { return p.sectionId === section.id; });
+    const sectionProjects = realActive.filter(function(p) { return p.sectionId === section.id; });
     renderSectionHeader(section, sectionProjects);
     if (!section.collapsed) {
       sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
@@ -1526,18 +1321,31 @@ async function showSectionMenu(section, anchor) {
       label: "Eliminar sección",
       danger: true,
       action: async function() {
-        var ok = await modalConfirm(
-          "¿Eliminar la sección <strong>" + section.name + "</strong>? Los proyectos pasarán a sin sección.",
-          "Eliminar"
-        );
+        var inSection = projects.filter(function(p) { return p.sectionId === section.id; });
+        var count     = inSection.length;
+        var message   = count === 0
+          ? "¿Eliminar la sección <strong>" + escHtml(section.name) + "</strong>?"
+          : "¿Eliminar la sección <strong>" + escHtml(section.name) + "</strong> y sus " +
+            count + " proyecto" + (count === 1 ? "" : "s") +
+            "? Esta acción no se puede deshacer.";
+        var ok = await modalConfirm(message, "Eliminar");
         if (!ok) return;
-        projects.forEach(function(p) {
-          if (p.sectionId === section.id) p.sectionId = null;
-        });
+
+        // Borrar también todos los proyectos de la sección (cascada).
+        var deletedIds = new Set(inSection.map(function(p) { return p.id; }));
+        projects = projects.filter(function(p) { return !deletedIds.has(p.id); });
         sections = sections.filter(function(s) { return s.id !== section.id; });
+
+        // Si el proyecto activo era uno de los borrados, saltamos al primer proyecto restante (o ninguno).
+        if (deletedIds.has(activeProjectId)) {
+          var stillActive = projects.filter(function(p) { return !p.archived; });
+          activeProjectId = stillActive.length > 0 ? stillActive[0].id : null;
+        }
+
         saveProjects();
         saveSections();
         renderSidebar();
+        activateProject(activeProjectId);
       }
     }
   ];
@@ -1588,7 +1396,7 @@ async function showProjectMenu(project, anchor) {
           danger: true,
           action: async function() {
             var ok = await modalConfirm(
-              "¿Eliminar permanentemente <strong>" + project.name + "</strong> y todas sus tareas? Esta acción no se puede deshacer.",
+              "¿Eliminar permanentemente <strong>" + escHtml(project.name) + "</strong> y todas sus tareas? Esta acción no se puede deshacer.",
               "Eliminar"
             );
             if (!ok) return;
@@ -1646,7 +1454,7 @@ async function showProjectMenu(project, anchor) {
           danger: true,
           action: async function() {
             var ok = await modalConfirm(
-              "¿Eliminar el proyecto <strong>" + project.name + "</strong> y todas sus tareas?",
+              "¿Eliminar el proyecto <strong>" + escHtml(project.name) + "</strong> y todas sus tareas?",
               "Eliminar"
             );
             if (!ok) return;
@@ -1663,6 +1471,18 @@ async function showProjectMenu(project, anchor) {
       ];
 
   var items = assignGroup.concat(archiveItems);
+
+  // El proyecto Inbox no se puede archivar ni eliminar.
+  if (project.id === INBOX_ID) {
+    items = items.filter(function(it) {
+      if (!it || it === null) return true;
+      var lbl = it.label || "";
+      return lbl !== "Archivar proyecto" &&
+             lbl !== "Eliminar proyecto" &&
+             lbl !== "Mover a sección" &&
+             lbl !== "Quitar de sección";
+    });
+  }
 
   var menu = _buildCtxMenu(items);
   positionCtxMenu(menu, anchor);
@@ -1695,6 +1515,11 @@ async function showProjectMenu(project, anchor) {
 // ── End context menus ────────────────────────────────────────────────────────
 
 function renderTasks() {
+  // Vista virtual "Hoy" — render alternativo
+  if (activeView === "today") {
+    renderTodayView();
+    return;
+  }
   const project = getActiveProject();
   if (!project) { taskList.innerHTML = ""; return; }
 
@@ -1712,7 +1537,6 @@ function renderTasks() {
     const priorityBtn   = node.querySelector(".priority-btn");
     const labelsContainer = node.querySelector(".task-labels-container");
     const recurBtn   = node.querySelector(".recur-btn");
-    const timerBtn   = node.querySelector(".timer-btn");
 
     checkbox.checked       = task.done;
     text.textContent       = task.text;
@@ -1723,8 +1547,15 @@ function renderTasks() {
     updateStatusBtn(statusBtn, task);
     applyPriorityToNode(node, task);
     updatePriorityBtn(priorityBtn, task);
-    renderTaskLabels(task, labelsContainer);
-    renderSubtasks(task, subtaskList);
+    renderTaskLabels(task, labelsContainer, function(labelName) {
+      currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
+      renderLabelFilterBar();
+      renderTasks();
+    });
+    renderSubtasks(task, subtaskList, {
+      onMutation:  saveAndRender,
+      onEditStart: startSubtaskInlineEdit,
+    });
 
     if (expandedTaskIds.has(task.id)) {
       node.classList.add("expanded");
@@ -1736,7 +1567,6 @@ function renderTasks() {
       task.done = checkbox.checked;
       if (task.done) task.status = null;
       if (task.done) {
-        spawnParticles(checkbox);
         node.classList.add("task-completing");
         setTimeout(function() {
           if (task.recurDays) {
@@ -1789,19 +1619,10 @@ function renderTasks() {
     updateRecurBtn(recurBtn, task);
     recurBtn.addEventListener("click", async function(e) {
       e.stopPropagation();
-      var current = task.recurDays ? String(task.recurDays) : "";
-      var val = await modalPrompt("// Repetir cada cuántos días (0 = desactivar)", current, "ej: 7");
-      if (val === null) return;
-      var days = parseInt(val, 10);
-      task.recurDays = (isNaN(days) || days <= 0) ? null : Math.min(days, 3650);
+      var result = await modalRecurrence(task.recurDays || null);
+      if (result === undefined) return;       // cancelado
+      task.recurDays = result;                // null = quitar, número = días
       saveAndRender();
-    });
-
-    // ── Cronómetro ────────────────────────────────────────
-    renderTimerBadge(task, node.querySelector(".task-timer-container"));
-    timerBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      startTimer(task);
     });
 
     const dateBtn = node.querySelector(".date-btn");
@@ -2009,49 +1830,153 @@ function renderTasks() {
   if (window.lucide) lucide.createIcons();
 }
 
-function renderSubtasks(task, subtaskList) {
-  subtaskList.innerHTML = "";
-  if (!Array.isArray(task.subtasks) || task.subtasks.length === 0) {
-    const li = document.createElement("li");
-    li.className = "subtask-empty";
-    li.textContent = "Sin subtareas";
-    subtaskList.appendChild(li);
+// renderSubtasks() vive en ./ui/subtasks.js
+
+// ═══════════════════════════════════════════════════════════════
+// VISTA HOY (virtual — atraviesa todos los proyectos)
+// ═══════════════════════════════════════════════════════════════
+
+function renderTodayView() {
+  taskList.innerHTML = "";
+  var today = new Date().toISOString().slice(0, 10);
+
+  // Recopilar tareas pendientes con dueDate <= hoy de TODOS los proyectos
+  var items = [];
+  projects.forEach(function(p) {
+    if (p.archived) return;
+    (p.tasks || []).forEach(function(t) {
+      if (t.done) return;
+      if (!t.dueDate || t.dueDate > today) return;
+      items.push({ task: t, project: p });
+    });
+  });
+
+  // Orden: vencidas primero, luego por prioridad
+  var prioRank = { high: 0, medium: 1, low: 2 };
+  items.sort(function(a, b) {
+    if (a.task.dueDate !== b.task.dueDate) {
+      return a.task.dueDate < b.task.dueDate ? -1 : 1;
+    }
+    var pa = prioRank[a.task.priority] != null ? prioRank[a.task.priority] : 3;
+    var pb = prioRank[b.task.priority] != null ? prioRank[b.task.priority] : 3;
+    return pa - pb;
+  });
+
+  // Contador en el footer
+  if (taskCounter) {
+    taskCounter.textContent = items.length + (items.length === 1 ? " tarea" : " tareas") + " para hoy";
+  }
+
+  if (items.length === 0) {
+    var empty = document.createElement("li");
+    empty.className = "today-empty";
+    empty.innerHTML =
+      '<div class="today-empty-icon">☀️</div>' +
+      '<p class="today-empty-title">Todo limpio</p>' +
+      '<p class="today-empty-sub">No hay tareas vencidas ni para hoy. ¡Disfruta!</p>';
+    taskList.appendChild(empty);
     return;
   }
-  task.subtasks.forEach(function(subtask) {
-    const item = document.createElement("li");
-    item.className = "subtask-item";
 
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.className = "subtask-checkbox";
-    cb.checked = subtask.done;
-    cb.addEventListener("change", function() { subtask.done = cb.checked; saveAndRender(); });
-
-    const span = document.createElement("span");
-    span.className = "subtask-text";
-    span.textContent = subtask.text;
-    span.classList.toggle("done", subtask.done);
-    span.title = "Doble clic para renombrar";
-    span.addEventListener("dblclick", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      startSubtaskInlineEdit(span, subtask);
-    });
-
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "subtask-delete-btn";
-    del.innerHTML = '<i data-lucide="x"></i>';
-    del.setAttribute("aria-label", "Eliminar subtarea");
-    del.addEventListener("click", function() {
-      task.subtasks = task.subtasks.filter(function(s) { return s.id !== subtask.id; });
-      saveAndRender();
-    });
-
-    item.append(cb, span, del);
-    subtaskList.appendChild(item);
+  items.forEach(function(it) {
+    taskList.appendChild(renderTodayItem(it.task, it.project, today));
   });
+
+  if (window.lucide) lucide.createIcons({ nodes: [taskList] });
+}
+
+function renderTodayItem(task, project, todayStr) {
+  var due  = new Date(task.dueDate + "T00:00:00");
+  var diff = Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000);
+  var dateLabel = diff === 0 ? "Hoy" : diff === -1 ? "Ayer" : diff < 0 ? "Hace " + (-diff) + "d" : "";
+  var overdue = diff < 0;
+
+  var li = document.createElement("li");
+  li.className = "today-item" +
+    (task.priority ? " today-priority-" + task.priority : "") +
+    (overdue ? " today-overdue" : "");
+
+  // Checkbox para marcar hecha
+  var cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.className = "today-check";
+  cb.checked = false;
+  cb.setAttribute("aria-label", "Marcar como hecha");
+  cb.addEventListener("click", function(e) { e.stopPropagation(); });
+  cb.addEventListener("change", function() {
+    task.done = true;
+    task.status = null;
+    li.classList.add("today-completing");
+    setTimeout(function() {
+      if (task.recurDays) {
+        task.done = false;
+        task.status = null;
+        var next = new Date(task.dueDate + "T00:00:00");
+        next.setDate(next.getDate() + task.recurDays);
+        task.dueDate = next.toISOString().slice(0, 10);
+      }
+      saveProjects();
+      renderTasks();
+      renderSidebar();
+    }, 280);
+  });
+
+  // Cuerpo: prioridad + texto + proyecto
+  var body = document.createElement("div");
+  body.className = "today-body";
+
+  var text = document.createElement("span");
+  text.className = "today-text";
+  text.textContent = task.text;
+  body.appendChild(text);
+
+  var meta = document.createElement("div");
+  meta.className = "today-meta";
+
+  if (dateLabel) {
+    var dEl = document.createElement("span");
+    dEl.className = "today-date" + (overdue ? " today-date-overdue" : "");
+    dEl.textContent = dateLabel;
+    meta.appendChild(dEl);
+  }
+
+  if (task.priority) {
+    var prioLabels = { high: "Alta", medium: "Media", low: "Baja" };
+    var pEl = document.createElement("span");
+    pEl.className = "today-prio today-prio-" + task.priority;
+    pEl.textContent = prioLabels[task.priority];
+    meta.appendChild(pEl);
+  }
+
+  var projBadge = document.createElement("button");
+  projBadge.type = "button";
+  projBadge.className = "today-project-badge";
+  projBadge.textContent = (project.icon ? project.icon + " " : "") + project.name;
+  if (project.color) projBadge.style.setProperty("--proj-color", project.color);
+  projBadge.title = "Ir al proyecto " + project.name;
+  projBadge.addEventListener("click", function(e) {
+    e.stopPropagation();
+    activateProject(project.id);
+    if (typeof navigateToTask === "function") {
+      setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
+    }
+  });
+  meta.appendChild(projBadge);
+
+  body.appendChild(meta);
+
+  li.appendChild(cb);
+  li.appendChild(body);
+
+  // Clic en el cuerpo (no en checkbox ni badge) → ir al proyecto + scroll a la tarea
+  body.addEventListener("click", function() {
+    activateProject(project.id);
+    if (typeof navigateToTask === "function") {
+      setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
+    }
+  });
+
+  return li;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2123,46 +2048,11 @@ window.setTaskStatus = function(taskId, status) {
   }
 };
 
-function applyStatusToNode(node, task) {
-  node.classList.remove("status-progress", "status-waiting");
-  if (task.done || !task.status) return;
-  node.classList.add("status-" + task.status);
-}
-
-function updateStatusBtn(btn, task) {
-  if (task.done || !task.status) {
-    btn.innerHTML = '<i data-lucide="circle-dashed"></i> Estado';
-    btn.className = "status-btn";
-  } else {
-    const icons = { progress: "play-circle", waiting: "pause-circle" };
-    const cfg = STATUS_CONFIG[task.status];
-    btn.innerHTML = '<i data-lucide="' + (icons[task.status] || "circle-dashed") + '"></i> ' + cfg.label;
-    btn.className = "status-btn " + cfg.cls + "-btn";
-  }
-}
-
 // ─── PRIORIDAD ────────────────────────────────────────────────
 function cyclePriority(task) {
   const idx = PRIORITY_CYCLE.indexOf(task.priority || null);
   task.priority = PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
   saveAndRender();
-}
-
-function applyPriorityToNode(node, task) {
-  node.classList.remove("priority-high", "priority-medium", "priority-low");
-  if (!task.priority) return;
-  node.classList.add("priority-" + task.priority);
-}
-
-function updatePriorityBtn(btn, task) {
-  if (!task.priority) {
-    btn.innerHTML = '<i data-lucide="flag"></i>';
-    btn.className = "priority-btn";
-  } else {
-    const cfg = PRIORITY_CONFIG[task.priority];
-    btn.innerHTML = cfg.label;
-    btn.className = "priority-btn " + cfg.cls + "-btn";
-  }
 }
 
 // ─── ETIQUETAS ─────────────────────────────────────────────────
@@ -2179,25 +2069,7 @@ function saveProjectLabels(labels) {
   saveProjects();
 }
 
-function renderTaskLabels(task, container) {
-  container.innerHTML = "";
-  if (!Array.isArray(task.labels) || task.labels.length === 0) return;
-  task.labels.forEach(function(labelName) {
-    const badge = document.createElement("span");
-    badge.className = "label-badge";
-    badge.textContent = labelName;
-    var _slot = getLabelSlot(labelName);
-    badge.style.setProperty("--tag-bg", "var(--tag-" + _slot + "-bg)");
-    badge.style.setProperty("--tag-fg", "var(--tag-" + _slot + "-fg)");
-    badge.addEventListener("click", function(e) {
-      e.stopPropagation();
-      currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
-      renderLabelFilterBar();
-      renderTasks();
-    });
-    container.appendChild(badge);
-  });
-}
+// renderTaskLabels() vive en ./ui/labels.js
 
 function renderLabelFilterBar() {
   const project = getActiveProject();
@@ -2334,19 +2206,8 @@ async function showLabelPicker(task) {
   });
 }
 
-var _TAG_SLOTS = ["violet","blue","green","amber","pink","rose","cyan","slate"];
-function getLabelSlot(name) {
-  var hash = 0;
-  for (var i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  return _TAG_SLOTS[hash % _TAG_SLOTS.length];
-}
-function getLabelColor(name) {
-  return "var(--tag-" + getLabelSlot(name) + "-fg)";
-}
+// getLabelSlot() / getLabelColor() viven en ./ui/labels.js
 
-function escHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
 
 function startInlineEdit(textSpan, task) {
   if (textSpan.querySelector("input.inline-edit")) return;
@@ -2410,59 +2271,6 @@ function startSubtaskInlineEdit(textSpan, subtask) {
   input.addEventListener("click", function(e) { e.stopPropagation(); });
 }
 
-// ─── FECHA LÍMITE ─────────────────────────────────────────────
-function getDueDateState(dueDate) {
-  if (!dueDate) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate + "T00:00:00");
-  const diff = Math.round((due - today) / 86400000);
-  if (diff < 0)  return { label: "Vencida", cls: "due-overdue",  diff };
-  if (diff === 0) return { label: "Hoy",    cls: "due-today",   diff };
-  if (diff === 1) return { label: "Mañana", cls: "due-soon",    diff };
-  return { label: formatDueDate(dueDate), cls: "due-future", diff };
-}
-
-function formatDueDate(iso) {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
-}
-
-function renderDueBadge(task, container) {
-  const existing = container.querySelector(".due-badge");
-  if (existing) existing.remove();
-  if (task.done || !task.dueDate) return;
-  const state = getDueDateState(task.dueDate);
-  if (!state) return;
-  const badge = document.createElement("span");
-  badge.className = "due-badge " + state.cls;
-  badge.textContent = state.label;
-  container.appendChild(badge);
-}
-
-
-// ═══════════════════════════════════════════════════════════════
-// RECURRENCIA
-// ═══════════════════════════════════════════════════════════════
-
-function renderRecurBadge(task, container) {
-  if (!container) return;
-  container.innerHTML = "";
-  if (!task.recurDays) return;
-  var badge = document.createElement("span");
-  badge.className = "recur-badge";
-  badge.innerHTML = '<i data-lucide="repeat"></i> ' + task.recurDays + 'd';
-  container.appendChild(badge);
-}
-
-function updateRecurBtn(btn, task) {
-  if (!btn) return;
-  btn.classList.toggle("recur-active", Boolean(task.recurDays));
-  btn.title = task.recurDays
-    ? "Repetir cada " + task.recurDays + " días (clic para cambiar)"
-    : "Establecer repetición";
-}
-
 function _showRecurToast(days, nextDate) {
   var msg = "↻ Tarea regenerada";
   if (nextDate) {
@@ -2480,222 +2288,6 @@ function _showRecurToast(days, nextDate) {
     setTimeout(function() { toast.remove(); }, 500);
   }, 2800);
 }
-
-// ═══════════════════════════════════════════════════════════════
-// CRONÓMETRO
-// ═══════════════════════════════════════════════════════════════
-
-function _timerPad(n) { return n < 10 ? "0" + n : String(n); }
-
-function _timerFmt(ms) {
-  var s = Math.floor(ms / 1000);
-  var m = Math.floor(s / 60);
-  var h = Math.floor(m / 60);
-  s = s % 60; m = m % 60;
-  return h > 0
-    ? h + ":" + _timerPad(m) + ":" + _timerPad(s)
-    : _timerPad(m) + ":" + _timerPad(s);
-}
-
-function _hasAnyRunningTimer() {
-  for (var k in _timers) {
-    if (_timers[k] && _timers[k].running) return true;
-  }
-  return false;
-}
-
-function _ensureTimerInterval() {
-  if (_hasAnyRunningTimer()) {
-    if (!_timerInterval) _timerInterval = setInterval(_timerTick, 1000);
-  } else if (_timerInterval) {
-    clearInterval(_timerInterval);
-    _timerInterval = null;
-  }
-}
-
-function _timerElapsedFor(taskId) {
-  var t = _timers[taskId];
-  if (!t) return 0;
-  var base = t.elapsedMs || 0;
-  if (t.running) base += Date.now() - t.startedAt;
-  return base;
-}
-
-function _hasTimer(taskId)   { return !!_timers[taskId]; }
-function _isTimerRunning(id) { return !!(_timers[id] && _timers[id].running); }
-
-function startTimer(task) {
-  var t = _timers[task.id];
-  if (t) {
-    if (t.running) {
-      t.elapsedMs += Date.now() - t.startedAt;
-      t.running    = false;
-    } else {
-      t.startedAt = Date.now();
-      t.running   = true;
-    }
-  } else {
-    _timers[task.id] = {
-      taskId:   task.id,
-      taskText: task.text,
-      elapsedMs: 0,
-      startedAt: Date.now(),
-      running:  true,
-    };
-  }
-  _ensureTimerInterval();
-  _updateTimerBar();
-}
-
-function _timerStopForTask(taskId, silent) {
-  var t = _timers[taskId];
-  if (!t) return;
-  var elapsed = _timerElapsedFor(taskId);
-  if (elapsed >= 1000) {
-    var found = null;
-    for (var i = 0; i < projects.length; i++) {
-      found = projects[i].tasks.find(function(x) { return x.id === taskId; });
-      if (found) break;
-    }
-    if (found) {
-      found.timeLogged = (found.timeLogged || 0) + elapsed;
-      saveProjects();
-    }
-  }
-  delete _timers[taskId];
-  _ensureTimerInterval();
-  _updateTimerBar();
-  if (!silent) renderTasks();
-}
-
-function _timerToggleTask(taskId) {
-  var t = _timers[taskId];
-  if (!t) return;
-  if (t.running) {
-    t.elapsedMs += Date.now() - t.startedAt;
-    t.running    = false;
-  } else {
-    t.startedAt = Date.now();
-    t.running   = true;
-  }
-  _ensureTimerInterval();
-  _updateTimerBar();
-}
-
-function _timerTick() {
-  _updateTimerBar();
-  for (var k in _timers) {
-    var node = taskList.querySelector('[data-task-id="' + k + '"]');
-    if (!node) continue;
-    var container = node.querySelector(".task-timer-container");
-    if (container) _renderTimerBadgeInContainer(k, container);
-  }
-}
-
-function _activeTimerIds() {
-  var ids = [];
-  for (var k in _timers) ids.push(k);
-  return ids;
-}
-
-function _updateTimerBar() {
-  var bar = document.getElementById("timer-bar");
-  if (!bar) return;
-  var ids = _activeTimerIds();
-  if (ids.length === 0) {
-    bar.hidden = true;
-    bar.innerHTML = "";
-    return;
-  }
-  bar.hidden = false;
-
-  var existing = {};
-  Array.prototype.forEach.call(bar.querySelectorAll(".timer-bar-row"), function(row) {
-    existing[row.dataset.timerTaskId] = row;
-  });
-
-  // Remove rows for stopped timers
-  Object.keys(existing).forEach(function(id) {
-    if (!_timers[id]) { existing[id].remove(); delete existing[id]; }
-  });
-
-  ids.forEach(function(id) {
-    var t = _timers[id];
-    var row = existing[id];
-    if (!row) {
-      row = document.createElement("div");
-      row.className = "timer-bar-row";
-      row.dataset.timerTaskId = id;
-      row.innerHTML =
-        '<span class="timer-bar-icon"><i data-lucide="timer"></i></span>' +
-        '<span class="timer-bar-task"></span>' +
-        '<span class="timer-bar-time"></span>' +
-        '<button type="button" class="timer-ctrl-btn timer-bar-toggle" aria-label="Pausar/Reanudar"><i data-lucide="pause"></i></button>' +
-        '<button type="button" class="timer-ctrl-btn timer-ctrl-stop timer-bar-stop" aria-label="Detener y guardar"><i data-lucide="square"></i></button>';
-      bar.appendChild(row);
-      if (window.lucide) lucide.createIcons({ nodes: [row] });
-    }
-
-    var labelEl = row.querySelector(".timer-bar-task");
-    var timeEl  = row.querySelector(".timer-bar-time");
-    if (labelEl) labelEl.textContent = t.taskText.length > 35 ? t.taskText.slice(0, 35) + "…" : t.taskText;
-    if (timeEl)  timeEl.textContent  = _timerFmt(_timerElapsedFor(id));
-
-    var toggleBtn = row.querySelector(".timer-bar-toggle");
-    if (toggleBtn) {
-      var nextIcon = t.running ? "pause" : "play";
-      var curSvg = toggleBtn.querySelector("svg[data-lucide]");
-      var curIco = toggleBtn.querySelector("i[data-lucide]");
-      var curIcon = curSvg
-        ? curSvg.getAttribute("data-lucide")
-        : (curIco ? curIco.getAttribute("data-lucide") : null);
-      if (curIcon !== nextIcon) {
-        toggleBtn.innerHTML = '<i data-lucide="' + nextIcon + '"></i>';
-        if (window.lucide) lucide.createIcons({ nodes: [toggleBtn] });
-      }
-    }
-
-    row.classList.toggle("timer-bar-row-paused", !t.running);
-  });
-}
-
-function renderTimerBadge(task, container) {
-  if (!container) return;
-  container.innerHTML = "";
-  var isActive = _hasTimer(task.id);
-  var ms = isActive ? _timerElapsedFor(task.id) : (task.timeLogged || 0);
-  if (ms < 1000) return;
-  _renderTimerBadgeInContainer(task.id, container, ms);
-}
-
-function _renderTimerBadgeInContainer(taskId, container, ms) {
-  var isActive = _hasTimer(taskId);
-  var elapsed  = ms !== undefined ? ms : (isActive ? _timerElapsedFor(taskId) : 0);
-  if (elapsed < 1000) { container.innerHTML = ""; return; }
-  container.innerHTML = "";
-  var badge = document.createElement("span");
-  badge.className = "timer-badge" + (isActive && _isTimerRunning(taskId) ? " timer-running" : "");
-  badge.innerHTML = '<i data-lucide="timer"></i> ' + _timerFmt(elapsed);
-  container.appendChild(badge);
-  if (window.lucide) lucide.createIcons({ nodes: [container] });
-}
-
-// ─── Botones del timer bar (event delegation) ────────────────
-(function() {
-  var bar = document.getElementById("timer-bar");
-  if (!bar) return;
-  bar.addEventListener("click", function(e) {
-    var row = e.target.closest(".timer-bar-row");
-    if (!row) return;
-    var taskId = row.dataset.timerTaskId;
-    if (!taskId) return;
-    if (e.target.closest(".timer-bar-toggle")) {
-      _timerToggleTask(taskId);
-    } else if (e.target.closest(".timer-bar-stop")) {
-      _timerStopForTask(taskId, false);
-    }
-  });
-})();
 
 // ═══════════════════════════════════════════════════════════════
 // SWIPE GESTURES (mobile)
@@ -3272,64 +2864,6 @@ async function bulkMoveToProject() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PANEL DE NOTAS LATERAL
-// ═══════════════════════════════════════════════════════════════
-
-function openNotesPanel() {
-  const project = getActiveProject();
-  if (!project || !notesSidePanel) return;
-  notesSideEditor.innerHTML = project.notes || "";
-  updateNotesSideStatus();
-  notesSidePanel.classList.add("notes-side-open");
-  if (window.innerWidth <= 768) {
-    var backdrop = document.getElementById("sheet-backdrop");
-    if (backdrop) backdrop.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
-  updateNotesFmtButtons();
-  setTimeout(function() { if (notesSideEditor) notesSideEditor.focus(); }, 100);
-}
-
-function closeNotesPanel() {
-  if (!notesSidePanel || !notesSidePanel.classList.contains("notes-side-open")) return;
-  notesSidePanel.classList.remove("notes-side-open");
-  if (window.innerWidth <= 768) {
-    var backdrop = document.getElementById("sheet-backdrop");
-    if (backdrop) backdrop.classList.remove("active");
-    document.body.style.overflow = "";
-  }
-}
-
-function saveNotesSide() {
-  const project = getActiveProject();
-  if (!project || !notesSideEditor) return;
-  project.notes = notesSideEditor.innerHTML;
-  saveProjects();
-  updateNotesSideStatus();
-}
-
-function updateNotesSideStatus() {
-  if (!notesSideStatus) return;
-  const meta = loadMetadata();
-  if (!meta.lastSavedAt) { notesSideStatus.textContent = "Sin cambios recientes"; return; }
-  const date = new Date(meta.lastSavedAt);
-  if (Number.isNaN(date.getTime())) { notesSideStatus.textContent = "Sin cambios recientes"; return; }
-  notesSideStatus.textContent = "Último guardado: " + date.toLocaleString("es-ES", {
-    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-  });
-}
-
-function updateNotesFmtButtons() {
-  notesFmtBtns.forEach(function(btn) {
-    try {
-      var active = document.queryCommandState(btn.dataset.cmd);
-      btn.classList.toggle("fmt-active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    } catch(e) {}
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════
 // VIEW-NAV: TABS + FILTER PANEL + MORE-ACTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -3343,9 +2877,7 @@ function updateNotesFmtButtons() {
       var view = tab.dataset.view;
       if (view === "tasks")  { _closeAllAltPanels(); _restoreMainPanel(); }
       else if (view === "agenda")  showAgendaPanel();
-      else if (view === "kanban")  showKanbanPanel();
       else if (view === "cal")     showCalendarPanel();
-      else if (view === "stats")   showStatsPanel();
     });
   }
 
@@ -3398,403 +2930,16 @@ window.showAgendaPanel  = showAgendaPanel;
 // VISTA DE AGENDA
 // ═══════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════
-// KANBAN
-// ═══════════════════════════════════════════════════════════════
-
-(function() {
-  var kanbanBtn = document.getElementById("kanban-btn");
-  if (kanbanBtn) kanbanBtn.addEventListener("click", function() { showKanbanPanel(); });
-
-  var kanbanExpandBtn = document.getElementById("kanban-expand-btn");
-  if (kanbanExpandBtn) {
-    kanbanExpandBtn.addEventListener("click", function() {
-      var layout = document.querySelector(".layout");
-      if (layout) {
-        layout.classList.remove("sidebar-is-collapsed");
-        var sidebar = document.querySelector(".sidebar");
-        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
-        localStorage.removeItem("sidebar-collapsed");
-      }
-    });
-  }
-})();
-
-window.showKanbanPanel = showKanbanPanel;
-window.activateProject = activateProject;
-window.navigateToTask  = navigateToTask;
-function showKanbanPanel() {
-  var kanbanPanel = document.getElementById("kanban-panel");
-  if (!kanbanPanel) return;
-
-  if (!kanbanPanel.hidden) {
-    _closeAllAltPanels();
-    _restoreMainPanel();
-    return;
-  }
-
-  _closeAllAltPanels();
-  emptyState.hidden = true;
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
-  tasksPanel.hidden = true;
-  kanbanPanel.hidden = false;
-  _setActiveViewTab("kanban");
-  renderKanban();
-}
-
-var _kanbanDragTaskId = null;
-var _kanbanActiveTab  = "pending";
-
-var KANBAN_COLUMNS = [
-  { id: "pending",  label: "Pendiente",   icon: "circle-dashed",  accentVar: "--t-muted" },
-  { id: "progress", label: "En progreso", icon: "play-circle",    accentVar: "--c-green" },
-  { id: "waiting",  label: "En espera",   icon: "pause-circle",   accentVar: "--c-gold"  },
-  { id: "done",     label: "Completado",  icon: "check-circle-2", accentVar: "--c-cyan"  },
-];
-
-function _kanbanFilterTasks(tasks, colId) {
-  return tasks.filter(function(t) {
-    if (colId === "done")    return t.done;
-    if (colId === "pending") return !t.done && !t.status;
-    return !t.done && t.status === colId;
-  });
-}
-
-function renderKanban() {
-  var board = document.getElementById("kanban-board");
-  if (!board) return;
-  board.innerHTML = "";
-  board.className = "kanban-board";
-
-  var project = getActiveProject();
-  var titleEl = document.getElementById("kanban-project-title");
-  if (titleEl) titleEl.textContent = project ? "// " + project.name : "// Kanban";
-
-  if (!project) {
-    board.innerHTML = '<p class="kanban-no-project">Selecciona un proyecto para ver el Kanban.</p>';
-    return;
-  }
-
-  var columns = KANBAN_COLUMNS;
-
-  if (window.innerWidth <= 768) {
-    _renderKanbanMobile(project, columns);
-    return;
-  }
-
-  columns.forEach(function(col) {
-    var colTasks = _kanbanFilterTasks(project.tasks, col.id);
-
-    var colEl = document.createElement("div");
-    colEl.className = "kanban-col kanban-col-" + col.id;
-
-    var header = document.createElement("div");
-    header.className = "kanban-col-header";
-    header.style.setProperty("--col-accent", "var(" + col.accentVar + ")");
-    header.innerHTML =
-      '<span class="kanban-col-icon"><i data-lucide="' + col.icon + '"></i></span>' +
-      '<span class="kanban-col-label">' + col.label + '</span>' +
-      '<span class="kanban-col-count">' + colTasks.length + '</span>';
-    colEl.appendChild(header);
-
-    var cardsEl = document.createElement("ul");
-    cardsEl.className = "kanban-cards";
-
-    colTasks.forEach(function(task) {
-      cardsEl.appendChild(_buildKanbanCard(task, project));
-    });
-
-    if (colTasks.length === 0) {
-      var empty = document.createElement("li");
-      empty.className = "kanban-empty";
-      empty.textContent = "Sin tareas";
-      cardsEl.appendChild(empty);
-    }
-
-    cardsEl.addEventListener("dragover", function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      colEl.classList.add("kanban-drop-active");
-    });
-    cardsEl.addEventListener("dragleave", function(e) {
-      if (!colEl.contains(e.relatedTarget)) colEl.classList.remove("kanban-drop-active");
-    });
-    colEl.addEventListener("dragover", function(e) { e.preventDefault(); });
-    colEl.addEventListener("drop", function(e) {
-      e.preventDefault();
-      colEl.classList.remove("kanban-drop-active");
-      var taskId = e.dataTransfer.getData("text/plain");
-      if (!taskId) return;
-      var task = project.tasks.find(function(t) { return t.id === taskId; });
-      if (!task) return;
-      if (col.id === "done") {
-        task.done = true;
-      } else {
-        task.done = false;
-        task.status = col.id === "pending" ? null : col.id;
-      }
-      saveProjects();
-      renderKanban();
-      renderSidebar();
-    });
-
-    colEl.appendChild(cardsEl);
-    board.appendChild(colEl);
-  });
-
-  if (window.lucide) lucide.createIcons({ nodes: [board] });
-}
-
-function _renderKanbanMobile(project, columns) {
-  var board = document.getElementById("kanban-board");
-  board.className = "kanban-board kanban-board-mobile";
-
-  // Ensure active tab is valid
-  if (!columns.find(function(c) { return c.id === _kanbanActiveTab; })) {
-    _kanbanActiveTab = "pending";
-  }
-
-  // Tab bar
-  var tabBar = document.createElement("div");
-  tabBar.className = "kanban-tabs";
-
-  columns.forEach(function(col) {
-    var count = _kanbanFilterTasks(project.tasks, col.id).length;
-    var tab = document.createElement("button");
-    tab.type = "button";
-    tab.className = "kanban-tab kanban-tab-" + col.id + (_kanbanActiveTab === col.id ? " kanban-tab-active" : "");
-    tab.innerHTML =
-      '<span class="kanban-tab-label">' + col.label + '</span>' +
-      (count > 0 ? '<span class="kanban-tab-count">' + count + '</span>' : '');
-    tab.addEventListener("click", function() {
-      _kanbanActiveTab = col.id;
-      renderKanban();
-    });
-    tabBar.appendChild(tab);
-  });
-  board.appendChild(tabBar);
-
-  // Active column content
-  var activeCol = columns.find(function(c) { return c.id === _kanbanActiveTab; });
-  var colTasks  = _kanbanFilterTasks(project.tasks, activeCol.id);
-
-  var colEl = document.createElement("div");
-  colEl.className = "kanban-col kanban-col-" + activeCol.id + " kanban-col-mobile";
-
-  var cardsEl = document.createElement("ul");
-  cardsEl.className = "kanban-cards";
-
-  colTasks.forEach(function(task) {
-    cardsEl.appendChild(_buildKanbanCardMobile(task, project, columns));
-  });
-
-  if (colTasks.length === 0) {
-    var empty = document.createElement("li");
-    empty.className = "kanban-empty";
-    empty.textContent = "Sin tareas";
-    cardsEl.appendChild(empty);
-  }
-
-  colEl.appendChild(cardsEl);
-  board.appendChild(colEl);
-
-  if (window.lucide) lucide.createIcons({ nodes: [board] });
-}
-
-function _buildKanbanCardMobile(task, project, columns) {
-  var li = document.createElement("li");
-  li.className = "kanban-card" + (task.priority ? " kanban-priority-" + task.priority : "");
-
-  var title = document.createElement("p");
-  title.className = "kanban-card-title";
-  title.textContent = task.text;
-  li.appendChild(title);
-
-  // Badges (same as desktop)
-  var hasBadges = task.dueDate || task.priority || (task.labels && task.labels.length) || (task.subtasks && task.subtasks.length);
-  if (hasBadges) {
-    var row = document.createElement("div");
-    row.className = "kanban-card-badges";
-
-    if (task.dueDate) {
-      var ds = getDueDateState(task.dueDate);
-      if (ds) {
-        var db = document.createElement("span");
-        db.className = "kanban-badge kanban-badge-due " + ds.cls;
-        db.innerHTML = '<i data-lucide="calendar"></i> ' + ds.label;
-        row.appendChild(db);
-      }
-    }
-    if (task.priority) {
-      var prioLabels = { high: "Alta", medium: "Media", low: "Baja" };
-      var pb = document.createElement("span");
-      pb.className = "kanban-badge kanban-badge-priority-" + task.priority;
-      pb.innerHTML = '<i data-lucide="flag"></i> ' + (prioLabels[task.priority] || task.priority);
-      row.appendChild(pb);
-    }
-    if (task.subtasks && task.subtasks.length > 0) {
-      var doneCount = task.subtasks.filter(function(s) { return s.done; }).length;
-      var sb = document.createElement("span");
-      sb.className = "kanban-badge kanban-badge-subtasks" + (doneCount === task.subtasks.length ? " kanban-badge-complete" : "");
-      sb.innerHTML = '<i data-lucide="list-checks"></i> ' + doneCount + "/" + task.subtasks.length;
-      row.appendChild(sb);
-    }
-    if (task.labels && task.labels.length > 0) {
-      var lb = document.createElement("span");
-      lb.className = "kanban-badge kanban-badge-labels";
-      lb.innerHTML = '<i data-lucide="tag"></i> ' + task.labels.length;
-      row.appendChild(lb);
-    }
-    li.appendChild(row);
-  }
-
-  // Action buttons row
-  var actions = document.createElement("div");
-  actions.className = "kanban-card-actions";
-
-  var viewBtn = document.createElement("button");
-  viewBtn.type = "button";
-  viewBtn.className = "kanban-card-action-btn";
-  viewBtn.innerHTML = '<i data-lucide="arrow-right"></i> Ver';
-  viewBtn.addEventListener("click", function(e) {
-    e.stopPropagation();
-    showKanbanPanel();
-    activateProject(project.id);
-    setTimeout(function() { navigateToTask(project.id, task.id); }, 80);
-  });
-
-  var moveBtn = document.createElement("button");
-  moveBtn.type = "button";
-  moveBtn.className = "kanban-card-action-btn";
-  moveBtn.innerHTML = '<i data-lucide="move-right"></i> Mover';
-  moveBtn.addEventListener("click", function(e) {
-    e.stopPropagation();
-    closeCtxMenu();
-    var otherCols = columns.filter(function(c) { return c.id !== _kanbanActiveTab; });
-    var menuItems = [{ header: true, label: "Mover a..." }];
-    otherCols.forEach(function(col) {
-      (function(targetCol) {
-        menuItems.push({
-          label: targetCol.label,
-          action: function() {
-            if (targetCol.id === "done") {
-              task.done = true;
-            } else {
-              task.done = false;
-              task.status = targetCol.id === "pending" ? null : targetCol.id;
-            }
-            saveProjects();
-            renderKanban();
-            renderSidebar();
-          }
-        });
-      })(col);
-    });
-    var menu = _buildCtxMenu(menuItems);
-    positionCtxMenu(menu, moveBtn);
-    _ctxMenu = menu;
-    requestAnimationFrame(function() {
-      _ctxCloseHandler = function(ev) {
-        if (!menu.contains(ev.target)) closeCtxMenu();
-      };
-      document.addEventListener("mousedown", _ctxCloseHandler);
-    });
-  });
-
-  actions.appendChild(viewBtn);
-  actions.appendChild(moveBtn);
-  li.appendChild(actions);
-
-  return li;
-}
-
-function _buildKanbanCard(task, project) {
-  var li = document.createElement("li");
-  li.className = "kanban-card" + (task.priority ? " kanban-priority-" + task.priority : "");
-  li.draggable = true;
-
-  li.addEventListener("dragstart", function(e) {
-    e.dataTransfer.setData("text/plain", task.id);
-    e.dataTransfer.effectAllowed = "move";
-    setTimeout(function() { li.classList.add("kanban-card-dragging"); }, 0);
-  });
-  li.addEventListener("dragend", function() {
-    li.classList.remove("kanban-card-dragging");
-  });
-
-  li.addEventListener("click", function(e) {
-    if (e.defaultPrevented) return;
-    showKanbanPanel(); // cierra kanban
-    activateProject(project.id);
-    setTimeout(function() { navigateToTask(project.id, task.id); }, 80);
-  });
-
-  var title = document.createElement("p");
-  title.className = "kanban-card-title";
-  title.textContent = task.text;
-  li.appendChild(title);
-
-  // Badges row
-  var hasBadges = task.dueDate || task.priority || (task.labels && task.labels.length) || (task.subtasks && task.subtasks.length);
-  if (hasBadges) {
-    var row = document.createElement("div");
-    row.className = "kanban-card-badges";
-
-    if (task.dueDate) {
-      var ds = getDueDateState(task.dueDate);
-      if (ds) {
-        var db = document.createElement("span");
-        db.className = "kanban-badge kanban-badge-due " + ds.cls;
-        db.innerHTML = '<i data-lucide="calendar"></i> ' + ds.label;
-        row.appendChild(db);
-      }
-    }
-
-    if (task.priority) {
-      var prioLabels = { high: "Alta", medium: "Media", low: "Baja" };
-      var pb = document.createElement("span");
-      pb.className = "kanban-badge kanban-badge-priority-" + task.priority;
-      pb.innerHTML = '<i data-lucide="flag"></i> ' + (prioLabels[task.priority] || task.priority);
-      row.appendChild(pb);
-    }
-
-    if (task.subtasks && task.subtasks.length > 0) {
-      var done = task.subtasks.filter(function(s) { return s.done; }).length;
-      var sb = document.createElement("span");
-      sb.className = "kanban-badge kanban-badge-subtasks" + (done === task.subtasks.length ? " kanban-badge-complete" : "");
-      sb.innerHTML = '<i data-lucide="list-checks"></i> ' + done + "/" + task.subtasks.length;
-      row.appendChild(sb);
-    }
-
-    if (task.labels && task.labels.length > 0) {
-      var lb = document.createElement("span");
-      lb.className = "kanban-badge kanban-badge-labels";
-      lb.innerHTML = '<i data-lucide="tag"></i> ' + task.labels.length;
-      row.appendChild(lb);
-    }
-
-    li.appendChild(row);
-  }
-
-  return li;
-}
-
 
 function _closeAllAltPanels() {
   var agendaPanel = document.getElementById("agenda-panel");
   var agendaBtn   = document.getElementById("agenda-btn");
-  var kanbanPanel = document.getElementById("kanban-panel");
-  var kanbanBtn   = document.getElementById("kanban-btn");
   var calPanel    = document.getElementById("cal-panel");
   var calBtn      = document.getElementById("cal-btn");
   if (agendaPanel) agendaPanel.hidden = true;
   if (agendaBtn)   agendaBtn.classList.remove("active");
-  if (kanbanPanel) kanbanPanel.hidden = true;
-  if (kanbanBtn)   kanbanBtn.classList.remove("active");
   if (calPanel)    calPanel.hidden = true;
   if (calBtn)      calBtn.classList.remove("active");
-  var statsPanel = document.getElementById("stats-panel");
-  if (statsPanel)  statsPanel.hidden = true;
   var notePanel = document.getElementById("note-panel");
   if (notePanel)   notePanel.hidden = true;
 }
@@ -3861,392 +3006,6 @@ function showCalendarPanel() {
   renderCalendar();
 }
 
-function renderCalendar() {
-  var content    = document.getElementById("cal-content");
-  var monthLabel = document.getElementById("cal-month-label");
-  if (!content) return;
-
-  var year  = calState.year;
-  var month = calState.month;
-
-  var monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  if (monthLabel) monthLabel.textContent = monthNames[month] + " " + year;
-
-  // Recopilar tareas del mes (incluyendo hechas para mostrar en el calendario)
-  var tasksByDay = {};
-  projects.forEach(function(project) {
-    (project.tasks || []).forEach(function(task) {
-      if (!task.dueDate) return;
-      var tYear  = parseInt(task.dueDate.slice(0, 4), 10);
-      var tMonth = parseInt(task.dueDate.slice(5, 7), 10) - 1;
-      if (tYear !== year || tMonth !== month) return;
-      var key = task.dueDate;
-      if (!tasksByDay[key]) tasksByDay[key] = [];
-      tasksByDay[key].push({ task: task, project: project });
-    });
-  });
-
-  content.innerHTML = "";
-
-  // Cabecera de días
-  var dayHeaders = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
-  var headerRow = document.createElement("div");
-  headerRow.className = "cal-day-headers";
-  dayHeaders.forEach(function(d) {
-    var el = document.createElement("div");
-    el.className = "cal-day-header";
-    el.textContent = d;
-    headerRow.appendChild(el);
-  });
-  content.appendChild(headerRow);
-
-  var firstDay   = new Date(year, month, 1);
-  var lastDay    = new Date(year, month + 1, 0);
-  var today      = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Offset para que la semana empiece el lunes
-  var startDow    = firstDay.getDay(); // 0=Dom
-  var startOffset = startDow === 0 ? 6 : startDow - 1;
-
-  var grid = document.createElement("div");
-  grid.className = "cal-grid";
-
-  // Días del mes anterior (relleno)
-  var prevLast = new Date(year, month, 0).getDate();
-  for (var i = startOffset - 1; i >= 0; i--) {
-    grid.appendChild(_buildCalCell(null, prevLast - i, true, [], today));
-  }
-
-  // Días del mes actual
-  for (var d = 1; d <= lastDay.getDate(); d++) {
-    var dateStr  = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-    var cellDate = new Date(year, month, d);
-    var isToday  = cellDate.getTime() === today.getTime();
-    grid.appendChild(_buildCalCell(dateStr, d, false, tasksByDay[dateStr] || [], today, isToday));
-  }
-
-  // Relleno al final
-  var totalCells = startOffset + lastDay.getDate();
-  var tail       = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-  for (var i = 1; i <= tail; i++) {
-    grid.appendChild(_buildCalCell(null, i, true, [], today));
-  }
-
-  content.appendChild(grid);
-
-  if (window.lucide) lucide.createIcons();
-}
-
-function _buildCalCell(dateStr, dayNum, isOther, taskItems, today, isToday) {
-  var cell = document.createElement("div");
-  cell.className = "cal-cell";
-  if (isOther)  cell.classList.add("cal-cell-other");
-  if (isToday)  cell.classList.add("cal-cell-today");
-  if (!isOther && taskItems.length > 0) cell.classList.add("cal-cell-has-tasks");
-  if (dateStr) cell.dataset.calDate = dateStr;
-
-  var numEl = document.createElement("span");
-  numEl.className = "cal-cell-num";
-  numEl.textContent = dayNum;
-  cell.appendChild(numEl);
-
-  if (!isOther && taskItems.length > 0) {
-    // Dots row — visible on mobile
-    var dotsRow = document.createElement("div");
-    dotsRow.className = "cal-dots";
-    var MAX_DOTS = 5;
-    taskItems.slice(0, MAX_DOTS).forEach(function(item) {
-      var dot = document.createElement("span");
-      dot.className = "cal-dot" + (item.task.priority ? " cal-dot-" + item.task.priority : "") + (item.task.done ? " cal-dot-done" : "");
-      dotsRow.appendChild(dot);
-    });
-    if (taskItems.length > MAX_DOTS) {
-      var xtra = document.createElement("span");
-      xtra.className = "cal-dot-extra";
-      xtra.textContent = "+" + (taskItems.length - MAX_DOTS);
-      dotsRow.appendChild(xtra);
-    }
-    cell.appendChild(dotsRow);
-
-    // Text chips — visible on desktop
-    var MAX = 3;
-    var visible  = taskItems.slice(0, MAX);
-    var overflow = taskItems.length - MAX;
-
-    visible.forEach(function(item) {
-      var chip = document.createElement("div");
-      chip.className = "cal-task-chip";
-      if (item.task.priority) chip.classList.add("cal-chip-" + item.task.priority);
-      if (item.task.done)     chip.classList.add("cal-chip-done");
-      chip.textContent = item.task.text;
-      chip.title = item.task.text + " — " + item.project.name;
-      chip.addEventListener("click", function(e) {
-        e.stopPropagation();
-        activateProject(item.project.id);
-      });
-      cell.appendChild(chip);
-    });
-
-    if (overflow > 0) {
-      var more = document.createElement("div");
-      more.className = "cal-task-more";
-      more.textContent = "+" + overflow + " más";
-      cell.appendChild(more);
-    }
-
-    // Click → day detail (works on both mobile and desktop)
-    cell.addEventListener("click", function() {
-      _showCalDayDetail(dateStr, taskItems, cell);
-    });
-  }
-
-  return cell;
-}
-
-function _showCalDayDetail(dateStr, taskItems, cellEl) {
-  var content = document.getElementById("cal-content");
-  if (!content) return;
-
-  // Remove active state from all cells
-  content.querySelectorAll(".cal-cell-selected").forEach(function(c) {
-    c.classList.remove("cal-cell-selected");
-  });
-
-  // Toggle: tap same day again to close
-  var existing = content.querySelector(".cal-day-detail");
-  if (existing) {
-    var wasDate = existing.dataset.detailDate;
-    existing.remove();
-    if (wasDate === dateStr) return;
-  }
-
-  if (cellEl) cellEl.classList.add("cal-cell-selected");
-
-  var due      = new Date(dateStr + "T00:00:00");
-  var detail   = document.createElement("div");
-  detail.className       = "cal-day-detail";
-  detail.dataset.detailDate = dateStr;
-
-  var titleEl = document.createElement("div");
-  titleEl.className   = "cal-day-detail-title";
-  titleEl.textContent = due.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
-  detail.appendChild(titleEl);
-
-  var list = document.createElement("ul");
-  list.className = "cal-day-detail-list";
-
-  taskItems.forEach(function(item) {
-    var li = document.createElement("li");
-    li.className = "cal-day-detail-item";
-    if (item.task.priority) li.classList.add("cal-detail-priority-" + item.task.priority);
-    if (item.task.done)     li.classList.add("cal-detail-done");
-
-    var left = document.createElement("div");
-    left.className = "cal-day-detail-left";
-
-    var dot = document.createElement("span");
-    dot.className = "cal-day-detail-dot";
-
-    var textEl = document.createElement("span");
-    textEl.className   = "cal-day-detail-text";
-    textEl.textContent = item.task.text;
-
-    left.appendChild(dot);
-    left.appendChild(textEl);
-
-    var projEl = document.createElement("span");
-    projEl.className   = "cal-day-detail-proj";
-    projEl.textContent = item.project.name;
-
-    li.appendChild(left);
-    li.appendChild(projEl);
-
-    li.addEventListener("click", function() {
-      activateProject(item.project.id);
-    });
-
-    list.appendChild(li);
-  });
-
-  detail.appendChild(list);
-  content.appendChild(detail);
-  setTimeout(function() { detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// VISTA STATS
-// ═══════════════════════════════════════════════════════════════
-
-function showStatsPanel() {
-  var statsPanel = document.getElementById("stats-panel");
-  if (!statsPanel) return;
-  if (!statsPanel.hidden) { _closeAllAltPanels(); _restoreMainPanel(); return; }
-  _closeAllAltPanels();
-  emptyState.hidden = true;
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
-  tasksPanel.hidden = true;
-  statsPanel.hidden = false;
-  _setActiveViewTab("stats");
-  renderStats();
-}
-
-function renderStats() {
-  var panel = document.getElementById("stats-panel");
-  if (!panel) return;
-
-  var active   = projects.filter(function(p) { return !p.archived; });
-  var allTasks = [];
-  active.forEach(function(p) { allTasks = allTasks.concat(p.tasks); });
-
-  var total   = allTasks.length;
-  var done    = allTasks.filter(function(t) { return t.done; }).length;
-  var pending = total - done;
-  var today   = new Date().toISOString().slice(0, 10);
-  var overdue = allTasks.filter(function(t) { return !t.done && t.dueDate && t.dueDate < today; }).length;
-
-  var kpis = [
-    { label: "Total tareas", value: total,   cls: "primary" },
-    { label: "Completadas",  value: done,     cls: "green"   },
-    { label: "Pendientes",   value: pending,  cls: "blue"    },
-    { label: "Vencidas",     value: overdue,  cls: "red"     },
-  ];
-
-  var kpiHtml = '<div class="stats-kpi-row">' +
-    kpis.map(function(k) {
-      return '<div class="stats-card stats-card--' + k.cls + '">' +
-        '<span class="stats-card-value">' + k.value + '</span>' +
-        '<span class="stats-card-label">' + k.label + '</span>' +
-        '</div>';
-    }).join('') + '</div>';
-
-  var chartsHtml = '<div class="stats-charts-grid">' +
-    '<div class="stats-chart-block stats-chart-block--donut">' +
-      '<p class="stats-chart-title">Progreso global</p>' +
-      _statsDonut(done, pending, total) +
-    '</div>' +
-    '<div class="stats-chart-block">' +
-      '<p class="stats-chart-title">Por proyecto</p>' +
-      _statsProjectBars(active) +
-    '</div>' +
-    '<div class="stats-chart-block">' +
-      '<p class="stats-chart-title">Por prioridad</p>' +
-      _statsPriorityBars(allTasks) +
-    '</div>';
-
-  var labelsHtml = _statsLabels(allTasks);
-  if (labelsHtml) {
-    chartsHtml += '<div class="stats-chart-block">' +
-      '<p class="stats-chart-title">Etiquetas más usadas</p>' +
-      labelsHtml + '</div>';
-  }
-  chartsHtml += '</div>';
-
-  panel.innerHTML = kpiHtml + chartsHtml;
-
-  requestAnimationFrame(function() {
-    panel.querySelectorAll('.stats-hbar-fill[data-w]').forEach(function(el) {
-      el.style.width = el.dataset.w + '%';
-    });
-    panel.querySelectorAll('.stats-donut-arc').forEach(function(el) {
-      el.style.strokeDasharray = el.dataset.dash;
-    });
-  });
-}
-
-function _statsDonut(done, pending, total) {
-  if (total === 0) return '<div class="stats-empty">Sin tareas aún</div>';
-  var r    = 50;
-  var cx   = 66, cy = 66;
-  var circ = parseFloat((2 * Math.PI * r).toFixed(2));
-  var arc  = parseFloat(((done / total) * circ).toFixed(2));
-  var pct  = Math.round((done / total) * 100);
-
-  return '<div class="stats-donut-wrap">' +
-    '<svg class="stats-donut" viewBox="0 0 132 132">' +
-      '<defs><linearGradient id="sdg" x1="0" y1="0" x2="1" y2="1">' +
-        '<stop offset="0%" stop-color="#7C3AED"/>' +
-        '<stop offset="100%" stop-color="#06B6DA"/>' +
-      '</linearGradient></defs>' +
-      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none"' +
-        ' stroke="rgba(139,92,246,0.10)" stroke-width="12"/>' +
-      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none"' +
-        ' stroke="url(#sdg)" stroke-width="12" stroke-linecap="round"' +
-        ' stroke-dasharray="0 ' + circ + '"' +
-        ' data-dash="' + arc + ' ' + (circ - arc) + '"' +
-        ' transform="rotate(-90 ' + cx + ' ' + cy + ')"' +
-        ' class="stats-donut-arc"/>' +
-      '<text x="' + cx + '" y="' + (cy - 5) + '" class="stats-donut-pct">' + pct + '%</text>' +
-      '<text x="' + cx + '" y="' + (cy + 14) + '" class="stats-donut-sub">completado</text>' +
-    '</svg>' +
-    '<div class="stats-donut-legend">' +
-      '<div class="stats-legend-row"><span class="stats-legend-dot stats-legend-dot--done"></span>' + done + ' hechas</div>' +
-      '<div class="stats-legend-row"><span class="stats-legend-dot stats-legend-dot--pend"></span>' + pending + ' pendientes</div>' +
-    '</div>' +
-  '</div>';
-}
-
-function _statsProjectBars(activeProjects) {
-  if (activeProjects.length === 0) return '<div class="stats-empty">Sin proyectos</div>';
-  var sorted = activeProjects.slice().sort(function(a, b) {
-    var pa = a.tasks.length ? a.tasks.filter(function(t) { return t.done; }).length / a.tasks.length : 0;
-    var pb = b.tasks.length ? b.tasks.filter(function(t) { return t.done; }).length / b.tasks.length : 0;
-    return pb - pa;
-  }).slice(0, 10);
-  return '<div class="stats-hbars">' + sorted.map(function(p) {
-    var t   = p.tasks.length;
-    var d   = p.tasks.filter(function(x) { return x.done; }).length;
-    var pct = t > 0 ? Math.round((d / t) * 100) : 0;
-    return '<div class="stats-hbar-row">' +
-      '<span class="stats-hbar-name">' + p.name + '</span>' +
-      '<div class="stats-hbar-track"><div class="stats-hbar-fill" data-w="' + pct + '" style="width:0"></div></div>' +
-      '<span class="stats-hbar-meta">' + d + '/' + t + '</span>' +
-      '</div>';
-  }).join('') + '</div>';
-}
-
-function _statsPriorityBars(tasks) {
-  var pend = tasks.filter(function(t) { return !t.done; });
-  if (pend.length === 0) return '<div class="stats-empty">Sin tareas pendientes</div>';
-  var counts = { high: 0, medium: 0, low: 0, none: 0 };
-  pend.forEach(function(t) { var k = t.priority || "none"; counts[k] = (counts[k] || 0) + 1; });
-  var bars = [
-    { label: "Alta",  count: counts.high,   bg: "var(--c-danger)"  },
-    { label: "Media", count: counts.medium, bg: "var(--c-warning)" },
-    { label: "Baja",  count: counts.low,    bg: "var(--c-success)" },
-    { label: "—",     count: counts.none,   bg: "rgba(139,92,246,0.40)" },
-  ];
-  var max = Math.max.apply(null, bars.map(function(b) { return b.count; })) || 1;
-  return '<div class="stats-hbars">' + bars.map(function(b) {
-    var pct = Math.round((b.count / max) * 100);
-    return '<div class="stats-hbar-row">' +
-      '<span class="stats-hbar-name">' + b.label + '</span>' +
-      '<div class="stats-hbar-track"><div class="stats-hbar-fill" data-w="' + pct +
-        '" style="width:0;background:' + b.bg + '"></div></div>' +
-      '<span class="stats-hbar-meta">' + b.count + '</span>' +
-      '</div>';
-  }).join('') + '</div>';
-}
-
-function _statsLabels(tasks) {
-  var freq = {};
-  tasks.forEach(function(t) {
-    if (Array.isArray(t.labels)) t.labels.forEach(function(l) { freq[l] = (freq[l] || 0) + 1; });
-  });
-  var keys = Object.keys(freq).sort(function(a, b) { return freq[b] - freq[a]; }).slice(0, 8);
-  if (keys.length === 0) return '';
-  var max = freq[keys[0]];
-  return '<div class="stats-hbars">' + keys.map(function(l) {
-    var pct = Math.round((freq[l] / max) * 100);
-    return '<div class="stats-hbar-row">' +
-      '<span class="stats-hbar-name stats-hbar-name--tag">' + l + '</span>' +
-      '<div class="stats-hbar-track"><div class="stats-hbar-fill stats-hbar-fill--label" data-w="' + pct + '" style="width:0"></div></div>' +
-      '<span class="stats-hbar-meta">' + freq[l] + '</span>' +
-      '</div>';
-  }).join('') + '</div>';
-}
-
 function _restoreMainPanel() {
   var project = getActiveProject();
   emptyState.hidden = Boolean(project);
@@ -4274,7 +3033,7 @@ function _setActiveViewTab(view) {
   // Eyebrow que indica la vista actual encima del título
   var eyebrow = document.getElementById("view-eyebrow");
   if (eyebrow) {
-    var labels = { tasks: "Vista lista", agenda: "Vista agenda", kanban: "Vista kanban", cal: "Vista mes", stats: "Estadísticas" };
+    var labels = { tasks: "Vista lista", agenda: "Vista agenda", cal: "Vista mes" };
     eyebrow.textContent = labels[view] || "";
   }
 }
@@ -4298,148 +3057,6 @@ function showAgendaPanel() {
   renderAgenda();
 }
 
-function renderAgenda() {
-  var content = document.getElementById("agenda-content");
-  if (!content) return;
-
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  var groups = { overdue: [], today: [], week: [], later: [] };
-
-  projects.forEach(function(project) {
-    (project.tasks || []).forEach(function(task) {
-      if (!task.dueDate || task.done) return;
-      var due  = new Date(task.dueDate + "T00:00:00");
-      var diff = Math.floor((due - today) / 86400000);
-      var key  = diff < 0 ? "overdue" : diff === 0 ? "today" : diff <= 7 ? "week" : "later";
-      groups[key].push({ task: task, project: project });
-    });
-  });
-
-  ["overdue", "today", "week", "later"].forEach(function(key) {
-    groups[key].sort(function(a, b) {
-      return a.task.dueDate < b.task.dueDate ? -1 : a.task.dueDate > b.task.dueDate ? 1 : 0;
-    });
-  });
-
-  content.innerHTML = "";
-
-  var total = groups.overdue.length + groups.today.length + groups.week.length + groups.later.length;
-
-  if (total === 0) {
-    var empty = document.createElement("div");
-    empty.className = "agenda-empty";
-    var icon = document.createElement("span");
-    icon.className = "agenda-empty-icon";
-    icon.textContent = "⏱";
-    var msg = document.createElement("p");
-    msg.textContent = "No hay tareas con fecha límite pendientes";
-    empty.appendChild(icon);
-    empty.appendChild(msg);
-    content.appendChild(empty);
-    return;
-  }
-
-  var groupDefs = [
-    { key: "overdue", label: "Vencidas" },
-    { key: "today",   label: "Hoy" },
-    { key: "week",    label: "Esta semana" },
-    { key: "later",   label: "Más adelante" },
-  ];
-
-  groupDefs.forEach(function(def) {
-    var items = groups[def.key];
-    if (!items.length) return;
-
-    var section = document.createElement("div");
-    section.className = "agenda-group agenda-group-" + def.key;
-
-    var header = document.createElement("div");
-    header.className = "agenda-group-header";
-
-    var labelEl = document.createElement("span");
-    labelEl.className = "agenda-group-label";
-    labelEl.textContent = def.label;
-
-    var countEl = document.createElement("span");
-    countEl.className = "agenda-group-count";
-    countEl.textContent = items.length;
-
-    header.appendChild(labelEl);
-    header.appendChild(countEl);
-    section.appendChild(header);
-
-    var list = document.createElement("ul");
-    list.className = "agenda-task-list";
-
-    items.forEach(function(item) {
-      list.appendChild(buildAgendaTaskItem(item.task, item.project, today));
-    });
-
-    section.appendChild(list);
-    content.appendChild(section);
-  });
-}
-
-function buildAgendaTaskItem(task, project, today) {
-  var due  = new Date(task.dueDate + "T00:00:00");
-  var diff = Math.floor((due - today) / 86400000);
-
-  var dateLabel = diff === 0  ? "Hoy"
-    : diff === 1  ? "Mañana"
-    : diff === -1 ? "Ayer"
-    : due.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
-
-  var li = document.createElement("li");
-  li.className = "agenda-task-item";
-  if (task.priority) li.classList.add("agenda-priority-" + task.priority);
-
-  var main = document.createElement("div");
-  main.className = "agenda-task-main";
-
-  var textEl = document.createElement("span");
-  textEl.className = "agenda-task-text";
-  textEl.textContent = task.text;
-  main.appendChild(textEl);
-
-  var badges = document.createElement("div");
-  badges.className = "agenda-task-badges";
-
-  if (task.priority) {
-    var pb = document.createElement("span");
-    pb.className = "agenda-badge agenda-badge-priority agenda-badge-" + task.priority;
-    pb.textContent = task.priority === "high" ? "Alta"
-      : task.priority === "medium" ? "Media" : "Baja";
-    badges.appendChild(pb);
-  }
-
-  if (task.status) {
-    var sb = document.createElement("span");
-    sb.className = "agenda-badge agenda-badge-status agenda-badge-" + task.status;
-    sb.textContent = task.status === "progress" ? "Progreso" : "Espera";
-    badges.appendChild(sb);
-  }
-
-  var projBadge = document.createElement("span");
-  projBadge.className = "agenda-badge agenda-badge-project";
-  projBadge.textContent = project.name;
-  badges.appendChild(projBadge);
-
-  var dateEl = document.createElement("span");
-  dateEl.className = "agenda-badge agenda-badge-date";
-  dateEl.textContent = dateLabel;
-  badges.appendChild(dateEl);
-
-  main.appendChild(badges);
-  li.appendChild(main);
-
-  li.addEventListener("click", function() {
-    activateProject(project.id);
-  });
-
-  return li;
-}
 
 // ═══════════════════════════════════════════════════════════════
 // ATAJOS DE TECLADO — MODAL DE AYUDA
@@ -4484,174 +3101,10 @@ function showShortcutsHelp() {
 // BÚSQUEDA GLOBAL
 // ═══════════════════════════════════════════════════════════════
 
-function showGlobalSearch() {
-  const { overlay, box } = createModalBase();
+// showGlobalSearch() vive en ./ui/search.js — aquí usamos openGlobalSearch()
 
-  box.className = "modal-box modal-box-search";
-  box.innerHTML =
-    '<p class="modal-label">// Buscar en proyectos y notas</p>' +
-    '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="escribe para buscar..." />' +
-    '<div id="search-results" class="search-results"></div>' +
-    '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">Cerrar</button></div>';
 
-  const input   = box.querySelector(".modal-input");
-  const results = box.querySelector("#search-results");
-  const cancel  = box.querySelector(".modal-btn-cancel");
-
-  function doClose() { closeModal(overlay); }
-  overlay._cancel = doClose;
-  cancel.addEventListener("click", doClose);
-
-  input.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") doClose();
-    e.stopPropagation();
-  });
-
-  input.addEventListener("input", function() {
-    const q = input.value.trim().toLowerCase();
-    renderSearchResults(results, q, doClose);
-  });
-
-  setTimeout(function() { input.focus(); }, 50);
-}
-
-function _noteToPlainText(html) {
-  var tmp = document.createElement("div");
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
-}
-
-function renderSearchResults(container, q, closeCallback) {
-  container.innerHTML = "";
-  if (q.length < 2) {
-    container.innerHTML = '<p class="search-hint">Escribe al menos 2 caracteres…</p>';
-    return;
-  }
-
-  var taskGroups = [];
-  projects.forEach(function(project) {
-    var matches = project.tasks.filter(function(t) {
-      return t.text.toLowerCase().includes(q) ||
-             (t.comment && t.comment.toLowerCase().includes(q));
-    });
-    if (matches.length > 0) taskGroups.push({ project: project, tasks: matches });
-  });
-
-  var noteMatches = standaloneNotes.filter(function(n) {
-    return n.name.toLowerCase().includes(q) ||
-           _noteToPlainText(n.content).toLowerCase().includes(q);
-  });
-
-  var total = taskGroups.reduce(function(s, g) { return s + g.tasks.length; }, 0) + noteMatches.length;
-
-  if (total === 0) {
-    container.innerHTML = '<p class="search-hint">Sin resultados para <em>' + escHtml(q) + '</em></p>';
-    return;
-  }
-
-  // ── Sección tareas ────────────────────────────────────────────
-  if (taskGroups.length > 0) {
-    var tasksSection = document.createElement("div");
-    tasksSection.className = "search-section";
-    tasksSection.innerHTML =
-      '<div class="search-section-label search-section-label--tasks">' +
-        '<i data-lucide="check-square"></i><span>Tareas</span>' +
-      '</div>';
-
-    taskGroups.forEach(function(g) {
-      var group = document.createElement("div");
-      group.className = "search-group";
-
-      var heading = document.createElement("p");
-      heading.className = "search-group-heading";
-      if (g.project.color) heading.style.setProperty("--group-color", g.project.color);
-      heading.innerHTML =
-        '<span class="search-group-dot" style="background:' + (g.project.color || "var(--c-primary-500)") + '"></span>' +
-        escHtml(g.project.name);
-      group.appendChild(heading);
-
-      g.tasks.forEach(function(task) {
-        var item = document.createElement("button");
-        item.type = "button";
-        item.className = "search-result-item" + (task.done ? " search-result-done" : "");
-
-        item.innerHTML =
-          '<span class="search-result-check">' +
-            (task.done ? '<i data-lucide="check-circle-2"></i>' : '<i data-lucide="circle"></i>') +
-          '</span>' +
-          '<span class="search-result-text">' + highlightMatch(task.text, q) + '</span>';
-
-        if (task.comment && task.comment.toLowerCase().includes(q)) {
-          var snippet = document.createElement("span");
-          snippet.className = "search-result-snippet";
-          snippet.innerHTML = highlightMatch(task.comment.slice(0, 80), q);
-          item.appendChild(snippet);
-        }
-
-        item.addEventListener("click", function() {
-          closeCallback();
-          navigateToTask(g.project.id, task.id);
-        });
-
-        group.appendChild(item);
-      });
-
-      tasksSection.appendChild(group);
-    });
-
-    container.appendChild(tasksSection);
-  }
-
-  // ── Sección notas ─────────────────────────────────────────────
-  if (noteMatches.length > 0) {
-    var notesSection = document.createElement("div");
-    notesSection.className = "search-section";
-    notesSection.innerHTML =
-      '<div class="search-section-label search-section-label--notes">' +
-        '<i data-lucide="file-text"></i><span>Notas</span>' +
-      '</div>';
-
-    noteMatches.forEach(function(note) {
-      var plain = _noteToPlainText(note.content);
-      var item = document.createElement("button");
-      item.type = "button";
-      item.className = "search-result-item search-result-item--note";
-
-      item.innerHTML =
-        '<span class="search-result-check search-result-check--note"><i data-lucide="file-text"></i></span>' +
-        '<span class="search-result-text">' + highlightMatch(note.name, q) + '</span>';
-
-      if (plain.toLowerCase().includes(q)) {
-        var idx = plain.toLowerCase().indexOf(q);
-        var start = Math.max(0, idx - 30);
-        var excerpt = (start > 0 ? "…" : "") + plain.slice(start, idx + q.length + 40);
-        var snippet = document.createElement("span");
-        snippet.className = "search-result-snippet";
-        snippet.innerHTML = highlightMatch(excerpt, q);
-        item.appendChild(snippet);
-      }
-
-      item.addEventListener("click", function() {
-        closeCallback();
-        activateNote(note.id);
-      });
-
-      notesSection.appendChild(item);
-    });
-
-    container.appendChild(notesSection);
-  }
-
-  if (window.lucide) lucide.createIcons({ nodes: [container] });
-}
-
-function highlightMatch(text, q) {
-  const safe = escHtml(text);
-  const safeQ = escHtml(q);
-  const re = new RegExp("(" + safeQ.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-  return safe.replace(re, '<mark class="search-hl">$1</mark>');
-}
-
+window.navigateToTask = function(projectId, taskId) { return navigateToTask(projectId, taskId); };
 function navigateToTask(projectId, taskId) {
   activateProject(projectId);
   // After render, flash-highlight the task
@@ -4678,19 +3131,9 @@ function saveAndRender() {
   renderTasks();
   renderSidebar();
   renderLabelFilterBar();
-  var kp = document.getElementById("kanban-panel");
-  if (kp && !kp.hidden) renderKanban();
 }
 
 // ─── PERSISTENCIA ────────────────────────────────────────────
-function loadProjects() {
-  try {
-    const raw = localStorage.getItem(PROJECTS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw).map(sanitizeProject);
-  } catch(e) { return []; }
-}
-
 function saveProjects() {
   localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
   const now = new Date().toISOString();
@@ -4835,7 +3278,7 @@ function showNoteMenu(note, anchor) {
       label: "Eliminar nota",
       danger: true,
       action: async function() {
-        var ok = await modalConfirm("¿Eliminar la nota <strong>" + note.name + "</strong>?", "Eliminar");
+        var ok = await modalConfirm("¿Eliminar la nota <strong>" + escHtml(note.name) + "</strong>?", "Eliminar");
         if (!ok) return;
         standaloneNotes = standaloneNotes.filter(function(n) { return n.id !== note.id; });
         saveStandaloneNotes();
@@ -4868,8 +3311,8 @@ function showNoteMenu(note, anchor) {
   var newNoteBtn  = document.getElementById("new-note-btn");
 
   if (noteEditor) {
-    if (typeof setupPasteHandler  === "function") setupPasteHandler(noteEditor, saveActiveNote);
-    if (typeof setupImageResizer  === "function") setupImageResizer(noteEditor);
+    if (typeof window.setupPasteHandler === "function") window.setupPasteHandler(noteEditor, saveActiveNote);
+    if (typeof window.setupImageResizer === "function") window.setupImageResizer(noteEditor);
 
     noteEditor.addEventListener("input", function() {
       if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
@@ -4949,18 +3392,10 @@ const TASK_BTN_DEFS = [
   { key: "status",   label: "Estado",      icon: "circle-dashed" },
   { key: "date",     label: "Fecha",       icon: "calendar"      },
   { key: "recur",    label: "Repetir",     icon: "repeat"        },
-  { key: "timer",    label: "Cronómetro",  icon: "timer"         },
   { key: "comment",  label: "Nota rápida", icon: "message-circle"},
   { key: "labels",   label: "Etiquetas",   icon: "tag"           },
   { key: "subtasks", label: "Subtareas",   icon: "list-plus"     },
 ];
-
-function loadTaskPrefs() {
-  try {
-    var raw = localStorage.getItem(TASK_PREFS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch(e) { return {}; }
-}
 
 function saveTaskPrefs() {
   localStorage.setItem(TASK_PREFS_KEY, JSON.stringify(taskPrefs));
@@ -5025,33 +3460,9 @@ function showTaskPrefsModal() {
   });
 }
 
-function loadStandaloneNotes() {
-  try {
-    const raw = localStorage.getItem(NOTES_KEY);
-    return raw ? JSON.parse(raw).map(sanitizeStandaloneNote) : [];
-  } catch(e) { return []; }
-}
-
 function saveStandaloneNotes() {
   localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
-}
-
-function sanitizeStandaloneNote(n) {
-  return {
-    id:        typeof n.id === "string" ? n.id : "note-" + Date.now(),
-    name:      typeof n.name === "string" ? n.name.slice(0, 80) : "Sin título",
-    content:   typeof n.content === "string" ? n.content : "",
-    createdAt: n.createdAt || new Date().toISOString(),
-    color:     typeof n.color === "string" ? n.color : "",
-  };
-}
-
-function loadSections() {
-  try {
-    const raw = localStorage.getItem(SECTIONS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
 }
 
 function saveSections() {
@@ -5063,65 +3474,6 @@ function saveSections() {
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
 }
 
-function loadMetadata() {
-  try {
-    const raw = localStorage.getItem(METADATA_KEY);
-    return raw ? JSON.parse(raw) : { lastSavedAt: null };
-  } catch(e) { return { lastSavedAt: null }; }
-}
-
-function sanitizeProject(p) {
-  return {
-    id:        typeof p.id === "string" ? p.id : generateId(),
-    name:      typeof p.name === "string" ? p.name.trim().slice(0, 60) : "Sin nombre",
-    createdAt: p.createdAt || new Date().toISOString(),
-    tasks:     sanitizeTasks(p.tasks),
-    notes:     typeof p.notes === "string" ? p.notes : "",
-    labels:    Array.isArray(p.labels) ? p.labels.filter(function(l){ return typeof l==="string" && l.length>0; }) : [],
-    sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
-    archived:  !!p.archived,
-    icon:      typeof p.icon === "string" ? p.icon : "",
-    color:     typeof p.color === "string" ? p.color : "",
-  };
-}
-
-function sanitizeTasks(input) {
-  if (!Array.isArray(input)) return [];
-  const validStatuses = new Set(["progress", "waiting", null]);
-  return input
-    .filter(function(i) { return i && typeof i.text === "string"; })
-    .map(function(i) {
-      return {
-        id:       typeof i.id === "string" ? i.id : generateId(),
-        text:     i.text.trim().slice(0, 120),
-        comment:  typeof i.comment === "string" ? i.comment.trim().slice(0, 300) : "",
-        done:     Boolean(i.done),
-        status:   validStatuses.has(i.status) ? i.status : null,
-        priority: ["high","medium","low"].includes(i.priority) ? i.priority : null,
-        labels:   Array.isArray(i.labels) ? i.labels.filter(function(l){ return typeof l==="string" && l.length>0; }).slice(0,10) : [],
-        dueDate:   typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
-        recurDays: (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
-        timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
-        subtasks: sanitizeSubtasks(i.subtasks),
-      };
-    })
-    .filter(function(i) { return i.text.length > 0; });
-}
-
-function sanitizeSubtasks(input) {
-  if (!Array.isArray(input)) return [];
-  return input
-    .filter(function(s) { return s && typeof s.text === "string"; })
-    .map(function(s) {
-      return {
-        id:   typeof s.id === "string" ? s.id : generateId(),
-        text: s.text.trim().slice(0, 120),
-        done: Boolean(s.done),
-      };
-    })
-    .filter(function(s) { return s.text.length > 0; });
-}
-
 function updateSaveStatus(lastSavedAt) {
   if (!lastSavedAt) { saveStatus.textContent = "Sin cambios recientes"; return; }
   const date = new Date(lastSavedAt);
@@ -5131,26 +3483,7 @@ function updateSaveStatus(lastSavedAt) {
   });
 }
 
-function generateId() {
-  return (window.crypto && window.crypto.randomUUID)
-    ? window.crypto.randomUUID()
-    : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-}
-
-function initializeTheme() {
-  const saved = localStorage.getItem(THEME_KEY);
-  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = saved === "light" || saved === "dark" ? saved : prefersDark ? "dark" : "light";
-  applyTheme(theme);
-}
-
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  if (themeToggle) {
-    themeToggle.textContent = theme === "dark" ? "🌙" : "☀️";
-    themeToggle.setAttribute("aria-label", "Cambiar tema (actual: " + (theme === "dark" ? "oscuro" : "claro") + ")");
-  }
-}
+// initializeTheme() / applyTheme() viven en ./ui/theme.js
 
 // ── AUTO BACKUP SYSTEM ──────────────────────────────────────────
 const AUTO_BACKUP_PREFIX = "autoBackup_";
@@ -5285,8 +3618,6 @@ function _saveAccountCache(uid) {
 var _syncWasConnected = false;
 
 function _syncOnAuthChange(user) {
-  if (syncUserAvatar) syncUserAvatar.textContent = user ? (user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "?")) : "A";
-  if (syncUserName)   syncUserName.textContent   = user ? (user.displayName || user.email || "") : "";
   _updateProfileMenu(user);
   if (!user && _syncWasConnected) {
     _clearLocalData();
@@ -5481,90 +3812,9 @@ function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes,
     if (proj) {
       renderTasks();
       renderLabelFilterBar();
-      if (notesSidePanel && notesSidePanel.classList.contains("notes-side-open")) {
-        notesSideEditor.innerHTML = proj.notes || "";
-      }
     }
     updateSaveStatus(new Date().toISOString());
   } catch (e) {
     console.warn("AnsoSync: error aplicando cambios remotos:", e);
   }
 }
-
-// ═══════════════════════════════════════════════════════════════
-// NOTES PANEL DRAG-TO-RESIZE (mobile / tablet — altura)
-// ═══════════════════════════════════════════════════════════════
-(function () {
-  var panel  = document.getElementById("notes-side-panel");
-  var handle = document.getElementById("notes-drag-handle");
-  if (!panel || !handle) return;
-
-  var _startY = 0;
-  var _startH = 0;
-
-  function onStart(e) {
-    _startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-    _startH = panel.offsetHeight;
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("touchmove", onMove, { passive: false });
-    document.addEventListener("mouseup",   onEnd);
-    document.addEventListener("touchend",  onEnd);
-    e.preventDefault();
-  }
-
-  function onMove(e) {
-    var y     = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-    var delta = _startY - y;
-    var newH  = Math.min(Math.max(_startH + delta, 180), window.innerHeight * 0.96);
-    panel.style.height = newH + "px";
-    e.preventDefault();
-  }
-
-  function onEnd() {
-    document.removeEventListener("mousemove", onMove);
-    document.removeEventListener("touchmove", onMove);
-    document.removeEventListener("mouseup",   onEnd);
-    document.removeEventListener("touchend",  onEnd);
-  }
-
-  handle.addEventListener("mousedown",  onStart);
-  handle.addEventListener("touchstart", onStart, { passive: false });
-})();
-
-// ═══════════════════════════════════════════════════════════════
-// NOTES PANEL DRAG-TO-RESIZE (escritorio — ancho)
-// ═══════════════════════════════════════════════════════════════
-(function () {
-  var panel  = document.getElementById("notes-side-panel");
-  var handle = document.getElementById("notes-resize-handle");
-  if (!panel || !handle) return;
-
-  var _startX = 0;
-  var _startW = 0;
-
-  function onStart(e) {
-    if (window.innerWidth <= 768) return;
-    _startX = e.clientX;
-    _startW = panel.offsetWidth;
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup",   onEnd);
-    document.body.style.cursor    = "ew-resize";
-    document.body.style.userSelect = "none";
-    e.preventDefault();
-  }
-
-  function onMove(e) {
-    var delta = _startX - e.clientX;
-    var newW  = Math.min(Math.max(_startW + delta, 260), window.innerWidth * 0.55);
-    panel.style.width = newW + "px";
-  }
-
-  function onEnd() {
-    document.removeEventListener("mousemove", onMove);
-    document.removeEventListener("mouseup",   onEnd);
-    document.body.style.cursor    = "";
-    document.body.style.userSelect = "";
-  }
-
-  handle.addEventListener("mousedown", onStart);
-})();

@@ -6,7 +6,7 @@
 ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
 ![PWA](https://img.shields.io/badge/PWA-instalable-5b4cdb?style=flat-square)
-![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-22c55e?style=flat-square)
+![Vite](https://img.shields.io/badge/build-Vite-646cff?style=flat-square)
 ![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue?style=flat-square)
 
 ---
@@ -29,22 +29,23 @@ Opcionalmente puede sincronizarse con **Firebase** para acceder a tus datos desd
 - **Prioridades**: alta, media y baja
 - **Estados**: En progreso / En espera
 - **Fechas límite** con indicador visual de vencimiento
+- **Recurrencia** con presets (diario, semanal, quincenal, mensual, personalizado)
 - **Etiquetas** personalizables
 - **Filtros**: todas / pendientes / completadas
 - **Ordenamiento**: manual (drag), por prioridad, por fecha límite, alfabético
-- **Proyectos múltiples** con panel lateral
-- **Búsqueda global** de tareas
+- **Proyectos múltiples** con panel lateral y secciones
+- **Vistas**: lista, agenda y calendario mensual
+- **Búsqueda global** de tareas y notas
 - **Multi-selección** para acciones en lote (completar, eliminar, mover de proyecto)
 - Limpieza rápida de tareas completadas
 - Exportar e importar datos en `.json`
 - Sincronización opcional con Firebase en tiempo real
 
-### Bloc de notas (`notas.html`)
+### Notas
 
-- Editor de texto libre para apuntes rápidos
+- Notas independientes en la barra lateral (no atadas a un proyecto)
+- Editor enriquecido: negrita, cursiva, subrayado, tachado, listas, color de texto, tamaños
 - Guardado automático mientras escribes
-- Indicador de último guardado
-- Formatos básicos: negrita, cursiva, código
 
 ### General
 
@@ -56,18 +57,23 @@ Opcionalmente puede sincronizarse con **Firebase** para acceder a tus datos desd
 
 ## Uso rápido
 
-No hay nada que instalar ni compilar. Abre el archivo directamente o sírvelo con cualquier servidor estático:
+Requisitos: **Node.js 18+** y **npm**.
 
 ```bash
-# Opción 1 — servidor con npx (recomendado, evita restricciones CORS)
-npx serve .
+# 1. Instala dependencias (solo la primera vez)
+npm install
 
-# Opción 2 — Python
-python3 -m http.server 8080
+# 2. Modo desarrollo (con hot-reload)
+npm run dev          # arranca en http://localhost:5173
 
-# Opción 3 — abrir directamente en el navegador
-open index.html
+# 3. Build de producción
+npm run build        # genera /dist con todo bundleado y minificado
+
+# 4. Previsualizar el build
+npm run preview
 ```
+
+Para desplegar en cualquier hosting estático (Netlify, Vercel, GitHub Pages, S3…) sube el contenido de `dist/`.
 
 ### Instalar como PWA
 
@@ -82,10 +88,9 @@ Una vez instalada, la aplicación funciona completamente sin conexión.
 
 ```
 AnTask/
-├── index.html              # Página principal — lista de tareas
-├── notas.html              # Módulo de bloc de notas
+├── index.html              # Página principal — única página de la app
 ├── manifest.json           # Configuración PWA
-├── service-worker.js       # Caché offline (estrategia cache-first)
+├── service-worker.js       # Caché offline
 ├── icons/
 │   ├── icon-192.png
 │   └── icon-512.png
@@ -93,9 +98,11 @@ AnTask/
     ├── css/
     │   └── style.css       # Sistema de diseño completo
     └── js/
-        ├── script.js       # Lógica principal de tareas y proyectos
-        ├── notas.js        # Lógica del bloc de notas
-        └── firebase-sync.js# Módulo de sincronización Firebase (opcional)
+        ├── script.js                 # Lógica principal de tareas, proyectos y notas
+        ├── sections-and-profile.js   # Menú de perfil + ajustes
+        ├── notifications.js          # Avisos diarios de tareas vencidas
+        ├── paste-utils.js            # Utilidades de pegado en editores
+        └── firebase-sync.js          # Módulo de sincronización Firebase (opcional)
 ```
 
 ---
@@ -142,7 +149,7 @@ Los datos se almacenan en `/users/{uid}/workspace/data`. El módulo es independi
 |----------------|-----------------------------------------|
 | Lenguaje       | HTML5, CSS3, JavaScript ES6+ (vanilla)  |
 | Frameworks     | Ninguno                                 |
-| Dependencias   | Ninguna                                 |
+| Build tool     | Vite                                    |
 | Almacenamiento | `localStorage`                          |
 | Sincronización | Firebase Firestore (opcional)           |
 | Tipografías    | Google Fonts (Inter, JetBrains Mono)    |

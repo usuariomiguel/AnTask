@@ -12,7 +12,14 @@
       "Bash(npx --yes svgexport \"src/img/logo-icon.svg\" \"icons/icon-192.png\" 192:192)",
       "Bash(npx svgexport *)",
       "Bash(awk -F: '$1+0 >= 3700 && $1+0 <= 4200')",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\" -Recurse -File | Where-Object {$_.Extension -match '\\\\.\\(js|json|html\\)$'} | Select-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\anson\\\\Desktop\\\\repos\\\\AnTask\" -Recurse -File | Where-Object {$_.Extension -match '\\\\.\\(js|json|html\\)$'} | Select-Object FullName)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(node --check src/js/script.js)",
+      "Bash(curl -s -o /dev/null -w \"main: %{http_code} | html: \" http://localhost:5173/src/js/main.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} | string: \" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} | date: \" http://localhost:5173/src/js/utils/string.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/src/js/utils/date.js)"
     ]
   }
 }

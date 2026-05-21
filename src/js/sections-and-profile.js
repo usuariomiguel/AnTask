@@ -3,6 +3,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 (function initProfileMenu() {
+  // Aliases de globales expuestos por otros módulos
+  var AnsoNotif                  = window.AnsoNotif                  || null;
+  var modalAlert                 = window.modalAlert                 || null;
+  var toggleThemeWithTransition  = window.toggleThemeWithTransition  || null;
+  var THEME_KEY                  = window.THEME_KEY                  || "mis-tareas-theme";
+
   var profileBtn      = document.getElementById("profile-btn");
   var profileDropdown = document.getElementById("profile-dropdown");
   var pfExportBtn     = document.getElementById("pf-export-btn");
@@ -137,7 +143,7 @@
       delBtn.addEventListener("click", function(e) {
         e.stopPropagation();
         if (AnsoNotif.getTimes().length <= 1) {
-          alert("Debe quedar al menos una hora de aviso. Si no quieres avisos, desactívalos arriba.");
+          if (window.modalAlert) modalAlert("Debe quedar al menos una hora de aviso. Si no quieres avisos, desactívalos arriba.", "info");
           return;
         }
         AnsoNotif.removeTime(t);
@@ -191,13 +197,13 @@
         refreshNotifUI();
       } else {
         if (AnsoNotif.permission() === "denied") {
-          alert("Las notificaciones están bloqueadas en este navegador. Habilítalas desde los ajustes del sitio para poder activarlas aquí.");
+          if (window.modalAlert) modalAlert("Las notificaciones están bloqueadas en este navegador. Habilítalas desde los ajustes del sitio para poder activarlas aquí.", "error");
           return;
         }
         AnsoNotif.requestEnable().then(function(ok) {
           refreshNotifUI();
           if (!ok && AnsoNotif.permission() === "denied") {
-            alert("Permiso denegado. No se podrán mostrar avisos.");
+            if (window.modalAlert) modalAlert("Permiso denegado. No se podrán mostrar avisos.", "error");
           }
         });
       }
@@ -219,7 +225,7 @@
   if (pfNotifTest && window.AnsoNotif) {
     pfNotifTest.addEventListener("click", function() {
       if (!AnsoNotif.fireTest()) {
-        alert("Activa primero los avisos para poder probarlos.");
+        if (window.modalAlert) modalAlert("Activa primero los avisos para poder probarlos.", "info");
       }
     });
   }

@@ -9,13 +9,12 @@
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="./src/css/style.css"/>
     <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg">
     <link rel="icon" type="image/png" href="./icons/icon-192.png">
+    <!-- CSS render-blocking → evita el FOUC mientras carga el módulo JS -->
+    <link rel="stylesheet" href="./src/css/style.css">
   </head>
   <body>
-
-    <div class="cursor-glow" aria-hidden="true"></div>
 
     <!-- ── SPLASH / LOADING SCREEN ──────────────────────────── -->
     <div id="splash" aria-hidden="true" role="status" aria-label="Cargando antask">
@@ -59,9 +58,7 @@
             <span class="mobile-header-count" id="mobile-header-count"></span>
           </div>
         </div>
-        <div class="mobile-header-right">
-          <button type="button" class="mobile-icon-btn mobile-header-notes-btn" id="mobile-header-notes-btn" aria-label="Notas del proyecto"><i data-lucide="file-text"></i></button>
-        </div>
+        <div class="mobile-header-right"></div>
       </header>
 
       <!-- ── MOBILE BODY: sidebar + main ──────────────────── -->
@@ -96,15 +93,6 @@
           <div class="new-item-row">
             <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> Proyecto</button>
             <button type="button" id="new-note-btn" class="new-note-btn"><i data-lucide="file-plus"></i> Nota</button>
-          </div>
-          <!-- Legacy sync nodes (hidden, JS still references them internally) -->
-          <div id="sync-section" hidden style="display:none!important">
-            <button id="sync-signin-btn" type="button"></button>
-            <div id="sync-user-info" hidden>
-              <span id="sync-user-avatar"></span>
-              <div><span id="sync-user-name"></span></div>
-              <button id="sync-signout-btn" type="button"></button>
-            </div>
           </div>
           <!-- Profile menu -->
           <div class="profile-wrap" id="profile-wrap">
@@ -205,7 +193,6 @@
               </div>
             </div>
             <div class="header-actions">
-              <a id="notes-link" href="#" class="notes-link"><i data-lucide="file-text"></i> Notas del proyecto</a>
               <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto"><i data-lucide="x"></i></button>
             </div>
           </div>
@@ -224,14 +211,8 @@
               <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
                 <i data-lucide="calendar-range"></i><span>Agenda</span>
               </button>
-              <button type="button" class="view-tab view-tab--desktop-only" data-view="kanban" id="view-tab-kanban">
-                <i data-lucide="layout-dashboard"></i><span>Kanban</span>
-              </button>
               <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
                 <i data-lucide="calendar-days"></i><span>Mes</span>
-              </button>
-              <button type="button" class="view-tab" data-view="stats" id="view-tab-stats">
-                <i data-lucide="bar-chart-2"></i><span>Stats</span>
               </button>
             </div>
             <div class="view-nav-right">
@@ -305,14 +286,6 @@
         <div class="alt-panel agenda-panel" id="agenda-panel" hidden>
           <div id="agenda-content" class="agenda-content"></div>
         </div>
-
-        <!-- Vista Kanban -->
-        <div class="alt-panel kanban-panel" id="kanban-panel" hidden>
-          <div id="kanban-board" class="kanban-board"></div>
-        </div>
-
-        <!-- Vista Stats -->
-        <div class="alt-panel stats-panel" id="stats-panel" hidden></div>
 
         <!-- Vista Nota -->
         <div class="note-panel" id="note-panel" hidden>
@@ -417,12 +390,10 @@
           <div class="task-actions">
             <span class="task-due-container"></span>
             <span class="task-recur-container"></span>
-            <span class="task-timer-container"></span>
             <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
             <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
             <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
             <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
-            <button type="button" class="timer-btn" title="Cronómetro"><i data-lucide="timer"></i> Crono</button>
             <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
             <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Etiq.</button>
             <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub.</button>
@@ -453,50 +424,8 @@
         <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="recur"><i data-lucide="repeat"></i> Repetición</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="timer"><i data-lucide="timer"></i> Cronómetro</button>
         <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
       </div>
-    </div>
-
-    <!-- ── NOTES SIDE PANEL ──────────────────────────────────────── -->
-    <div class="notes-side-panel" id="notes-side-panel" role="complementary" aria-label="Notas del proyecto">
-      <div class="notes-drag-handle" id="notes-drag-handle" aria-hidden="true"></div>
-      <div class="notes-resize-handle" id="notes-resize-handle" aria-hidden="true"></div>
-      <div class="notes-side-header">
-        <span class="notes-side-title">// Notas</span>
-        <div class="notes-side-toolbar" role="toolbar" aria-label="Formato de notas">
-          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
-          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
-          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="underline" title="Subrayado (Ctrl+U)"><span style="text-decoration:underline">U</span></button>
-          <button type="button" class="fmt-btn notes-fmt-btn" data-cmd="strikeThrough" title="Tachado (Ctrl+M)"><span style="text-decoration:line-through">M</span></button>
-          <span class="note-toolbar-sep"></span>
-          <div class="fmt-color-wrap">
-            <button type="button" class="fmt-btn notes-fmt-btn fmt-color-btn" title="Color de texto"><span class="fmt-color-label">A</span></button>
-            <div class="fmt-color-palette" hidden>
-              <button class="fmt-color-swatch" data-color="#ef4444" style="background:#ef4444" title="Rojo"></button>
-              <button class="fmt-color-swatch" data-color="#f97316" style="background:#f97316" title="Naranja"></button>
-              <button class="fmt-color-swatch" data-color="#eab308" style="background:#eab308" title="Amarillo"></button>
-              <button class="fmt-color-swatch" data-color="#22c55e" style="background:#22c55e" title="Verde"></button>
-              <button class="fmt-color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="Azul"></button>
-              <button class="fmt-color-swatch" data-color="#a855f7" style="background:#a855f7" title="Morado"></button>
-              <button class="fmt-color-swatch" data-color="#ec4899" style="background:#ec4899" title="Rosa"></button>
-              <button class="fmt-color-swatch fmt-color-clear" data-color="" title="Quitar color">✕</button>
-            </div>
-          </div>
-          <button type="button" id="notes-side-close" class="notes-side-close" aria-label="Cerrar panel de notas">✕</button>
-        </div>
-      </div>
-      <div
-        id="notes-side-editor"
-        class="notes-editor notes-side-editor"
-        contenteditable="true"
-        role="textbox"
-        aria-multiline="true"
-        aria-label="Notas del proyecto"
-        data-placeholder="// escribe aquí las notas del proyecto..."
-        spellcheck="true"
-      ></div>
-      <p id="notes-side-status" class="save-status notes-side-status">Sin cambios recientes</p>
     </div>
 
     <!-- Paste options toast -->
@@ -507,26 +436,19 @@
       <div class="paste-toast-bar"></div>
     </div>
 
-    <!-- ── TIMER BAR (rows inyectadas dinámicamente) ────────────── -->
-    <div id="timer-bar" class="timer-bar" hidden></div>
-
-    <!-- Firebase SDK (compat v10) -->
+    <!-- Firebase SDK + Lucide (CDN, classic scripts — corren antes que el módulo) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="./src/js/firebase-sync.js"></script>
-    <script src="./src/js/paste-utils.js"></script>
-    <script src="./src/js/notifications.js"></script>
-    <script src="./src/js/script.js"></script>
-    <script src="./src/js/sections-and-profile.js"></script>
+    <!-- App entry (ES module) -->
+    <script type="module" src="./src/js/main.js"></script>
     <script>
     // ── MOBILE UI LOGIC ──────────────────────────────────────────
     (function() {
       var isMobile = function() { return window.innerWidth <= 768; };
 
       // ── Sidebar toggle ────────────────────────────────────────
-      var menuBtn    = document.getElementById("mobile-menu-btn");
       var backdrop   = document.getElementById("sidebar-backdrop");
       var sidebar    = document.querySelector(".sidebar");
 
@@ -541,7 +463,6 @@
         document.body.style.overflow = "";
       }
 
-      if (menuBtn) menuBtn.addEventListener("click", openSidebar);
       if (backdrop) backdrop.addEventListener("click", closeSidebar);
 
       if (sidebar) {
@@ -551,12 +472,6 @@
         });
       }
 
-
-      // ── Mobile notes button ───────────────────────────────────
-      var mobileHeaderNotesBtn = document.getElementById("mobile-header-notes-btn");
-      var desktopNotesLink     = document.getElementById("notes-link");
-      if (mobileHeaderNotesBtn && desktopNotesLink)
-        mobileHeaderNotesBtn.addEventListener("click", function() { desktopNotesLink.click(); });
 
       // ── Task action sheet ─────────────────────────────────────
       var actionSheet   = document.getElementById("task-action-sheet");
@@ -618,7 +533,6 @@
                     action === "labels"   ? ".label-add-btn" :
                     action === "subtask"  ? ".subtask-add-btn" :
                     action === "recur"    ? ".recur-btn" :
-                    action === "timer"    ? ".timer-btn" :
                     action === "delete"   ? ".delete-btn" : null;
           var target = sel && currentTaskNode.querySelector(sel);
           closeSheet();
@@ -696,10 +610,9 @@
       // ── Bottom navigation ─────────────────────────────────────
       var bnavProjects = document.getElementById("bnav-projects-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
-      var bnavSettings = document.getElementById("bnav-settings-btn");
 
       function setActiveBnavBtn(btn) {
-        [bnavProjects, bnavSearch, bnavSettings].forEach(function(b) {
+        [bnavProjects, bnavSearch].forEach(function(b) {
           if (b) b.classList.remove("active");
         });
         if (btn) btn.classList.add("active");
@@ -716,18 +629,6 @@
         bnavSearch.addEventListener("click", function() {
           setActiveBnavBtn(null);
           if (typeof showGlobalSearch === "function") showGlobalSearch();
-        });
-      }
-
-      if (bnavSettings) {
-        bnavSettings.addEventListener("click", function() {
-          setActiveBnavBtn(bnavSettings);
-          openSidebar();
-          setTimeout(function() {
-            var pb = document.getElementById("profile-btn");
-            if (pb && !document.getElementById("profile-dropdown").hidden === false) pb.click();
-            else if (pb) pb.click();
-          }, 300);
         });
       }
 
@@ -753,16 +654,18 @@
     })();
     </script>
     <script>
+      // El Service Worker se registra siempre — tanto en dev como en producción —
+      // porque las notificaciones (`reg.showNotification(...)`) lo necesitan.
+      // Su estrategia es network-first, así que no interfiere con HMR en dev.
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("./service-worker.js").catch(function (error) {
             console.error("Error al registrar Service Worker:", error);
           });
         });
       }
       if (window.lucide) lucide.createIcons();
     </script>
-    <script src="./src/js/cursor.js"></script>
 
   </body>
 </html>
