@@ -973,6 +973,33 @@ function renderPinnedItems(inboxProject) {
         (pending > 0 ? '<span class="project-item-count">' + pending + '</span>' : "") +
       '</div>';
     inbox.addEventListener("click", function() { activateProject(INBOX_ID); });
+
+    inbox.addEventListener("dragover", function(e) {
+      if (!dragSrcId || dragSrcProjectId) return;
+      if (activeProjectId === INBOX_ID) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      inbox.classList.add("project-task-drop-target");
+    });
+    inbox.addEventListener("dragleave", function(e) {
+      if (!inbox.contains(e.relatedTarget)) {
+        inbox.classList.remove("project-task-drop-target");
+      }
+    });
+    inbox.addEventListener("drop", function(e) {
+      inbox.classList.remove("project-task-drop-target");
+      if (!dragSrcId || dragSrcProjectId) return;
+      if (activeProjectId === INBOX_ID) return;
+      e.preventDefault();
+      const srcProject = getActiveProject();
+      if (!srcProject) return;
+      const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
+      if (taskIdx === -1) return;
+      const [moved] = srcProject.tasks.splice(taskIdx, 1);
+      inboxProject.tasks.push(moved);
+      saveAndRender();
+    });
+
     projectListEl.appendChild(inbox);
   }
 
@@ -1093,6 +1120,11 @@ function renderSectionHeader(section, sectionProjects) {
   li.appendChild(nameEl);
   li.appendChild(countEl);
   li.appendChild(menuBtn);
+  li.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showSectionMenu(section, menuBtn);
+  });
   li.addEventListener("click", function(e) {
     if (e.target.closest(".section-drag-handle") || e.target.closest(".section-menu-btn")) return;
     section.collapsed = !section.collapsed;
@@ -1167,16 +1199,9 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   dragHandle.title = "Arrastrar para reordenar";
   dragHandle.setAttribute("aria-hidden", "true");
 
-  const colorDot = project.color ? document.createElement("span") : null;
-  if (colorDot) {
-    colorDot.className = "project-color-dot";
-    colorDot.style.background = project.color;
-  }
-
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
   topRow.appendChild(dragHandle);
-  if (colorDot) topRow.appendChild(colorDot);
   if (iconBtn) topRow.appendChild(iconBtn);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
@@ -3795,6 +3820,7 @@ function _syncOnRemoteChange(remoteProjects, remoteSections, remoteStandaloneNot
 function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes, uid) {
   try {
     projects = remoteProjects.map(sanitizeProject);
+    ensureInbox();
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
     if (Array.isArray(remoteSections)) {
       sections = remoteSections;

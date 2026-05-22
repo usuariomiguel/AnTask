@@ -2046,7 +2046,7 @@ button:focus-visible {
 .task-text {
   font-family: var(--font-sans);
   font-size: var(--fs-md);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-regular);
   letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
   flex: 1;
@@ -4003,7 +4003,7 @@ input.inline-edit {
 
   .task-text {
     font-size: var(--fs-base);
-    font-weight: var(--fw-medium);
+    font-weight: var(--fw-regular);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
