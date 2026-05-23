@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit -p jsconfig.json"
   },
   "devDependencies": {
-    "vite": "^5.4.10"
+    "vite": "^6.4.2"
   },
   "dependencies": {
     "firebase": "^12.13.0"
