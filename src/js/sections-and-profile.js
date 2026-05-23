@@ -87,6 +87,15 @@
     });
   }
 
+  var tourBtn = document.getElementById("tour-btn");
+  if (tourBtn) {
+    tourBtn.addEventListener("click", function() {
+      profileDropdown.hidden = true;
+      profileBtn.setAttribute("aria-expanded", "false");
+      if (typeof window.showOnboardingAgain === "function") window.showOnboardingAgain();
+    });
+  }
+
   if (pfThemeBtn) {
     pfThemeBtn.addEventListener("click", function() {
       profileDropdown.hidden = true;

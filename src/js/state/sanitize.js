@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════
 // Sanitización de datos (input no confiable → forma canónica)
 //
@@ -9,9 +10,19 @@
 
 import { generateId } from "../utils/id.js";
 
+/** @typedef {import("./types.js").Subtask}          Subtask */
+/** @typedef {import("./types.js").Task}             Task */
+/** @typedef {import("./types.js").Project}          Project */
+/** @typedef {import("./types.js").StandaloneNote}   StandaloneNote */
+/** @typedef {import("./types.js").SmartList}        SmartList */
+
 const VALID_STATUSES   = new Set(["progress", "waiting", null]);
 const VALID_PRIORITIES = ["high", "medium", "low"];
 
+/**
+ * @param {any} input
+ * @returns {Subtask[]}
+ */
 export function sanitizeSubtasks(input) {
   if (!Array.isArray(input)) return [];
   return input
@@ -26,6 +37,10 @@ export function sanitizeSubtasks(input) {
     .filter(function (s) { return s.text.length > 0; });
 }
 
+/**
+ * @param {any} input
+ * @returns {Task[]}
+ */
 export function sanitizeTasks(input) {
   if (!Array.isArray(input)) return [];
   return input
@@ -43,6 +58,7 @@ export function sanitizeTasks(input) {
                       : [],
         dueDate:    typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
         recurDays:  (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
+        reminderAt: typeof i.reminderAt === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(i.reminderAt) ? i.reminderAt : null,
         timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
         subtasks:   sanitizeSubtasks(i.subtasks),
       };
@@ -50,6 +66,10 @@ export function sanitizeTasks(input) {
     .filter(function (i) { return i.text.length > 0; });
 }
 
+/**
+ * @param {any} p
+ * @returns {Project}
+ */
 export function sanitizeProject(p) {
   return {
     id:        typeof p.id === "string" ? p.id : generateId(),
@@ -67,6 +87,10 @@ export function sanitizeProject(p) {
   };
 }
 
+/**
+ * @param {any} n
+ * @returns {StandaloneNote}
+ */
 export function sanitizeStandaloneNote(n) {
   return {
     id:        typeof n.id === "string" ? n.id : "note-" + Date.now(),
@@ -74,5 +98,44 @@ export function sanitizeStandaloneNote(n) {
     content:   typeof n.content === "string" ? n.content : "",
     createdAt: n.createdAt || new Date().toISOString(),
     color:     typeof n.color === "string" ? n.color : "",
+  };
+}
+
+const VALID_SL_STATUS   = ["pending", "done", "any"];
+const VALID_SL_DUEDATE  = ["any", "overdue", "today", "this_week", "no_date"];
+const VALID_SL_PRIORITY = ["any", "high", "medium", "low"];
+
+/**
+ * Sanitiza un Smart List (filtro guardado).
+ *
+ * Shape:
+ *   {
+ *     id, name, icon, createdAt,
+ *     filters: {
+ *       status:   "pending" | "done" | "any",
+ *       priority: "any" | "high" | "medium" | "low",
+ *       dueDate:  "any" | "overdue" | "today" | "this_week" | "no_date",
+ *       label:    string | null
+ *     }
+ *   }
+ */
+/**
+ * @param {any} sl
+ * @returns {SmartList|null}
+ */
+export function sanitizeSmartList(sl) {
+  if (!sl || typeof sl !== "object") return null;
+  const f = sl.filters || {};
+  return {
+    id:        typeof sl.id === "string" ? sl.id : "sl-" + Date.now() + "-" + Math.random().toString(16).slice(2),
+    name:      typeof sl.name === "string" ? sl.name.trim().slice(0, 50) : "Sin nombre",
+    icon:      typeof sl.icon === "string" ? sl.icon : "🔍",
+    createdAt: sl.createdAt || new Date().toISOString(),
+    filters: {
+      status:   VALID_SL_STATUS.includes(f.status)     ? f.status   : "pending",
+      priority: VALID_SL_PRIORITY.includes(f.priority) ? f.priority : "any",
+      dueDate:  VALID_SL_DUEDATE.includes(f.dueDate)   ? f.dueDate  : "any",
+      label:    typeof f.label === "string" && f.label.length > 0 ? f.label : null,
+    },
   };
 }

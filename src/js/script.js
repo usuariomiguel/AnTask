@@ -3,6 +3,8 @@ import { escHtml }                          from "./utils/html.js";
 import { capitalizeFirst }                  from "./utils/string.js";
 import { getDueDateState, formatDueDate }   from "./utils/date.js";
 import { generateId }                       from "./utils/id.js";
+import { parseNaturalLanguage }             from "./utils/nl-parse.js";
+import { buildNLChipsHTML }                 from "./utils/nl-chips.js";
 import {
   createModalBase,
   closeModal,
@@ -11,6 +13,7 @@ import {
   modalAlert,
   modalDate,
   modalRecurrence,
+  modalReminder,
 } from "./ui/modal.js";
 import {
   PROJECTS_KEY,
@@ -20,6 +23,7 @@ import {
   TASK_PREFS_KEY,
   THEME_KEY,
   SECTIONS_KEY,
+  SMART_LISTS_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -27,6 +31,7 @@ import {
   sanitizeTasks,
   sanitizeSubtasks,
   sanitizeStandaloneNote,
+  sanitizeSmartList,
 } from "./state/sanitize.js";
 import {
   loadProjects,
@@ -34,6 +39,7 @@ import {
   loadStandaloneNotes,
   loadMetadata,
   loadTaskPrefs,
+  loadSmartLists,
 } from "./state/persistence.js";
 import {
   STATUS_CYCLE,
@@ -55,6 +61,12 @@ import {
 } from "./ui/labels.js";
 import { renderSubtasks } from "./ui/subtasks.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
+import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
+import {
+  showOnboarding,
+  shouldShowOnboarding,
+  markOnboardingDone,
+} from "./ui/onboarding.js";
 import {
   initializeTheme,
   toggleThemeWithTransition,
@@ -92,6 +104,52 @@ function openGlobalSearch() {
 // Lo expone también vía window porque el inline script de
 // index.html (bottom-nav móvil) usa esa referencia global.
 window.showGlobalSearch = openGlobalSearch;
+
+/**
+ * Abre la captura rápida. Detecta proyecto destino:
+ *  - Si hay proyecto activo (no Hoy) → ahí
+ *  - Si no → Inbox (fallback)
+ */
+function openQuickCapture() {
+  showQuickCapture({
+    getTarget: function() {
+      var current = activeView === "project" ? getActiveProject() : null;
+      if (current) return { project: current, isFallback: false };
+      var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
+      return { project: inbox, isFallback: true };
+    },
+    onCreate: function(targetProject, rawText) {
+      const created = _createTaskInProject(targetProject, rawText);
+      if (!created) return;
+      saveProjects();
+      renderSidebar();
+      // Si la captura es para el proyecto que tenemos abierto, re-pintar tareas.
+      if (activeView === "project" && activeProjectId === targetProject.id) {
+        renderTasks();
+      }
+      // Si la captura va al Inbox y estamos en Hoy, refrescar contador Hoy.
+      if (activeView === "today") renderTasks();
+    },
+    onToast: function(msg) { _showQuickToast(msg); },
+  });
+}
+window.openQuickCapture = openQuickCapture;
+
+/** Toast minimalista que aparece arriba a la derecha durante 1.8s. */
+function _showQuickToast(msg) {
+  var existing = document.getElementById("quick-toast");
+  if (existing) existing.remove();
+  var t = document.createElement("div");
+  t.id = "quick-toast";
+  t.className = "quick-toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(function() { t.classList.add("quick-toast-visible"); });
+  setTimeout(function() {
+    t.classList.remove("quick-toast-visible");
+    setTimeout(function() { t.remove(); }, 280);
+  }, 1800);
+}
 
 // Otros módulos (sections-and-profile.js) acceden a modalAlert vía window.
 window.modalAlert = modalAlert;
@@ -139,6 +197,11 @@ const INBOX_ID = "__inbox__";
 let projects        = loadProjects();
 let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
+let smartLists      = loadSmartLists();
+ensureDefaultSmartLists();
+
+// Activador de listas guardadas (smart lists).
+let activeSmartListId = null;
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
@@ -163,6 +226,242 @@ function ensureInbox() {
   // dependencias como AnsoSync sí podrían no estar). Mejor inline:
   try { localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)); } catch (_) {}
 }
+
+/**
+ * En la primera carga, si el usuario no tiene smart lists definidas,
+ * sembramos 3 presets útiles. Si después las borra, no las recreamos.
+ */
+function ensureDefaultSmartLists() {
+  if (smartLists.length > 0) return;
+  try {
+    if (localStorage.getItem("antask-smart-lists-seeded") === "1") return;
+  } catch (_) {}
+  smartLists = [
+    sanitizeSmartList({ id: "sl-overdue",  name: "Vencidas",      icon: "⏰", filters: { status: "pending", dueDate: "overdue" } }),
+    sanitizeSmartList({ id: "sl-week",     name: "Esta semana",   icon: "📅", filters: { status: "pending", dueDate: "this_week" } }),
+    sanitizeSmartList({ id: "sl-priority", name: "Prioridad alta", icon: "🔥", filters: { status: "pending", priority: "high" } }),
+  ];
+  try {
+    localStorage.setItem(SMART_LISTS_KEY, JSON.stringify(smartLists));
+    localStorage.setItem("antask-smart-lists-seeded", "1");
+  } catch (_) {}
+}
+
+/** Persistencia de smart lists. */
+function saveSmartLists() {
+  try { localStorage.setItem(SMART_LISTS_KEY, JSON.stringify(smartLists)); } catch (_) {}
+  if (window.AnsoSync && AnsoSync.scheduleSave) {
+    AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+  }
+}
+
+/**
+ * Modal para crear o editar un smart list.
+ *
+ * @param {object|null} existing — null si crea nuevo, objeto smart list si edita
+ */
+function showSmartListEditor(existing) {
+  const isEdit = !!existing;
+  const data = existing || {
+    id:   "sl-" + Date.now(),
+    name: "",
+    icon: "🔍",
+    filters: { status: "pending", priority: "any", dueDate: "any", label: null },
+  };
+
+  const { overlay, box } = createModalBase();
+  box.className = "modal-box modal-box-smart-list";
+
+  // Reunir etiquetas de todos los proyectos para el selector
+  const allLabels = [];
+  projects.forEach(function (p) {
+    if (Array.isArray(p.labels)) {
+      p.labels.forEach(function (l) { if (!allLabels.includes(l)) allLabels.push(l); });
+    }
+  });
+
+  function opt(value, label, current) {
+    return '<option value="' + value + '"' + (current === value ? " selected" : "") + '>' + label + '</option>';
+  }
+
+  box.innerHTML =
+    '<div class="modal-icon"><i data-lucide="list-filter"></i></div>' +
+    '<p class="modal-label">' + (isEdit ? "Editar lista" : "Nueva lista guardada") + '</p>' +
+
+    '<div class="sl-form-row">' +
+      '<label class="sl-form-label">Nombre</label>' +
+      '<input class="modal-input sl-name" type="text" maxlength="50" placeholder="Ej: Urgentes con #trabajo" value="' + escHtml(data.name) + '">' +
+    '</div>' +
+
+    '<div class="sl-form-row sl-form-row-icon">' +
+      '<label class="sl-form-label">Icono</label>' +
+      '<input class="modal-input sl-icon" type="text" maxlength="3" placeholder="🔍" value="' + escHtml(data.icon || "") + '">' +
+    '</div>' +
+
+    '<div class="sl-form-row">' +
+      '<label class="sl-form-label">Estado</label>' +
+      '<select class="modal-input sl-status">' +
+        opt("pending", "Pendientes", data.filters.status) +
+        opt("done",    "Hechas",     data.filters.status) +
+        opt("any",     "Todas",      data.filters.status) +
+      '</select>' +
+    '</div>' +
+
+    '<div class="sl-form-row">' +
+      '<label class="sl-form-label">Prioridad</label>' +
+      '<select class="modal-input sl-priority">' +
+        opt("any",    "Cualquiera",  data.filters.priority) +
+        opt("high",   "Alta",        data.filters.priority) +
+        opt("medium", "Media",       data.filters.priority) +
+        opt("low",    "Baja",        data.filters.priority) +
+      '</select>' +
+    '</div>' +
+
+    '<div class="sl-form-row">' +
+      '<label class="sl-form-label">Fecha límite</label>' +
+      '<select class="modal-input sl-duedate">' +
+        opt("any",       "Cualquiera",       data.filters.dueDate) +
+        opt("overdue",   "Vencidas",         data.filters.dueDate) +
+        opt("today",     "Hoy",              data.filters.dueDate) +
+        opt("this_week", "Esta semana",      data.filters.dueDate) +
+        opt("no_date",   "Sin fecha",        data.filters.dueDate) +
+      '</select>' +
+    '</div>' +
+
+    '<div class="sl-form-row">' +
+      '<label class="sl-form-label">Con etiqueta</label>' +
+      '<select class="modal-input sl-label">' +
+        '<option value="">(cualquiera)</option>' +
+        allLabels.map(function (l) { return opt(l, "#" + l, data.filters.label); }).join("") +
+      '</select>' +
+    '</div>' +
+
+    '<div class="modal-actions">' +
+      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+      '<button type="button" class="modal-btn modal-btn-confirm">' + (isEdit ? "Guardar" : "Crear") + '</button>' +
+    '</div>';
+
+  if (window.lucide) window.lucide.createIcons({ nodes: [box] });
+
+  const nameInput = box.querySelector(".sl-name");
+  function doConfirm() {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    const labelVal = box.querySelector(".sl-label").value;
+    const sanitized = sanitizeSmartList({
+      id:        data.id,
+      name:      name,
+      icon:      box.querySelector(".sl-icon").value.trim() || "🔍",
+      createdAt: data.createdAt || new Date().toISOString(),
+      filters: {
+        status:   box.querySelector(".sl-status").value,
+        priority: box.querySelector(".sl-priority").value,
+        dueDate:  box.querySelector(".sl-duedate").value,
+        label:    labelVal || null,
+      },
+    });
+    if (isEdit) {
+      const idx = smartLists.findIndex(function (s) { return s.id === sanitized.id; });
+      if (idx !== -1) smartLists[idx] = sanitized;
+    } else {
+      smartLists.push(sanitized);
+    }
+    saveSmartLists();
+    closeModal(overlay);
+    renderSidebar();
+    activateSmartList(sanitized.id);
+  }
+  function doCancel() { closeModal(overlay); }
+
+  overlay._cancel = doCancel;
+  box.querySelector(".modal-btn-confirm").addEventListener("click", doConfirm);
+  box.querySelector(".modal-btn-cancel").addEventListener("click",  doCancel);
+  nameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter")  { e.preventDefault(); doConfirm(); }
+    if (e.key === "Escape") doCancel();
+  });
+
+  setTimeout(function () { nameInput.focus(); }, 50);
+}
+
+/** Menú contextual de un smart list (editar / eliminar). */
+function showSmartListMenu(sl, anchor) {
+  closeCtxMenu();
+  const items = [
+    { label: "Editar", action: function () { showSmartListEditor(sl); } },
+    null,
+    {
+      label: "Eliminar",
+      danger: true,
+      action: async function () {
+        const ok = await modalConfirm("¿Eliminar la lista <strong>" + escHtml(sl.name) + "</strong>? Las tareas que filtra no se borran.", "Eliminar");
+        if (!ok) return;
+        smartLists = smartLists.filter(function (s) { return s.id !== sl.id; });
+        saveSmartLists();
+        if (activeSmartListId === sl.id) {
+          activeSmartListId = null;
+          activateProject(null);
+        } else {
+          renderSidebar();
+        }
+      },
+    },
+  ];
+  const menu = _buildCtxMenu(items);
+  positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+  requestAnimationFrame(function () {
+    _ctxCloseHandler = function (e) {
+      if (!menu.contains(e.target)) closeCtxMenu();
+    };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+/**
+ * Evalúa si una tarea pasa los filtros de un smart list.
+ *
+ * @param {object} task
+ * @param {object} project — proyecto al que pertenece (necesario para excluir archivados)
+ * @param {object} filters
+ * @returns {boolean}
+ */
+function _smartListMatch(task, project, filters) {
+  if (!task || !filters) return false;
+  if (project && project.archived) return false;
+
+  // status
+  if (filters.status === "pending" && task.done) return false;
+  if (filters.status === "done"    && !task.done) return false;
+
+  // priority
+  if (filters.priority && filters.priority !== "any" && task.priority !== filters.priority) return false;
+
+  // dueDate
+  if (filters.dueDate && filters.dueDate !== "any") {
+    const today = new Date().toISOString().slice(0, 10);
+    if (filters.dueDate === "overdue") {
+      if (!task.dueDate || task.dueDate >= today) return false;
+    } else if (filters.dueDate === "today") {
+      if (task.dueDate !== today) return false;
+    } else if (filters.dueDate === "this_week") {
+      if (!task.dueDate) return false;
+      const t = new Date(today + "T00:00:00");
+      const d = new Date(task.dueDate + "T00:00:00");
+      const diff = Math.floor((d - t) / 86400000);
+      if (diff < 0 || diff > 7) return false;
+    } else if (filters.dueDate === "no_date") {
+      if (task.dueDate) return false;
+    }
+  }
+
+  // label
+  if (filters.label) {
+    if (!Array.isArray(task.labels) || !task.labels.includes(filters.label)) return false;
+  }
+
+  return true;
+}
 let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
@@ -180,8 +479,9 @@ let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indi
 let _undoTimer = null;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
-let _archivedExpanded = false;
-let _notesExpanded    = true;
+let _archivedExpanded  = false;
+let _notesExpanded     = true;
+let _smartListsExpanded = true;
 let taskPrefs         = loadTaskPrefs();
 
 // ─── MULTI-SELECT ─────────────────────────────────────────────
@@ -196,6 +496,14 @@ try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e)
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
+
+// Recordatorios por tarea — programar timers cuando AnsoNotif ya esté
+// inicializado (lo hace sections-and-profile.js, que se carga después).
+setTimeout(function () {
+  if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
+    window.AnsoNotif.scheduleTaskReminders(projects);
+  }
+}, 800);
 
 // ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
 // Se desvanece en cuanto la app ha pintado el primer frame real.
@@ -217,6 +525,29 @@ try { activateProject(activeProjectId); } catch(e) { console.error("activateProj
     });
   });
 })();
+
+// ─── ONBOARDING (primera ejecución) ──────────────────────────
+// Solo se muestra si nunca se ha visto Y no hay datos previos
+// (un usuario con tareas/proyectos ya creados no es "nuevo").
+(function () {
+  if (!shouldShowOnboarding()) return;
+
+  var hasContent = projects.some(function (p) {
+    return p.id !== INBOX_ID && Array.isArray(p.tasks) && p.tasks.length > 0;
+  }) || (Array.isArray(standaloneNotes) && standaloneNotes.length > 0);
+
+  if (hasContent) {
+    // Usuario existente — marcamos como visto en silencio.
+    markOnboardingDone();
+    return;
+  }
+
+  // Pequeño delay para que el splash termine de desvanecerse.
+  setTimeout(function () { showOnboarding(); }, 700);
+})();
+
+/** Re-disparable desde el menú de perfil. */
+window.showOnboardingAgain = function () { showOnboarding(); };
 
 // ─── CLOUD SYNC INIT ─────────────────────────────────────────
 // El UI de sync vive ahora en el dropdown de perfil (sections-and-profile.js).
@@ -308,6 +639,14 @@ document.addEventListener("keydown", function(e) {
   const isEditing = tag === "INPUT" || tag === "TEXTAREA" ||
     (document.activeElement && document.activeElement.isContentEditable);
 
+  // Captura rápida global — funciona incluso si estás escribiendo.
+  // Ctrl/Cmd + Shift + Espacio
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === "Space" || e.key === " ")) {
+    e.preventDefault();
+    if (!isQuickCaptureOpen()) openQuickCapture();
+    return;
+  }
+
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
     openGlobalSearch();
@@ -355,7 +694,7 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "s" || e.key === "S") {
     e.preventDefault();
     (async function() {
-      var name = await modalPrompt("// Nueva sección", "", "Nombre de la sección");
+      var name = await modalPrompt("Nueva sección", "", "Nombre de la sección");
       if (name === null) return;
       var trimmed = name.trim();
       if (!trimmed) return;
@@ -405,7 +744,7 @@ function showIconPicker(project) {
   }).join('');
 
   box.innerHTML =
-    '<p class="modal-label">// Icono del proyecto</p>' +
+    '<p class="modal-label">Icono del proyecto</p>' +
     '<div class="icon-picker-grid">' + gridHtml + '</div>' +
     '<div class="icon-picker-custom">' +
       '<input class="modal-input icon-picker-input" type="text" maxlength="4"' +
@@ -532,7 +871,7 @@ function modalProjectPicker(excludeProjectId) {
         '</button>';
     }).join('');
     box.innerHTML =
-      '<p class="modal-label">// Mover a proyecto</p>' +
+      '<p class="modal-label">Mover a proyecto</p>' +
       '<div class="modal-project-list">' + listHtml + '</div>' +
       '<div class="modal-actions">' +
         '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
@@ -560,7 +899,7 @@ function modalProjectPicker(excludeProjectId) {
 
 // ─── NUEVO PROYECTO ──────────────────────────────────────────
 newProjectBtn.addEventListener("click", async function() {
-  const name = await modalPrompt("// Nombre del proyecto", "", "mi-proyecto...");
+  const name = await modalPrompt("Nombre del proyecto", "", "mi-proyecto...");
   if (!name) return;
   const project = {
     id: generateId(),
@@ -592,6 +931,119 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
 });
 
 // ─── FORMULARIO DE TAREA ─────────────────────────────────────
+/** Actualiza el aspecto visual del botón "Aviso" según si la tarea
+ *  tiene recordatorio configurado o no. */
+function _updateReminderBtn(btn, task) {
+  if (!btn) return;
+  btn.classList.toggle("reminder-active", !!task.reminderAt);
+  if (task.reminderAt) {
+    const d = new Date(task.reminderAt);
+    if (!isNaN(d.getTime())) {
+      btn.title = "Recordatorio: " + d.toLocaleString("es-ES", {
+        weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+      });
+      return;
+    }
+  }
+  btn.title = "Establecer recordatorio";
+}
+
+// ─── PREVIEW DE LENGUAJE NATURAL (chips bajo el task-input) ───
+// Se pinta como un pequeño contenedor inyectado debajo del input
+// principal. Lo gestionamos perezosamente: se crea cuando aparece
+// el primer token detectado y se oculta cuando no hay nada que mostrar.
+let _nlPreviewEl = null;
+function _ensureNLPreview() {
+  if (_nlPreviewEl) return _nlPreviewEl;
+  if (!taskForm) return null;
+  _nlPreviewEl = document.createElement("div");
+  _nlPreviewEl.id = "nl-preview";
+  _nlPreviewEl.className = "nl-preview";
+  _nlPreviewEl.hidden = true;
+  taskForm.insertAdjacentElement("afterend", _nlPreviewEl);
+  return _nlPreviewEl;
+}
+
+// _formatDueLabel y _formatRecurLabel viven en ./utils/nl-chips.js
+
+function _renderNLPreview(rawText) {
+  const el = _ensureNLPreview();
+  if (!el) return;
+
+  // Si el input está vacío, ocultar.
+  if (!rawText || !rawText.trim()) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+
+  const p = parseNaturalLanguage(rawText);
+  const chips = buildNLChipsHTML(p);
+
+  if (chips.length === 0) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+
+  el.hidden = false;
+  el.innerHTML =
+    '<span class="nl-preview-arrow">↳</span>' +
+    chips.join("") +
+    (p.text ? '<span class="nl-preview-rest">' + escHtml(p.text) + '</span>' : "");
+
+  if (window.lucide) window.lucide.createIcons({ nodes: [el] });
+}
+
+if (taskInput) {
+  taskInput.addEventListener("input", function() { _renderNLPreview(taskInput.value); });
+  taskInput.addEventListener("blur",  function() {
+    // Ocultar al perder foco si no hay tokens
+    setTimeout(function() {
+      if (_nlPreviewEl && _nlPreviewEl.hidden === false && !taskInput.value.trim()) {
+        _nlPreviewEl.hidden = true;
+        _nlPreviewEl.innerHTML = "";
+      }
+    }, 120);
+  });
+}
+
+/**
+ * Crea una tarea aplicando parseo de lenguaje natural sobre el
+ * texto bruto. Asegura que las etiquetas extraídas existan en el
+ * project.labels. NO persiste ni re-renderiza — eso lo decide el caller.
+ */
+function _createTaskInProject(project, rawText) {
+  const parsed = parseNaturalLanguage(rawText);
+  const text = capitalizeFirst(parsed.text).slice(0, 120);
+  if (!text) return null;
+
+  // Garantizar que las etiquetas detectadas existan en project.labels
+  if (parsed.labels && parsed.labels.length > 0) {
+    if (!Array.isArray(project.labels)) project.labels = [];
+    parsed.labels.forEach(function (l) {
+      if (!project.labels.includes(l)) project.labels.push(l);
+    });
+  }
+
+  const task = {
+    id:         generateId(),
+    text:       text,
+    comment:    "",
+    done:       false,
+    status:     null,
+    priority:   parsed.priority || null,
+    labels:     parsed.labels || [],
+    dueDate:    parsed.dueDate || null,
+    recurDays:  parsed.recurDays || null,
+    reminderAt: null,
+    timeLogged: 0,
+    subtasks:   [],
+  };
+  project.tasks.unshift(task);
+  return task;
+}
+
 taskForm.addEventListener("submit", function(event) {
   event.preventDefault();
   // Fallback: si no hay proyecto activo (ej. usuario sale del último proyecto)
@@ -601,20 +1053,10 @@ taskForm.addEventListener("submit", function(event) {
     project = projects.find(function(p) { return p.id === INBOX_ID; });
     if (!project) return;
   }
-  const text = capitalizeFirst(taskInput.value.trim());
-  if (!text) return;
-  project.tasks.unshift({
-    id: generateId(),
-    text: text,
-    comment: "",
-    done: false,
-    status: null,
-    dueDate: null,
-    recurDays: null,
-    timeLogged: 0,
-    subtasks: [],
-  });
+  const created = _createTaskInProject(project, taskInput.value);
+  if (!created) return;
   taskInput.value = "";
+  _renderNLPreview();
   saveAndRender();
 });
 
@@ -652,19 +1094,9 @@ if (fabForm) {
       project = projects.find(function(p) { return p.id === INBOX_ID; });
       if (!project) return;
     }
-    const text = fabInput ? capitalizeFirst(fabInput.value.trim()) : "";
-    if (!text) return;
-    project.tasks.unshift({
-      id: generateId(),
-      text: text,
-      comment: "",
-      done: false,
-      status: null,
-      dueDate: null,
-      recurDays: null,
-      timeLogged: 0,
-      subtasks: [],
-    });
+    if (!fabInput) return;
+    const created = _createTaskInProject(project, fabInput.value);
+    if (!created) return;
     closeFabSheet();
     saveAndRender();
   });
@@ -836,6 +1268,7 @@ window.activateProject = function(id) { return activateProject(id); };
 function activateProject(id) {
   activeView = "project";
   activeProjectId = id;
+  activeSmartListId = null;
   activeNoteId = null;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
@@ -870,7 +1303,7 @@ function activateProject(id) {
   if (!hasProject) { renderSidebar(); return; }
 
   projectTitleEl.textContent = project.name;
-  projectSubtitle.textContent = "// " + project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -892,6 +1325,7 @@ function activateProject(id) {
 function activateTodayView() {
   activeView = "today";
   activeProjectId = null;
+  activeSmartListId = null;
   activeNoteId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
@@ -916,7 +1350,7 @@ function activateTodayView() {
 
   document.title = "Hoy — antask";
   if (projectTitleEl)  projectTitleEl.textContent  = "Hoy";
-  if (projectSubtitle) projectSubtitle.textContent = "// vencidas y de hoy, todos los proyectos";
+  if (projectSubtitle) projectSubtitle.textContent = "Vencidas y de hoy, en todos los proyectos";
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -931,6 +1365,55 @@ function activateTodayView() {
     var bar = document.getElementById("label-filter-bar");
     if (bar) bar.hidden = true;  // sin filtro de etiquetas en Hoy
   }
+}
+
+/**
+ * Activa una smart list (filtro guardado). Como la vista Hoy, es virtual.
+ */
+function activateSmartList(id) {
+  const list = smartLists.find(function (s) { return s.id === id; });
+  if (!list) return;
+
+  activeView         = "smart-list";
+  activeSmartListId  = id;
+  activeProjectId    = null;
+  activeNoteId       = null;
+  localStorage.removeItem(ACTIVE_KEY);
+
+  _closeAllAltPanels();
+
+  emptyState.hidden = true;
+  if (ctrlBar)   { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (mobileFab) mobileFab.classList.remove("visible");
+  tasksPanel.hidden = false;
+  _setActiveViewTab("tasks");
+
+  // El task-form no aplica en una smart list — ocultar.
+  if (taskForm) taskForm.style.display = "none";
+
+  const headerTitle = (list.icon ? list.icon + " " : "") + list.name;
+  var mobileHeader  = document.getElementById("mobile-header");
+  var mobileHeaderTitle = document.getElementById("mobile-header-title");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeader)      mobileHeader.classList.add("mobile-header--project");
+  if (mobileHeaderTitle) mobileHeaderTitle.textContent = headerTitle;
+  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
+
+  document.title = list.name + " — antask";
+  if (projectTitleEl)  projectTitleEl.textContent  = headerTitle;
+  if (projectSubtitle) projectSubtitle.textContent = "Filtro guardado";
+
+  if (selectMode) exitSelectMode();
+  currentFilter      = "all";
+  currentSort        = "manual";
+  currentLabelFilter = null;
+  _syncFilterPanel("all", "manual");
+
+  expandedTaskIds.clear();
+  renderSidebar();
+  renderTasks();
+  var lblBar = document.getElementById("label-filter-bar");
+  if (lblBar) lblBar.hidden = true;
 }
 
 /**
@@ -1003,11 +1486,81 @@ function renderPinnedItems(inboxProject) {
     projectListEl.appendChild(inbox);
   }
 
+  // ── Sección "Listas" (smart lists, filtros guardados) ─────────
+  renderSmartListsSection();
+
   // ── Separador visual ───────────────────────────────────────────
   var sep = document.createElement("li");
   sep.className = "project-pinned-sep";
   sep.setAttribute("aria-hidden", "true");
   projectListEl.appendChild(sep);
+}
+
+/** Sección colapsable "Listas" en la sidebar con todos los smart lists del usuario. */
+function renderSmartListsSection() {
+  var headerLi = document.createElement("li");
+  headerLi.className = "smart-lists-header";
+
+  var toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "smart-lists-toggle" + (smartLists.length === 0 ? " smart-lists-toggle--empty" : "");
+  toggle.innerHTML =
+    '<i data-lucide="' + (_smartListsExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
+    '<i data-lucide="list-filter"></i>' +
+    '<span>Listas</span>' +
+    (smartLists.length > 0 ? '<span class="archived-section-count">' + smartLists.length + '</span>' : '');
+  toggle.addEventListener("click", function () {
+    _smartListsExpanded = !_smartListsExpanded;
+    renderSidebar();
+  });
+
+  var addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "smart-lists-add-btn";
+  addBtn.title = "Nueva lista guardada";
+  addBtn.setAttribute("aria-label", "Nueva lista guardada");
+  addBtn.innerHTML = '<i data-lucide="plus"></i>';
+  addBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    showSmartListEditor(null);
+  });
+
+  headerLi.appendChild(toggle);
+  headerLi.appendChild(addBtn);
+  projectListEl.appendChild(headerLi);
+
+  if (!_smartListsExpanded) return;
+
+  if (smartLists.length === 0) {
+    var empty = document.createElement("li");
+    empty.className = "sidebar-section-empty";
+    empty.textContent = "Sin listas todavía";
+    projectListEl.appendChild(empty);
+    return;
+  }
+
+  smartLists.forEach(function (sl) {
+    var li = document.createElement("li");
+    li.className = "smart-list-item" +
+      (activeView === "smart-list" && activeSmartListId === sl.id ? " active" : "");
+    li.dataset.smartListId = sl.id;
+    li.innerHTML =
+      '<div class="project-item-top">' +
+        '<span class="project-item-icon">' + escHtml(sl.icon || "🔍") + '</span>' +
+        '<span class="project-item-name">' + escHtml(sl.name) + '</span>' +
+        '<button type="button" class="project-kebab-btn smart-list-kebab" title="Opciones"><i data-lucide="ellipsis"></i></button>' +
+      '</div>';
+    li.addEventListener("click", function (e) {
+      if (e.target.closest(".smart-list-kebab")) return;
+      activateSmartList(sl.id);
+    });
+    var kebab = li.querySelector(".smart-list-kebab");
+    kebab.addEventListener("click", function (e) {
+      e.stopPropagation();
+      showSmartListMenu(sl, kebab);
+    });
+    projectListEl.appendChild(li);
+  });
 }
 
 function renderSidebar() {
@@ -1029,12 +1582,10 @@ function renderSidebar() {
   // ── Items fijados al tope: Hoy + Inbox ───────────────────────
   renderPinnedItems(inboxProject);
 
-  if (realActive.length === 0 && sections.length === 0 && archived.length === 0) {
-    return;
-  }
-
+  // Proyectos sueltos (sin sección)
   ungrouped.forEach(function(p) { renderProjectItem(p); });
 
+  // Secciones con sus proyectos dentro
   sections.forEach(function(section) {
     const sectionProjects = realActive.filter(function(p) { return p.sectionId === section.id; });
     renderSectionHeader(section, sectionProjects);
@@ -1044,6 +1595,9 @@ function renderSidebar() {
   });
 
   if (window.lucide) lucide.createIcons();
+  // Archivados y Notas se renderizan SIEMPRE — la cabecera aparece
+  // aunque la lista esté vacía, para que el usuario pueda crear
+  // notas y para que el "scaffolding" del sidebar quede estable.
   renderArchivedWidget();
   renderNotesSidebar();
 }
@@ -1054,16 +1608,16 @@ function renderArchivedWidget() {
   wrap.innerHTML = "";
 
   var archived = projects.filter(function(p) { return p.archived; });
-  if (archived.length === 0) return;
+  var isEmpty  = archived.length === 0;
 
   var toggle = document.createElement("button");
   toggle.type = "button";
-  toggle.className = "archived-section-toggle";
+  toggle.className = "archived-section-toggle" + (isEmpty ? " archived-section-toggle--empty" : "");
   toggle.innerHTML =
     '<i data-lucide="' + (_archivedExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
     '<i data-lucide="archive"></i>' +
     '<span>Archivados</span>' +
-    '<span class="archived-section-count">' + archived.length + '</span>';
+    (isEmpty ? '' : '<span class="archived-section-count">' + archived.length + '</span>');
   toggle.addEventListener("click", function() {
     _archivedExpanded = !_archivedExpanded;
     renderArchivedWidget();
@@ -1072,10 +1626,17 @@ function renderArchivedWidget() {
   wrap.appendChild(toggle);
 
   if (_archivedExpanded) {
-    var list = document.createElement("ul");
-    list.className = "archived-project-list";
-    archived.forEach(function(p) { renderProjectItem(p, false, true, list); });
-    wrap.appendChild(list);
+    if (isEmpty) {
+      var empty = document.createElement("p");
+      empty.className = "sidebar-section-empty";
+      empty.textContent = "Sin archivados";
+      wrap.appendChild(empty);
+    } else {
+      var list = document.createElement("ul");
+      list.className = "archived-project-list";
+      archived.forEach(function(p) { renderProjectItem(p, false, true, list); });
+      wrap.appendChild(list);
+    }
   }
 
   if (window.lucide) lucide.createIcons({ nodes: [wrap] });
@@ -1165,7 +1726,7 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   nameSpan.title = "Doble clic para renombrar";
   nameSpan.addEventListener("dblclick", async function(e) {
     e.stopPropagation();
-    const newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
+    const newName = await modalPrompt("Cambiar nombre del proyecto", project.name, project.name);
     if (newName === null) return;
     const trimmed = capitalizeFirst(newName.trim());
     if (!trimmed || trimmed === project.name) return;
@@ -1332,7 +1893,7 @@ async function showSectionMenu(section, anchor) {
     {
       label: "Renombrar sección",
       action: async function() {
-        var newName = await modalPrompt("// Cambiar nombre de sección", section.name, section.name);
+        var newName = await modalPrompt("Cambiar nombre de sección", section.name, section.name);
         if (newName === null) return;
         var trimmed = capitalizeFirst(newName.trim());
         if (!trimmed || trimmed === section.name) return;
@@ -1448,7 +2009,7 @@ async function showProjectMenu(project, anchor) {
         {
           label: "Renombrar proyecto",
           action: async function() {
-            var newName = await modalPrompt("// Cambiar nombre del proyecto", project.name, project.name);
+            var newName = await modalPrompt("Cambiar nombre del proyecto", project.name, project.name);
             if (newName === null) return;
             var trimmed = capitalizeFirst(newName.trim());
             if (!trimmed || trimmed === project.name) return;
@@ -1526,7 +2087,7 @@ async function showProjectMenu(project, anchor) {
   var newSectionBtn = document.getElementById("new-section-btn");
   if (newSectionBtn) {
     newSectionBtn.addEventListener("click", async function() {
-      var name = await modalPrompt("// Nueva sección", "", "Nombre de la sección");
+      var name = await modalPrompt("Nueva sección", "", "Nombre de la sección");
       if (name === null) return;
       var trimmed = name.trim();
       if (!trimmed) return;
@@ -1539,53 +2100,156 @@ async function showProjectMenu(project, anchor) {
 
 // ── End context menus ────────────────────────────────────────────────────────
 
+/**
+ * Render diff-based de la lista de tareas.
+ *
+ * Reutiliza nodos DOM existentes por `data-task-id`. Solo recrea
+ * un nodo si:
+ *   - No existía antes
+ *   - El objeto task fue reemplazado (otra referencia) — pasa al
+ *     hacer import o sync desde la nube, no en interacción normal
+ *
+ * Esto evita: clonar el template ~200 veces, atar ~30 listeners
+ * por tarea, y todo el coste de lucide.createIcons() sobre nodos
+ * que no han cambiado. Antes con 200 tareas era jank visible.
+ */
 function renderTasks() {
-  // Vista virtual "Hoy" — render alternativo
+  // Vistas virtuales — render alternativo
   if (activeView === "today") {
     renderTodayView();
+    return;
+  }
+  if (activeView === "smart-list") {
+    renderSmartListView();
     return;
   }
   const project = getActiveProject();
   if (!project) { taskList.innerHTML = ""; return; }
 
-  taskList.innerHTML = "";
-  getVisibleTasks(project).forEach(function(task) {
+  const visible = getVisibleTasks(project);
+
+  // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
+  // cualquier nodo huérfano (`.today-item`, `.today-empty`, ...) que no
+  // pertenece al diff por data-task-id.
+  Array.from(taskList.children).forEach(function (n) {
+    if (!n.dataset || !n.dataset.taskId) n.remove();
+  });
+
+  // Mapa de nodos existentes por id
+  const existing = new Map();
+  for (let i = 0; i < taskList.children.length; i++) {
+    const n = taskList.children[i];
+    if (n.dataset && n.dataset.taskId) existing.set(n.dataset.taskId, n);
+  }
+
+  // Build/reuse + colocar en orden
+  let prevNode = null;
+  for (let i = 0; i < visible.length; i++) {
+    const task = visible[i];
+    let node = existing.get(task.id);
+    if (!node || node._task !== task) {
+      // El objeto task cambió de referencia (sync remoto, import…)
+      // → reconstruir el nodo entero para que los listeners apunten al nuevo task.
+      if (node) node.remove();
+      node = _buildTaskNode(task, project);
+    } else {
+      // Mismo objeto task → solo refrescar lo visible (barato).
+      _updateTaskNode(node, task);
+    }
+    existing.delete(task.id);
+
+    // Reordenar si es necesario (mover solo si no está en su sitio).
+    const targetSibling = prevNode ? prevNode.nextSibling : taskList.firstChild;
+    if (targetSibling !== node) taskList.insertBefore(node, targetSibling);
+    prevNode = node;
+  }
+
+  // Eliminar nodos sobrantes (tareas filtradas o borradas)
+  existing.forEach(function (n) { n.remove(); });
+
+  // Contadores / título
+  const pending = project.tasks.filter(function(t) { return !t.done; }).length;
+  taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+  projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+  document.title = pending > 0
+    ? "(" + pending + ") " + project.name + " — antask"
+    : project.name + " — antask";
+
+  if (window.lucide) lucide.createIcons();
+}
+
+/**
+ * Actualiza el estado visible de un nodo de tarea sin tocar
+ * listeners. Asume que el nodo ya fue construido por _buildTaskNode.
+ */
+function _updateTaskNode(node, task) {
+  const checkbox = node.querySelector(".task-toggle");
+  const text     = node.querySelector(".task-text");
+  const comment  = node.querySelector(".task-comment");
+
+  checkbox.checked    = task.done;
+  text.textContent    = task.text;
+  comment.textContent = task.comment || "Sin comentario";
+  node.classList.toggle("done", task.done);
+
+  applyStatusToNode(node, task);
+  updateStatusBtn(node.querySelector(".status-btn"), task);
+  applyPriorityToNode(node, task);
+  updatePriorityBtn(node.querySelector(".priority-btn"), task);
+
+  renderTaskLabels(task, node.querySelector(".task-labels-container"), function(labelName) {
+    currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
+    renderLabelFilterBar();
+    renderTasks();
+  });
+  renderSubtasks(task, node.querySelector(".subtask-list"), {
+    onMutation:  saveAndRender,
+    onEditStart: startSubtaskInlineEdit,
+  });
+
+  renderDueBadge(task, node.querySelector(".task-due-container"));
+  renderRecurBadge(task, node.querySelector(".task-recur-container"));
+  updateRecurBtn(node.querySelector(".recur-btn"), task);
+  _updateReminderBtn(node.querySelector(".reminder-btn"), task);
+
+  // Expand state
+  const isExpanded = expandedTaskIds.has(task.id);
+  node.classList.toggle("expanded", isExpanded);
+  node.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+
+  // Select mode visual
+  const selectCb = node.querySelector(".task-select-cb");
+  if (selectCb) {
+    const isSelected = selectedTaskIds.has(task.id);
+    selectCb.checked = isSelected;
+    node.classList.toggle("selected", isSelected);
+  }
+
+  text.title = "Doble clic para renombrar";
+}
+
+/**
+ * Crea un nodo de tarea desde el template, ata todos los listeners
+ * (que capturan `task` y `project` en closure), y aplica el estado
+ * visual inicial vía _updateTaskNode. Se cachea la referencia al
+ * task en `node._task` para detectar cambios de identidad.
+ */
+function _buildTaskNode(task, project) {
     const node       = template.content.firstElementChild.cloneNode(true);
+    node.setAttribute("data-task-id", task.id);
+    node.setAttribute("draggable", "false");
+
     const checkbox   = node.querySelector(".task-toggle");
     const text       = node.querySelector(".task-text");
-    const comment    = node.querySelector(".task-comment");
     const commentBtn = node.querySelector(".comment-btn");
     const deleteBtn  = node.querySelector(".delete-btn");
     const subAddBtn  = node.querySelector(".subtask-add-btn");
     const subtaskList= node.querySelector(".subtask-list");
     const statusBtn     = node.querySelector(".status-btn");
     const priorityBtn   = node.querySelector(".priority-btn");
-    const labelsContainer = node.querySelector(".task-labels-container");
     const recurBtn   = node.querySelector(".recur-btn");
-
-    checkbox.checked       = task.done;
-    text.textContent       = task.text;
-    comment.textContent    = task.comment || "Sin comentario";
-    node.classList.toggle("done", task.done);
-
-    applyStatusToNode(node, task);
-    updateStatusBtn(statusBtn, task);
-    applyPriorityToNode(node, task);
-    updatePriorityBtn(priorityBtn, task);
-    renderTaskLabels(task, labelsContainer, function(labelName) {
-      currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
-      renderLabelFilterBar();
-      renderTasks();
-    });
-    renderSubtasks(task, subtaskList, {
-      onMutation:  saveAndRender,
-      onEditStart: startSubtaskInlineEdit,
-    });
-
-    if (expandedTaskIds.has(task.id)) {
-      node.classList.add("expanded");
-      node.setAttribute("aria-expanded", "true");
-    }
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
     checkbox.addEventListener("change", function() {
@@ -1650,6 +2314,23 @@ function renderTasks() {
       saveAndRender();
     });
 
+    // ── Recordatorio puntual ──────────────────────────────
+    const reminderBtn = node.querySelector(".reminder-btn");
+    if (reminderBtn) {
+      _updateReminderBtn(reminderBtn, task);
+      reminderBtn.addEventListener("click", async function(e) {
+        e.stopPropagation();
+        const result = await modalReminder(task.reminderAt || null);
+        if (result === undefined) return;
+        task.reminderAt = result;  // ISO string o null
+        saveAndRender();
+        // Re-schedule timers tras el cambio
+        if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
+          window.AnsoNotif.scheduleTaskReminders(projects);
+        }
+      });
+    }
+
     const dateBtn = node.querySelector(".date-btn");
     dateBtn.addEventListener("click", function(e) {
       e.stopPropagation();
@@ -1663,7 +2344,7 @@ function renderTasks() {
 
     commentBtn.addEventListener("click", async function(e) {
       e.stopPropagation();
-      const next = await modalPrompt("// Comentario", task.comment || "", "escribe un comentario...");
+      const next = await modalPrompt("Comentario", task.comment || "", "escribe un comentario...");
       if (next === null) return;
       task.comment = next.trim().slice(0, 300);
       saveAndRender();
@@ -1677,7 +2358,7 @@ function renderTasks() {
 
     subAddBtn.addEventListener("click", async function(e) {
       e.stopPropagation();
-      const subText = await modalPrompt("// Nueva subtarea", "", "escribe la subtarea...");
+      const subText = await modalPrompt("Nueva subtarea", "", "escribe la subtarea...");
       if (!subText || !subText.trim()) return;
       task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
       saveAndRender();
@@ -1694,7 +2375,7 @@ function renderTasks() {
       editCommentBtn.textContent = task.comment ? "Editar comentario" : "Añadir comentario";
       editCommentBtn.addEventListener("click", async function(e) {
         e.stopPropagation();
-        const next = await modalPrompt("// Comentario", task.comment || "", "escribe un comentario...");
+        const next = await modalPrompt("Comentario", task.comment || "", "escribe un comentario...");
         if (next === null) return;
         task.comment = next.trim().slice(0, 300);
         saveAndRender();
@@ -1706,7 +2387,7 @@ function renderTasks() {
       addSubtaskBtn.textContent = "+ Añadir subtarea";
       addSubtaskBtn.addEventListener("click", async function(e) {
         e.stopPropagation();
-        const subText = await modalPrompt("// Nueva subtarea", "", "escribe la subtarea...");
+        const subText = await modalPrompt("Nueva subtarea", "", "escribe la subtarea...");
         if (!subText || !subText.trim()) return;
         task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
         saveAndRender();
@@ -1835,24 +2516,16 @@ function renderTasks() {
       selectCb.addEventListener("click", function(e) { e.stopPropagation(); });
     }
 
-    node.setAttribute("draggable", "false");
-    node.setAttribute("data-task-id", task.id);
     initDragDrop(node, task.id);
     if (window.matchMedia("(max-width: 768px)").matches) {
       initSwipeGesture(node, task, project);
     }
-    taskList.appendChild(node);
-  });
 
-  const pending = project.tasks.filter(function(t) { return !t.done; }).length;
-  taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
-  projectSubtitle.textContent = "// " + project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
-  var mobileHeaderCount = document.getElementById("mobile-header-count");
-  if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
-  document.title = pending > 0
-    ? "(" + pending + ") " + project.name + " — antask"
-    : project.name + " — antask";
-  if (window.lucide) lucide.createIcons();
+    // Marcar referencia para detectar cambio de objeto en renders
+    // futuros y aplicar el estado visual inicial.
+    node._task = task;
+    _updateTaskNode(node, task);
+    return node;
 }
 
 // renderSubtasks() vive en ./ui/subtasks.js
@@ -1910,11 +2583,78 @@ function renderTodayView() {
   if (window.lucide) lucide.createIcons({ nodes: [taskList] });
 }
 
+/** Render para vistas tipo smart-list (filtros guardados). Reusa
+ * el ítem visual de Hoy y aplica los filtros del smart list activo. */
+function renderSmartListView() {
+  taskList.innerHTML = "";
+  const list = smartLists.find(function(s) { return s.id === activeSmartListId; });
+  if (!list) {
+    if (taskCounter) taskCounter.textContent = "";
+    return;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Recopilar tareas que pasan los filtros
+  const items = [];
+  projects.forEach(function(p) {
+    if (p.archived) return;
+    (p.tasks || []).forEach(function(t) {
+      if (_smartListMatch(t, p, list.filters)) {
+        items.push({ task: t, project: p });
+      }
+    });
+  });
+
+  // Ordenar: con fecha primero (más urgente arriba), luego sin fecha por prioridad
+  const prioRank = { high: 0, medium: 1, low: 2 };
+  items.sort(function(a, b) {
+    if (a.task.dueDate && !b.task.dueDate) return -1;
+    if (!a.task.dueDate && b.task.dueDate) return 1;
+    if (a.task.dueDate && b.task.dueDate && a.task.dueDate !== b.task.dueDate) {
+      return a.task.dueDate < b.task.dueDate ? -1 : 1;
+    }
+    var pa = prioRank[a.task.priority] != null ? prioRank[a.task.priority] : 3;
+    var pb = prioRank[b.task.priority] != null ? prioRank[b.task.priority] : 3;
+    return pa - pb;
+  });
+
+  if (taskCounter) {
+    taskCounter.textContent = items.length + (items.length === 1 ? " tarea" : " tareas");
+  }
+
+  if (items.length === 0) {
+    var empty = document.createElement("li");
+    empty.className = "today-empty";
+    empty.innerHTML =
+      '<div class="today-empty-icon">' + (list.icon || "🔍") + '</div>' +
+      '<p class="today-empty-title">Sin resultados</p>' +
+      '<p class="today-empty-sub">Ninguna tarea cumple este filtro ahora mismo.</p>';
+    taskList.appendChild(empty);
+    return;
+  }
+
+  items.forEach(function(it) {
+    // renderTodayItem espera un dueDate "hoy" como referencia para el badge "Hoy/Ayer/Hace Nd".
+    // Pasamos el today actual; las tareas sin dueDate no muestran badge de fecha.
+    taskList.appendChild(renderTodayItem(it.task, it.project, today));
+  });
+
+  if (window.lucide) lucide.createIcons({ nodes: [taskList] });
+}
+
 function renderTodayItem(task, project, todayStr) {
-  var due  = new Date(task.dueDate + "T00:00:00");
-  var diff = Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000);
-  var dateLabel = diff === 0 ? "Hoy" : diff === -1 ? "Ayer" : diff < 0 ? "Hace " + (-diff) + "d" : "";
-  var overdue = diff < 0;
+  // Cuando la tarea NO tiene fecha (caso smart list "Sin fecha"),
+  // el badge de fecha se omite y no marcamos overdue.
+  var hasDate   = !!task.dueDate;
+  var due       = hasDate ? new Date(task.dueDate + "T00:00:00") : null;
+  var diff      = hasDate ? Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000) : 0;
+  var dateLabel = !hasDate ? ""
+    : diff === 0 ? "Hoy"
+    : diff === 1 ? "Mañana"
+    : diff === -1 ? "Ayer"
+    : diff < 0  ? "Hace " + (-diff) + "d"
+    : due.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+  var overdue = hasDate && diff < 0;
 
   var li = document.createElement("li");
   li.className = "today-item" +
@@ -2159,7 +2899,7 @@ async function showLabelPicker(task) {
           }).join("");
 
       box.innerHTML =
-        '<p class="modal-label">// Etiquetas</p>' +
+        '<p class="modal-label">Etiquetas</p>' +
         '<div class="label-picker-list">' + checkboxes + '</div>' +
         '<div class="label-picker-new">' +
           '<input class="modal-input" type="text" maxlength="30" placeholder="nueva etiqueta..." style="margin-bottom:0;flex:1" />' +
@@ -3058,7 +3798,7 @@ function _setActiveViewTab(view) {
   // Eyebrow que indica la vista actual encima del título
   var eyebrow = document.getElementById("view-eyebrow");
   if (eyebrow) {
-    var labels = { tasks: "Vista lista", agenda: "Vista agenda", cal: "Vista mes" };
+    var labels = { tasks: "Lista", agenda: "Agenda", cal: "Calendario" };
     eyebrow.textContent = labels[view] || "";
   }
 }
@@ -3091,15 +3831,22 @@ function showShortcutsHelp() {
   const { overlay, box } = createModalBase();
 
   box.innerHTML =
-    '<p class="modal-label">// Atajos de teclado</p>' +
+    '<p class="modal-label">Atajos de teclado</p>' +
     '<table class="shortcuts-table">' +
       '<tbody>' +
         '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
         '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
         '<tr><td><kbd>A</kbd></td><td>Vista de agenda</td></tr>' +
-        '<tr><td><kbd>K</kbd></td><td>Vista Kanban</td></tr>' +
         '<tr><td><kbd>C</kbd></td><td>Vista calendario</td></tr>' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
+        '<tr><td><kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd></td><td>Captura rápida (al Inbox)</td></tr>' +
+        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
+        '<tr><td colspan="2" style="opacity:.7;padding-top:.6rem"><strong>Al crear tarea</strong> — sintaxis natural:</td></tr>' +
+        '<tr><td><kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd></td><td>Fecha límite</td></tr>' +
+        '<tr><td><kbd>en 3 días</kbd> <kbd>15/3</kbd></td><td>Fecha relativa o numérica</td></tr>' +
+        '<tr><td><kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd></td><td>Recurrencia</td></tr>' +
+        '<tr><td><kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd></td><td>Prioridad alta · media · baja</td></tr>' +
+        '<tr><td><kbd>#etiqueta</kbd></td><td>Crear/asignar etiqueta</td></tr>' +
         '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
         '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
         '<tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Navegar entre tareas</td></tr>' +
@@ -3167,6 +3914,10 @@ function saveProjects() {
   var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
   if (user) _saveAccountCache(user.uid);
   if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+  // Re-programar los recordatorios por tarea con el estado actual.
+  if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
+    window.AnsoNotif.scheduleTaskReminders(projects);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3177,16 +3928,17 @@ function renderNotesSidebar() {
   var wrap = document.getElementById("notes-sidebar-section");
   if (!wrap) return;
   wrap.innerHTML = "";
-  if (standaloneNotes.length === 0) return;
+
+  var isEmpty = standaloneNotes.length === 0;
 
   var toggle = document.createElement("button");
   toggle.type = "button";
-  toggle.className = "archived-section-toggle";
+  toggle.className = "archived-section-toggle" + (isEmpty ? " archived-section-toggle--empty" : "");
   toggle.innerHTML =
     '<i data-lucide="' + (_notesExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
     '<i data-lucide="file-text"></i>' +
     '<span>Notas</span>' +
-    '<span class="archived-section-count">' + standaloneNotes.length + "</span>";
+    (isEmpty ? '' : '<span class="archived-section-count">' + standaloneNotes.length + '</span>');
   toggle.addEventListener("click", function() {
     _notesExpanded = !_notesExpanded;
     renderNotesSidebar();
@@ -3194,7 +3946,12 @@ function renderNotesSidebar() {
   });
   wrap.appendChild(toggle);
 
-  if (_notesExpanded) {
+  if (_notesExpanded && isEmpty) {
+    var empty = document.createElement("p");
+    empty.className = "sidebar-section-empty";
+    empty.textContent = "Sin notas todavía";
+    wrap.appendChild(empty);
+  } else if (_notesExpanded) {
     var list = document.createElement("ul");
     list.className = "archived-project-list";
     standaloneNotes.forEach(function(note) {
@@ -3284,7 +4041,7 @@ function showNoteMenu(note, anchor) {
     {
       label: "Renombrar",
       action: async function() {
-        var newName = await modalPrompt("// Renombrar nota", note.name, note.name);
+        var newName = await modalPrompt("Renombrar nota", note.name, note.name);
         if (newName === null) return;
         var trimmed = newName.trim().slice(0, 80);
         if (!trimmed || trimmed === note.name) return;
@@ -3345,10 +4102,21 @@ function showNoteMenu(note, anchor) {
     });
     noteEditor.addEventListener("keydown", function(e) {
       if (e.ctrlKey || e.metaKey) {
+        // Ctrl+Shift+X — atajos globales: dejar que se propague al handler global
+        if (e.shiftKey) return;
         var cmd = { b: "bold", i: "italic", u: "underline", m: "strikeThrough" }[e.key.toLowerCase()];
-        if (cmd) { e.preventDefault(); document.execCommand(cmd, false, null); _syncNoteFmtBtns(); }
+        if (cmd) {
+          // Solo aquí absorbemos el evento: queremos formateo, no
+          // que dispare el toggle de sidebar del atajo global Ctrl+B.
+          e.preventDefault();
+          e.stopPropagation();
+          document.execCommand(cmd, false, null);
+          _syncNoteFmtBtns();
+        }
       }
-      e.stopPropagation();
+      // Resto de teclas (letras sueltas, Ctrl+K, Ctrl+Shift+Espacio, etc.)
+      // se propagan al handler global. El isEditing check del global
+      // bloquea correctamente las letras sueltas como N/A/C/?/...
     });
     noteEditor.addEventListener("keyup",   _syncNoteFmtBtns);
     noteEditor.addEventListener("mouseup", _syncNoteFmtBtns);
@@ -3374,8 +4142,13 @@ function showNoteMenu(note, anchor) {
       _notePanelSaveTimer = setTimeout(function() { saveStandaloneNotes(); renderNotesSidebar(); }, 700);
     });
     noteTitleEl.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") { e.preventDefault(); if (noteEditor) noteEditor.focus(); }
-      e.stopPropagation();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (noteEditor) noteEditor.focus();
+      }
+      // El resto (Ctrl+K, Ctrl+Shift+Espacio, letras como '?') se
+      // propagan al handler global, que ya filtra con isEditing.
     });
     noteTitleEl.addEventListener("blur", function() {
       if (!noteTitleEl.textContent.trim()) noteTitleEl.textContent = "Sin título";
@@ -3384,7 +4157,7 @@ function showNoteMenu(note, anchor) {
 
   if (newNoteBtn) {
     newNoteBtn.addEventListener("click", async function() {
-      var name = await modalPrompt("// Nombre de la nota", "", "Mi nota...");
+      var name = await modalPrompt("Nombre de la nota", "", "Mi nota...");
       if (!name || !name.trim()) return;
       var note = sanitizeStandaloneNote({
         id:        "note-" + generateId(),
@@ -3654,15 +4427,29 @@ function _clearLocalData() {
   // Al cerrar sesión: limpiamos el espacio anónimo para que no contamine
   // el siguiente login. Los datos de la cuenta quedan en anso-projects-{uid}
   // y en la nube — no se pierden.
-  projects = [];
-  sections = [];
-  activeProjectId = null;
+  projects          = [];
+  sections          = [];
+  standaloneNotes   = [];
+  smartLists        = [];
+  activeProjectId   = null;
+  activeNoteId      = null;
+  activeSmartListId = null;
+  activeView        = "project";
+
+  // localStorage del espacio anónimo
   localStorage.removeItem(PROJECTS_KEY);
   localStorage.removeItem(SECTIONS_KEY);
   localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
-  renderSidebar();
-  renderTasks();
+  localStorage.removeItem(NOTES_KEY);
+  localStorage.removeItem(SMART_LISTS_KEY);
+
+  // El Inbox es estructural — siempre debe existir. Recrearlo tras el clear.
+  ensureInbox();
+  ensureDefaultSmartLists();
+
+  // Reset visual completo (panel vacío + sidebar repintada).
+  activateProject(null);
   renderLabelFilterBar();
 }
 
@@ -3786,7 +4573,7 @@ function _showSyncConflictModal(cloudData, uid) {
   var { overlay, box } = createModalBase();
 
   box.innerHTML =
-    '<p class="modal-label">// Conflicto de datos</p>' +
+    '<p class="modal-label">Conflicto de datos</p>' +
     '<p style="font-size:0.88rem;color:var(--t-soft);margin-bottom:1.2rem;line-height:1.55">' +
       'Tienes <strong>' + localCount + ' proyecto' + (localCount !== 1 ? "s" : "") + ' locales</strong> ' +
       'y <strong>' + cloudCount + ' proyecto' + (cloudCount !== 1 ? "s" : "") + ' en la nube</strong>. ' +

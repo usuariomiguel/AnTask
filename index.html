@@ -39,7 +39,7 @@
         <div class="splash-wordmark" aria-label="antask">
           <span class="splash-an">antask</span>
         </div>
-        <p class="splash-tagline">Gestión de tareas inteligente</p>
+        <p class="splash-tagline">Tus tareas, tu día.</p>
       </div>
     </div>
 
@@ -140,6 +140,7 @@
               <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> Cambiar tema</button>
               <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> Atajos de teclado</button>
+              <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> Ver tour de bienvenida</button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
               <div id="pf-sync-user" hidden>
@@ -187,7 +188,7 @@
             <div class="tasks-header-left">
               <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
               <div class="tasks-header-titleblock">
-                <span class="view-eyebrow" id="view-eyebrow">Vista lista</span>
+                <span class="view-eyebrow" id="view-eyebrow">Lista</span>
                 <h2 id="project-title" class="project-title"></h2>
                 <p class="subtitle" id="project-subtitle"></p>
               </div>
@@ -198,7 +199,7 @@
           </div>
 
           <form id="task-form" class="task-form">
-            <input id="task-input" type="text" placeholder="// nueva tarea..." maxlength="120" autocomplete="off" required />
+            <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" maxlength="120" autocomplete="off" required />
             <button type="submit"><i data-lucide="plus"></i> Añadir</button>
           </form>
 
@@ -394,6 +395,7 @@
             <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
             <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
             <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
+            <button type="button" class="reminder-btn" title="Recordatorio"><i data-lucide="bell"></i> Aviso</button>
             <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
             <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Etiq.</button>
             <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub.</button>
@@ -424,6 +426,7 @@
         <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
         <button type="button" class="sheet-action-btn" data-sheet-action="recur"><i data-lucide="repeat"></i> Repetición</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="reminder"><i data-lucide="bell"></i> Recordatorio</button>
         <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
       </div>
     </div>
@@ -436,12 +439,10 @@
       <div class="paste-toast-bar"></div>
     </div>
 
-    <!-- Firebase SDK + Lucide (CDN, classic scripts — corren antes que el módulo) -->
+    <!-- Lucide (iconos) — corre antes del módulo para que window.lucide exista cuando arranca la app -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <!-- App entry (ES module) -->
+    <!-- App entry (ES module). Firebase está bundleado vía npm + import,
+         no como CDN. Vite lo separa en su propio chunk con modulepreload. -->
     <script type="module" src="./src/js/main.js"></script>
     <script>
     // ── MOBILE UI LOGIC ──────────────────────────────────────────
@@ -533,6 +534,7 @@
                     action === "labels"   ? ".label-add-btn" :
                     action === "subtask"  ? ".subtask-add-btn" :
                     action === "recur"    ? ".recur-btn" :
+                    action === "reminder" ? ".reminder-btn" :
                     action === "delete"   ? ".delete-btn" : null;
           var target = sel && currentTaskNode.querySelector(sel);
           closeSheet();

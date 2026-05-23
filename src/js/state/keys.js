@@ -2,13 +2,14 @@
 // Claves de localStorage + migración desde el esquema legacy
 // ═══════════════════════════════════════════════════════════════
 
-export const PROJECTS_KEY   = "anso-projects";
-export const ACTIVE_KEY     = "anso-active-project";
-export const METADATA_KEY   = "anso-meta";
-export const NOTES_KEY      = "antask-notes";
-export const TASK_PREFS_KEY = "antask-task-prefs";
-export const THEME_KEY      = "mis-tareas-theme";
-export const SECTIONS_KEY   = "anso-sections";
+export const PROJECTS_KEY     = "anso-projects";
+export const ACTIVE_KEY       = "anso-active-project";
+export const METADATA_KEY     = "anso-meta";
+export const NOTES_KEY        = "antask-notes";
+export const TASK_PREFS_KEY   = "antask-task-prefs";
+export const THEME_KEY        = "mis-tareas-theme";
+export const SECTIONS_KEY     = "anso-sections";
+export const SMART_LISTS_KEY  = "antask-smart-lists";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

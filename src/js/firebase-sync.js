@@ -1,5 +1,7 @@
 /**
- * AnsoSync — módulo de sincronización Firebase para Ansotask
+ * AnsoSync — módulo de sincronización Firebase (API modular v9+).
+ *
+ * Tree-shakeable: solo se incluye en el bundle final lo que importa.
  *
  * Para activar la sincronización entre dispositivos:
  *
@@ -22,134 +24,154 @@
  *  6. Rellena los valores de firebaseConfig a continuación con los de tu app.
  */
 
-(function () {
-  "use strict";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as fbSignOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+} from "firebase/firestore";
 
-  var firebaseConfig = {
-    apiKey: "AIzaSyCEZw4jJ_FAHnmZXI66wr3VlPbFQZDVlSE",
-    authDomain: "antask-7a86f.firebaseapp.com",
-    projectId: "antask-7a86f",
-    storageBucket: "antask-7a86f.firebasestorage.app",
-    messagingSenderId: "643446618554",
-    appId: "1:643446618554:web:03aa51901153a69921c583",
-    // measurementId: "G-7ZD4J1KMSP"
-  };
+const firebaseConfig = {
+  apiKey:            "AIzaSyCEZw4jJ_FAHnmZXI66wr3VlPbFQZDVlSE",
+  authDomain:        "antask-7a86f.firebaseapp.com",
+  projectId:         "antask-7a86f",
+  storageBucket:     "antask-7a86f.firebasestorage.app",
+  messagingSenderId: "643446618554",
+  appId:             "1:643446618554:web:03aa51901153a69921c583",
+};
 
-  // No hace nada si la config no ha sido rellenada
-  if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-    window.AnsoSync = null;
-    return;
-  }
-
-  firebase.initializeApp(firebaseConfig);
-  var auth = firebase.auth();
-  var db = firebase.firestore();
-
-  // Persistencia offline: Firestore cachea datos localmente
-  db.enablePersistence({ synchronizeTabs: true }).catch(function () { });
-
-  var _user = null;
-  var _unsubscribe = null;
-  var _onRemoteChange = null;
-  var _onAuthChange = null;
-  var _onFirstConnect = null;
-  var _syncPaused = false;
-  var _saveTimer = null;
-
-  function docRef() {
-    return db.collection("users").doc(_user.uid)
-      .collection("workspace").doc("data");
-  }
-
-  function startListening() {
-    if (_unsubscribe) _unsubscribe();
-    var isFirst = true;
-    _unsubscribe = docRef().onSnapshot(function (snap) {
-      if (_syncPaused) return;
-
-      if (isFirst) {
-        isFirst = false;
-        if (typeof _onFirstConnect === "function") {
-          _onFirstConnect(snap.exists ? snap.data() : null);
-        }
-        return;
-      }
-
-      if (!snap.exists) return;
-      var data = snap.data();
-      if (data && Array.isArray(data.projects) &&
-        typeof _onRemoteChange === "function") {
-        _onRemoteChange(data.projects, data.sections || [], data.standaloneNotes || [], data.updatedAt);
-      }
-    }, function (err) {
-      console.warn("AnsoSync: error en listener:", err);
+// No hace nada si la config no ha sido rellenada
+if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+  window.AnsoSync = null;
+} else {
+  let app, auth, db;
+  try {
+    app  = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    // Persistencia offline con soporte multi-tab. Si falla (ej. modo
+    // incógnito sin IndexedDB), Firestore sigue funcionando en memoria.
+    db   = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
     });
+  } catch (err) {
+    console.warn("AnsoSync: error inicializando Firebase:", err);
+    window.AnsoSync = null;
   }
 
-  function stopListening() {
-    if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
-  }
+  if (app && auth && db) {
+    let _user           = null;
+    let _unsubscribe    = null;
+    let _onRemoteChange = null;
+    let _onAuthChange   = null;
+    let _onFirstConnect = null;
+    let _syncPaused     = false;
+    let _saveTimer      = null;
 
-  window.AnsoSync = {
-    isConfigured: true,
-
-    /**
-     * Inicializa auth y el listener en tiempo real.
-     * @param {Function|null} onRemoteChange  llamado cuando otro dispositivo guarda
-     * @param {Function|null} onAuthChange    llamado cuando el estado de auth cambia
-     * @param {Function|null} onFirstConnect  llamado una vez al conectar; recibe los datos
-     *                                        de la nube (o null si no hay datos)
-     */
-    init: function (onRemoteChange, onAuthChange, onFirstConnect) {
-      _onRemoteChange = onRemoteChange;
-      _onAuthChange = onAuthChange;
-      _onFirstConnect = onFirstConnect;
-      auth.onAuthStateChanged(function (user) {
-        _user = user;
-        if (user) {
-          startListening();
-        } else {
-          stopListening();
-        }
-        if (typeof _onAuthChange === "function") _onAuthChange(user);
-      });
-    },
-
-    signIn: function () {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      return auth.signInWithPopup(provider);
-    },
-
-    signOut: function () {
-      stopListening();
-      _user = null;
-      return auth.signOut();
-    },
-
-    getUser: function () { return _user; },
-
-    /**
-     * Guarda proyectos y secciones en la nube con un debounce de 2 s.
-     * Pausa el listener para evitar el bucle de escritura→snapshot.
-     */
-    scheduleSave: function (projects, sections, standaloneNotes) {
-      if (!_user) return;
-      if (_saveTimer) clearTimeout(_saveTimer);
-      _saveTimer = setTimeout(function () {
-        _syncPaused = true;
-        docRef().set({
-          projects: projects,
-          sections: sections || [],
-          standaloneNotes: standaloneNotes || [],
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          version: 2
-        }).then(function () {
-          setTimeout(function () { _syncPaused = false; }, 1500);
-        }).catch(function (err) {
-          _syncPaused = false;
-          console.warn("AnsoSync: error guardando en la nube:", err);
-        });
-      }, 2000);
+    function docRef() {
+      return doc(db, "users", _user.uid, "workspace", "data");
     }
-  };
-})();
+
+    function startListening() {
+      if (_unsubscribe) _unsubscribe();
+      let isFirst = true;
+      _unsubscribe = onSnapshot(docRef(), function (snap) {
+        if (_syncPaused) return;
+
+        if (isFirst) {
+          isFirst = false;
+          if (typeof _onFirstConnect === "function") {
+            _onFirstConnect(snap.exists() ? snap.data() : null);
+          }
+          return;
+        }
+
+        if (!snap.exists()) return;
+        const data = snap.data();
+        if (data && Array.isArray(data.projects) &&
+            typeof _onRemoteChange === "function") {
+          _onRemoteChange(data.projects, data.sections || [], data.standaloneNotes || [], data.updatedAt);
+        }
+      }, function (err) {
+        console.warn("AnsoSync: error en listener:", err);
+      });
+    }
+
+    function stopListening() {
+      if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
+    }
+
+    window.AnsoSync = {
+      isConfigured: true,
+
+      /**
+       * Inicializa auth y el listener en tiempo real.
+       * @param {Function|null} onRemoteChange  llamado cuando otro dispositivo guarda
+       * @param {Function|null} onAuthChange    llamado cuando el estado de auth cambia
+       * @param {Function|null} onFirstConnect  llamado una vez al conectar; recibe los
+       *                                         datos de la nube (o null si no hay)
+       */
+      init: function (onRemoteChange, onAuthChange, onFirstConnect) {
+        _onRemoteChange = onRemoteChange;
+        _onAuthChange   = onAuthChange;
+        _onFirstConnect = onFirstConnect;
+        onAuthStateChanged(auth, function (user) {
+          _user = user;
+          if (user) startListening();
+          else      stopListening();
+          if (typeof _onAuthChange === "function") _onAuthChange(user);
+        });
+      },
+
+      signIn: function () {
+        const provider = new GoogleAuthProvider();
+        return signInWithPopup(auth, provider);
+      },
+
+      signOut: function () {
+        stopListening();
+        _user = null;
+        return fbSignOut(auth);
+      },
+
+      getUser: function () { return _user; },
+
+      /**
+       * Guarda proyectos / secciones / notas standalone en la nube
+       * con un debounce de 2 s. Pausa el listener para evitar el
+       * bucle escritura → snapshot.
+       */
+      scheduleSave: function (projects, sections, standaloneNotes) {
+        if (!_user) return;
+        if (_saveTimer) clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(function () {
+          _syncPaused = true;
+          setDoc(docRef(), {
+            projects:        projects,
+            sections:        sections || [],
+            standaloneNotes: standaloneNotes || [],
+            updatedAt:       serverTimestamp(),
+            version:         2,
+          }).then(function () {
+            setTimeout(function () { _syncPaused = false; }, 1500);
+          }).catch(function (err) {
+            _syncPaused = false;
+            console.warn("AnsoSync: error guardando en la nube:", err);
+          });
+        }, 2000);
+      },
+    };
+  }
+}

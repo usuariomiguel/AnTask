@@ -190,7 +190,7 @@ export function modalDate(current) {
     ];
 
     box.innerHTML =
-      '<p class="modal-label">// Fecha límite</p>' +
+      '<p class="modal-label">Fecha límite</p>' +
       '<div class="date-quick-picks">' +
         quickPicks.map(function (p) {
           const active = current === p.value ? ' active' : '';
@@ -243,6 +243,100 @@ export function modalDate(current) {
 }
 
 /**
+ * Modal para configurar un recordatorio puntual de una tarea.
+ *
+ * @param {string|null} currentISO  - ISO datetime actual o null
+ * @returns {Promise<string|null|undefined>}
+ *   - string ISO → guardar ese recordatorio
+ *   - null       → quitar recordatorio existente
+ *   - undefined  → cancelar (no tocar)
+ */
+export function modalReminder(currentISO) {
+  return new Promise(function (resolve) {
+    const { overlay, box } = createModalBase();
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+    function toLocalISO(d) {
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+             "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+
+    const now = new Date();
+    const presets = [];
+    // En 1 hora
+    presets.push({ label: "En 1 hora",  iso: toLocalISO(new Date(now.getTime() + 60 * 60 * 1000)) });
+    // En 4 horas
+    presets.push({ label: "En 4 horas", iso: toLocalISO(new Date(now.getTime() + 4 * 60 * 60 * 1000)) });
+    // Esta tarde 18:00 (si aún no son)
+    const eveningToday = new Date(now); eveningToday.setHours(18, 0, 0, 0);
+    if (eveningToday.getTime() > now.getTime()) {
+      presets.push({ label: "Esta tarde (18:00)", iso: toLocalISO(eveningToday) });
+    }
+    // Mañana 9:00
+    const tomMorning = new Date(now); tomMorning.setDate(tomMorning.getDate() + 1); tomMorning.setHours(9, 0, 0, 0);
+    presets.push({ label: "Mañana 9:00", iso: toLocalISO(tomMorning) });
+    // En 2 días
+    const in2 = new Date(now); in2.setDate(in2.getDate() + 2); in2.setHours(9, 0, 0, 0);
+    presets.push({ label: "En 2 días",   iso: toLocalISO(in2) });
+
+    const chipsHtml = presets.map(function (p) {
+      return '<button type="button" class="date-quick-btn" data-iso="' + p.iso + '">' + p.label + '</button>';
+    }).join("");
+
+    const currentVal = (currentISO && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(currentISO))
+      ? currentISO.slice(0, 16)
+      : "";
+
+    box.innerHTML =
+      '<div class="modal-icon"><i data-lucide="bell"></i></div>' +
+      '<p class="modal-label">Recordatorio</p>' +
+      '<div class="date-quick-picks">' + chipsHtml + '</div>' +
+      '<input class="modal-input" type="datetime-local" value="' + currentVal + '" />' +
+      '<div class="modal-actions modal-actions-date">' +
+        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
+        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
+        '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
+      '</div>';
+    if (window.lucide) window.lucide.createIcons({ nodes: [box] });
+
+    const input   = box.querySelector(".modal-input");
+    const confirm = box.querySelector(".modal-btn-confirm");
+    const cancel  = box.querySelector(".modal-btn-cancel");
+    const clear   = box.querySelector(".modal-btn-clear");
+
+    box.querySelectorAll(".date-quick-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        closeModal(overlay);
+        resolve(btn.dataset.iso);
+      });
+    });
+
+    function doConfirm() {
+      const v = input.value;
+      closeModal(overlay);
+      if (!v) { resolve(null); return; }
+      // Validar que es futuro
+      const parsed = new Date(v);
+      if (isNaN(parsed.getTime())) { resolve(null); return; }
+      resolve(v);
+    }
+    function doCancel() { closeModal(overlay); resolve(undefined); }
+    function doClear()  { closeModal(overlay); resolve(null); }
+
+    overlay._cancel = doCancel;
+    confirm.addEventListener("click", doConfirm);
+    cancel.addEventListener("click",  doCancel);
+    clear.addEventListener("click",   doClear);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter")  doConfirm();
+      if (e.key === "Escape") doCancel();
+    });
+
+    setTimeout(function () { input.focus(); }, 50);
+  });
+}
+
+/**
  * Modal de recurrencia con presets.
  * @param {number|null} current — días de recurrencia actuales
  * @returns {Promise<number|null|undefined>}
@@ -268,7 +362,7 @@ export function modalRecurrence(current) {
 
     box.innerHTML =
       '<div class="modal-icon"><i data-lucide="repeat"></i></div>' +
-      '<p class="modal-label">// Repetir cada</p>' +
+      '<p class="modal-label">Repetir cada</p>' +
       '<div class="date-quick-picks">' + chipsHtml + '</div>' +
       '<input class="modal-input" type="number" min="1" max="3650" placeholder="Personalizado (días)" value="' +
         (current && !isPreset ? current : "") + '" />' +

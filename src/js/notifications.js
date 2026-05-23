@@ -292,17 +292,84 @@ window.AnsoNotif = (function() {
     }
   }
 
+  // ─── Recordatorios por tarea ─────────────────────────────────
+  // Map<taskId, setTimeoutId>
+  var _taskTimers = Object.create(null);
+
+  function _cancelAllTaskReminders() {
+    for (var id in _taskTimers) {
+      try { clearTimeout(_taskTimers[id]); } catch (_) {}
+    }
+    _taskTimers = Object.create(null);
+  }
+
+  /**
+   * Re-programa todos los recordatorios puntuales mirando todas las tareas.
+   * Llamar tras cada saveProjects o cambio de reminderAt.
+   *
+   * @param {Array} projectList
+   */
+  function scheduleTaskReminders(projectList) {
+    if (!isSupported()) return;
+    _cancelAllTaskReminders();
+    if (!isEnabled()) return;
+    if (!Array.isArray(projectList)) return;
+    var now = Date.now();
+    // setTimeout admite ~24.8 días máximo (signed int32). Por encima
+    // de eso, NO programamos: cuando el usuario abra la app de nuevo
+    // más cerca de la fecha, se re-programará.
+    var MAX_DELAY = 2147483647;
+
+    projectList.forEach(function (p) {
+      if (!p || p.archived) return;
+      (p.tasks || []).forEach(function (t) {
+        if (!t || t.done || !t.reminderAt) return;
+        var fireAt = new Date(t.reminderAt).getTime();
+        if (isNaN(fireAt)) return;
+        var delay = fireAt - now;
+        if (delay <= 0)         return;  // pasado — ignorar
+        if (delay > MAX_DELAY)  return;  // demasiado lejos — re-programar al volver
+
+        (function (task, project) {
+          _taskTimers[task.id] = setTimeout(function () {
+            delete _taskTimers[task.id];
+            _fireTaskReminder(task, project);
+          }, delay);
+        })(t, p);
+      });
+    });
+  }
+
+  function _fireTaskReminder(task, project) {
+    if (!isEnabled()) return;
+    _showNotification(
+      "Recordatorio: " + task.text.slice(0, 70),
+      "[" + (project.name || "Sin proyecto") + "]",
+      "antask-reminder-" + task.id + "-" + (task.reminderAt || ""),
+      { projectId: project.id, taskId: task.id }
+    );
+  }
+
+  function cancelTaskReminder(taskId) {
+    if (_taskTimers[taskId]) {
+      clearTimeout(_taskTimers[taskId]);
+      delete _taskTimers[taskId];
+    }
+  }
+
   return {
-    init:          init,
-    isSupported:   isSupported,
-    permission:    permission,
-    isEnabled:     isEnabled,
-    getTimes:      getTimes,
-    setTimes:      setTimes,
-    addTime:       addTime,
-    removeTime:    removeTime,
-    requestEnable: requestEnable,
-    disable:       disable,
-    fireTest:      fireTest,
+    init:                  init,
+    isSupported:           isSupported,
+    permission:            permission,
+    isEnabled:             isEnabled,
+    getTimes:              getTimes,
+    setTimes:              setTimes,
+    addTime:               addTime,
+    removeTime:            removeTime,
+    requestEnable:         requestEnable,
+    disable:               disable,
+    fireTest:              fireTest,
+    scheduleTaskReminders: scheduleTaskReminders,
+    cancelTaskReminder:    cancelTaskReminder,
   };
 })();

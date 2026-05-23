@@ -176,7 +176,7 @@ export function showGlobalSearch(deps) {
 
   box.className = "modal-box modal-box-search";
   box.innerHTML =
-    '<p class="modal-label">// Buscar en proyectos y notas</p>' +
+    '<p class="modal-label">Buscar en proyectos y notas</p>' +
     '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="escribe para buscar..." />' +
     '<div id="search-results" class="search-results"></div>' +
     '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">Cerrar</button></div>';

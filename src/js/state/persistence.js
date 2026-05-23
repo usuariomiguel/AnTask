@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════
 // Lectura del estado desde localStorage
 //
@@ -12,9 +13,17 @@ import {
   NOTES_KEY,
   METADATA_KEY,
   TASK_PREFS_KEY,
+  SMART_LISTS_KEY,
 } from "./keys.js";
-import { sanitizeProject, sanitizeStandaloneNote } from "./sanitize.js";
+import { sanitizeProject, sanitizeStandaloneNote, sanitizeSmartList } from "./sanitize.js";
 
+/** @typedef {import("./types.js").Project}           Project */
+/** @typedef {import("./types.js").Section}           Section */
+/** @typedef {import("./types.js").StandaloneNote}    StandaloneNote */
+/** @typedef {import("./types.js").SmartList}         SmartList */
+/** @typedef {import("./types.js").WorkspaceMetadata} WorkspaceMetadata */
+
+/** @returns {Project[]} */
 export function loadProjects() {
   try {
     const raw = localStorage.getItem(PROJECTS_KEY);
@@ -25,6 +34,7 @@ export function loadProjects() {
   }
 }
 
+/** @returns {Section[]} */
 export function loadSections() {
   try {
     const raw = localStorage.getItem(SECTIONS_KEY);
@@ -34,6 +44,7 @@ export function loadSections() {
   }
 }
 
+/** @returns {StandaloneNote[]} */
 export function loadStandaloneNotes() {
   try {
     const raw = localStorage.getItem(NOTES_KEY);
@@ -43,6 +54,7 @@ export function loadStandaloneNotes() {
   }
 }
 
+/** @returns {WorkspaceMetadata} */
 export function loadMetadata() {
   try {
     const raw = localStorage.getItem(METADATA_KEY);
@@ -52,11 +64,25 @@ export function loadMetadata() {
   }
 }
 
+/** @returns {Record<string, any>} */
 export function loadTaskPrefs() {
   try {
     const raw = localStorage.getItem(TASK_PREFS_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch (_) {
     return {};
+  }
+}
+
+/** @returns {SmartList[]} */
+export function loadSmartLists() {
+  try {
+    const raw = localStorage.getItem(SMART_LISTS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.map(sanitizeSmartList).filter(Boolean);
+  } catch (_) {
+    return [];
   }
 }

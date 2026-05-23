@@ -18,5 +18,17 @@ export default defineConfig({
     emptyOutDir: true,
     // El service worker debe quedar en la raíz del build (Vite lo copia desde public/)
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Firebase es ~130 KB gzip — lo separamos en su propio chunk
+        // para que el bundle principal (app) cargue rápido y Firebase
+        // se descargue en paralelo sin bloquear el first paint.
+        manualChunks(id) {
+          if (id.includes("node_modules/firebase") || id.includes("node_modules/@firebase")) {
+            return "firebase";
+          }
+        },
+      },
+    },
   },
 });
