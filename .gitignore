@@ -1,10 +1,14 @@
 backup/
 .claude
-/src/img/reference-design/
+src/img/reference-design/
+test-results/
+.claude/
+.vscode/
 
 # Vite / Node
 node_modules/
 dist/
+dev-dist/
 .vite/
 *.log
 .env

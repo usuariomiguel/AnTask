@@ -1,3 +1,5 @@
+import { sanitizeRichHtml } from "./utils/sanitize-html.js";
+
 // Paste options handler — intercepts HTML pastes and lets the user choose
 // between keeping sanitized formatting or stripping to plain text.
 (function () {
@@ -8,29 +10,6 @@
   var _onSave       = null;
   var _autoTimer    = null;
   var TIMEOUT_MS    = 8000;
-
-  // Remove colour/font inline styles but keep bold, italic, underline, strikethrough.
-  function sanitizeHtml(html) {
-    var doc  = new DOMParser().parseFromString(html, "text/html");
-    var els  = doc.body.querySelectorAll("*");
-    var DROP = ["color","background-color","background","font-size","font-family","font-weight","text-align"];
-    els.forEach(function (el) {
-      if (!el.style) return;
-      DROP.forEach(function (p) { el.style.removeProperty(p); });
-      if (el.style.cssText.trim() === "") el.removeAttribute("style");
-    });
-    // Remove tags that carry no useful formatting
-    ["span","p","div"].forEach(function (tag) {
-      doc.body.querySelectorAll(tag).forEach(function (el) {
-        if (!el.hasAttributes()) {
-          var frag = document.createDocumentFragment();
-          while (el.firstChild) frag.appendChild(el.firstChild);
-          el.replaceWith(frag);
-        }
-      });
-    });
-    return doc.body.innerHTML;
-  }
 
   function getToast() { return document.getElementById("paste-toast"); }
 
@@ -76,7 +55,7 @@
     }
 
     if (withFormat && _pendingHtml) {
-      document.execCommand("insertHTML", false, sanitizeHtml(_pendingHtml));
+      document.execCommand("insertHTML", false, sanitizeRichHtml(_pendingHtml));
     } else {
       document.execCommand("insertText", false, _pendingPlain || "");
     }

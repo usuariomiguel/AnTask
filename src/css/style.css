@@ -8472,3 +8472,87 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 :root[data-theme="light"] .onb-chip-date  { color: var(--c-primary-600); }
 :root[data-theme="light"] .onb-chip-prio  { color: #be123c; }
 :root[data-theme="light"] .onb-chip-label { color: #0e7490; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   COOKIE CONSENT BANNER
+   ═══════════════════════════════════════════════════════════════ */
+
+.consent-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 12px 16px;
+  background: var(--surface-overlay);
+  border-top: 1px solid var(--border-default);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateY(0);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.consent-banner--out {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.consent-banner__body {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.consent-banner__text {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.consent-banner__link {
+  color: var(--c-primary-400);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.consent-banner__link:hover { text-decoration: underline; }
+
+.consent-banner__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.consent-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.consent-btn:hover { opacity: 0.85; }
+
+.consent-btn--secondary {
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.consent-btn--primary {
+  background: var(--c-primary-600);
+  color: #fff;
+}
+
+@media (max-width: 500px) {
+  .consent-banner__body { flex-direction: column; align-items: stretch; }
+  .consent-banner__actions { justify-content: flex-end; }
+}

@@ -5,6 +5,8 @@ import { getDueDateState, formatDueDate }   from "./utils/date.js";
 import { generateId }                       from "./utils/id.js";
 import { parseNaturalLanguage }             from "./utils/nl-parse.js";
 import { buildNLChipsHTML }                 from "./utils/nl-chips.js";
+import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
+import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
   createModalBase,
   closeModal,
@@ -155,9 +157,11 @@ function _showQuickToast(msg) {
 window.modalAlert = modalAlert;
 
 // ─── ALIASES DE GLOBALES (de otros módulos cargados antes) ───
-// Capturamos los globales que exponen los demás módulos en window
-// para poder usarlos con sintaxis bare (`AnsoSync.foo()`).
-var AnsoSync          = window.AnsoSync          || null;
+// setupPasteHandler y setupImageResizer se leen de window porque se
+// inicializan en paste-utils.js antes de que este módulo arranque.
+// AnsoSync NO se cachea en local: Firebase carga de forma diferida y
+// window.AnsoSync puede ser null al arrancar → siempre leer en tiempo
+// de ejecución con window.AnsoSync?.method().
 var setupPasteHandler = window.setupPasteHandler || null;
 var setupImageResizer = window.setupImageResizer || null;
 
@@ -250,9 +254,7 @@ function ensureDefaultSmartLists() {
 /** Persistencia de smart lists. */
 function saveSmartLists() {
   try { localStorage.setItem(SMART_LISTS_KEY, JSON.stringify(smartLists)); } catch (_) {}
-  if (window.AnsoSync && AnsoSync.scheduleSave) {
-    AnsoSync.scheduleSave(projects, sections, standaloneNotes);
-  }
+  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
 }
 
 /**
@@ -490,6 +492,20 @@ const selectedTaskIds = new Set();
 const bulkActionBar  = document.getElementById("bulk-action-bar");
 const bulkCount      = document.getElementById("bulk-count");
 const selectModeBtn  = document.getElementById("select-mode-btn");
+
+// ═══════════════════════════════════════════════════════════════
+// PREFERENCIAS DE BOTONES DE TAREA
+// Debe declararse antes del bloque de arranque (applyTaskPrefs lo usa).
+// ═══════════════════════════════════════════════════════════════
+const TASK_BTN_DEFS = [
+  { key: "priority", label: "Prioridad",   icon: "flag"          },
+  { key: "status",   label: "Estado",      icon: "circle-dashed" },
+  { key: "date",     label: "Fecha",       icon: "calendar"      },
+  { key: "recur",    label: "Repetir",     icon: "repeat"        },
+  { key: "comment",  label: "Nota rápida", icon: "message-circle"},
+  { key: "labels",   label: "Etiquetas",   icon: "tag"           },
+  { key: "subtasks", label: "Subtareas",   icon: "list-plus"     },
+];
 
 // ─── ARRANQUE ────────────────────────────────────────────────
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
@@ -3906,18 +3922,61 @@ function saveAndRender() {
 }
 
 // ─── PERSISTENCIA ────────────────────────────────────────────
+
+/** Muestra el modal de cuota llena con botón de exportar workspace. */
+function _showQuotaModal() {
+  var { overlay, box } = createModalBase();
+  box.innerHTML =
+    '<p class="modal-label" style="color:var(--c-danger,#ef4444)">⚠ Almacenamiento casi lleno</p>' +
+    '<p style="font-size:0.88rem;color:var(--t-soft);line-height:1.6;margin-bottom:1.2rem">' +
+      'El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br>' +
+      '<strong>Tus últimos cambios no se han guardado.</strong><br><br>' +
+      'Exporta tu workspace ahora para no perder datos, luego borra tareas o proyectos para liberar espacio.' +
+    '</p>' +
+    '<div class="modal-actions">' +
+      '<button class="modal-btn modal-btn-confirm" id="_quota-export">Exportar workspace</button>' +
+      '<button class="modal-btn modal-btn-cancel" id="_quota-close">Cerrar</button>' +
+    '</div>';
+
+  if (window.lucide) lucide.createIcons({ nodes: [box] });
+
+  overlay._cancel = function() { closeModal(overlay); };
+  box.querySelector("#_quota-close").addEventListener("click", function() { closeModal(overlay); });
+  box.querySelector("#_quota-export").addEventListener("click", function() {
+    closeModal(overlay);
+    exportBtn.click();
+  });
+}
+
+/** Actualiza el indicador de uso en el footer cuando supera el 75%. */
+function _checkStorageWarning() {
+  var pct = getStorageUsagePct();
+  var el = document.getElementById("save-status");
+  if (!el) return;
+  if (pct >= 90) {
+    el.textContent = "⚠ Almacenamiento al " + pct + "% — exporta tu workspace";
+    el.style.color = "var(--c-danger, #ef4444)";
+  } else if (pct >= 75) {
+    el.textContent = "Almacenamiento al " + pct + "%";
+    el.style.color = "var(--c-warning, #f97316)";
+  } else {
+    el.style.color = "";
+  }
+}
+
 function saveProjects() {
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  const ok = safeLsSet(PROJECTS_KEY, JSON.stringify(projects), _showQuotaModal);
+  if (!ok) return;
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   updateSaveStatus(now);
-  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
-  // Re-programar los recordatorios por tarea con el estado actual.
-  if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
+  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+  if (window.AnsoNotif?.scheduleTaskReminders) {
     window.AnsoNotif.scheduleTaskReminders(projects);
   }
+  _checkStorageWarning();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4012,7 +4071,7 @@ function activateNote(noteId) {
 
   var noteEditor = document.getElementById("note-editor");
   var noteTitleEl = document.getElementById("note-title");
-  if (noteEditor)  noteEditor.innerHTML = note.content || "";
+  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(note.content || "");
   if (noteTitleEl) noteTitleEl.textContent = note.name;
 
   document.title = note.name + " — antask";
@@ -4181,19 +4240,6 @@ function _syncNoteFmtBtns() {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PREFERENCIAS DE BOTONES DE TAREA
-// ═══════════════════════════════════════════════════════════════
-
-const TASK_BTN_DEFS = [
-  { key: "priority", label: "Prioridad",   icon: "flag"          },
-  { key: "status",   label: "Estado",      icon: "circle-dashed" },
-  { key: "date",     label: "Fecha",       icon: "calendar"      },
-  { key: "recur",    label: "Repetir",     icon: "repeat"        },
-  { key: "comment",  label: "Nota rápida", icon: "message-circle"},
-  { key: "labels",   label: "Etiquetas",   icon: "tag"           },
-  { key: "subtasks", label: "Subtareas",   icon: "list-plus"     },
-];
 
 function saveTaskPrefs() {
   localStorage.setItem(TASK_PREFS_KEY, JSON.stringify(taskPrefs));
@@ -4259,17 +4305,20 @@ function showTaskPrefsModal() {
 }
 
 function saveStandaloneNotes() {
-  localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+  const ok = safeLsSet(NOTES_KEY, JSON.stringify(standaloneNotes), _showQuotaModal);
+  if (!ok) return;
+  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+  _checkStorageWarning();
 }
 
 function saveSections() {
-  localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+  const ok = safeLsSet(SECTIONS_KEY, JSON.stringify(sections), _showQuotaModal);
+  if (!ok) return;
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
-  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  if (window.AnsoSync) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
 }
 
 function updateSaveStatus(lastSavedAt) {
@@ -4298,9 +4347,11 @@ function saveAutoBackup() {
     timestamp: now.toISOString(),
     version: "auto-backup"
   };
-  localStorage.setItem(key, JSON.stringify(data));
+  // El auto-backup falla silenciosamente si no hay espacio — no molestamos
+  // al usuario con el modal de cuota en un proceso en segundo plano.
+  const ok = safeLsSet(key, JSON.stringify(data), function() {});
+  if (!ok) return;
   cleanOldAutoBackups();
-  console.log("Backup automático guardado:", dateStr);
 }
 
 function cleanOldAutoBackups() {
@@ -4408,9 +4459,9 @@ function _acctMetaKey(uid)  { return METADATA_KEY + "-" + uid; }
 
 function _saveAccountCache(uid) {
   var now = new Date().toISOString();
-  localStorage.setItem(_acctKey(uid),     JSON.stringify(projects));
-  localStorage.setItem(_acctSectKey(uid), JSON.stringify(sections));
-  localStorage.setItem(_acctMetaKey(uid), JSON.stringify({ lastSavedAt: now }));
+  safeLsSet(_acctKey(uid),     JSON.stringify(projects),  _showQuotaModal);
+  safeLsSet(_acctSectKey(uid), JSON.stringify(sections),  _showQuotaModal);
+  safeLsSet(_acctMetaKey(uid), JSON.stringify({ lastSavedAt: now }), _showQuotaModal);
 }
 
 var _syncWasConnected = false;
@@ -4480,7 +4531,7 @@ function _updateProfileMenu(user) {
     if (pfSub)       pfSub.textContent       = "Sincronizado";
     if (pfSubTop)    pfSubTop.textContent    = "Sincronización activa";
     if (pfSyncName)  pfSyncName.textContent  = user.email || user.displayName || "";
-    if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { AnsoSync.signOut(); });
+    if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
     if (pfAvatar)    pfAvatar.textContent    = "A";
     if (pfAvatarTop) pfAvatarTop.textContent = "A";
@@ -4492,7 +4543,7 @@ function _updateProfileMenu(user) {
 }
 
 function _syncOnFirstConnect(cloudData) {
-  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
   var uid = user.uid;
 
@@ -4510,7 +4561,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+      window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
       return;
     }
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
@@ -4528,7 +4579,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+      window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
     }
     return;
   }
@@ -4539,7 +4590,7 @@ function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
     _saveAccountCache(uid);
-    if (projects.length > 0) AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+    if (projects.length > 0) window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
     return;
   }
 
@@ -4559,7 +4610,7 @@ function _syncOnFirstConnect(cloudData) {
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
     if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
-    else { _saveAccountCache(uid); AnsoSync.scheduleSave(projects, sections, standaloneNotes); }
+    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes); }
     return;
   }
 
@@ -4595,12 +4646,12 @@ function _showSyncConflictModal(cloudData, uid) {
   box.querySelector("#_sc-local").addEventListener("click", function() {
     closeModal(overlay);
     _saveAccountCache(uid);
-    AnsoSync.scheduleSave(projects, sections, standaloneNotes);
+    window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
   });
 }
 
 function _syncOnRemoteChange(remoteProjects, remoteSections, remoteStandaloneNotes) {
-  var user = window.AnsoSync && AnsoSync.getUser ? AnsoSync.getUser() : null;
+  var user = window.AnsoSync?.getUser?.() ?? null;
   _syncApplyRemote(remoteProjects, remoteSections || [], remoteStandaloneNotes || [], user ? user.uid : null);
 }
 

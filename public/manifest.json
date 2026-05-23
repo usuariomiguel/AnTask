@@ -11,16 +11,10 @@
   "lang": "es",
   "icons": [
     {
-      "src": "./src/img/logo-icon.svg",
+      "src": "./icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "./src/img/logo-icon-transparent.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     },
     {
       "src": "./icons/icon-192.png",
