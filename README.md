@@ -259,8 +259,8 @@ Los datos se almacenan en `/users/{uid}/workspace/data`. Si no se configura, la 
 | Tipado         | JSDoc + `// @ts-check` en módulos críticos  |
 | Almacenamiento | `localStorage`                              |
 | Sincronización | Firebase Firestore modular v9+ (opcional)   |
-| Iconos         | Lucide (CDN)                                |
-| Tipografías    | Google Fonts (Inter)                        |
+| Iconos         | Lucide (self-hosted vía npm)                |
+| Tipografías    | Inter + JetBrains Mono (self-hosted)        |
 | PWA            | Service Worker + `manifest.json`            |
 
 ---
@@ -277,11 +277,11 @@ Requiere soporte de `localStorage`, `crypto.randomUUID()`, Service Workers y ES 
 
 ## Privacidad
 
-antask no recopila ningún dato. No hay analíticas, no hay cookies de seguimiento, no hay peticiones a servidores externos salvo:
+antask no recopila datos personales por defecto. **Sin cookies de seguimiento. Sin requests a CDN de terceros sin consentimiento.**
 
-- Google Fonts (para Inter)
-- Lucide CDN (para iconos)
-- Firebase (sólo si el usuario inicia sesión voluntariamente)
+- Fuentes (Inter, JetBrains Mono) e iconos (Lucide) se sirven **self-hosted** desde el propio dominio.
+- Firebase solo se carga si el usuario inicia sesión voluntariamente.
+- Plausible Analytics (opt-in vía banner de consentimiento, sin cookies ni IPs personales).
 
 Lo que escribes se queda en tu dispositivo.
 

@@ -483,7 +483,7 @@ let _undoTimer = null;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded  = false;
-let _notesExpanded     = true;
+let _notesExpanded     = false;
 let _smartListsExpanded = true;
 let taskPrefs         = loadTaskPrefs();
 

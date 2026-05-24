@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>AnTask · Tus tareas, tu día. Tuyo.</title>
+    <meta name="theme-color" content="#0A0A0F" />
+    <meta name="description" content="Una app de tareas y notas que funciona 100% offline en tu navegador. Captura con lenguaje natural, sin tracking, sin cookies, sin BS." />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:title" content="AnTask · Tus tareas, tu día. Tuyo." />
+    <meta property="og:description" content="Una app de tareas y notas que funciona 100% offline. Captura con lenguaje natural. Sin tracking." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/icon-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src  'self' 'unsafe-inline';
+      style-src   'self' 'unsafe-inline';
+      font-src    'self';
+      img-src     'self' data: blob:;
+      connect-src 'self';
+      frame-ancestors 'none';
+      base-uri    'self';
+    " />
+
+    <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
+    <link rel="stylesheet" href="./src/css/landing.css" />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Saltar al contenido</a>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         HERO
+         ═══════════════════════════════════════════════════════════════════ -->
+    <header class="hero">
+      <div class="hero-atmosphere" aria-hidden="true">
+        <div class="grid-dots"></div>
+        <div class="orb orb-violet"></div>
+        <div class="orb orb-pink"></div>
+        <div class="orb orb-cyan"></div>
+        <div class="grain"></div>
+      </div>
+
+      <nav class="nav" aria-label="Navegación principal">
+        <a href="#" class="nav-brand" aria-label="AnTask, inicio">
+          <svg width="24" height="24" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="brand-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E96EE3" />
+                <stop offset="55%" stop-color="#7C5CFF" />
+                <stop offset="100%" stop-color="#5EC8F5" />
+              </linearGradient>
+            </defs>
+            <path d="M20 4 L34 32 H28 L25 25 H15 L12 32 H6 Z M17 19 H23 L20 12 Z" fill="url(#brand-grad)" />
+          </svg>
+          <span>antask</span>
+        </a>
+
+        <div id="nav-links" class="nav-links">
+          <a href="#producto" class="nav-link">Producto</a>
+          <a href="#pro" class="nav-link">Pro</a>
+          <a href="#pricing" class="nav-link">Precios</a>
+          <a href="#faq" class="nav-link">FAQ</a>
+          <a href="https://github.com/" target="_blank" rel="noopener" class="nav-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+            </svg>
+            GitHub
+          </a>
+        </div>
+
+        <div class="nav-right">
+          <a href="./index.html" class="nav-link">Entrar</a>
+          <a href="./index.html" class="btn btn-light">Empezar gratis</a>
+          <button type="button" id="nav-mobile-toggle" class="nav-mobile-toggle" aria-controls="nav-links" aria-expanded="false" aria-label="Abrir menú">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <!-- LEFT — copy -->
+        <div class="hero-copy reveal">
+          <div class="eyebrow-pill">
+            <span class="badge">NUEVO</span>
+            Pro disponible — Dashboard, plantillas y adjuntos
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M7 7h10v10" />
+            </svg>
+          </div>
+
+          <h1>
+            Tus tareas,<br />
+            tu día.<br />
+            <span class="grad-text">Tuyo.</span>
+          </h1>
+
+          <p class="hero-lead">
+            Una app de tareas y notas que funciona 100% offline en tu navegador.
+            Captura con lenguaje natural, sin tracking, sin cookies, sin BS.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="./index.html" class="btn btn-primary">
+              Empezar gratis
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </a>
+            <a href="#pricing" class="btn btn-secondary">Ver precios</a>
+          </div>
+
+          <div class="trust-bar">
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 2l20 20M5.78 5.78A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.93-.41M10.66 5.34A7 7 0 0 1 21.5 9.7" />
+              </svg>
+              Funciona offline
+            </span>
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+              </svg>
+              Sin cookies de seguimiento
+            </span>
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              Instalable PWA
+            </span>
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+              </svg>
+              Open source
+            </span>
+          </div>
+        </div>
+
+        <!-- RIGHT — mockup -->
+        <div class="hero-visual reveal" aria-hidden="true">
+          <div class="hero-halo"></div>
+          <div class="hero-mockup">
+            <div class="hero-mockup-frame">
+              <div class="hero-mockup-screen">
+                <div class="app-mock">
+                  <!-- Sidebar -->
+                  <aside class="app-mock-sidebar">
+                    <div class="app-mock-brand">
+                      <div style="display:inline-flex;align-items:center;gap:6px">
+                        <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
+                          <path d="M20 4 L34 32 H28 L25 25 H15 L12 32 H6 Z M17 19 H23 L20 12 Z" fill="url(#brand-grad)" />
+                        </svg>
+                        <span class="app-mock-brand-name">antask</span>
+                      </div>
+                      <div class="app-mock-brand-icons">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+                      </div>
+                    </div>
+
+                    <div class="nav-item active">
+                      <span style="color:#F5A623">●</span>
+                      <span>Hoy</span>
+                    </div>
+                    <div class="nav-item">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg>
+                      <span>Inbox</span>
+                    </div>
+
+                    <div class="side-heading">
+                      <span style="width:8px">›</span>
+                      <span>LISTAS</span>
+                      <span class="count">3</span>
+                    </div>
+                    <div class="side-heading">
+                      <span style="width:8px">⌄</span>
+                      <span>PROYECTOS</span>
+                      <span class="count">2</span>
+                    </div>
+                    <div class="nav-item indent">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5EC8F5" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+                      <span>AnTask</span>
+                      <span class="nav-item-right">0/1</span>
+                    </div>
+                    <div class="nav-item indent">
+                      <span style="color:#F5A623">▣</span>
+                      <span>Diskover</span>
+                      <span class="nav-item-right">0/0</span>
+                    </div>
+                    <div class="side-heading">
+                      <span style="width:8px">⌄</span>
+                      <span>TRABAJO</span>
+                      <span class="count">3</span>
+                    </div>
+                    <div class="nav-item indent thin"><span></span><span>Firma Digital</span><span class="nav-item-right">1/12</span></div>
+                    <div class="nav-item indent thin"><span></span><span>Formación</span><span class="nav-item-right">0/2</span></div>
+                    <div class="nav-item indent thin"><span></span><span>IRPs</span><span class="nav-item-right">0/1</span></div>
+
+                    <div class="app-mock-footer">
+                      <div class="app-mock-search">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                        <span>Buscar tareas</span>
+                        <span class="app-mock-search-kbd">⌘K</span>
+                      </div>
+                      <div class="app-mock-actions">
+                        <button class="btn-violet-grad">+ Proyecto</button>
+                        <button class="btn-cyan-grad">+ Nota</button>
+                      </div>
+                      <div class="app-mock-account">
+                        <div class="app-mock-avatar">A</div>
+                        <div style="line-height:1.2">
+                          <div style="font-size:11px;font-weight:600">antask</div>
+                          <div style="font-size:9px;color:var(--text-4)">Local · sin cuenta</div>
+                        </div>
+                      </div>
+                    </div>
+                  </aside>
+
+                  <!-- Main -->
+                  <section class="app-mock-main">
+                    <div>
+                      <div class="app-mock-eyebrow">AGENDA</div>
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:2px">
+                        <div>
+                          <div class="app-mock-title">Hoy</div>
+                          <div class="app-mock-sub">4 tareas · racha de 12 días</div>
+                        </div>
+                        <div class="app-mock-tabs">
+                          <div class="app-mock-tab">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                            Lista
+                          </div>
+                          <div class="app-mock-tab active">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                            Agenda
+                          </div>
+                          <div class="app-mock-tab">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 14h2M14 14h2M8 18h2M14 18h2"/></svg>
+                            Mes
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="app-mock-section-tag">
+                      <span class="label cyan">ESTA SEMANA</span>
+                      <span class="pill cyan">4</span>
+                    </div>
+
+                    <div class="task-mock accent-red">
+                      <div class="task-circle"></div>
+                      <div class="task-body">
+                        <div class="task-title">Lanzar simulacro</div>
+                        <div class="task-pills"><span class="pill pill-red">Alta</span><span class="pill pill-violet">Formación</span></div>
+                      </div>
+                      <div class="task-when">Mañana</div>
+                    </div>
+                    <div class="task-mock">
+                      <div class="task-circle"></div>
+                      <div class="task-body">
+                        <div class="task-title">Crear lista blanca de IA para el Comité</div>
+                        <div class="task-pills"><span class="pill pill-orange">En espera</span><span class="pill pill-violet">Otros</span></div>
+                      </div>
+                      <div class="task-when">sáb, 30 may</div>
+                    </div>
+                    <div class="task-mock">
+                      <div class="task-circle"></div>
+                      <div class="task-body">
+                        <div class="task-title">Configurar Relay Bitdefender</div>
+                        <div class="task-pills"><span class="pill pill-orange">En espera</span><span class="pill pill-violet">Otros</span></div>
+                      </div>
+                      <div class="task-when">dom, 31 may</div>
+                    </div>
+                    <div class="task-mock accent-red">
+                      <div class="task-circle"></div>
+                      <div class="task-body">
+                        <div class="task-title">Completar memoria y PPT al completo</div>
+                        <div class="task-pills"><span class="pill pill-red">Alta</span><span class="pill pill-orange">En espera</span></div>
+                      </div>
+                      <div class="task-when">dom, 31 may</div>
+                    </div>
+
+                    <div class="app-mock-section-tag">
+                      <span class="label muted">MÁS ADELANTE</span>
+                      <span class="pill muted">4</span>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating NL chip -->
+          <div class="nl-chip">
+            <div class="nl-chip-header">
+              <span>NUEVA TAREA</span>
+              <span class="parsing"><span class="dot"></span>PARSEANDO</span>
+            </div>
+            <div id="nl-chip-text" class="nl-chip-text"></div>
+            <div class="nl-chip-footer">
+              <span style="color:var(--text-4)">→</span> Crea tarea con título <strong>"Pagar gym"</strong>, prioridad alta, etiqueta #facturas, repetición mensual.
+            </div>
+          </div>
+
+          <!-- Streak card -->
+          <div class="streak-card">
+            <div class="streak-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a7 7 0 0 0 7-7c0-3-2-5.5-4-7 .25 2.5-2.5 4-4 4a3 3 0 0 1-3-3c0-1 .5-2 1-2.5-3 1-6 5-6 9.5a6.5 6.5 0 0 0 6.5 6.5" />
+              </svg>
+            </div>
+            <div>
+              <div class="streak-num">12 días</div>
+              <div class="streak-lab">Racha actual</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         WHY · 3 pillars
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="producto" aria-labelledby="why-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">POR QUÉ ANTASK</div>
+          <h2 id="why-title" class="section-title">Tres principios. Cero compromisos.</h2>
+          <p class="section-blurb">
+            Construida para gente que ya tiene bastante en la cabeza. AnTask se aparta del medio y respeta tu tiempo y tus datos.
+          </p>
+        </div>
+
+        <div class="pillars">
+          <article class="pillar-card reveal">
+            <div class="pillar-tag">01</div>
+            <div class="pillar-icon yellow">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Rápido</h3>
+            <p class="pillar-body">Captura una tarea sin pensar. Lenguaje natural, atajos para todo, ⌘K para encontrar cualquier cosa al instante.</p>
+            <div class="pillar-proof yellow">&lt; 1 s para crear una tarea</div>
+          </article>
+
+          <article class="pillar-card reveal">
+            <div class="pillar-tag">02</div>
+            <div class="pillar-icon violet">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Privado</h3>
+            <p class="pillar-body">Tus datos viven en tu navegador. Sin servidores, sin tracking, sin cookies de seguimiento. Sincroniza con Google solo si tú quieres.</p>
+            <div class="pillar-proof violet">0 trackers · 0 cookies</div>
+          </article>
+
+          <article class="pillar-card reveal">
+            <div class="pillar-tag">03</div>
+            <div class="pillar-icon pink">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Tuyo</h3>
+            <p class="pillar-body">Exporta cuando quieras. Cancela cuando quieras. Sin lock-in. Código abierto en GitHub.</p>
+            <div class="pillar-proof pink">Exporta a JSON, Markdown</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         FREE FEATURES
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" aria-labelledby="free-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">TODO LO GRATIS · SIEMPRE GRATIS</div>
+          <h2 id="free-title" class="section-title">Capaz de verdad, sin pagar nada.</h2>
+          <p class="section-blurb">
+            No es una versión recortada. AnTask Free es una app completa. Pagas si quieres más, no para empezar.
+          </p>
+        </div>
+
+        <div class="feature-hero reveal">
+          <div class="feature-hero-glow" aria-hidden="true"></div>
+          <div class="feature-hero-content">
+            <div class="star-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6 7.7 7.7M16.3 16.3l2.1 2.1M5.6 18.4 7.7 16.3M16.3 7.7l2.1-2.1" />
+              </svg>
+              FEATURE ESTRELLA
+            </div>
+            <h3>Escribe como hablas.<br />AnTask entiende.</h3>
+            <p>Fechas, recurrencia, prioridades y etiquetas — todo en una sola línea. Sin formularios. Sin clicks.</p>
+            <div class="hints">
+              <div class="hint"><span class="hint-key">cada lunes</span><span class="hint-val">recurrencia</span></div>
+              <div class="hint"><span class="hint-key">p1 p2 p3</span><span class="hint-val">prioridades</span></div>
+              <div class="hint"><span class="hint-key">#trabajo</span><span class="hint-val">etiquetas</span></div>
+              <div class="hint"><span class="hint-key">mañana 18:00</span><span class="hint-val">fechas</span></div>
+            </div>
+          </div>
+          <div class="feature-hero-content">
+            <div class="nl-chip" style="position:relative;top:0;right:0;transform:none">
+              <div class="nl-chip-header">
+                <span>VISTA PREVIA</span>
+                <span class="parsing"><span class="dot"></span>OK</span>
+              </div>
+              <div class="nl-chip-text">
+                <span class="token-pink">cada lunes</span>
+                <span style="color:var(--text-1)"> revisar PRs </span>
+                <span class="token-red">p1</span>
+                <span style="color:var(--text-1)"> </span>
+                <span class="token-cyan">#trabajo</span>
+              </div>
+              <div class="nl-chip-footer">
+                <span style="color:var(--text-4)">→</span> Recurrente · semanal · alta prioridad
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tiny-features">
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Vistas múltiples</h4>
+            <p class="tiny-feature-desc">Lista, Agenda y Mes. Cambia con una tecla.</p>
+          </article>
+
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3v6a3 3 0 0 0 3 3h12M9 14l3-3 3 3M12 11v10"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Subtareas y comentarios</h4>
+            <p class="tiny-feature-desc">Anida lo que necesites. Coméntalo todo.</p>
+          </article>
+
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/>
+                <circle cx="7" cy="7" r="1.5"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Etiquetas y prioridades</h4>
+            <p class="tiny-feature-desc">Organiza con #tags y p1/p2/p3.</p>
+          </article>
+
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54Z"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Smart Lists</h4>
+            <p class="tiny-feature-desc">Filtros guardados que se actualizan solos.</p>
+          </article>
+
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Notas enriquecidas</h4>
+            <p class="tiny-feature-desc">Editor independiente para todo lo demás.</p>
+          </article>
+
+          <article class="tiny-feature reveal">
+            <div class="tiny-feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+              </svg>
+            </div>
+            <h4 class="tiny-feature-title">Recordatorios</h4>
+            <p class="tiny-feature-desc">Avisos locales sin depender de nadie.</p>
+          </article>
+        </div>
+
+        <div class="shortcuts-bar reveal">
+          <div class="shortcuts-bar-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="14" rx="2"/>
+              <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M10 14h.01M14 14h.01M18 14h.01M7 18h10"/>
+            </svg>
+            <div>
+              <div class="shortcuts-bar-title">Atajos de teclado para todo</div>
+              <div class="shortcuts-bar-desc">Crea, completa, busca, navega — todo sin tocar el ratón.</div>
+            </div>
+          </div>
+          <div class="shortcuts-keys">
+            <div class="shortcuts-key-group"><kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd></div>
+            <div class="shortcuts-key-group"><kbd class="kbd">N</kbd></div>
+            <div class="shortcuts-key-group"><kbd class="kbd">⌘</kbd><kbd class="kbd">/</kbd></div>
+            <div class="shortcuts-key-group"><kbd class="kbd">⇧</kbd><kbd class="kbd">↵</kbd></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PRO UPSELL
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="pro" aria-labelledby="pro-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow accent">ANTASK PRO</div>
+          <h2 id="pro-title" class="section-title">Llévalo al siguiente nivel.</h2>
+          <p class="section-blurb">
+            Cuando ya conoces la app y quieres más palanca. Las funciones Pro existen para profesionales que dependen de su sistema.
+          </p>
+        </div>
+
+        <div class="pro-cards">
+          <article class="pro-card reveal">
+            <div class="pro-card-head">
+              <div class="pro-card-row">
+                <div class="pro-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3v18h18M7 14l4-4 4 4 5-5"/>
+                  </svg>
+                </div>
+                <div class="pro-card-num">01</div>
+              </div>
+              <h3 class="pro-card-title">Dashboard de productividad</h3>
+              <p class="pro-card-body">Mide lo que importa: tareas completadas, racha actual, top proyectos y distribución por prioridad. Sin vanity metrics.</p>
+            </div>
+            <div class="pro-card-visual">
+              <div class="dash-mini">
+                <div class="dash-bars">
+                  <div class="dash-bar" style="height:40%"></div>
+                  <div class="dash-bar" style="height:65%"></div>
+                  <div class="dash-bar" style="height:80%"></div>
+                  <div class="dash-bar" style="height:55%"></div>
+                  <div class="dash-bar peak" style="height:92%"></div>
+                  <div class="dash-bar" style="height:70%"></div>
+                  <div class="dash-bar" style="height:88%"></div>
+                </div>
+                <div class="dash-days"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+                <div class="dash-num">
+                  <span class="dash-num-big">42</span>
+                  <span class="dash-num-trend">+18% vs sem. anterior</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="pro-card reveal">
+            <div class="pro-card-head">
+              <div class="pro-card-row">
+                <div class="pro-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M3 9h18M9 21V9"/>
+                  </svg>
+                </div>
+                <div class="pro-card-num">02</div>
+              </div>
+              <h3 class="pro-card-title">Plantillas de proyectos</h3>
+              <p class="pro-card-body">Sprint, Onboarding, Lanzamiento, Mudanza. Empieza con un esqueleto probado o guarda los tuyos.</p>
+            </div>
+            <div class="pro-card-visual">
+              <div class="tmpl-list">
+                <div class="tmpl-row"><div class="tmpl-bar" style="background:#7C5CFF"></div><span class="tmpl-name">Sprint de 2 semanas</span><span class="tmpl-count">14 tareas</span></div>
+                <div class="tmpl-row"><div class="tmpl-bar" style="background:#E96EE3"></div><span class="tmpl-name">Onboarding nuevo cliente</span><span class="tmpl-count">9 tareas</span></div>
+                <div class="tmpl-row"><div class="tmpl-bar" style="background:#5EC8F5"></div><span class="tmpl-name">Lanzamiento de producto</span><span class="tmpl-count">22 tareas</span></div>
+                <div class="tmpl-row"><div class="tmpl-bar" style="background:#F5A623"></div><span class="tmpl-name">Mudanza</span><span class="tmpl-count">31 tareas</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="pro-card reveal">
+            <div class="pro-card-head">
+              <div class="pro-card-row">
+                <div class="pro-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                  </svg>
+                </div>
+                <div class="pro-card-num">03</div>
+              </div>
+              <h3 class="pro-card-title">Adjuntos en tareas</h3>
+              <p class="pro-card-body">PDFs, imágenes y archivos. Todo lo que necesitas para esa tarea, justo donde la trabajas.</p>
+            </div>
+            <div class="pro-card-visual">
+              <div class="att-list">
+                <div class="att-head">3 ARCHIVOS</div>
+                <div class="att-row">
+                  <div class="att-icon">📄</div>
+                  <div class="att-info">
+                    <div class="att-name">pliegos-fortis.pdf</div>
+                    <div class="att-meta">2.4 MB</div>
+                  </div>
+                </div>
+                <div class="att-row">
+                  <div class="att-icon">🖼</div>
+                  <div class="att-info">
+                    <div class="att-name">mockup-v3.png</div>
+                    <div class="att-meta">480 KB</div>
+                  </div>
+                </div>
+                <div class="att-row">
+                  <div class="att-icon">📊</div>
+                  <div class="att-info">
+                    <div class="att-name">memoria-q2.xlsx</div>
+                    <div class="att-meta">128 KB</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         COMPARE
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" aria-labelledby="compare-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">COMPARATIVA</div>
+          <h2 id="compare-title" class="section-title">Free vs Pro, sin trucos.</h2>
+          <p class="section-blurb">
+            Toda la funcionalidad esencial está en Free para siempre. Pro añade lo que sirve a quien depende de su sistema.
+          </p>
+        </div>
+
+        <div class="compare-table reveal" role="table" aria-label="Comparativa Free vs Pro">
+          <div class="compare-head" role="row">
+            <div class="col-label" role="columnheader">FUNCIÓN</div>
+            <div class="col-free" role="columnheader">FREE</div>
+            <div class="col-pro" role="columnheader">PRO</div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Captura por lenguaje natural</div>
+            <div class="compare-cell" role="cell"><span class="check-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Vistas Lista / Agenda / Mes</div>
+            <div class="compare-cell" role="cell"><span class="check-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Sincronización Google (Firebase)</div>
+            <div class="compare-cell" role="cell"><span class="check-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">PWA instalable · funciona offline</div>
+            <div class="compare-cell" role="cell"><span class="check-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Dashboard de productividad</div>
+            <div class="compare-cell" role="cell"><span class="dash-dot" aria-label="No incluido"></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Plantillas de proyectos</div>
+            <div class="compare-cell" role="cell"><span class="dash-dot" aria-label="No incluido"></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Adjuntos en tareas</div>
+            <div class="compare-cell" role="cell"><span class="dash-dot" aria-label="No incluido"></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+
+          <div class="compare-row" role="row">
+            <div class="compare-label" role="cell">Soporte prioritario</div>
+            <div class="compare-cell" role="cell"><span class="dash-dot" aria-label="No incluido"></span></div>
+            <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PRICING
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="pricing" aria-labelledby="pricing-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">PRECIOS</div>
+          <h2 id="pricing-title" class="section-title">Honesto. Sin asteriscos.</h2>
+          <p class="section-blurb">Empieza gratis y úsalo así para siempre. Activa Pro solo si lo necesitas.</p>
+        </div>
+
+        <div class="billing-toggle-wrap reveal">
+          <div class="billing-toggle" role="tablist" aria-label="Frecuencia de facturación">
+            <button type="button" id="billing-monthly" class="billing-pill" role="tab" aria-pressed="false">Mensual</button>
+            <button type="button" id="billing-annual" class="billing-pill active" role="tab" aria-pressed="true">
+              Anual
+              <span class="save">−27%</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pricing-cards reveal">
+          <!-- FREE -->
+          <article class="price-card">
+            <div class="price-tier">FREE</div>
+            <div class="price-row">
+              <span class="price-num">0€</span>
+              <span class="price-suffix">/mes · siempre</span>
+            </div>
+            <div class="price-blurb">Una app completa de tareas y notas. Sin caducidad, sin caps.</div>
+            <a href="./index.html" class="btn price-cta secondary">Empezar gratis</a>
+            <div class="price-includes">INCLUYE</div>
+            <ul class="price-feature-list">
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Captura por lenguaje natural</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Lista, Agenda, Calendario, Hoy</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Subtareas, comentarios, recordatorios</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Smart Lists con filtros guardados</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Notas con editor enriquecido</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Búsqueda global ⌘K</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Sincronización Google · PWA offline</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Sin anuncios. Sin tracking. Siempre.</span></li>
+            </ul>
+          </article>
+
+          <!-- PRO -->
+          <article class="price-card pro">
+            <div class="price-card pro-inner">
+              <div class="price-popular">MÁS POPULAR</div>
+              <div class="price-tier grad">PRO</div>
+              <div class="price-row">
+                <span class="price-num"><span id="pro-price-num">2,92</span>€</span>
+                <span class="price-suffix" id="pro-price-suffix">/mes · facturado anual</span>
+              </div>
+              <div class="price-blurb">
+                Todo lo de Free, más lo que profesionaliza tu sistema.
+                <span id="pro-price-save" class="save-note"> Ahorras 13€ al año.</span>
+              </div>
+              <button type="button" class="btn price-cta primary">Empezar prueba de 14 días</button>
+              <div class="price-includes">TODO LO DE FREE, MÁS</div>
+              <ul class="price-feature-list">
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span><strong>Dashboard de productividad</strong> · gráficos, rachas, distribución</span></li>
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span><strong>Plantillas de proyectos</strong> · biblioteca + custom</span></li>
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span><strong>Adjuntos en tareas</strong> · PDFs, imágenes, archivos</span></li>
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Soporte prioritario por email</span></li>
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Acceso anticipado a nuevas funciones</span></li>
+                <li class="price-feature"><span class="price-feature-mark accent"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>14 días de prueba · cancela cuando quieras</span></li>
+              </ul>
+            </div>
+          </article>
+        </div>
+
+        <p class="pricing-disclaimer reveal">Pago seguro con Stripe · 14 días de garantía · Cancela en un click</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         FAQ
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="section-inner">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">FAQ</div>
+          <h2 id="faq-title" class="section-title">Las dudas reales.</h2>
+          <p class="section-blurb">Lo que la gente nos pregunta antes de probar. Si te falta algo, escríbenos.</p>
+        </div>
+
+        <div class="faq-list reveal">
+          <details class="faq-item" open>
+            <summary>
+              <span>¿Mis datos son realmente privados?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              Sí. AnTask guarda todo en el <code>localStorage</code> de tu navegador. No hay servidores propios, no hay tracking, no hay cookies de seguimiento. Si activas sincronización Google, tus datos van a tu propio Firebase — nosotros no los vemos.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span>¿Funciona realmente offline?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              Completamente. Es una PWA instalable; una vez la abres puedes desconectarte del wifi y sigue funcionando. La sincronización con Google es opcional y solo se activa cuando vuelves a tener conexión.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span>¿Puedo exportar mis datos?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              En cualquier momento. Exporta a JSON desde el menú de perfil. Sin lock-in: si decides irte, te llevas absolutamente todo.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span>¿Cómo cancelo Pro?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              Un click en ajustes → suscripción → cancelar. Sin llamadas, sin formularios, sin fricciones. Mantienes Pro hasta el fin del periodo pagado y luego vuelves a Free con todos tus datos intactos.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span>¿Hay app para iOS / Android?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              AnTask es una PWA, así que se instala en cualquier sistema operativo moderno como si fuera nativa. iOS, Android, Windows, macOS, Linux — un solo código, una experiencia consistente.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              <span>¿Reembolso si no me gusta Pro?</span>
+              <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-body">
+              14 días, sin preguntas. Escribe a soporte y devolvemos el importe íntegro.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         FINAL CTA
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="final-cta">
+      <div class="final-cta-glow" aria-hidden="true"></div>
+      <div class="final-cta-inner reveal">
+        <div class="final-cta-badge">EMPIEZA EN 5 SEGUNDOS</div>
+        <h2>
+          Tu día empieza<br />
+          <span class="grad-text">cuando tú decidas.</span>
+        </h2>
+        <p>Sin tarjeta, sin registro, sin promesas vacías. Abre la app y prueba.</p>
+        <div class="final-cta-ctas">
+          <a href="./index.html" class="btn btn-primary">
+            Empezar gratis
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="https://github.com/" target="_blank" rel="noopener" class="btn btn-secondary">Ver en GitHub</a>
+        </div>
+        <div class="final-cta-fineprint">
+          <span>✦ Sin tarjeta</span>
+          <span>✦ Sin tracking</span>
+          <span>✦ Cancela cuando quieras</span>
+        </div>
+      </div>
+    </section>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         FOOTER
+         ═══════════════════════════════════════════════════════════════════ -->
+    <footer class="site-footer">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="nav-brand" style="font-size:18px" aria-label="AnTask, inicio">
+            <svg width="26" height="26" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <path d="M20 4 L34 32 H28 L25 25 H15 L12 32 H6 Z M17 19 H23 L20 12 Z" fill="url(#brand-grad)" />
+            </svg>
+            <span>antask</span>
+          </a>
+          <p class="footer-brand-info">
+            Tus tareas, tu día. Rápido. Privado. Tuyo.<br />
+            Hecho con cariño en código abierto.
+          </p>
+          <div class="social-list">
+            <a href="https://github.com/" target="_blank" rel="noopener" class="social-icon" aria-label="GitHub">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+              </svg>
+            </a>
+            <a href="mailto:soporte@antask.app" class="social-icon" aria-label="Email">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="m2 7 10 6 10-6"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">PRODUCTO</div>
+          <div class="footer-col-list">
+            <a href="#producto">Features</a>
+            <a href="#pro">Pro</a>
+            <a href="#pricing">Precios</a>
+            <a href="#faq">FAQ</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">RECURSOS</div>
+          <div class="footer-col-list">
+            <a href="./index.html">Abrir app</a>
+            <a href="#faq">Documentación</a>
+            <a href="#faq">Atajos</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">EMPRESA</div>
+          <div class="footer-col-list">
+            <a href="/PRIVACY.md">Privacidad</a>
+            <a href="/TERMS.md">Términos</a>
+            <a href="mailto:soporte@antask.app">Contacto</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">COMUNIDAD</div>
+          <div class="footer-col-list">
+            <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+            <a href="mailto:soporte@antask.app">Soporte</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 AnTask. Todos los derechos reservados.</div>
+        <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+          <span class="footer-status">
+            <span class="dot"></span>
+            Todos los sistemas operativos
+          </span>
+          <span class="footer-lang">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+            </svg>
+            <span class="current">ES</span>
+            <span style="color:var(--text-4)">·</span>
+            <span>EN</span>
+          </span>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="./src/js/landing.js"></script>
+  </body>
+</html>

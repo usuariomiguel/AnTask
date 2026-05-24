@@ -88,9 +88,8 @@ Aplicamos medidas técnicas razonables para proteger tus datos:
 | Servicio | Proveedor | Propósito | Política |
 |---|---|---|---|
 | Firebase Auth + Firestore | Google LLC | Autenticación y sync (opt-in) | [firebase.google.com/support/privacy](https://firebase.google.com/support/privacy) |
-| Google Fonts | Google LLC | Tipografía (Inter) | [policies.google.com/privacy](https://policies.google.com/privacy) |
 
-Google Fonts carga la fuente Inter desde servidores de Google. Esto implica que tu IP puede ser registrada por Google al acceder a la app. Para evitarlo, puedes usar la app sin conexión después del primer acceso (PWA instalada).
+Las tipografías (Inter, JetBrains Mono) y los iconos (Lucide) se sirven **self-hosted** desde nuestro propio dominio. **No se realiza ninguna petición a servidores de terceros** salvo, opcionalmente, a Firebase si decides iniciar sesión.
 
 ---
 

@@ -9,16 +9,17 @@
          • script-src 'unsafe-inline' cubre los dos bloques inline de este HTML
            (mobile UI + SW registration). Mover a ficheros externos los
            eliminaría y permitiría quitar 'unsafe-inline'.
-         • connect-src permite Firebase Auth/Firestore + Google Fonts.
+         • Fuentes (Inter / JetBrains Mono) son self-hosted vía @fontsource-variable,
+           empaquetadas con Vite → font-src 'self' es suficiente.
+         • connect-src permite Firebase Auth/Firestore + Plausible (opt-in).
          • frame-ancestors bloquea clickjacking.
     -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src  'self' 'unsafe-inline';
-      style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
-      font-src    https://fonts.gstatic.com;
-      img-src     'self' data: blob: https:;
       script-src  'self' 'unsafe-inline' https://plausible.io;
+      style-src   'self' 'unsafe-inline';
+      font-src    'self';
+      img-src     'self' data: blob: https:;
       connect-src 'self'
                   https://*.googleapis.com
                   https://*.firebaseio.com
@@ -31,8 +32,6 @@
     " />
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg">
     <link rel="icon" type="image/png" href="./icons/icon-192.png">
     <!-- CSS render-blocking → evita el FOUC mientras carga el módulo JS -->

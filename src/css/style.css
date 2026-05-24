@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+/* Fuentes self-hosted via @fontsource-variable/* (importadas desde src/js/main.js).
+   Sin requests a Google Fonts: privacidad + offline + sin dependencia de CDN externo. */
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 /*
@@ -78,8 +79,8 @@
   --tag-slate-fg:  #cbd5e1;
 
   /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────── */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', monospace;
 
   --fs-xs:   11px;   /* labels small caps, captions */
   --fs-sm:   12px;   /* metadata, chips */

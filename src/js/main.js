@@ -1,15 +1,21 @@
 // Entry point — orquesta la carga de todos los módulos.
 //
 // Orden de imports (importa para la inicialización):
-//   1. setup-lucide    →  window.lucide  (debe ser el primero)
-//   2. paste-utils     →  window.setupPasteHandler, window.setupImageResizer
-//   3. notifications   →  window.AnsoNotif
-//   4. script          →  orquestador principal
-//   5. sections-and-profile  →  menú de perfil
-//   6. firebase-sync   →  window.AnsoSync  (carga diferida — no bloquea TTI)
+//   1. fuentes self-hosted (Inter + JetBrains Mono variable)
+//   2. setup-lucide    →  window.lucide  (debe ser el primero)
+//   3. paste-utils     →  window.setupPasteHandler, window.setupImageResizer
+//   4. notifications   →  window.AnsoNotif
+//   5. script          →  orquestador principal
+//   6. sections-and-profile  →  menú de perfil
+//   7. firebase-sync   →  window.AnsoSync  (carga diferida — no bloquea TTI)
 //
 // El CSS NO se importa desde aquí — se carga vía <link> en index.html
 // para evitar el FOUC (flash of unstyled content) en dev.
+
+// Fuentes self-hosted (sin requests a Google Fonts).
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
 import { applyDomTranslations, getLang, setLang, t } from "./i18n/index.js";
 import "./setup-lucide.js";
