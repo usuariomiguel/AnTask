@@ -2,6 +2,8 @@
 // MENÚ DE PERFIL
 // ═══════════════════════════════════════════════════════════════
 
+import { t } from "./i18n/index.js";
+
 (function initProfileMenu() {
   // Aliases de globales expuestos por otros módulos
   var AnsoNotif                  = window.AnsoNotif                  || null;
@@ -20,10 +22,8 @@
 
   if (!profileBtn || !profileDropdown) return;
 
-  if (window.AnsoSync) {
-    if (pfSyncSep)   pfSyncSep.hidden   = false;
-    if (pfSigninBtn) pfSigninBtn.hidden = false;
-  }
+  // La visibilidad del botón sync la gestiona _updateSyncUI() en script.js
+  // cuando Firebase dispara onAuthStateChanged (carga diferida).
 
   function syncThemeIcon() {
     if (!pfThemeIco) return;
@@ -142,20 +142,20 @@
     if (!pfNotifTimesList || !window.AnsoNotif) return;
     var times = AnsoNotif.getTimes();
     pfNotifTimesList.innerHTML = "";
-    times.forEach(function(t) {
+    times.forEach(function(timeStr) {
       var chip = document.createElement("span");
       chip.className = "profile-notif-time-chip";
-      chip.innerHTML = '<span class="profile-notif-time-text">' + t + '</span>' +
-        '<button type="button" class="profile-notif-time-del" aria-label="Quitar hora">' +
+      chip.innerHTML = '<span class="profile-notif-time-text">' + timeStr + '</span>' +
+        '<button type="button" class="profile-notif-time-del" aria-label="' + t("notif.remove_time") + '">' +
         '<i data-lucide="x"></i></button>';
       var delBtn = chip.querySelector(".profile-notif-time-del");
       delBtn.addEventListener("click", function(e) {
         e.stopPropagation();
         if (AnsoNotif.getTimes().length <= 1) {
-          if (window.modalAlert) modalAlert("Debe quedar al menos una hora de aviso. Si no quieres avisos, desactívalos arriba.", "info");
+          if (window.modalAlert) modalAlert(t("notif.error_min_time"), "info");
           return;
         }
-        AnsoNotif.removeTime(t);
+        AnsoNotif.removeTime(timeStr);
         renderNotifTimes();
       });
       pfNotifTimesList.appendChild(chip);
@@ -167,7 +167,7 @@
     if (!window.AnsoNotif || !pfNotifBtn) return;
     if (!AnsoNotif.isSupported()) {
       pfNotifBtn.disabled = true;
-      pfNotifLabel.textContent = "Avisos no soportados";
+      pfNotifLabel.textContent = t("notif.unsupported");
       if (pfNotifPill) pfNotifPill.hidden = true;
       if (pfNotifOptions) pfNotifOptions.hidden = true;
       return;
@@ -176,7 +176,7 @@
     var perm    = AnsoNotif.permission();
 
     if (enabled) {
-      pfNotifLabel.textContent = "Avisos activados";
+      pfNotifLabel.textContent = t("notif.enabled");
       pfNotifPill.textContent  = "ON";
       pfNotifPill.classList.add("on");
       if (pfNotifIco) {
@@ -186,7 +186,7 @@
       if (pfNotifOptions) pfNotifOptions.hidden = false;
       renderNotifTimes();
     } else {
-      pfNotifLabel.textContent = perm === "denied" ? "Avisos bloqueados" : "Activar avisos";
+      pfNotifLabel.textContent = perm === "denied" ? t("notif.blocked") : t("notif.enable");
       pfNotifPill.textContent  = "OFF";
       pfNotifPill.classList.remove("on");
       if (pfNotifIco) {
@@ -206,13 +206,13 @@
         refreshNotifUI();
       } else {
         if (AnsoNotif.permission() === "denied") {
-          if (window.modalAlert) modalAlert("Las notificaciones están bloqueadas en este navegador. Habilítalas desde los ajustes del sitio para poder activarlas aquí.", "error");
+          if (window.modalAlert) modalAlert(t("notif.error_blocked"), "error");
           return;
         }
         AnsoNotif.requestEnable().then(function(ok) {
           refreshNotifUI();
           if (!ok && AnsoNotif.permission() === "denied") {
-            if (window.modalAlert) modalAlert("Permiso denegado. No se podrán mostrar avisos.", "error");
+            if (window.modalAlert) modalAlert(t("notif.error_denied"), "error");
           }
         });
       }
@@ -234,7 +234,7 @@
   if (pfNotifTest && window.AnsoNotif) {
     pfNotifTest.addEventListener("click", function() {
       if (!AnsoNotif.fireTest()) {
-        if (window.modalAlert) modalAlert("Activa primero los avisos para poder probarlos.", "info");
+        if (window.modalAlert) modalAlert(t("notif.error_not_enabled"), "info");
       }
     });
   }

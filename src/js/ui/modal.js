@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 // SISTEMA DE MODALES
+import { t } from "../i18n/index.js";
 //
 // Modales genéricos sin dependencias del estado de la app.
 // Si necesitas un modal que conoce datos de la app (proyectos,
@@ -52,8 +53,8 @@ export function modalPrompt(label, value, placeholder) {
       '<p class="modal-label">' + label + '</p>' +
       '<input class="modal-input" type="text" maxlength="120" autocomplete="off" />' +
       '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Aceptar</button>' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t("modal.accept") + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
@@ -98,8 +99,8 @@ export function modalConfirm(message, confirmLabel) {
       '<div class="modal-icon modal-icon--danger"><i data-lucide="triangle-alert"></i></div>' +
       '<p class="modal-label">' + message + '</p>' +
       '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-danger">' + (confirmLabel || "Eliminar") + '</button>' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-danger">' + (confirmLabel || t("modal.delete")) + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
@@ -137,7 +138,7 @@ export function modalAlert(message, type) {
       '<div class="modal-icon">' + icon + '</div>' +
       '<p class="' + cls + '">' + message + '</p>' +
       '<div class="modal-actions">' +
-        '<button class="modal-btn modal-btn-confirm">Entendido</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t("modal.understood") + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
@@ -183,14 +184,14 @@ export function modalDate(current) {
     const nextMonStr  = toDateStr(addDays(now, daysToMon));
 
     const quickPicks = [
-      { label: "Hoy",           value: todayStr    },
-      { label: "Mañana",        value: tomorrowStr },
-      { label: "Este viernes",  value: thisFriStr  },
-      { label: "Próximo lunes", value: nextMonStr  },
+      { label: t("date.today"),       value: todayStr    },
+      { label: t("date.tomorrow"),    value: tomorrowStr },
+      { label: t("date.this_friday"), value: thisFriStr  },
+      { label: t("date.next_monday"), value: nextMonStr  },
     ];
 
     box.innerHTML =
-      '<p class="modal-label">Fecha límite</p>' +
+      '<p class="modal-label">' + t("modal_date.title") + '</p>' +
       '<div class="date-quick-picks">' +
         quickPicks.map(function (p) {
           const active = current === p.value ? ' active' : '';
@@ -199,9 +200,9 @@ export function modalDate(current) {
       '</div>' +
       '<input class="modal-input modal-input-date" type="date" />' +
       '<div class="modal-actions modal-actions-date">' +
-        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
+        '<button class="modal-btn modal-btn-clear">' + t("modal.clear") + '</button>' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t("modal.save") + '</button>' +
       '</div>';
 
     const input   = box.querySelector(".modal-input-date");
@@ -263,21 +264,16 @@ export function modalReminder(currentISO) {
 
     const now = new Date();
     const presets = [];
-    // En 1 hora
-    presets.push({ label: "En 1 hora",  iso: toLocalISO(new Date(now.getTime() + 60 * 60 * 1000)) });
-    // En 4 horas
-    presets.push({ label: "En 4 horas", iso: toLocalISO(new Date(now.getTime() + 4 * 60 * 60 * 1000)) });
-    // Esta tarde 18:00 (si aún no son)
+    presets.push({ label: t("reminder.preset.in_1h"),   iso: toLocalISO(new Date(now.getTime() + 60 * 60 * 1000)) });
+    presets.push({ label: t("reminder.preset.in_4h"),   iso: toLocalISO(new Date(now.getTime() + 4 * 60 * 60 * 1000)) });
     const eveningToday = new Date(now); eveningToday.setHours(18, 0, 0, 0);
     if (eveningToday.getTime() > now.getTime()) {
-      presets.push({ label: "Esta tarde (18:00)", iso: toLocalISO(eveningToday) });
+      presets.push({ label: t("reminder.preset.this_evening"), iso: toLocalISO(eveningToday) });
     }
-    // Mañana 9:00
     const tomMorning = new Date(now); tomMorning.setDate(tomMorning.getDate() + 1); tomMorning.setHours(9, 0, 0, 0);
-    presets.push({ label: "Mañana 9:00", iso: toLocalISO(tomMorning) });
-    // En 2 días
+    presets.push({ label: t("reminder.preset.tomorrow_9am"), iso: toLocalISO(tomMorning) });
     const in2 = new Date(now); in2.setDate(in2.getDate() + 2); in2.setHours(9, 0, 0, 0);
-    presets.push({ label: "En 2 días",   iso: toLocalISO(in2) });
+    presets.push({ label: t("reminder.preset.in_2_days"),    iso: toLocalISO(in2) });
 
     const chipsHtml = presets.map(function (p) {
       return '<button type="button" class="date-quick-btn" data-iso="' + p.iso + '">' + p.label + '</button>';
@@ -289,13 +285,13 @@ export function modalReminder(currentISO) {
 
     box.innerHTML =
       '<div class="modal-icon"><i data-lucide="bell"></i></div>' +
-      '<p class="modal-label">Recordatorio</p>' +
+      '<p class="modal-label">' + t("modal_reminder.title") + '</p>' +
       '<div class="date-quick-picks">' + chipsHtml + '</div>' +
       '<input class="modal-input" type="datetime-local" value="' + currentVal + '" />' +
       '<div class="modal-actions modal-actions-date">' +
-        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
+        '<button class="modal-btn modal-btn-clear">' + t("modal.clear") + '</button>' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t("modal.save") + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
@@ -347,11 +343,11 @@ export function modalReminder(currentISO) {
 export function modalRecurrence(current) {
   return new Promise(function (resolve) {
     var presets = [
-      { label: "Diario",      days: 1  },
-      { label: "Cada 2 días", days: 2  },
-      { label: "Semanal",     days: 7  },
-      { label: "Quincenal",   days: 14 },
-      { label: "Mensual",     days: 30 },
+      { label: t("recur.daily"),       days: 1  },
+      { label: t("recur.every_2_days"),days: 2  },
+      { label: t("recur.weekly"),      days: 7  },
+      { label: t("recur.biweekly"),    days: 14 },
+      { label: t("recur.monthly"),     days: 30 },
     ];
     const { overlay, box } = createModalBase();
     var isPreset = current != null && presets.some(function (p) { return p.days === current; });
@@ -362,14 +358,14 @@ export function modalRecurrence(current) {
 
     box.innerHTML =
       '<div class="modal-icon"><i data-lucide="repeat"></i></div>' +
-      '<p class="modal-label">Repetir cada</p>' +
+      '<p class="modal-label">' + t("modal_recur.title") + '</p>' +
       '<div class="date-quick-picks">' + chipsHtml + '</div>' +
-      '<input class="modal-input" type="number" min="1" max="3650" placeholder="Personalizado (días)" value="' +
+      '<input class="modal-input" type="number" min="1" max="3650" placeholder="' + t("modal_recur.custom_placeholder") + '" value="' +
         (current && !isPreset ? current : "") + '" />' +
       '<div class="modal-actions modal-actions-date">' +
-        '<button class="modal-btn modal-btn-clear">Quitar</button>' +
-        '<button class="modal-btn modal-btn-cancel">Cancelar</button>' +
-        '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
+        '<button class="modal-btn modal-btn-clear">' + t("modal.clear") + '</button>' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t("modal.save") + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 

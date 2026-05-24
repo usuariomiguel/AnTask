@@ -13,12 +13,15 @@
 //   - clic abre el panel de detalle del día con la lista completa
 // ═══════════════════════════════════════════════════════════════
 
-const MONTH_NAMES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
+import { t, getLang } from "../i18n/index.js";
 
-const DAY_HEADERS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
+function getMonthNames() {
+  return [1,2,3,4,5,6,7,8,9,10,11,12].map(function (n) { return t("calendar.month." + n); });
+}
+
+function getDayHeaders() {
+  return ["mon","tue","wed","thu","fri","sat","sun"].map(function (k) { return t("calendar.day." + k); });
+}
 
 /**
  * Pinta la rejilla del calendario para un mes concreto.
@@ -33,6 +36,7 @@ export function renderCalendar(year, month, projects, onActivateProject) {
   const monthLabel = document.getElementById("cal-month-label");
   if (!content) return;
 
+  const MONTH_NAMES = getMonthNames();
   if (monthLabel) monthLabel.textContent = MONTH_NAMES[month] + " " + year;
 
   // Recopilar tareas con dueDate dentro del mes (incluyendo hechas)
@@ -54,7 +58,7 @@ export function renderCalendar(year, month, projects, onActivateProject) {
   // Cabecera de días de la semana
   const headerRow = document.createElement("div");
   headerRow.className = "cal-day-headers";
-  DAY_HEADERS.forEach(function (d) {
+  getDayHeaders().forEach(function (d) {
     const el = document.createElement("div");
     el.className = "cal-day-header";
     el.textContent = d;
@@ -155,7 +159,7 @@ function buildCalCell(dateStr, dayNum, isOther, taskItems, _today, isToday, onAc
     if (overflow > 0) {
       const more = document.createElement("div");
       more.className = "cal-task-more";
-      more.textContent = "+" + overflow + " más";
+      more.textContent = "+" + overflow + " " + t("calendar.more");
       cell.appendChild(more);
     }
 
@@ -194,7 +198,8 @@ function showCalDayDetail(dateStr, taskItems, cellEl, onActivateProject) {
 
   const titleEl = document.createElement("div");
   titleEl.className   = "cal-day-detail-title";
-  titleEl.textContent = due.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const locale = getLang() === "en" ? "en-GB" : "es-ES";
+  titleEl.textContent = due.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
   detail.appendChild(titleEl);
 
   const list = document.createElement("ul");

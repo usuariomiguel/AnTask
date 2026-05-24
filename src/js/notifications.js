@@ -2,6 +2,8 @@
 // NOTIFICACIONES DE TAREAS VENCIDAS (varios recordatorios al día)
 // ═══════════════════════════════════════════════════════════════
 
+import { t } from "./i18n/index.js";
+
 window.AnsoNotif = (function() {
   var ENABLED_KEY    = "anso-notif-enabled";
   var TIMES_KEY      = "anso-notif-times";       // JSON array ["HH:MM", ...]
@@ -91,8 +93,8 @@ window.AnsoNotif = (function() {
   function fireTest() {
     if (!isEnabled()) return false;
     _showNotification(
-      "antask · prueba",
-      "Las notificaciones están funcionando correctamente.",
+      "antask · " + t("notif.test_label"),
+      t("notif.test_body"),
       "antask-test-" + Date.now()
     );
     return true;
@@ -181,7 +183,7 @@ window.AnsoNotif = (function() {
         if (t.dueDate <= today) {
           due.push({
             projectId:   p.id,
-            projectName: p.name || "Sin nombre",
+            projectName: p.name || t("default.unnamed"),
             taskId:      t.id,
             taskText:    t.text,
             dueDate:     t.dueDate,
@@ -209,7 +211,7 @@ window.AnsoNotif = (function() {
     if (due.length === 1) {
       var d = due[0];
       _showNotification(
-        d.overdue ? "Tarea vencida" : "Tarea vence hoy",
+        d.overdue ? t("notif.task_overdue") : t("notif.task_due_today"),
         "[" + d.projectName + "] " + d.taskText,
         "antask-due-" + d.taskId + "-" + dateTag,
         { projectId: d.projectId, taskId: d.taskId }
@@ -217,14 +219,14 @@ window.AnsoNotif = (function() {
       return;
     }
     var overdue = due.filter(function(x) { return x.overdue; }).length;
-    var title   = due.length + " tareas pendientes";
+    var title   = due.length + " " + t("notif.tasks_due");
     var lines   = due.slice(0, 5).map(function(x) {
       return (x.overdue ? "⚠ " : "· ") + x.taskText.slice(0, 60);
     });
     if (due.length > 5) lines.push("…y " + (due.length - 5) + " más");
     if (overdue > 0) {
-      title = overdue + " vencida" + (overdue === 1 ? "" : "s") +
-              " · " + (due.length - overdue) + " hoy";
+      title = overdue + " " + t("agenda.group.overdue").toLowerCase() +
+              " · " + (due.length - overdue) + " " + t("agenda.group.today").toLowerCase();
     }
     _showNotification(title, lines.join("\n"), "antask-daily-" + dateTag);
   }
@@ -343,8 +345,8 @@ window.AnsoNotif = (function() {
   function _fireTaskReminder(task, project) {
     if (!isEnabled()) return;
     _showNotification(
-      "Recordatorio: " + task.text.slice(0, 70),
-      "[" + (project.name || "Sin proyecto") + "]",
+      t("notif.reminder_title") + ": " + task.text.slice(0, 70),
+      "[" + (project.name || t("notif.unknown_project")) + "]",
       "antask-reminder-" + task.id + "-" + (task.reminderAt || ""),
       { projectId: project.id, taskId: task.id }
     );

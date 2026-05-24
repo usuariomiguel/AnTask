@@ -1,4 +1,5 @@
 // ─── IMPORTS ─────────────────────────────────────────────────
+import { t, getLang }                       from "./i18n/index.js";
 import { escHtml }                          from "./utils/html.js";
 import { capitalizeFirst }                  from "./utils/string.js";
 import { getDueDateState, formatDueDate }   from "./utils/date.js";
@@ -566,10 +567,14 @@ setTimeout(function () {
 window.showOnboardingAgain = function () { showOnboarding(); };
 
 // ─── CLOUD SYNC INIT ─────────────────────────────────────────
-// El UI de sync vive ahora en el dropdown de perfil (sections-and-profile.js).
-if (window.AnsoSync) {
-  window.AnsoSync.init(_syncOnRemoteChange, _syncOnAuthChange, _syncOnFirstConnect);
-}
+// Firebase carga de forma diferida (dynamic import en main.js).
+// Registramos los callbacks aquí para que firebase-sync.js los recoja
+// cuando termine de cargar y llame a window.AnsoSync.init() automáticamente.
+window._ansoSyncCallbacks = {
+  onRemoteChange:  _syncOnRemoteChange,
+  onAuthChange:    _syncOnAuthChange,
+  onFirstConnect:  _syncOnFirstConnect,
+};
 
 // ─── BÚSQUEDA GLOBAL ─────────────────────────────────────────
 const globalSearchBtn = document.getElementById("global-search-btn");
@@ -1361,12 +1366,12 @@ function activateTodayView() {
   var mobileHeaderTitle = document.getElementById("mobile-header-title");
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeader) mobileHeader.classList.add("mobile-header--project");
-  if (mobileHeaderTitle) mobileHeaderTitle.textContent = "Hoy";
+  if (mobileHeaderTitle) mobileHeaderTitle.textContent = t("view.today_title");
   if (mobileHeaderCount) mobileHeaderCount.textContent = "";
 
-  document.title = "Hoy — antask";
-  if (projectTitleEl)  projectTitleEl.textContent  = "Hoy";
-  if (projectSubtitle) projectSubtitle.textContent = "Vencidas y de hoy, en todos los proyectos";
+  document.title = t("view.today_title") + " — antask";
+  if (projectTitleEl)  projectTitleEl.textContent  = t("view.today_title");
+  if (projectSubtitle) projectSubtitle.textContent = t("view.today_subtitle");
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -1417,7 +1422,7 @@ function activateSmartList(id) {
 
   document.title = list.name + " — antask";
   if (projectTitleEl)  projectTitleEl.textContent  = headerTitle;
-  if (projectSubtitle) projectSubtitle.textContent = "Filtro guardado";
+  if (projectSubtitle) projectSubtitle.textContent = t("view.saved_filter");
 
   if (selectMode) exitSelectMode();
   currentFilter      = "all";
@@ -1452,7 +1457,7 @@ function renderPinnedItems(inboxProject) {
   hoy.innerHTML =
     '<div class="project-item-top">' +
       '<span class="project-item-icon project-item-icon--system">☀️</span>' +
-      '<span class="project-item-name">Hoy</span>' +
+      '<span class="project-item-name">' + t("sidebar.today") + '</span>' +
       (todayCount > 0 ? '<span class="project-item-count">' + todayCount + '</span>' : "") +
     '</div>';
   hoy.addEventListener("click", function() { activateTodayView(); });
@@ -1468,7 +1473,7 @@ function renderPinnedItems(inboxProject) {
     inbox.innerHTML =
       '<div class="project-item-top">' +
         '<span class="project-item-icon">📥</span>' +
-        '<span class="project-item-name">Inbox</span>' +
+        '<span class="project-item-name">' + t("sidebar.inbox") + '</span>' +
         (pending > 0 ? '<span class="project-item-count">' + pending + '</span>' : "") +
       '</div>';
     inbox.addEventListener("click", function() { activateProject(INBOX_ID); });
@@ -1523,7 +1528,7 @@ function renderSmartListsSection() {
   toggle.innerHTML =
     '<i data-lucide="' + (_smartListsExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
     '<i data-lucide="list-filter"></i>' +
-    '<span>Listas</span>' +
+    '<span>' + t("sidebar.lists") + '</span>' +
     (smartLists.length > 0 ? '<span class="archived-section-count">' + smartLists.length + '</span>' : '');
   toggle.addEventListener("click", function () {
     _smartListsExpanded = !_smartListsExpanded;
@@ -1550,7 +1555,7 @@ function renderSmartListsSection() {
   if (smartLists.length === 0) {
     var empty = document.createElement("li");
     empty.className = "sidebar-section-empty";
-    empty.textContent = "Sin listas todavía";
+    empty.textContent = t("sidebar.lists_empty");
     projectListEl.appendChild(empty);
     return;
   }
@@ -1632,7 +1637,7 @@ function renderArchivedWidget() {
   toggle.innerHTML =
     '<i data-lucide="' + (_archivedExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
     '<i data-lucide="archive"></i>' +
-    '<span>Archivados</span>' +
+    '<span>' + t("sidebar.archived") + '</span>' +
     (isEmpty ? '' : '<span class="archived-section-count">' + archived.length + '</span>');
   toggle.addEventListener("click", function() {
     _archivedExpanded = !_archivedExpanded;
@@ -1645,7 +1650,7 @@ function renderArchivedWidget() {
     if (isEmpty) {
       var empty = document.createElement("p");
       empty.className = "sidebar-section-empty";
-      empty.textContent = "Sin archivados";
+      empty.textContent = t("sidebar.archived_empty");
       wrap.appendChild(empty);
     } else {
       var list = document.createElement("ul");
@@ -3053,7 +3058,7 @@ function startSubtaskInlineEdit(textSpan, subtask) {
 }
 
 function _showRecurToast(days, nextDate) {
-  var msg = "↻ Tarea regenerada";
+  var msg = t("toast.task_recurred");
   if (nextDate) {
     var d = new Date(nextDate + "T00:00:00");
     msg += " · vence " + d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
@@ -3476,8 +3481,8 @@ function showUndoToast() {
   toast.id = "undo-toast";
   toast.className = "undo-toast";
   toast.innerHTML =
-    '<span class="undo-toast-msg">Tarea eliminada</span>' +
-    '<button type="button" class="undo-toast-btn">Deshacer</button>' +
+    '<span class="undo-toast-msg">' + t("toast.task_deleted") + '</span>' +
+    '<button type="button" class="undo-toast-btn">' + t("toast.undo") + '</button>' +
     '<div class="undo-toast-bar"></div>';
 
   document.body.appendChild(toast);
@@ -3927,15 +3932,13 @@ function saveAndRender() {
 function _showQuotaModal() {
   var { overlay, box } = createModalBase();
   box.innerHTML =
-    '<p class="modal-label" style="color:var(--c-danger,#ef4444)">⚠ Almacenamiento casi lleno</p>' +
+    '<p class="modal-label" style="color:var(--c-danger,#ef4444)">⚠ ' + t("quota.title") + '</p>' +
     '<p style="font-size:0.88rem;color:var(--t-soft);line-height:1.6;margin-bottom:1.2rem">' +
-      'El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br>' +
-      '<strong>Tus últimos cambios no se han guardado.</strong><br><br>' +
-      'Exporta tu workspace ahora para no perder datos, luego borra tareas o proyectos para liberar espacio.' +
+      t("quota.body") +
     '</p>' +
     '<div class="modal-actions">' +
-      '<button class="modal-btn modal-btn-confirm" id="_quota-export">Exportar workspace</button>' +
-      '<button class="modal-btn modal-btn-cancel" id="_quota-close">Cerrar</button>' +
+      '<button class="modal-btn modal-btn-confirm" id="_quota-export">' + t("quota.export_btn") + '</button>' +
+      '<button class="modal-btn modal-btn-cancel" id="_quota-close">' + t("quota.close_btn") + '</button>' +
     '</div>';
 
   if (window.lucide) lucide.createIcons({ nodes: [box] });
@@ -3996,7 +3999,7 @@ function renderNotesSidebar() {
   toggle.innerHTML =
     '<i data-lucide="' + (_notesExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
     '<i data-lucide="file-text"></i>' +
-    '<span>Notas</span>' +
+    '<span>' + t("sidebar.notes") + '</span>' +
     (isEmpty ? '' : '<span class="archived-section-count">' + standaloneNotes.length + '</span>');
   toggle.addEventListener("click", function() {
     _notesExpanded = !_notesExpanded;
@@ -4008,7 +4011,7 @@ function renderNotesSidebar() {
   if (_notesExpanded && isEmpty) {
     var empty = document.createElement("p");
     empty.className = "sidebar-section-empty";
-    empty.textContent = "Sin notas todavía";
+    empty.textContent = t("sidebar.notes_empty");
     wrap.appendChild(empty);
   } else if (_notesExpanded) {
     var list = document.createElement("ul");
@@ -4195,7 +4198,7 @@ function showNoteMenu(note, anchor) {
     noteTitleEl.addEventListener("input", function() {
       var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
       if (!note) return;
-      note.name = (noteTitleEl.textContent || "").trim().slice(0, 80) || "Sin título";
+      note.name = (noteTitleEl.textContent || "").trim().slice(0, 80) || t("default.untitled");
       document.title = note.name + " — antask";
       if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
       _notePanelSaveTimer = setTimeout(function() { saveStandaloneNotes(); renderNotesSidebar(); }, 700);
@@ -4210,7 +4213,7 @@ function showNoteMenu(note, anchor) {
       // propagan al handler global, que ya filtra con isEditing.
     });
     noteTitleEl.addEventListener("blur", function() {
-      if (!noteTitleEl.textContent.trim()) noteTitleEl.textContent = "Sin título";
+      if (!noteTitleEl.textContent.trim()) noteTitleEl.textContent = t("default.untitled");
     });
   }
 
@@ -4322,10 +4325,11 @@ function saveSections() {
 }
 
 function updateSaveStatus(lastSavedAt) {
-  if (!lastSavedAt) { saveStatus.textContent = "Sin cambios recientes"; return; }
+  if (!lastSavedAt) { saveStatus.textContent = "–"; return; }
   const date = new Date(lastSavedAt);
-  if (Number.isNaN(date.getTime())) { saveStatus.textContent = "Guardado automático activo"; return; }
-  saveStatus.textContent = "Último guardado: " + date.toLocaleString("es-ES", {
+  const locale = getLang() === "en" ? "en-GB" : "es-ES";
+  if (Number.isNaN(date.getTime())) { saveStatus.textContent = t("toast.saved"); return; }
+  saveStatus.textContent = t("toast.last_saved") + " " + date.toLocaleString(locale, {
     day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
   });
 }

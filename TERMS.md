@@ -1,6 +1,6 @@
 # Términos de Servicio de antask
 
-_Última actualización: mayo de 2025_
+_Última actualización: mayo de 2026_
 
 ---
 

@@ -11,11 +11,13 @@
 // el clic sobre una tarea (lleva al proyecto al que pertenece).
 // ═══════════════════════════════════════════════════════════════
 
-const GROUP_DEFS = [
-  { key: "overdue", label: "Vencidas" },
-  { key: "today",   label: "Hoy" },
-  { key: "week",    label: "Esta semana" },
-  { key: "later",   label: "Más adelante" },
+import { t, getLang } from "../i18n/index.js";
+
+const GROUP_KEYS = [
+  { key: "overdue", i18n: "agenda.group.overdue" },
+  { key: "today",   i18n: "agenda.group.today" },
+  { key: "week",    i18n: "agenda.group.this_week" },
+  { key: "later",   i18n: "agenda.group.later" },
 ];
 
 /**
@@ -63,14 +65,14 @@ export function renderAgenda(projects, onActivateProject) {
     icon.className = "agenda-empty-icon";
     icon.textContent = "⏱";
     const msg = document.createElement("p");
-    msg.textContent = "No hay tareas con fecha límite pendientes";
+    msg.textContent = t("agenda.empty");
     empty.appendChild(icon);
     empty.appendChild(msg);
     content.appendChild(empty);
     return;
   }
 
-  GROUP_DEFS.forEach(function (def) {
+  GROUP_KEYS.forEach(function (def) {
     const items = groups[def.key];
     if (!items.length) return;
 
@@ -82,7 +84,7 @@ export function renderAgenda(projects, onActivateProject) {
 
     const labelEl = document.createElement("span");
     labelEl.className = "agenda-group-label";
-    labelEl.textContent = def.label;
+    labelEl.textContent = t(def.i18n);
 
     const countEl = document.createElement("span");
     countEl.className = "agenda-group-count";
@@ -108,10 +110,11 @@ function buildAgendaTaskItem(task, project, today, onActivateProject) {
   const due  = new Date(task.dueDate + "T00:00:00");
   const diff = Math.floor((due - today) / 86400000);
 
-  const dateLabel = diff === 0  ? "Hoy"
-    : diff === 1  ? "Mañana"
-    : diff === -1 ? "Ayer"
-    : due.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+  const locale = getLang() === "en" ? "en-GB" : "es-ES";
+  const dateLabel = diff === 0  ? t("date.today")
+    : diff === 1  ? t("date.tomorrow")
+    : diff === -1 ? t("date.yesterday")
+    : due.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
 
   const li = document.createElement("li");
   li.className = "agenda-task-item";
@@ -131,15 +134,14 @@ function buildAgendaTaskItem(task, project, today, onActivateProject) {
   if (task.priority) {
     const pb = document.createElement("span");
     pb.className = "agenda-badge agenda-badge-priority agenda-badge-" + task.priority;
-    pb.textContent = task.priority === "high" ? "Alta"
-      : task.priority === "medium" ? "Media" : "Baja";
+    pb.textContent = t("priority." + task.priority);
     badges.appendChild(pb);
   }
 
   if (task.status) {
     const sb = document.createElement("span");
     sb.className = "agenda-badge agenda-badge-status agenda-badge-" + task.status;
-    sb.textContent = task.status === "progress" ? "Progreso" : "Espera";
+    sb.textContent = task.status === "progress" ? t("status.progress") : t("status.waiting");
     badges.appendChild(sb);
   }
 

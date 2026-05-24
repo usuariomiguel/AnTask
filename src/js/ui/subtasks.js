@@ -21,6 +21,8 @@
  * @param {HTMLElement} subtaskList — el `<ul>` destino
  * @param {SubtasksCallbacks} [callbacks]
  */
+import { t } from "../i18n/index.js";
+
 export function renderSubtasks(task, subtaskList, callbacks) {
   const cbs = callbacks || {};
   subtaskList.innerHTML = "";
@@ -28,7 +30,7 @@ export function renderSubtasks(task, subtaskList, callbacks) {
   if (!Array.isArray(task.subtasks) || task.subtasks.length === 0) {
     const li = document.createElement("li");
     li.className = "subtask-empty";
-    li.textContent = "Sin subtareas";
+    li.textContent = t("subtask.empty");
     subtaskList.appendChild(li);
     return;
   }
@@ -50,7 +52,7 @@ export function renderSubtasks(task, subtaskList, callbacks) {
     span.className = "subtask-text";
     span.textContent = subtask.text;
     span.classList.toggle("done", subtask.done);
-    span.title = "Doble clic para renombrar";
+    span.title = t("task.rename_hint");
     span.addEventListener("dblclick", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -61,7 +63,7 @@ export function renderSubtasks(task, subtaskList, callbacks) {
     del.type = "button";
     del.className = "subtask-delete-btn";
     del.innerHTML = '<i data-lucide="x"></i>';
-    del.setAttribute("aria-label", "Eliminar subtarea");
+    del.setAttribute("aria-label", t("subtask.delete_aria"));
     del.addEventListener("click", function () {
       task.subtasks = task.subtasks.filter(function (s) { return s.id !== subtask.id; });
       if (typeof cbs.onMutation === "function") cbs.onMutation();

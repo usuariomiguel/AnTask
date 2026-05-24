@@ -202,8 +202,8 @@
               <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
             </svg>
           </div>
-          <p class="empty-state-title">¿Qué quieres abrir?</p>
-          <p class="empty-state-sub">Selecciona un proyecto o una nota desde la barra lateral</p>
+          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres abrir?</p>
+          <p class="empty-state-sub" data-i18n="empty.sub">Selecciona un proyecto o una nota desde la barra lateral</p>
         </div>
 
         <!-- Barra de control persistente: header + form + nav de vistas -->
@@ -224,8 +224,8 @@
           </div>
 
           <form id="task-form" class="task-form">
-            <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" maxlength="120" autocomplete="off" required />
-            <button type="submit"><i data-lucide="plus"></i> Añadir</button>
+            <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" data-i18n-ph="task.input.placeholder" maxlength="120" autocomplete="off" required />
+            <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
           </form>
 
           <!-- Nav de vistas + filtro unificado -->
@@ -284,7 +284,7 @@
               </div>
               <!-- Refs ocultos que el JS necesita -->
               <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
-              <input id="import-file" type="file" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+              <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
             </div>
           </div>
 
@@ -316,7 +316,7 @@
         <!-- Vista Nota -->
         <div class="note-panel" id="note-panel" hidden>
           <div class="note-panel-header">
-            <h2 class="note-title" id="note-title" contenteditable="true" spellcheck="false" data-placeholder="Sin título"></h2>
+            <h2 class="note-title" id="note-title" contenteditable="true" spellcheck="false" data-placeholder="Sin título" data-i18n-dp="note.title_placeholder"></h2>
             <div class="note-toolbar">
               <button type="button" class="fmt-btn note-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
               <button type="button" class="fmt-btn note-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
@@ -355,6 +355,7 @@
             role="textbox"
             aria-multiline="true"
             data-placeholder="Empieza a escribir..."
+            data-i18n-dp="note.body_placeholder"
             spellcheck="true"
           ></div>
         </div>
@@ -380,8 +381,8 @@
       <div class="fab-sheet" id="fab-sheet" aria-hidden="true">
         <div class="fab-sheet-drag"></div>
         <form id="fab-form" class="fab-form" novalidate>
-          <input id="fab-input" type="text" placeholder="Nueva tarea..." maxlength="120" autocomplete="off" />
-          <button type="submit"><i data-lucide="plus"></i> Añadir</button>
+          <input id="fab-input" type="text" placeholder="Nueva tarea..." data-i18n-ph="task.input.placeholder_fab" maxlength="120" autocomplete="off" />
+          <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
         </form>
       </div>
 
@@ -391,20 +392,20 @@
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
         <button type="button" class="mobile-bottom-btn" id="bnav-projects-btn">
           <i data-lucide="layers"></i>
-          <span>Proyectos</span>
+          <span data-i18n="nav.projects">Proyectos</span>
         </button>
         <!-- FAB se posiciona entre los dos botones via CSS (left:50%) -->
         <div class="mobile-bottom-spacer" aria-hidden="true"></div>
         <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
           <i data-lucide="search"></i>
-          <span>Buscar</span>
+          <span data-i18n="nav.search">Buscar</span>
         </button>
       </nav>
 
     </div>
 
     <template id="task-item-template">
-      <li class="task-item" tabindex="0" role="button" aria-expanded="false">
+      <li class="task-item" tabindex="0" aria-expanded="false">
         <div class="task-main-row">
           <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
           <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
@@ -686,15 +687,14 @@
          aria-label="Preferencias de privacidad" aria-modal="false">
       <div class="consent-banner__body">
         <p class="consent-banner__text">
-          antask guarda tus tareas en tu dispositivo (almacenamiento local).
-          ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?
-          <a href="./PRIVACY.md" target="_blank" rel="noopener" class="consent-banner__link">Política de privacidad</a>
+          <span data-i18n="consent.text">antask guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?</span>
+          <a href="./PRIVACY.md" target="_blank" rel="noopener" class="consent-banner__link" data-i18n="consent.privacy_link">Política de privacidad</a>
         </p>
         <div class="consent-banner__actions">
-          <button type="button" id="consent-decline" class="consent-btn consent-btn--secondary">
+          <button type="button" id="consent-decline" class="consent-btn consent-btn--secondary" data-i18n="consent.decline">
             Solo lo esencial
           </button>
-          <button type="button" id="consent-accept" class="consent-btn consent-btn--primary">
+          <button type="button" id="consent-accept" class="consent-btn consent-btn--primary" data-i18n="consent.accept">
             Aceptar analytics
           </button>
         </div>

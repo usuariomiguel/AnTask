@@ -173,5 +173,13 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         }, 2000);
       },
     };
+
+    // Auto-init: script.js registra los callbacks en window._ansoSyncCallbacks
+    // antes de que este módulo cargue. Los recogemos aquí para que el botón
+    // "Sincronizar con Google" aparezca sin necesidad de un reload.
+    var cbs = window._ansoSyncCallbacks;
+    if (cbs) {
+      window.AnsoSync.init(cbs.onRemoteChange, cbs.onAuthChange, cbs.onFirstConnect);
+    }
   }
 }

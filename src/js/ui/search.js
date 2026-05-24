@@ -11,6 +11,7 @@
 
 import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
+import { t } from "../i18n/index.js";
 
 /**
  * @typedef {Object} SearchDeps
@@ -38,7 +39,7 @@ function highlightMatch(text, q) {
 function renderSearchResults(container, q, deps, closeCallback) {
   container.innerHTML = "";
   if (q.length < 2) {
-    container.innerHTML = '<p class="search-hint">Escribe al menos 2 caracteres…</p>';
+    container.innerHTML = '<p class="search-hint">' + t("search.hint_min_chars") + '</p>';
     return;
   }
 
@@ -62,7 +63,7 @@ function renderSearchResults(container, q, deps, closeCallback) {
   const total = taskGroups.reduce(function (s, g) { return s + g.tasks.length; }, 0) + noteMatches.length;
 
   if (total === 0) {
-    container.innerHTML = '<p class="search-hint">Sin resultados para <em>' + escHtml(q) + '</em></p>';
+    container.innerHTML = '<p class="search-hint">' + t("search.no_results") + ' <em>' + escHtml(q) + '</em></p>';
     return;
   }
 
@@ -72,7 +73,7 @@ function renderSearchResults(container, q, deps, closeCallback) {
     tasksSection.className = "search-section";
     tasksSection.innerHTML =
       '<div class="search-section-label search-section-label--tasks">' +
-        '<i data-lucide="check-square"></i><span>Tareas</span>' +
+        '<i data-lucide="check-square"></i><span>' + t("search.section.tasks") + '</span>' +
       '</div>';
 
     taskGroups.forEach(function (g) {
@@ -127,7 +128,7 @@ function renderSearchResults(container, q, deps, closeCallback) {
     notesSection.className = "search-section";
     notesSection.innerHTML =
       '<div class="search-section-label search-section-label--notes">' +
-        '<i data-lucide="file-text"></i><span>Notas</span>' +
+        '<i data-lucide="file-text"></i><span>' + t("search.section.notes") + '</span>' +
       '</div>';
 
     noteMatches.forEach(function (note) {
@@ -176,10 +177,10 @@ export function showGlobalSearch(deps) {
 
   box.className = "modal-box modal-box-search";
   box.innerHTML =
-    '<p class="modal-label">Buscar en proyectos y notas</p>' +
-    '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="escribe para buscar..." />' +
+    '<p class="modal-label">' + t("search.modal_title") + '</p>' +
+    '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="' + t("search.placeholder") + '" />' +
     '<div id="search-results" class="search-results"></div>' +
-    '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">Cerrar</button></div>';
+    '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">' + t("modal.close") + '</button></div>';
 
   const input   = box.querySelector(".modal-input");
   const results = box.querySelector("#search-results");

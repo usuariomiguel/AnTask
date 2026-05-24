@@ -285,7 +285,7 @@
   /* Text */
   --text-primary:   #1a1a24;
   --text-secondary: #52525e;
-  --text-tertiary:  #8a8a96;
+  --text-tertiary:  #6a6a76;
   --text-disabled:  #c8c8d0;
   --text-inverse:   #ffffff;
 
@@ -7933,10 +7933,8 @@ button {
 /* Cabecera de "Archivados" / "Notas" cuando la sección está vacía:
  * un poco más apagada para que no llame la atención si no hay nada. */
 .archived-section-toggle--empty {
-  opacity: 0.55;
-}
-.archived-section-toggle--empty:hover {
-  opacity: 1;
+  /* Sin opacity para mantener contraste AA (4.5:1). El feeling "muted" lo
+     da el tamaño xs + el color tertiary (#6a6a76). */
 }
 
 /* Texto pequeño tipo "Sin notas todavía" dentro de una sección expandida vacía. */
@@ -7946,7 +7944,6 @@ button {
   font-size: var(--fs-xs);
   color: var(--text-tertiary);
   font-style: italic;
-  opacity: 0.7;
   list-style: none;
 }
 

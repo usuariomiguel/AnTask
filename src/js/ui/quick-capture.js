@@ -12,6 +12,7 @@ import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
 import { parseNaturalLanguage } from "../utils/nl-parse.js";
 import { buildNLChipsHTML } from "../utils/nl-chips.js";
+import { t } from "../i18n/index.js";
 
 let _isOpen = false;
 
@@ -56,18 +57,16 @@ export function showQuickCapture(deps) {
 
   box.innerHTML =
     '<div class="quick-capture-header">' +
-      '<span class="quick-capture-eyebrow">Nueva tarea</span>' +
+      '<span class="quick-capture-eyebrow">' + t("quick_capture.eyebrow") + '</span>' +
       '<span class="quick-capture-target' + (isFallback ? " quick-capture-target--inbox" : "") + '">' +
         '<i data-lucide="corner-down-right"></i> ' +
         escHtml(projLabel) +
       '</span>' +
     '</div>' +
     '<input class="modal-input quick-capture-input" type="text" maxlength="120" autocomplete="off"' +
-      ' placeholder="Escribe la tarea y pulsa Enter..." />' +
+      ' placeholder="' + t("quick_capture.placeholder") + '" />' +
     '<div class="quick-capture-preview nl-preview" hidden></div>' +
-    '<div class="quick-capture-hint">' +
-      '<kbd>Enter</kbd> para crear · <kbd>Esc</kbd> para cancelar' +
-    '</div>';
+    '<div class="quick-capture-hint">' + t("quick_capture.hint") + '</div>';
 
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
@@ -112,7 +111,7 @@ export function showQuickCapture(deps) {
       deps.onCreate(project, text);
     }
     if (typeof deps.onToast === "function") {
-      deps.onToast("Añadida a " + projLabel);
+      deps.onToast(t("quick_capture.added_to") + " " + projLabel);
     }
     close();
   }

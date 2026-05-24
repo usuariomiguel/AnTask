@@ -1,11 +1,10 @@
-backup/
-.claude
-src/img/reference-design/
-test-results/
+# ─── Editor / IDE ───────────────────────────────────────────
 .claude/
 .vscode/
+.idea/
+.DS_Store
 
-# Vite / Node
+# ─── Node / Vite ────────────────────────────────────────────
 node_modules/
 dist/
 dev-dist/
@@ -13,4 +12,19 @@ dev-dist/
 *.log
 .env
 .env.local
-.DS_Store
+
+# ─── Tests ──────────────────────────────────────────────────
+# Playwright outputs (videos, screenshots, error contexts)
+test-results/
+playwright-report/
+.playwright/
+# Vitest coverage
+coverage/
+# Reportes y dumps de auditoría axe / debug
+a11y-out.txt
+a11y-results.json
+a11y-summary.txt
+
+# ─── Backups y assets locales ───────────────────────────────
+backup/
+src/img/reference-design/

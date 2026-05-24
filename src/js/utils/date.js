@@ -3,15 +3,18 @@
 // Utilidades de fecha (sin dependencias)
 // ═══════════════════════════════════════════════════════════════
 
+import { t, getLang } from "../i18n/index.js";
+
 /**
- * Formatea una fecha ISO (YYYY-MM-DD) como "01 ene" en es-ES.
+ * Formatea una fecha ISO (YYYY-MM-DD) como "01 ene" en el idioma activo.
  *
  * @param {string} iso
  * @returns {string}
  */
 export function formatDueDate(iso) {
   const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+  const locale = getLang() === "en" ? "en-GB" : "es-ES";
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short" });
 }
 
 /**
@@ -36,8 +39,8 @@ export function getDueDateState(dueDate) {
   today.setHours(0, 0, 0, 0);
   const due  = new Date(dueDate + "T00:00:00");
   const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
-  if (diff < 0)   return { label: "Vencida",            cls: "due-overdue", diff };
-  if (diff === 0) return { label: "Hoy",                cls: "due-today",   diff };
-  if (diff === 1) return { label: "Mañana",             cls: "due-soon",    diff };
-  return                 { label: formatDueDate(dueDate), cls: "due-future", diff };
+  if (diff < 0)   return { label: t("due.overdue"),        cls: "due-overdue", diff };
+  if (diff === 0) return { label: t("date.today"),          cls: "due-today",   diff };
+  if (diff === 1) return { label: t("date.tomorrow"),       cls: "due-soon",    diff };
+  return                 { label: formatDueDate(dueDate),   cls: "due-future",  diff };
 }
