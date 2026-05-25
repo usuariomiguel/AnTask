@@ -16,9 +16,9 @@
     -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src  'self' 'unsafe-inline' https://plausible.io;
-      style-src   'self' 'unsafe-inline';
-      font-src    'self';
+      script-src  'self' 'unsafe-inline' https://plausible.io https://apis.google.com https://accounts.google.com;
+      style-src   'self' 'unsafe-inline' https://accounts.google.com;
+      font-src    'self' data:;
       img-src     'self' data: blob: https:;
       connect-src 'self'
                   https://*.googleapis.com
@@ -26,7 +26,9 @@
                   wss://*.firebaseio.com
                   https://identitytoolkit.googleapis.com
                   https://securetoken.googleapis.com
+                  https://accounts.google.com
                   https://plausible.io;
+      frame-src   https://accounts.google.com https://antask-7a86f.firebaseapp.com;
       frame-ancestors 'none';
       base-uri    'self';
     " />
