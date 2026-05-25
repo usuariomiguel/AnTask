@@ -151,17 +151,45 @@ function initTypingChip() {
 function initMobileNav() {
   const btn = document.getElementById("nav-mobile-toggle");
   const links = document.getElementById("nav-links");
+  const backdrop = document.getElementById("nav-backdrop");
   if (!btn || !links) return;
 
-  btn.addEventListener("click", () => {
-    const open = links.classList.toggle("is-open");
+  const setOpen = (open) => {
+    btn.classList.toggle("is-open", open);
+    links.classList.toggle("is-open", open);
+    if (backdrop) backdrop.classList.toggle("is-open", open);
     btn.setAttribute("aria-expanded", String(open));
-    if (open) {
-      links.style.display = "flex";
-    } else {
-      links.style.removeProperty("display");
+    btn.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+    document.body.classList.toggle("nav-open", open);
+  };
+
+  btn.addEventListener("click", () => {
+    setOpen(!links.classList.contains("is-open"));
+  });
+
+  // Cierra al pulsar enlace
+  links.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", () => setOpen(false));
+  });
+
+  // Cierra al pulsar fuera (backdrop)
+  if (backdrop) {
+    backdrop.addEventListener("click", () => setOpen(false));
+  }
+
+  // Cierra con Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && links.classList.contains("is-open")) {
+      setOpen(false);
+      btn.focus();
     }
   });
+
+  // Cierra si se cruza el breakpoint hacia desktop
+  const mq = window.matchMedia("(min-width: 821px)");
+  const onMqChange = (e) => { if (e.matches) setOpen(false); };
+  if (mq.addEventListener) mq.addEventListener("change", onMqChange);
+  else mq.addListener(onMqChange);
 }
 
 // ─── Boot ──────────────────────────────────────────────────────────────
