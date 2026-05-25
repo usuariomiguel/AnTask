@@ -4589,7 +4589,9 @@ function _syncOnFirstConnect(cloudData) {
   }
 
   // ── Primera vez con esta cuenta en este dispositivo ───────────
-  var hasAnonymousData = projects.length > 0;
+  // Solo cuenta como "datos anónimos" si hay tareas reales.
+  // Proyectos vacíos auto-creados (Inbox) no deben disparar el modal de conflicto.
+  var hasAnonymousData = projects.some(function(p) { return p.tasks && p.tasks.length > 0; });
 
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
