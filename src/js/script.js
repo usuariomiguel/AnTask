@@ -387,8 +387,10 @@ function showSmartListEditor(existing) {
   setTimeout(function () { nameInput.focus(); }, 50);
 }
 
-/** Menú contextual de un smart list (editar / eliminar). */
-function showSmartListMenu(sl, anchor) {
+/** Menú contextual de un smart list (editar / eliminar).
+ *  El segundo argumento puede ser un Element (anchor) o {x, y} (coords).
+ */
+function showSmartListMenu(sl, anchorOrPoint) {
   closeCtxMenu();
   const items = [
     { label: "Editar", action: function () { showSmartListEditor(sl); } },
@@ -411,7 +413,11 @@ function showSmartListMenu(sl, anchor) {
     },
   ];
   const menu = _buildCtxMenu(items);
-  positionCtxMenu(menu, anchor);
+  if (anchorOrPoint && typeof anchorOrPoint.x === "number" && typeof anchorOrPoint.y === "number") {
+    positionCtxMenuAt(menu, anchorOrPoint.x, anchorOrPoint.y);
+  } else {
+    positionCtxMenu(menu, anchorOrPoint);
+  }
   _ctxMenu = menu;
   requestAnimationFrame(function () {
     _ctxCloseHandler = function (e) {
@@ -1461,6 +1467,11 @@ function renderPinnedItems(inboxProject) {
       (todayCount > 0 ? '<span class="project-item-count">' + todayCount + '</span>' : "") +
     '</div>';
   hoy.addEventListener("click", function() { activateTodayView(); });
+  hoy.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showTodayMenu(e.clientX, e.clientY);
+  });
   projectListEl.appendChild(hoy);
 
   // ── Item Inbox — proyecto real, fijado ─────────────────────────
@@ -1477,6 +1488,11 @@ function renderPinnedItems(inboxProject) {
         (pending > 0 ? '<span class="project-item-count">' + pending + '</span>' : "") +
       '</div>';
     inbox.addEventListener("click", function() { activateProject(INBOX_ID); });
+    inbox.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showInboxMenu(inboxProject, e.clientX, e.clientY);
+    });
 
     inbox.addEventListener("dragover", function(e) {
       if (!dragSrcId || dragSrcProjectId) return;
@@ -1575,6 +1591,11 @@ function renderSmartListsSection() {
       if (e.target.closest(".smart-list-kebab")) return;
       activateSmartList(sl.id);
     });
+    li.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showSmartListMenu(sl, { x: e.clientX, y: e.clientY });
+    });
     var kebab = li.querySelector(".smart-list-kebab");
     kebab.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -1583,6 +1604,9 @@ function renderSmartListsSection() {
     projectListEl.appendChild(li);
   });
 }
+
+var _sectionJustExpanded = null;
+var _sectionExpandIndex = 0;
 
 function renderSidebar() {
   // Capture previous counts so we can animate changes
@@ -1593,6 +1617,7 @@ function renderSidebar() {
     if (id && span) _sidebarPrevCounts[id] = span.textContent;
   });
   projectListEl.innerHTML = "";
+  _sectionExpandIndex = 0;
   const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
@@ -1668,16 +1693,11 @@ function renderSectionHeader(section, sectionProjects) {
   li.className = "section-header";
   li.setAttribute("data-section-id", section.id);
 
-  const sectionDragHandle = document.createElement("span");
-  sectionDragHandle.className = "section-drag-handle";
-  sectionDragHandle.innerHTML = '<i data-lucide="grip-vertical"></i>';
-  sectionDragHandle.setAttribute("aria-hidden", "true");
-
   const chevron = document.createElement("span");
-  chevron.className = "section-chevron";
-  chevron.innerHTML = section.collapsed
-    ? '<i data-lucide="chevron-right"></i>'
-    : '<i data-lucide="chevron-down"></i>';
+  chevron.className = "section-chevron" +
+    (section.collapsed ? " section-chevron--collapsed" : "") +
+    (_sectionJustExpanded === section.id ? " section-chevron--just-expanded" : "");
+  chevron.innerHTML = '<i data-lucide="chevron-down"></i>';
 
   const nameEl = document.createElement("span");
   nameEl.className = "section-name";
@@ -1697,7 +1717,6 @@ function renderSectionHeader(section, sectionProjects) {
     showSectionMenu(section, menuBtn);
   });
 
-  li.appendChild(sectionDragHandle);
   li.appendChild(chevron);
   li.appendChild(nameEl);
   li.appendChild(countEl);
@@ -1708,10 +1727,37 @@ function renderSectionHeader(section, sectionProjects) {
     showSectionMenu(section, menuBtn);
   });
   li.addEventListener("click", function(e) {
-    if (e.target.closest(".section-drag-handle") || e.target.closest(".section-menu-btn")) return;
-    section.collapsed = !section.collapsed;
-    saveSections();
-    renderSidebar();
+    if (e.target.closest(".section-menu-btn")) return;
+    if (section.collapsed) {
+      // Expandir — el render aplica la animación de entrada.
+      section.collapsed = false;
+      _sectionJustExpanded = section.id;
+      saveSections();
+      renderSidebar();
+      _sectionJustExpanded = null;
+    } else {
+      // Colapsar — animar la salida antes de re-renderizar.
+      const childItems = projectListEl.querySelectorAll(
+        '.project-item-indented[data-section-id="' + section.id + '"]'
+      );
+      if (chevron) chevron.classList.add("section-chevron--collapsed");
+      if (childItems.length === 0) {
+        section.collapsed = true;
+        saveSections();
+        renderSidebar();
+        return;
+      }
+      const total = childItems.length;
+      childItems.forEach(function(el, idx) {
+        el.style.setProperty("--leave-delay", ((total - 1 - idx) * 0.022) + "s");
+        el.classList.add("section-child-leaving");
+      });
+      setTimeout(function() {
+        section.collapsed = true;
+        saveSections();
+        renderSidebar();
+      }, 200);
+    }
   });
 
   initSectionDropTarget(li, section);
@@ -1724,7 +1770,13 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const li = document.createElement("li");
   li.className = "project-item" + (indented ? " project-item-indented" : "") + (isArchived ? " project-item-archived" : "");
   li.dataset.projectId = project.id;
+  if (indented && project.sectionId) li.dataset.sectionId = project.sectionId;
   if (project.id === activeProjectId) li.classList.add("active");
+  if (indented && _sectionJustExpanded && project.sectionId === _sectionJustExpanded) {
+    li.classList.add("section-child-entering");
+    li.style.setProperty("--enter-delay", (_sectionExpandIndex * 0.035) + "s");
+    _sectionExpandIndex++;
+  }
 
   const done  = project.tasks.filter(function(t) { return t.done; }).length;
   const total = project.tasks.length;
@@ -1775,15 +1827,8 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
     showProjectMenu(project, kebabBtn);
   });
 
-  const dragHandle = document.createElement("span");
-  dragHandle.className = "project-drag-handle";
-  dragHandle.innerHTML = '<i data-lucide="grip-vertical"></i>';
-  dragHandle.title = "Arrastrar para reordenar";
-  dragHandle.setAttribute("aria-hidden", "true");
-
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
-  topRow.appendChild(dragHandle);
   if (iconBtn) topRow.appendChild(iconBtn);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
@@ -1871,6 +1916,28 @@ function positionCtxMenu(menu, anchor) {
 
   var top = rect.bottom + 4;
   if (top + mh > vh - 4) top = rect.top - mh - 4;
+
+  menu.style.left = left + "px";
+  menu.style.top  = top  + "px";
+  menu.style.visibility = "visible";
+}
+
+function positionCtxMenuAt(menu, x, y) {
+  menu.style.position = "fixed";
+  menu.style.visibility = "hidden";
+  document.body.appendChild(menu);
+
+  var mw = menu.offsetWidth;
+  var mh = menu.offsetHeight;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+
+  var left = x;
+  if (left + mw > vw - 4) left = vw - mw - 4;
+  if (left < 4) left = 4;
+  var top = y;
+  if (top + mh > vh - 4) top = y - mh;
+  if (top < 4) top = 4;
 
   menu.style.left = left + "px";
   menu.style.top  = top  + "px";
@@ -2093,6 +2160,148 @@ async function showProjectMenu(project, anchor) {
 
   var menu = _buildCtxMenu(items);
   positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) {
+      if (!menu.contains(e.target)) closeCtxMenu();
+    };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+// ── Context menu for "Hoy" virtual view ────────────────────────────────
+async function showTodayMenu(x, y) {
+  closeCtxMenu();
+
+  var today = new Date().toISOString().slice(0, 10);
+  var pending = [];
+  projects.forEach(function(p) {
+    if (p.archived) return;
+    (p.tasks || []).forEach(function(t) {
+      if (!t.done && t.dueDate && t.dueDate <= today) pending.push({ task: t, project: p });
+    });
+  });
+
+  var items = [
+    {
+      label: pending.length > 0
+        ? "Completar las " + pending.length + " tareas de hoy"
+        : "Completar tareas de hoy",
+      action: async function() {
+        if (pending.length === 0) return;
+        var ok = await modalConfirm(
+          "¿Marcar las <strong>" + pending.length + "</strong> tareas de hoy como completadas?",
+          "Completar"
+        );
+        if (!ok) return;
+        pending.forEach(function(it) {
+          it.task.done = true;
+          it.task.completedAt = Date.now();
+        });
+        saveAndRender();
+      }
+    },
+    {
+      label: "Posponer todas a mañana",
+      action: async function() {
+        var unfinished = pending.filter(function(it) { return !it.task.done; });
+        if (unfinished.length === 0) return;
+        var ok = await modalConfirm(
+          "¿Mover <strong>" + unfinished.length + "</strong> tarea" +
+          (unfinished.length === 1 ? "" : "s") + " a mañana?",
+          "Posponer"
+        );
+        if (!ok) return;
+        var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        var iso = tomorrow.toISOString().slice(0, 10);
+        unfinished.forEach(function(it) { it.task.dueDate = iso; });
+        saveAndRender();
+      }
+    }
+  ];
+
+  var menu = _buildCtxMenu(items);
+  positionCtxMenuAt(menu, x, y);
+  _ctxMenu = menu;
+
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) {
+      if (!menu.contains(e.target)) closeCtxMenu();
+    };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
+}
+
+// ── Context menu for Inbox ─────────────────────────────────────────────
+async function showInboxMenu(inboxProject, x, y) {
+  closeCtxMenu();
+
+  var pending = (inboxProject.tasks || []).filter(function(t) { return !t.done; });
+  var completed = (inboxProject.tasks || []).filter(function(t) { return t.done; });
+
+  var items = [
+    {
+      label: inboxProject.icon ? "Cambiar icono" : "Asignar icono",
+      action: function() { showIconPicker(inboxProject); }
+    }
+  ];
+
+  if (inboxProject.icon) {
+    items.push({
+      label: "Quitar icono",
+      action: function() {
+        inboxProject.icon = null;
+        saveProjects();
+        renderSidebar();
+      }
+    });
+  }
+
+  items.push(null);
+
+  items.push({
+    label: completed.length > 0
+      ? "Limpiar completadas (" + completed.length + ")"
+      : "Limpiar completadas",
+    action: async function() {
+      if (completed.length === 0) return;
+      var ok = await modalConfirm(
+        "¿Eliminar <strong>" + completed.length + "</strong> tarea" +
+        (completed.length === 1 ? " completada" : "s completadas") + " del Inbox?",
+        "Limpiar"
+      );
+      if (!ok) return;
+      inboxProject.tasks = inboxProject.tasks.filter(function(t) { return !t.done; });
+      saveAndRender();
+    }
+  });
+
+  items.push({
+    label: "Vaciar Inbox",
+    danger: true,
+    action: async function() {
+      if (inboxProject.tasks.length === 0) return;
+      var ok = await modalConfirm(
+        "¿Eliminar <strong>todas las " + inboxProject.tasks.length + " tareas</strong> del Inbox? Esta acción no se puede deshacer.",
+        "Vaciar"
+      );
+      if (!ok) return;
+      inboxProject.tasks = [];
+      saveAndRender();
+    }
+  });
+
+  // Si no hay nada, deshabilitamos las opciones de limpieza visualmente quitándolas.
+  if (pending.length === 0 && completed.length === 0) {
+    items = items.filter(function(it) {
+      if (!it) return true;
+      return it.label !== "Vaciar Inbox";
+    });
+  }
+
+  var menu = _buildCtxMenu(items);
+  positionCtxMenuAt(menu, x, y);
   _ctxMenu = menu;
 
   requestAnimationFrame(function() {
@@ -3302,17 +3511,14 @@ function removeDropIndicator() {
 
 // ─── PROJECT DRAG & DROP ──────────────────────────────────────
 function initProjectDragDrop(li, projectId) {
-  const handle = li.querySelector(".project-drag-handle");
-  if (!handle) return;
-
-  handle.addEventListener("mousedown", function() {
-    li.setAttribute("draggable", "true");
-  });
-  handle.addEventListener("touchstart", function() {
-    li.setAttribute("draggable", "true");
-  }, { passive: true });
+  li.setAttribute("draggable", "true");
 
   li.addEventListener("dragstart", function(e) {
+    // No iniciar drag si el gesto comienza sobre un control interactivo.
+    if (e.target.closest(".project-kebab-btn, .project-item-icon")) {
+      e.preventDefault();
+      return;
+    }
     dragSrcProjectId = projectId;
     e.dataTransfer.effectAllowed = "move";
     setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
@@ -3321,7 +3527,6 @@ function initProjectDragDrop(li, projectId) {
 
   li.addEventListener("dragend", function() {
     li.classList.remove("drag-ghost");
-    li.setAttribute("draggable", "false");
     removeProjectDropIndicator();
     dragSrcProjectId = null;
     document.body.classList.remove("project-dragging");
@@ -3404,14 +3609,14 @@ function initSectionDropTarget(li, section) {
 }
 
 function initSectionDragDrop(li, sectionId) {
-  const handle = li.querySelector(".section-drag-handle");
-  if (!handle) return;
-
-  handle.addEventListener("mousedown", function() { li.setAttribute("draggable", "true"); });
-  handle.addEventListener("touchstart", function() { li.setAttribute("draggable", "true"); }, { passive: true });
+  li.setAttribute("draggable", "true");
 
   li.addEventListener("dragstart", function(e) {
     if (dragSrcProjectId) return; // project drag takes priority
+    if (e.target.closest(".section-menu-btn")) {
+      e.preventDefault();
+      return;
+    }
     dragSrcSectionId = sectionId;
     e.dataTransfer.effectAllowed = "move";
     setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
@@ -3419,7 +3624,6 @@ function initSectionDragDrop(li, sectionId) {
 
   li.addEventListener("dragend", function() {
     li.classList.remove("drag-ghost");
-    li.setAttribute("draggable", "false");
     removeProjectDropIndicator();
     dragSrcSectionId = null;
   });
@@ -3794,10 +3998,13 @@ function showCalendarPanel() {
 
 function _restoreMainPanel() {
   var project = getActiveProject();
-  emptyState.hidden = Boolean(project);
-  if (ctrlBar) { ctrlBar.hidden = !project; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  tasksPanel.hidden = !project;
+  var isVirtualView = (activeView === "today" || activeView === "smart-list");
+  var hasContent = Boolean(project) || isVirtualView;
+  emptyState.hidden = hasContent;
+  if (ctrlBar) { ctrlBar.hidden = !hasContent; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  tasksPanel.hidden = !hasContent;
   _setActiveViewTab("tasks");
+  if (isVirtualView) renderTasks();
 }
 
 function _setActiveViewTab(view) {

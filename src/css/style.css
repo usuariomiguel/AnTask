@@ -1099,7 +1099,7 @@ body {
 
 .tasks-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--sp-4);
   margin-bottom: var(--sp-5);
@@ -1114,45 +1114,86 @@ body {
   min-width: 0;
 }
 
+.tasks-header-left { align-items: center; }
 .tasks-header-left .sidebar-expand-btn {
-  margin-top: var(--sp-3);
+  margin-top: 0;
 }
 
 .tasks-header-titleblock {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-/* Eyebrow uppercase indicador de la vista actual (Vista lista / agenda / etc.) */
-.view-eyebrow {
-  display: inline-block;
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
-  color: var(--text-tertiary);
-  margin-bottom: var(--sp-1);
-  line-height: 1.2;
-}
+/* Eyebrow — redundante en desktop (los tabs ya indican la vista). */
+.view-eyebrow { display: none; }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
 .project-title {
   font-family: var(--font-sans);
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
-  line-height: var(--lh-tight);
-  margin-bottom: var(--sp-1);
+  line-height: 1.15;
+  margin: 0;
   letter-spacing: var(--tracking-tight);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "N tareas" como pill al lado del título */
+.subtitle {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  letter-spacing: var(--tracking-tight);
+  background: var(--surface-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--sp-3);
   flex-wrap: wrap;
   flex-shrink: 0;
+}
+
+/* Separadores verticales sutiles entre grupos de la toolbar.
+   El tabs-block ya tiene su propio fondo, así que separamos:
+   tabs │ view-nav-right │ close-panel-btn */
+.header-actions > .view-nav-right { position: relative; padding-left: var(--sp-3); }
+.header-actions > .view-nav-right::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 18%; bottom: 18%;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.header-actions > .close-panel-btn { position: relative; margin-left: 2px; padding-left: var(--sp-3); }
+.header-actions > .close-panel-btn::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 18%; bottom: 18%;
+  width: 1px;
+  background: var(--border-subtle);
 }
 
 .delete-project-btn {
@@ -1160,24 +1201,28 @@ body {
 }
 
 .close-panel-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--r-sm);
-  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--dur-fast), color var(--dur-fast);
+  transition: color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
 }
 .close-panel-btn:hover {
-  background: var(--bg-hover);
+  background: rgba(255,255,255,0.05);
   color: var(--text-primary);
+  border-color: var(--border-subtle);
 }
-.close-panel-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+:root[data-theme="light"] .close-panel-btn:hover { background: rgba(0,0,0,0.04); }
+.close-panel-btn svg { width: 15px; height: 15px; stroke-width: 2; }
 
 
 .delete-project-btn {
@@ -1355,18 +1400,7 @@ button:focus-visible {
   animation: panelIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ── View nav (tabs + filtro) ─────────────────────────────────── */
-.view-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  margin-top: 0;
-  margin-bottom: 0;
-  padding-bottom: var(--sp-4);
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-}
+/* ── View nav — los tabs y controles viven dentro de .header-actions ── */
 
 /* Segmented control — todas las tabs viven dentro del mismo "rail" */
 .view-nav-tabs {
@@ -1437,7 +1471,7 @@ button:focus-visible {
 .view-nav-right {
   display: flex;
   align-items: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   flex-shrink: 0;
 }
 
@@ -3224,38 +3258,10 @@ input.inline-edit {
   border-color: var(--c-cyan) !important;
 }
 
-/* ─── PROJECT DRAG HANDLE ────────────────────────────────────── */
-.project-drag-handle {
-  display: flex;
-  align-items: center;
-  color: var(--t-muted);
-  cursor: grab;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.13s;
-  user-select: none;
-  touch-action: none;
-  margin-right: 0.15rem;
-}
-
-.project-drag-handle .lucide {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2;
-}
-
-.project-item:hover .project-drag-handle {
-  opacity: 0.45;
-}
-
-.project-drag-handle:hover {
-  opacity: 1 !important;
-  color: var(--c-cyan);
-}
-
-.project-drag-handle:active {
-  cursor: grabbing;
-}
+/* ─── PROJECT DRAG (sin handle visible) ──────────────────────── */
+.project-item { cursor: pointer; }
+.project-item:active { cursor: grabbing; }
+body.project-dragging .project-item { cursor: grabbing; }
 
 .project-item.drag-ghost {
   opacity: 0.30;
@@ -3738,10 +3744,19 @@ input.inline-edit {
     display: none !important;
   }
 
-  /* Hide tasks-header on mobile — title and notes are in the top header */
+  /* En móvil mantenemos .tasks-header pero ocultamos la parte del título
+     (que vive en .mobile-header). Las pestañas y controles siguen visibles. */
   .tasks-header {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    flex-wrap: nowrap;
+    margin-bottom: var(--sp-2);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--border-subtle);
   }
+  .tasks-header-left { display: none; }
 
   .mobile-icon-btn {
     width: 40px;
@@ -3803,8 +3818,15 @@ input.inline-edit {
   }
 
   .header-actions {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    width: 100%;
+    flex-wrap: nowrap;
   }
+  /* El botón X se oculta en móvil (la flecha de mobile-header ya navega atrás) */
+  .header-actions > .close-panel-btn { display: none; }
 
   /* ── Ctrl-bar mobile ─────────────────────────────────── */
   .ctrl-bar {
@@ -3812,16 +3834,7 @@ input.inline-edit {
     animation: none;
   }
 
-  /* ── View nav mobile: una sola fila (tabs icon-only + acciones) ── */
-  .view-nav {
-    flex-wrap: nowrap;
-    gap: var(--sp-2);
-    margin-top: var(--sp-2);
-    padding-bottom: var(--sp-3);
-    border-bottom: 1px solid var(--border-subtle);
-    align-items: center;
-  }
-
+  /* ── Tabs y acciones en móvil — viven dentro de .header-actions ── */
   .view-nav-tabs {
     flex: 1;
     width: auto;
@@ -5023,31 +5036,8 @@ mark.search-hl {
   opacity: 1 !important;
 }
 
-.select-mode-btn {
-  background: transparent;
-  border: 1px solid var(--b-subtle);
-  color: var(--t-soft);
-  border-radius: var(--r-sm);
-  padding: 0.24rem 0.62rem;
-  font-size: 0.78rem;
-  cursor: pointer;
-  transition: color 0.14s, border-color 0.14s, background 0.14s;
-  white-space: nowrap;
-}
-
-.select-mode-btn:hover {
-  color: var(--c-cyan);
-  border-color: var(--b-active);
-  background: rgba(139, 92, 246, 0.06);
-  box-shadow: none;
-  transform: none;
-}
-
-.select-mode-btn.active {
-  color: var(--c-cyan);
-  border-color: var(--b-active);
-  background: rgba(139, 92, 246, 0.08);
-}
+/* Estilos legacy de .select-mode-btn eliminados: viven en el bloque
+ * principal de la toolbar (icon-only 30×30). */
 
 .bulk-action-bar {
   display: flex;
@@ -5568,23 +5558,8 @@ kbd {
 
 .section-header:hover { background: rgba(139, 92, 246, 0.06); }
 
-.section-drag-handle {
-  display: flex;
-  align-items: center;
-  color: var(--t-muted);
-  cursor: grab;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.13s;
-  user-select: none;
-  touch-action: none;
-}
-
-.section-drag-handle .lucide { width: 11px; height: 11px; stroke-width: 2; }
-
-.section-header:hover .section-drag-handle { opacity: 0.45; }
-.section-drag-handle:hover { opacity: 1 !important; color: var(--c-cyan); }
-.section-drag-handle:active { cursor: grabbing; }
+/* Sección arrastrable desde la cabecera completa, sin handle visible. */
+.section-header:active { cursor: grabbing; }
 
 .section-header.drag-ghost {
   opacity: 0.30;
@@ -5631,6 +5606,46 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   width: 12px;
   height: 12px;
   stroke-width: 2;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+.section-chevron--collapsed .lucide { transform: rotate(-90deg); }
+
+@keyframes chevronExpand {
+  from { transform: rotate(-90deg); }
+  to   { transform: rotate(0); }
+}
+.section-chevron--just-expanded .lucide {
+  animation: chevronExpand 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Animación expand / collapse de la sección ────────────────── */
+@keyframes sectionItemIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes sectionItemOut {
+  from { opacity: 1; transform: translateY(0) scale(1); max-height: 60px; margin-bottom: 0; }
+  to   { opacity: 0; transform: translateY(-6px) scale(0.985); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+}
+
+.project-item.section-child-entering {
+  animation: sectionItemIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--enter-delay, 0s);
+  transform-origin: top center;
+}
+.project-item.section-child-leaving {
+  animation: sectionItemOut 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: var(--leave-delay, 0s);
+  overflow: hidden;
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-item.section-child-entering,
+  .project-item.section-child-leaving { animation: none; }
+  .section-chevron .lucide { transition: none; }
 }
 
 .section-name {
