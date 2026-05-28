@@ -14,8 +14,9 @@ const DB_NAME    = "antask-images";
 const STORE_NAME = "images";
 const SCHEME     = "antask-img://";
 
-let _db      = null;
-let _ready   = false;
+let _db             = null;
+let _ready          = false;
+let _preloadPromise = null;
 
 // id → base64 data URL
 const _cache   = new Map();
@@ -40,11 +41,11 @@ function _makeId() {
 
 /**
  * Load all stored images into the in-memory cache.
- * Must complete before resolveImages() can work correctly.
- * Safe to call multiple times (idempotent).
+ * Returns the same Promise on every call — safe to await anywhere.
  */
 export function preloadAll() {
-  return _openDB().then(function (db) {
+  if (_preloadPromise) return _preloadPromise;
+  _preloadPromise = _openDB().then(function (db) {
     return new Promise(function (resolve) {
       var tx  = db.transaction(STORE_NAME, "readonly");
       var req = tx.objectStore(STORE_NAME).openCursor();
@@ -62,6 +63,7 @@ export function preloadAll() {
       tx.onerror    = function () { _ready = true; resolve(); };
     });
   }).catch(function () { _ready = true; });
+  return _preloadPromise;
 }
 
 /**

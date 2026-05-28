@@ -4256,6 +4256,20 @@ async function _migrateImagesToIdb() {
       localStorage.removeItem(PROJECTS_KEY);
       localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
     }
+
+    // Auto-backup keys duplicate project data and may contain base64 images.
+    // Delete stale ones so they get recreated clean on next backup cycle.
+    for (var k = 0; k < localStorage.length; k++) {
+      var lsKey = localStorage.key(k);
+      if (!lsKey || !lsKey.startsWith(AUTO_BACKUP_PREFIX)) continue;
+      try {
+        var bk = JSON.parse(localStorage.getItem(lsKey) || "null");
+        if (bk && JSON.stringify(bk).includes("data:image/")) {
+          localStorage.removeItem(lsKey);
+          k--; // index shifts after removal
+        }
+      } catch (_) {}
+    }
   } catch (err) {
     console.warn("image-store: migration error:", err);
   }
@@ -4351,13 +4365,17 @@ function activateNote(noteId) {
   var note = standaloneNotes.find(function(n) { return n.id === noteId; });
   if (!note) return;
 
-  var noteEditor = document.getElementById("note-editor");
   var noteTitleEl = document.getElementById("note-title");
-  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(_imgResolve(note.content || ""));
   if (noteTitleEl) noteTitleEl.textContent = note.name;
-
   document.title = note.name + " — antask";
   renderSidebar();
+
+  // Wait for IDB cache before rendering images so antask-img:// refs resolve.
+  _imgPreloadAll().then(function () {
+    if (activeNoteId !== noteId) return; // user navigated away
+    var noteEditor = document.getElementById("note-editor");
+    if (noteEditor) noteEditor.innerHTML = sanitizeRichHtml(_imgResolve(note.content || ""));
+  });
 }
 
 async function saveActiveNote() {
