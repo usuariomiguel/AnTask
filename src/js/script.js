@@ -490,7 +490,7 @@ let _undoTimer = null;
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded  = false;
 let _notesExpanded     = false;
-let _smartListsExpanded = true;
+let _smartListsExpanded = false;
 let taskPrefs         = loadTaskPrefs();
 
 // ─── MULTI-SELECT ─────────────────────────────────────────────
