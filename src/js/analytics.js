@@ -1,40 +1,29 @@
 // @ts-check
-// Integración con Plausible Analytics (sin cookies, sin datos personales).
-// Solo se carga si el usuario ha dado consentimiento "all".
-//
-// Para activar: reemplaza PLAUSIBLE_DOMAIN con tu dominio real
-// (ej. "antask.app") y asegúrate de haber añadido el sitio en plausible.io.
+// Vercel Analytics — sin cookies, GDPR-friendly.
+// Solo se inicializa si el usuario ha dado consentimiento "all".
 
-const PLAUSIBLE_DOMAIN = ""; // ← pon aquí tu dominio cuando lo tengas
-const PLAUSIBLE_SRC    = "https://plausible.io/js/script.js";
+import { inject } from "@vercel/analytics";
 
 let _loaded = false;
 
 /**
- * Carga el script de Plausible Analytics si:
- *   1. Se ha configurado un dominio.
- *   2. El usuario ha dado consentimiento de analytics.
- *   3. No se ha cargado ya.
+ * Inyecta Vercel Analytics.
+ * Llamado desde main.js solo tras consentimiento del usuario.
  */
 export function initAnalytics() {
-  if (_loaded || !PLAUSIBLE_DOMAIN) return;
+  if (_loaded) return;
   _loaded = true;
-
-  const script = document.createElement("script");
-  script.defer = true;
-  script.dataset["domain"] = PLAUSIBLE_DOMAIN;
-  script.src = PLAUSIBLE_SRC;
-  document.head.appendChild(script);
+  inject();
 }
 
 /**
- * Envía un evento personalizado a Plausible.
- * No-op si analytics no está cargado o el objeto global no existe.
+ * Envía un evento personalizado.
+ * No-op si la librería no está cargada.
  *
- * @param {string} name  Nombre del evento (ej. "Task Created")
+ * @param {string} name
  * @param {Record<string, string|number>} [props]
  */
 export function trackEvent(name, props) {
-  if (typeof window.plausible !== "function") return;
-  window.plausible(name, props ? { props } : undefined);
+  if (typeof window.va !== "function") return;
+  window.va("event", { name, ...(props || {}) });
 }
