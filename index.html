@@ -16,9 +16,9 @@
     -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src  'self' 'unsafe-inline' https://plausible.io;
-      style-src   'self' 'unsafe-inline';
-      font-src    'self';
+      script-src  'self' 'unsafe-inline' https://plausible.io https://apis.google.com https://accounts.google.com;
+      style-src   'self' 'unsafe-inline' https://accounts.google.com;
+      font-src    'self' data:;
       img-src     'self' data: blob: https:;
       connect-src 'self'
                   https://*.googleapis.com
@@ -26,7 +26,11 @@
                   wss://*.firebaseio.com
                   https://identitytoolkit.googleapis.com
                   https://securetoken.googleapis.com
+                  https://accounts.google.com
+                  https://apis.google.com
+                  https://*.firebaseapp.com
                   https://plausible.io;
+      frame-src   https://accounts.google.com https://*.firebaseapp.com https://apis.google.com;
       frame-ancestors 'none';
       base-uri    'self';
     " />
@@ -212,12 +216,71 @@
             <div class="tasks-header-left">
               <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
               <div class="tasks-header-titleblock">
-                <span class="view-eyebrow" id="view-eyebrow">Lista</span>
-                <h2 id="project-title" class="project-title"></h2>
-                <p class="subtitle" id="project-subtitle"></p>
+                <span class="view-eyebrow" id="view-eyebrow" hidden>Lista</span>
+                <div class="title-row">
+                  <h2 id="project-title" class="project-title"></h2>
+                  <span id="project-subtitle" class="subtitle"></span>
+                </div>
               </div>
             </div>
             <div class="header-actions">
+              <!-- Tabs de vista -->
+              <div class="view-nav-tabs" id="view-nav-tabs">
+                <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
+                  <i data-lucide="list-todo"></i><span>Lista</span>
+                </button>
+                <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
+                  <i data-lucide="calendar-range"></i><span>Agenda</span>
+                </button>
+                <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
+                  <i data-lucide="calendar-days"></i><span>Mes</span>
+                </button>
+              </div>
+              <div class="view-nav-right">
+                <!-- Filtrar unificado (sólo en vista Lista) -->
+                <div class="filter-wrap" id="filter-wrap" style="position:relative">
+                  <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
+                    <i data-lucide="sliders-horizontal"></i>
+                    <span id="filter-trigger-label">Filtrar</span>
+                    <i data-lucide="chevron-down" class="filter-caret"></i>
+                  </button>
+                  <div class="filter-panel" id="filter-panel" hidden>
+                    <div class="filter-panel-section">
+                      <span class="filter-panel-label">Mostrar</span>
+                      <div class="filter-panel-opts">
+                        <button type="button" class="filter-opt filter-opt--active" data-filter="all">Todas</button>
+                        <button type="button" class="filter-opt" data-filter="pending">Pendientes</button>
+                        <button type="button" class="filter-opt" data-filter="done">✓ Hechas</button>
+                      </div>
+                    </div>
+                    <div class="filter-panel-sep"></div>
+                    <div class="filter-panel-section">
+                      <span class="filter-panel-label">Ordenar</span>
+                      <div class="filter-panel-opts">
+                        <button type="button" class="filter-opt filter-opt--active" data-sort="manual">↕ Manual</button>
+                        <button type="button" class="filter-opt" data-sort="priority">↑ Prioridad</button>
+                        <button type="button" class="filter-opt" data-sort="due">Fecha límite</button>
+                        <button type="button" class="filter-opt" data-sort="az">A–Z</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Seleccionar (sólo en vista Lista) -->
+                <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas"><i data-lucide="square-check-big"></i></button>
+                <!-- Personalizar acciones de tareas -->
+                <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones"><i data-lucide="settings-2"></i></button>
+                <!-- Más acciones (sólo en vista Lista) -->
+                <div style="position:relative" id="more-actions-wrap">
+                  <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones"><i data-lucide="ellipsis"></i></button>
+                  <div class="more-actions-panel" id="more-actions-panel" hidden>
+                    <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
+                    <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
+                  </div>
+                </div>
+                <!-- Refs ocultos que el JS necesita -->
+                <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
+                <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+              </div>
               <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto"><i data-lucide="x"></i></button>
             </div>
           </div>
@@ -226,66 +289,6 @@
             <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" data-i18n-ph="task.input.placeholder" maxlength="120" autocomplete="off" required />
             <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
           </form>
-
-          <!-- Nav de vistas + filtro unificado -->
-          <div class="view-nav" id="view-nav">
-            <div class="view-nav-tabs" id="view-nav-tabs">
-              <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
-                <i data-lucide="list-todo"></i><span>Lista</span>
-              </button>
-              <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
-                <i data-lucide="calendar-range"></i><span>Agenda</span>
-              </button>
-              <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
-                <i data-lucide="calendar-days"></i><span>Mes</span>
-              </button>
-            </div>
-            <div class="view-nav-right">
-              <!-- Filtrar unificado (sólo en vista Lista) -->
-              <div class="filter-wrap" id="filter-wrap" style="position:relative">
-                <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
-                  <i data-lucide="sliders-horizontal"></i>
-                  <span id="filter-trigger-label">Filtrar</span>
-                  <i data-lucide="chevron-down" class="filter-caret"></i>
-                </button>
-                <div class="filter-panel" id="filter-panel" hidden>
-                  <div class="filter-panel-section">
-                    <span class="filter-panel-label">Mostrar</span>
-                    <div class="filter-panel-opts">
-                      <button type="button" class="filter-opt filter-opt--active" data-filter="all">Todas</button>
-                      <button type="button" class="filter-opt" data-filter="pending">Pendientes</button>
-                      <button type="button" class="filter-opt" data-filter="done">✓ Hechas</button>
-                    </div>
-                  </div>
-                  <div class="filter-panel-sep"></div>
-                  <div class="filter-panel-section">
-                    <span class="filter-panel-label">Ordenar</span>
-                    <div class="filter-panel-opts">
-                      <button type="button" class="filter-opt filter-opt--active" data-sort="manual">↕ Manual</button>
-                      <button type="button" class="filter-opt" data-sort="priority">↑ Prioridad</button>
-                      <button type="button" class="filter-opt" data-sort="due">Fecha límite</button>
-                      <button type="button" class="filter-opt" data-sort="az">A–Z</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Seleccionar (sólo en vista Lista) -->
-              <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas"><i data-lucide="square-check-big"></i></button>
-              <!-- Personalizar acciones de tareas -->
-              <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones"><i data-lucide="settings-2"></i></button>
-              <!-- Más acciones (sólo en vista Lista) -->
-              <div style="position:relative" id="more-actions-wrap">
-                <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones"><i data-lucide="ellipsis"></i></button>
-                <div class="more-actions-panel" id="more-actions-panel" hidden>
-                  <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
-                  <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
-                </div>
-              </div>
-              <!-- Refs ocultos que el JS necesita -->
-              <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
-              <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
-            </div>
-          </div>
 
         </div><!-- /.ctrl-bar -->
 

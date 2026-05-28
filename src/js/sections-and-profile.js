@@ -113,8 +113,19 @@ import { t } from "./i18n/index.js";
   if (pfSigninBtn) {
     pfSigninBtn.addEventListener("click", function() {
       profileDropdown.hidden = true;
-      if (window.AnsoSync) AnsoSync.signIn().catch(function(e) {
-        if (e.code !== "auth/popup-closed-by-user") console.warn(e);
+      if (!window.AnsoSync) {
+        if (window.modalAlert) modalAlert("La sincronización aún se está cargando. Espera un momento e inténtalo de nuevo.", "info");
+        return;
+      }
+      AnsoSync.signIn().catch(function(e) {
+        if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+        var msg = e.code === "auth/popup-blocked"
+          ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
+          : e.code === "auth/unauthorized-domain"
+          ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+          : "Error al iniciar sesión: " + (e.message || e.code);
+        console.error("AnsoSync signIn error:", e);
+        if (window.modalAlert) modalAlert(msg, "error");
       });
     });
   }
