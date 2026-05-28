@@ -9,6 +9,13 @@ import { buildNLChipsHTML }                 from "./utils/nl-chips.js";
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
 import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
+  preloadAll      as _imgPreloadAll,
+  resolveImages   as _imgResolve,
+  extractImages   as _imgExtract,
+  findImageIds    as _imgFindIds,
+  deleteImages    as _imgDelete,
+} from "./utils/image-store.js";
+import {
   createModalBase,
   closeModal,
   modalPrompt,
@@ -204,6 +211,14 @@ let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
 let smartLists      = loadSmartLists();
 ensureDefaultSmartLists();
+
+// Migrate any base64 images from localStorage to IndexedDB.
+// Runs async at startup — frees storage space without blocking render.
+_imgPreloadAll().then(function () {
+  return _migrateImagesToIdb();
+}).then(function () {
+  _checkStorageWarning();
+});
 
 // Activador de listas guardadas (smart lists).
 let activeSmartListId = null;
@@ -1141,12 +1156,20 @@ exportBtn.addEventListener("click", function() {
     modalAlert("No hay proyectos que exportar.", "info");
     return;
   }
+  // Restore base64 so the exported JSON is fully self-contained (no IDB deps).
+  const exportNotes    = standaloneNotes.map(function(n) {
+    return Object.assign({}, n, { content: _imgResolve(n.content || "") });
+  });
+  const exportProjects = projects.map(function(p) {
+    if (!p.notes) return p;
+    return Object.assign({}, p, { notes: _imgResolve(p.notes) });
+  });
   const backup = {
     version: 2,
     exportedAt: new Date().toISOString(),
-    projects: projects,
+    projects: exportProjects,
     sections: sections,
-    standaloneNotes: standaloneNotes,
+    standaloneNotes: exportNotes,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1173,7 +1196,15 @@ importFile.addEventListener("change", async function() {
         "Restaurar workspace"
       );
       if (!confirmed) return;
-      projects = parsed.projects.map(sanitizeProject);
+      // Extract images from imported data into IDB before writing to localStorage.
+      const rawProjects = parsed.projects.map(sanitizeProject);
+      for (var _ip = 0; _ip < rawProjects.length; _ip++) {
+        var _p = rawProjects[_ip];
+        if (_p.notes && _p.notes.includes("data:image/")) {
+          _p.notes = await _imgExtract(_p.notes);
+        }
+      }
+      projects = rawProjects;
       if (Array.isArray(parsed.sections)) {
         sections = parsed.sections.filter(function(s) {
           return s && typeof s.id === "string" && typeof s.name === "string";
@@ -1183,7 +1214,15 @@ importFile.addEventListener("change", async function() {
         saveSections();
       }
       if (Array.isArray(parsed.standaloneNotes)) {
-        standaloneNotes = parsed.standaloneNotes.map(sanitizeStandaloneNote);
+        const rawNotes = parsed.standaloneNotes.map(sanitizeStandaloneNote);
+        for (var _in = 0; _in < rawNotes.length; _in++) {
+          var _n = rawNotes[_in];
+          if (_n.content && _n.content.includes("data:image/")) {
+            _n.content = await _imgExtract(_n.content);
+          }
+        }
+        standaloneNotes = rawNotes;
+        localStorage.removeItem(NOTES_KEY);
         localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
       }
       activeProjectId = projects.length > 0 ? projects[0].id : null;
@@ -3982,6 +4021,39 @@ function saveProjects() {
   _checkStorageWarning();
 }
 
+// Extracts base64 images from all notes and project notes, stores them in
+// IndexedDB, and replaces the srcs with antask-img://id refs in localStorage.
+// Called once at startup so existing workspaces benefit immediately.
+async function _migrateImagesToIdb() {
+  try {
+    var notesChanged = false;
+    for (var i = 0; i < standaloneNotes.length; i++) {
+      var note = standaloneNotes[i];
+      if (!note.content || !note.content.includes("data:image/")) continue;
+      note.content = await _imgExtract(note.content);
+      notesChanged = true;
+    }
+    if (notesChanged) {
+      localStorage.removeItem(NOTES_KEY);
+      localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
+    }
+
+    var projectsChanged = false;
+    for (var j = 0; j < projects.length; j++) {
+      var p = projects[j];
+      if (!p.notes || !p.notes.includes("data:image/")) continue;
+      p.notes = await _imgExtract(p.notes);
+      projectsChanged = true;
+    }
+    if (projectsChanged) {
+      localStorage.removeItem(PROJECTS_KEY);
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    }
+  } catch (err) {
+    console.warn("image-store: migration error:", err);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // NOTAS INDEPENDIENTES
 // ═══════════════════════════════════════════════════════════════
@@ -4074,18 +4146,18 @@ function activateNote(noteId) {
 
   var noteEditor = document.getElementById("note-editor");
   var noteTitleEl = document.getElementById("note-title");
-  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(note.content || "");
+  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(_imgResolve(note.content || ""));
   if (noteTitleEl) noteTitleEl.textContent = note.name;
 
   document.title = note.name + " — antask";
   renderSidebar();
 }
 
-function saveActiveNote() {
+async function saveActiveNote() {
   var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
   if (!note) return;
   var noteEditor = document.getElementById("note-editor");
-  if (noteEditor) note.content = noteEditor.innerHTML;
+  if (noteEditor) note.content = await _imgExtract(noteEditor.innerHTML);
   saveStandaloneNotes();
 
   var statusEl = document.getElementById("note-save-status");
