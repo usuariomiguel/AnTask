@@ -74,6 +74,11 @@ import { renderSubtasks } from "./ui/subtasks.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
 import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
 import {
+  showProjectTemplatesModal,
+  showTemplatePreview,
+  buildTasksFromTemplate,
+} from "./ui/project-templates.js";
+import {
   showOnboarding,
   shouldShowOnboarding,
   markOnboardingDone,
@@ -941,19 +946,53 @@ function modalProjectPicker(excludeProjectId) {
 // Tema vive en ./ui/theme.js (export window arriba)
 
 // ─── NUEVO PROYECTO ──────────────────────────────────────────
-newProjectBtn.addEventListener("click", async function() {
-  const name = await modalPrompt("Nombre del proyecto", "", "mi-proyecto...");
-  if (!name) return;
+/** Crea un proyecto con un nombre dado y una lista opcional de specs de tareas. */
+function _createProjectWithTasks(name, taskSpecs, opts) {
   const project = {
     id: generateId(),
-    name: capitalizeFirst(name.trim()).slice(0, 60),
+    name: capitalizeFirst((name || "").trim()).slice(0, 60),
+    icon:  (opts && opts.icon)  || "",
+    color: (opts && opts.color) || "",
     createdAt: new Date().toISOString(),
-    tasks: [],
+    tasks: (taskSpecs || []).map(function (spec) {
+      return {
+        id:         generateId(),
+        text:       (spec.text || "").slice(0, 120),
+        comment:    "",
+        done:       false,
+        status:     null,
+        priority:   spec.priority || null,
+        labels:     [],
+        dueDate:    spec.dueDate || null,
+        recurDays:  spec.recurDays || null,
+        reminderAt: null,
+        timeLogged: 0,
+        subtasks:   [],
+      };
+    }),
   };
   projects.push(project);
   saveProjects();
   renderSidebar();
   activateProject(project.id);
+}
+
+newProjectBtn.addEventListener("click", function() {
+  showProjectTemplatesModal({
+    onPickBlank: async function () {
+      const name = await modalPrompt("Nombre del proyecto", "", "mi-proyecto…");
+      if (!name) return;
+      _createProjectWithTasks(name, [], {});
+    },
+    onPickTemplate: async function (template) {
+      const name = await showTemplatePreview(template);
+      if (!name) return;
+      _createProjectWithTasks(name, buildTasksFromTemplate(template), {
+        icon:  template.icon,
+        color: template.color || "",
+      });
+    },
+  });
 });
 
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
@@ -4962,20 +5001,43 @@ function _syncOnRemoteChange(remoteProjects, remoteSections, remoteStandaloneNot
   _syncApplyRemote(remoteProjects, remoteSections || [], remoteStandaloneNotes || [], user ? user.uid : null);
 }
 
-function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes, uid) {
+async function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes, uid) {
   try {
-    projects = remoteProjects.map(sanitizeProject);
-    ensureInbox();
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    // Extract any base64 images from cloud data into IDB before touching
+    // localStorage — cloud data may predate the local IDB migration.
+    var cleanProjects = remoteProjects.map(sanitizeProject);
+    for (var _i = 0; _i < cleanProjects.length; _i++) {
+      var _cp = cleanProjects[_i];
+      if (_cp.notes && _cp.notes.includes("data:image/")) {
+        _cp.notes = await _imgExtract(_cp.notes);
+      }
+    }
+
+    var cleanNotes = Array.isArray(remoteStandaloneNotes)
+      ? remoteStandaloneNotes.map(sanitizeStandaloneNote)
+      : [];
+    for (var _j = 0; _j < cleanNotes.length; _j++) {
+      var _cn = cleanNotes[_j];
+      if (_cn.content && _cn.content.includes("data:image/")) {
+        _cn.content = await _imgExtract(_cn.content);
+      }
+    }
+
+    // Write to localStorage first — if this throws we haven't touched memory yet.
+    localStorage.removeItem(PROJECTS_KEY);
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(cleanProjects));
     if (Array.isArray(remoteSections)) {
-      sections = remoteSections;
-      localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(remoteSections));
     }
-    if (Array.isArray(remoteStandaloneNotes)) {
-      standaloneNotes = remoteStandaloneNotes.map(sanitizeStandaloneNote);
-      localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
-    }
-    // Actualizar caché por cuenta
+    localStorage.removeItem(NOTES_KEY);
+    localStorage.setItem(NOTES_KEY, JSON.stringify(cleanNotes));
+
+    // Commit to memory only after successful persistence.
+    projects = cleanProjects;
+    ensureInbox();
+    if (Array.isArray(remoteSections)) sections = remoteSections;
+    standaloneNotes = cleanNotes;
+
     if (uid) _saveAccountCache(uid);
 
     renderSidebar();
@@ -4985,6 +5047,7 @@ function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes,
       renderLabelFilterBar();
     }
     updateSaveStatus(new Date().toISOString());
+    _checkStorageWarning();
   } catch (e) {
     console.warn("AnsoSync: error aplicando cambios remotos:", e);
   }
