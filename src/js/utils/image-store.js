@@ -78,6 +78,23 @@ export function resolveImages(html) {
 }
 
 /**
+ * Walk img elements inside a container and replace any antask-img://id src
+ * with the cached data URL. Call after preloadAll() resolves.
+ * Safer than string replacement because DOMPurify has already run by this point.
+ *
+ * @param {Element} container
+ */
+export function resolveImgElements(container) {
+  if (!container) return;
+  container.querySelectorAll("img").forEach(function (img) {
+    var src = img.getAttribute("src") || "";
+    if (!src.startsWith(SCHEME)) return;
+    var url = _cache.get(src.slice(SCHEME.length));
+    if (url) img.src = url;
+  });
+}
+
+/**
  * Async — extract every data:image/… src from html, persist each in IDB,
  * and return the html with those srcs replaced by antask-img://id refs.
  * Already-extracted images (same base64) reuse the existing id.

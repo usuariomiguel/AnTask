@@ -9,11 +9,12 @@ import { buildNLChipsHTML }                 from "./utils/nl-chips.js";
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
 import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
-  preloadAll      as _imgPreloadAll,
-  resolveImages   as _imgResolve,
-  extractImages   as _imgExtract,
-  findImageIds    as _imgFindIds,
-  deleteImages    as _imgDelete,
+  preloadAll        as _imgPreloadAll,
+  resolveImages     as _imgResolve,
+  resolveImgElements as _imgResolveEls,
+  extractImages     as _imgExtract,
+  findImageIds      as _imgFindIds,
+  deleteImages      as _imgDelete,
 } from "./utils/image-store.js";
 import {
   createModalBase,
@@ -4365,16 +4366,19 @@ function activateNote(noteId) {
   var note = standaloneNotes.find(function(n) { return n.id === noteId; });
   if (!note) return;
 
+  var noteEditor  = document.getElementById("note-editor");
   var noteTitleEl = document.getElementById("note-title");
+  // Set content immediately. antask-img:// is whitelisted in DOMPurify so
+  // unresolved refs survive sanitization and are patched once IDB is ready.
+  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(note.content || "");
   if (noteTitleEl) noteTitleEl.textContent = note.name;
   document.title = note.name + " — antask";
   renderSidebar();
 
-  // Wait for IDB cache before rendering images so antask-img:// refs resolve.
+  // Swap antask-img://id src attrs to real data URLs once the IDB cache loads.
   _imgPreloadAll().then(function () {
     if (activeNoteId !== noteId) return; // user navigated away
-    var noteEditor = document.getElementById("note-editor");
-    if (noteEditor) noteEditor.innerHTML = sanitizeRichHtml(_imgResolve(note.content || ""));
+    _imgResolveEls(document.getElementById("note-editor"));
   });
 }
 

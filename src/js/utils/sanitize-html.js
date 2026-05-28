@@ -16,9 +16,10 @@ const RICH_TEXT_CONFIG = {
     "font",
   ],
   ALLOWED_ATTR: ["style", "src", "width", "height", "alt", "size"],
-  // Permite URLs http/https y data:image/* (imágenes pegadas). Bloquea
-  // javascript:, data:text/html, vbscript:, etc.
-  ALLOWED_URI_REGEXP: /^(?:https?:|data:image\/[\w+.-]+;base64,|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+  // Permite URLs http/https, data:image/* (imágenes pegadas) y el esquema
+  // interno antask-img:// que usa el image-store para refs a IndexedDB.
+  // Bloquea javascript:, data:text/html, vbscript:, etc.
+  ALLOWED_URI_REGEXP: /^(?:https?:|data:image\/[\w+.-]+;base64,|antask-img:\/\/|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
 };
 
 /**
