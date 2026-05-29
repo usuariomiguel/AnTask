@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnTask · Post Instagram #1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      background: #06060C;
+    }
+
+    .canvas {
+      position: relative;
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      background: #06060C;
+    }
+
+    /* ── Atmósfera ── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .orb-violet {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(109,40,217,0.22) 0%, rgba(109,40,217,0.06) 45%, transparent 70%);
+      top: -260px; right: -200px;
+    }
+    .orb-red {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(239,68,68,0.07) 0%, transparent 70%);
+      top: 80px; left: -120px;
+    }
+    .grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 68px 84px 60px;
+    }
+
+    /* ── Label superior ── */
+    .eyebrow {
+      font-family: 'Figtree', sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7C3AED;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px; height: 2px;
+      background: #7C3AED;
+      border-radius: 2px;
+    }
+
+    /* ── Titular principal ── */
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 71px;
+      font-weight: 800;
+      line-height: 1.06;
+      color: #F0EEFF;
+      letter-spacing: -0.02em;
+      max-width: 820px;
+      margin-bottom: 44px;
+    }
+    .headline .ghost {
+      color: transparent;
+      -webkit-text-stroke: 2px rgba(240,238,255,0.35);
+    }
+
+    /* ── Bloc de Notas mockup ── */
+    .notepad {
+      width: 730px;
+      background: #0C0C18;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.055);
+      overflow: hidden;
+      transform: rotate(-1.8deg);
+      box-shadow:
+        0 48px 96px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 0 60px rgba(239,68,68,0.06);
+      margin-bottom: 44px;
+      flex-shrink: 0;
+    }
+
+    .titlebar {
+      background: #131320;
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid rgba(255,255,255,0.045);
+    }
+    .dot { width: 13px; height: 13px; border-radius: 50%; }
+    .dot-r { background: #FF5F57; }
+    .dot-y { background: #FFBD2E; }
+    .dot-g { background: #28C841; }
+    .titlebar-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #44445A;
+      margin-left: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .notepad-body {
+      padding: 22px 30px 26px;
+      position: relative;
+    }
+    .notepad-lines {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 31px,
+        rgba(255,255,255,0.022) 31px,
+        rgba(255,255,255,0.022) 32px
+      );
+      background-position: 0 22px;
+    }
+    .notepad-text {
+      position: relative;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15.5px;
+      line-height: 2.0;
+      color: #7070A0;
+      z-index: 1;
+    }
+    .notepad-text .ln { display: block; }
+    .notepad-text .crossed {
+      text-decoration: line-through;
+      color: #3C3C5C;
+      opacity: 0.8;
+    }
+    .notepad-text .panic {
+      color: #EF4444;
+      opacity: 0.75;
+    }
+    .notepad-text .faded {
+      color: #44445A;
+      font-style: italic;
+    }
+
+    /* ── Sub-copy ── */
+    .subcopy {
+      font-family: 'Figtree', sans-serif;
+      font-size: 27px;
+      font-weight: 300;
+      line-height: 1.55;
+      color: #7070A0;
+      letter-spacing: 0.005em;
+      margin-bottom: 36px;
+    }
+    .subcopy strong {
+      color: #C0B8D8;
+      font-weight: 400;
+    }
+
+    /* ── Divisor ── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(124,58,237,0.25) 20%,
+        rgba(124,58,237,0.55) 50%,
+        rgba(124,58,237,0.25) 80%,
+        transparent 100%
+      );
+      margin-bottom: 36px;
+      flex-shrink: 0;
+    }
+
+    /* ── Fila inferior ── */
+    .bottom-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .cta-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #F0EEFF;
+      letter-spacing: -0.01em;
+    }
+    .cta-text .arrow {
+      color: #7C3AED;
+      margin-left: 8px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #7C3AED;
+      letter-spacing: -0.03em;
+    }
+    .tagline {
+      font-family: 'Figtree', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      font-style: italic;
+      color: #44445A;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="orb orb-violet"></div>
+    <div class="orb orb-red"></div>
+    <div class="grain"></div>
+
+    <div class="content">
+
+      <div class="eyebrow">El problema</div>
+
+      <h1 class="headline">
+        ¿Sigues usando el<br>
+        <span class="ghost">Bloc de Notas</span><br>
+        para tus tareas?
+      </h1>
+
+      <div class="notepad">
+        <div class="titlebar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="titlebar-name">tareas_pendientes_v3_FINAL.txt — Bloc de notas</span>
+        </div>
+        <div class="notepad-body">
+          <div class="notepad-lines"></div>
+          <div class="notepad-text">
+            <span class="ln">- llamar al médico (era urgente???)</span>
+            <span class="ln crossed">- comprar leche (o ya lo compré?)</span>
+            <span class="ln panic">- PRESENTACIÓN EL VIERNES!!! no olvidar</span>
+            <span class="ln">- reunión con carlos... ¿o era con ana?</span>
+            <span class="ln faded">- lo del fontanero que dijo mamá (2022)</span>
+            <span class="ln">- gym. esta semana sí de verdad</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="subcopy">
+        <strong>Sin fechas.</strong> Sin prioridades.<br>
+        Sin recordatorios. Solo texto perdido en alguna carpeta.
+      </p>
+
+      <div class="divider"></div>
+
+      <div class="bottom-row">
+        <div class="cta-text">Hay algo mejor<span class="arrow">→</span></div>
+        <div class="brand">
+          <div class="brand-name">antask</div>
+          <div class="tagline">Tus tareas, tu día. Tuyo.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
