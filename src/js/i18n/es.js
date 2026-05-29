@@ -55,6 +55,7 @@ export const es = {
   "nav.search":               "Buscar",
   "nav.inbox":                "Bandeja",
   "nav.today":                "Hoy",
+  "nav.agenda":               "Agenda",
   "nav.calendar":             "Calendario",
 
   // ── Toast / estado ────────────────────────────────────────
@@ -89,6 +90,7 @@ export const es = {
   "a11y.mark_done":           "Marcar tarea como completada",
   "a11y.select_task":         "Seleccionar tarea",
   "a11y.mobile_settings":     "Ajustes",
+  "a11y.mobile_projects":     "Proyectos",
   "a11y.loading":             "Cargando antask",
 
   // ── Empty state ───────────────────────────────────────────

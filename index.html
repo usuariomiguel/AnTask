@@ -75,7 +75,7 @@
       <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
       <header class="mobile-header" id="mobile-header">
         <div class="mobile-header-left">
-          <button type="button" class="mobile-icon-btn" id="mobile-settings-btn" aria-label="Ajustes" data-i18n-aria="a11y.mobile_settings"><i data-lucide="settings"></i></button>
+          <button type="button" class="mobile-icon-btn" id="mobile-projects-btn" aria-label="Proyectos" data-i18n-aria="a11y.mobile_projects"><i data-lucide="menu"></i></button>
         </div>
         <div class="mobile-header-center">
           <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
@@ -85,7 +85,9 @@
             <span class="mobile-header-count" id="mobile-header-count"></span>
           </div>
         </div>
-        <div class="mobile-header-right"></div>
+        <div class="mobile-header-right">
+          <button type="button" class="mobile-icon-btn" id="mobile-settings-btn" aria-label="Ajustes" data-i18n-aria="a11y.mobile_settings"><i data-lucide="settings"></i></button>
+        </div>
       </header>
 
       <!-- ── MOBILE BODY: sidebar + main ──────────────────── -->
@@ -374,11 +376,7 @@
 
       </main>
 
-      <!-- ── MOBILE FAB + CREATION SHEET ──────────────────── -->
-      <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
-        <i data-lucide="plus" class="fab-icon-plus"></i>
-        <i data-lucide="x"    class="fab-icon-close"></i>
-      </button>
+      <!-- ── FAB CREATION SHEET ─────────────────────────────── -->
       <div class="fab-backdrop" id="fab-backdrop"></div>
       <div class="fab-sheet" id="fab-sheet" aria-hidden="true">
         <div class="fab-sheet-drag"></div>
@@ -400,12 +398,18 @@
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
         </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-projects-btn">
-          <i data-lucide="layers"></i>
-          <span data-i18n="nav.projects">Proyectos</span>
+        <button type="button" class="mobile-bottom-btn" id="bnav-agenda-btn">
+          <i data-lucide="calendar-range"></i>
+          <span data-i18n="nav.agenda">Agenda</span>
         </button>
         <!-- Hueco central donde flota el FAB con notch -->
-        <div class="mobile-bottom-spacer" aria-hidden="true"></div>
+        <div class="mobile-bottom-spacer" aria-hidden="true">
+          <!-- FAB anclado al centro real del nav vía position:absolute -->
+          <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
+            <i data-lucide="plus" class="fab-icon-plus"></i>
+            <i data-lucide="x"    class="fab-icon-close"></i>
+          </button>
+        </div>
         <button type="button" class="mobile-bottom-btn" id="bnav-calendar-btn">
           <i data-lucide="calendar-days"></i>
           <span data-i18n="nav.calendar">Calendario</span>
@@ -649,10 +653,10 @@
 
       // ── Bottom navigation ─────────────────────────────────────
       var bnavToday    = document.getElementById("bnav-today-btn");
-      var bnavProjects = document.getElementById("bnav-projects-btn");
+      var bnavAgenda   = document.getElementById("bnav-agenda-btn");
       var bnavCalendar = document.getElementById("bnav-calendar-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
-      var allBnavBtns  = [bnavToday, bnavProjects, bnavCalendar, bnavSearch];
+      var allBnavBtns  = [bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -662,25 +666,19 @@
       }
 
       // Sincroniza el destino activo con el estado real de la app.
-      // Se llama tras cambios de vista (today/calendar/project) para reflejar
-      // dónde está el usuario sin depender de qué botón se pulsó.
       function syncBnavActive() {
         try {
-          if (sidebar && sidebar.classList.contains("sidebar-open")) {
-            setActiveBnavBtn(bnavProjects);
-            return;
-          }
           var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
           if (av === "today") { setActiveBnavBtn(bnavToday); return; }
-          // Vista calendario: el panel .alt-panel--cal está visible (no hidden)
-          var calPanel = document.getElementById("cal-panel");
-          if (calPanel && !calPanel.hidden) { setActiveBnavBtn(bnavCalendar); return; }
+          var calPanel    = document.getElementById("cal-panel");
+          var agendaPanel = document.getElementById("agenda-panel");
+          if (agendaPanel && !agendaPanel.hidden) { setActiveBnavBtn(bnavAgenda); return; }
+          if (calPanel    && !calPanel.hidden)    { setActiveBnavBtn(bnavCalendar); return; }
           setActiveBnavBtn(null);
         } catch (e) {
           setActiveBnavBtn(null);
         }
       }
-      // Exponemos para que script.js pueda llamarla cuando cambie de vista.
       window.syncBnavActive = syncBnavActive;
 
       if (bnavToday) {
@@ -692,10 +690,12 @@
         });
       }
 
-      if (bnavProjects) {
-        bnavProjects.addEventListener("click", function() {
-          setActiveBnavBtn(bnavProjects);
-          openSidebar();
+      if (bnavAgenda) {
+        bnavAgenda.addEventListener("click", function() {
+          setActiveBnavBtn(bnavAgenda);
+          if (typeof window.showAgendaPanel === "function") {
+            window.showAgendaPanel();
+          }
         });
       }
 
@@ -715,7 +715,15 @@
         });
       }
 
-      // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil
+      // Botón Proyectos (hamburger) del header móvil → abre drawer del sidebar.
+      var mobileProjectsBtn = document.getElementById("mobile-projects-btn");
+      if (mobileProjectsBtn) {
+        mobileProjectsBtn.addEventListener("click", function() {
+          openSidebar();
+        });
+      }
+
+      // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil.
       var mobileSettingsBtn = document.getElementById("mobile-settings-btn");
       if (mobileSettingsBtn) {
         mobileSettingsBtn.addEventListener("click", function() {

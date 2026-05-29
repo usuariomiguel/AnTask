@@ -55,6 +55,7 @@ export const en = {
   "nav.search":               "Search",
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
+  "nav.agenda":               "Agenda",
   "nav.calendar":             "Calendar",
 
   // ── Toast / status ────────────────────────────────────────
@@ -89,6 +90,7 @@ export const en = {
   "a11y.mark_done":           "Mark task as completed",
   "a11y.select_task":         "Select task",
   "a11y.mobile_settings":     "Settings",
+  "a11y.mobile_projects":     "Projects",
   "a11y.loading":             "Loading antask",
 
   // ── Empty state ───────────────────────────────────────────

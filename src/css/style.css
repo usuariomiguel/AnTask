@@ -3848,16 +3848,10 @@ body.project-dragging .project-item { cursor: grabbing; }
     animation: none;
   }
 
-  /* ── Tabs y acciones en móvil — viven dentro de .header-actions ── */
+  /* ── Tabs de vista (Lista/Agenda/Mes) — ocultas en móvil porque
+        la navegación entre vistas vive en el bottom nav ─────────── */
   .view-nav-tabs {
-    flex: 1;
-    width: auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    min-width: 0;
-    border-radius: var(--r-md);
-    padding: 3px;
+    display: none !important;
   }
 
   .view-tab {
@@ -4507,9 +4501,11 @@ body.project-dragging .project-item { cursor: grabbing; }
     background: transparent;
   }
 
-  /* Spacer central — reserva el hueco visual donde flota el FAB */
+  /* Spacer central — ancla al FAB en el centro real del nav.
+     position:relative permite que el FAB hijo se posicione contra él. */
   .mobile-bottom-spacer {
     flex: 0 0 64px;
+    position: relative;
     pointer-events: none;
   }
 
@@ -4585,11 +4581,11 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 
   /* ── FAB anclado en el notch del bottom-nav ─────────────────── */
-  /* El centro vertical del FAB queda alineado al borde superior del nav
-     para que sobresalga ~28px (la mitad de su altura) y entre por el notch. */
+  /* Hijo del .mobile-bottom-spacer (posición relativa al centro real
+     del nav, no del viewport — evita descentre por scrollbar). */
   .mobile-fab {
-    position: fixed;
-    bottom: calc(64px + env(safe-area-inset-bottom, 0) - 28px);
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom, 0) + 36px);
     left: 50%;
     transform: translateX(-50%);
     width: 56px;
@@ -4605,6 +4601,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    pointer-events: auto;
     z-index: 380;
     transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), opacity 0.15s var(--ease-out);
     padding: 0;

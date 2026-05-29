@@ -1439,7 +1439,7 @@ function activateTodayView() {
 
   emptyState.hidden = true;
   if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  if (mobileFab) mobileFab.classList.remove("visible");
+  if (mobileFab) mobileFab.classList.add("visible");
   tasksPanel.hidden = false;
   _setActiveViewTab("tasks");
 
@@ -4056,6 +4056,7 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 })();
 
 window.showCalendarPanel = showCalendarPanel;
+window.showAgendaPanel   = showAgendaPanel;
 window.activateTodayView = activateTodayView;
 window.getActiveView = function() { return activeView; };
 
@@ -4075,6 +4076,7 @@ function showCalendarPanel() {
   tasksPanel.hidden = true;
   calPanel.hidden = false;
   _setActiveViewTab("cal");
+  if (mobileFab) mobileFab.classList.add("visible");
   renderCalendar();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
@@ -4131,7 +4133,9 @@ function showAgendaPanel() {
   tasksPanel.hidden = true;
   agendaPanel.hidden = false;
   _setActiveViewTab("agenda");
+  if (mobileFab) mobileFab.classList.add("visible");
   renderAgenda();
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 
