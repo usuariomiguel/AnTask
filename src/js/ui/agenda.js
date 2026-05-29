@@ -60,15 +60,26 @@ export function renderAgenda(projects, onActivateProject) {
 
   if (total === 0) {
     const empty = document.createElement("div");
-    empty.className = "agenda-empty";
-    const icon = document.createElement("span");
-    icon.className = "agenda-empty-icon";
-    icon.textContent = "⏱";
-    const msg = document.createElement("p");
-    msg.textContent = t("agenda.empty");
-    empty.appendChild(icon);
-    empty.appendChild(msg);
+    empty.className = "agenda-empty empty-illustrated";
+    empty.innerHTML =
+      '<div class="empty-illustrated-visual">' +
+        '<div class="empty-illustrated-halo"></div>' +
+        '<div class="empty-illustrated-icon">⏱</div>' +
+      '</div>' +
+      '<p class="empty-illustrated-title">Agenda al día</p>' +
+      '<p class="empty-illustrated-sub">' + t("agenda.empty") + '</p>' +
+      '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
+        '<i data-lucide="plus"></i> Añadir tarea' +
+      '</button>';
     content.appendChild(empty);
+    const cta = empty.querySelector("[data-empty-action='add']");
+    if (cta) cta.addEventListener("click", function() {
+      const fab = document.getElementById("mobile-fab");
+      const taskInput = document.getElementById("task-input");
+      if (taskInput && taskInput.offsetParent !== null) taskInput.focus();
+      else if (fab && fab.offsetParent !== null) fab.click();
+    });
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 

@@ -16,6 +16,7 @@ export const en = {
   "sidebar.archived_empty":   "Nothing archived",
   "sidebar.notes":            "Notes",
   "sidebar.notes_empty":      "No notes yet",
+  "sidebar.more":             "More",
   "sidebar.add_list_title":   "New saved list",
 
   // ── Profile ───────────────────────────────────────────────

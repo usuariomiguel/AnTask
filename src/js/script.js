@@ -1404,6 +1404,16 @@ function activateProject(id) {
     if (mobileHeaderCount) mobileHeaderCount.textContent = hasProject
       ? project.tasks.filter(function(t) { return !t.done; }).length + " pendientes"
       : "";
+    // Color dot del proyecto delante del título (ancla visual).
+    // Mismo hash/explícito que en el sidebar para sistema visual coherente.
+    if (hasProject) {
+      mobileHeader.style.setProperty(
+        "--mobile-header-project-color",
+        project.color || _projectColorFromId(project.id)
+      );
+    } else {
+      mobileHeader.style.removeProperty("--mobile-header-project-color");
+    }
   }
 
   if (!hasProject) { renderSidebar(); return; }
@@ -1772,6 +1782,9 @@ function renderSectionHeader(section, sectionProjects) {
   const li = document.createElement("li");
   li.className = "section-header";
   li.setAttribute("data-section-id", section.id);
+  // Color determinista por sección: alimenta el dot del header y el
+  // chevron. Mismo helper que para proyectos.
+  li.style.setProperty("--section-color", _projectColorFromId(section.id));
 
   const chevron = document.createElement("span");
   chevron.className = "section-chevron" +
@@ -1843,6 +1856,22 @@ function renderSectionHeader(section, sectionProjects) {
   initSectionDropTarget(li, section);
   initSectionDragDrop(li, section.id);
   projectListEl.appendChild(li);
+}
+
+/**
+ * Color determinista por id (hash → hue HSL). Sirve de fallback
+ * cuando el proyecto no tiene .color explícito, para que cada uno
+ * tenga su propio dot/franja visual.
+ */
+function _projectColorFromId(id) {
+  if (!id) return "hsl(265, 65%, 60%)";
+  var hash = 0;
+  for (var i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  var hue = Math.abs(hash) % 360;
+  return "hsl(" + hue + ", 62%, 58%)";
 }
 
 function renderProjectItem(project, indented, isArchived, parentEl) {
@@ -1919,7 +1948,9 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   bar.className = "project-progress-bar";
   bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
 
-  if (project.color) li.style.setProperty("--project-color", project.color);
+  // Color del proyecto: explícito o fallback derivado del id (hash → hue
+   // determinista). Garantiza un dot/franja visible por proyecto.
+  li.style.setProperty("--project-color", project.color || _projectColorFromId(project.id));
 
   li.setAttribute("draggable", "false");
   li.appendChild(topRow);
@@ -2477,6 +2508,30 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
+  // Empty state: si el proyecto no tiene tareas visibles (o no tiene
+  // ninguna), inyectamos una ilustración + CTA para captura rápida.
+  if (visible.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "today-empty empty-illustrated";
+    const hasAnyTask = project.tasks.length > 0;
+    const title = hasAnyTask ? "Sin tareas que mostrar" : "Empezar este proyecto";
+    const sub   = hasAnyTask
+      ? "Cambia el filtro o limpia las completadas para ver más."
+      : "Apunta lo siguiente que quieras hacer y construye desde ahí.";
+    empty.innerHTML =
+      '<div class="empty-illustrated-visual">' +
+        '<div class="empty-illustrated-halo"></div>' +
+        '<div class="empty-illustrated-icon">' + (project.icon || "📝") + '</div>' +
+      '</div>' +
+      '<p class="empty-illustrated-title">' + title + '</p>' +
+      '<p class="empty-illustrated-sub">' + sub + '</p>' +
+      '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
+        '<i data-lucide="plus"></i> Añadir tarea' +
+      '</button>';
+    taskList.appendChild(empty);
+    _wireEmptyStateCTA(empty);
+  }
+
   // Contadores / título
   const pending = project.tasks.filter(function(t) { return !t.done; }).length;
   taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
@@ -2838,6 +2893,27 @@ function _buildTaskNode(task, project) {
     return node;
 }
 
+/**
+ * Wirea el CTA "Añadir tarea" de un empty state. En móvil dispara
+ * el FAB sheet (captura rápida que cae al Inbox o al proyecto activo).
+ * En desktop pone foco en el input de creación de tareas si está
+ * visible, o también dispara el FAB sheet como fallback.
+ */
+function _wireEmptyStateCTA(emptyNode) {
+  var cta = emptyNode.querySelector("[data-empty-action='add']");
+  if (!cta) return;
+  cta.addEventListener("click", function(e) {
+    e.preventDefault();
+    var fab = document.getElementById("mobile-fab");
+    var taskInput = document.getElementById("task-input");
+    if (taskInput && taskInput.offsetParent !== null) {
+      taskInput.focus();
+    } else if (fab && fab.offsetParent !== null) {
+      fab.click();
+    }
+  });
+}
+
 // renderSubtasks() vive en ./ui/subtasks.js
 
 // ═══════════════════════════════════════════════════════════════
@@ -2877,12 +2953,20 @@ function renderTodayView() {
 
   if (items.length === 0) {
     var empty = document.createElement("li");
-    empty.className = "today-empty";
+    empty.className = "today-empty empty-illustrated";
     empty.innerHTML =
-      '<div class="today-empty-icon">☀️</div>' +
-      '<p class="today-empty-title">Todo limpio</p>' +
-      '<p class="today-empty-sub">No hay tareas vencidas ni para hoy. ¡Disfruta!</p>';
+      '<div class="empty-illustrated-visual">' +
+        '<div class="empty-illustrated-halo"></div>' +
+        '<div class="empty-illustrated-icon">☀️</div>' +
+      '</div>' +
+      '<p class="empty-illustrated-title">Todo limpio para hoy</p>' +
+      '<p class="empty-illustrated-sub">Sin vencidas ni pendientes para hoy. Aprovecha el respiro o adelanta algo.</p>' +
+      '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
+        '<i data-lucide="plus"></i> Añadir tarea' +
+      '</button>';
     taskList.appendChild(empty);
+    _wireEmptyStateCTA(empty);
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
@@ -2934,11 +3018,14 @@ function renderSmartListView() {
 
   if (items.length === 0) {
     var empty = document.createElement("li");
-    empty.className = "today-empty";
+    empty.className = "today-empty empty-illustrated";
     empty.innerHTML =
-      '<div class="today-empty-icon">' + (list.icon || "🔍") + '</div>' +
-      '<p class="today-empty-title">Sin resultados</p>' +
-      '<p class="today-empty-sub">Ninguna tarea cumple este filtro ahora mismo.</p>';
+      '<div class="empty-illustrated-visual">' +
+        '<div class="empty-illustrated-halo"></div>' +
+        '<div class="empty-illustrated-icon">' + (list.icon || "🔍") + '</div>' +
+      '</div>' +
+      '<p class="empty-illustrated-title">Sin resultados</p>' +
+      '<p class="empty-illustrated-sub">Ninguna tarea cumple este filtro ahora mismo.</p>';
     taskList.appendChild(empty);
     return;
   }

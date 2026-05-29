@@ -105,15 +105,30 @@
             <div class="sidebar-header-actions">
               <button type="button" id="new-section-btn" class="sidebar-icon-btn" aria-label="Nueva sección de proyectos" title="Nueva sección de proyectos" data-i18n-aria="sidebar.new_section" data-i18n-title="sidebar.new_section"><i data-lucide="layers"></i></button>
               <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn sidebar-icon-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos" data-i18n-aria="sidebar.hide_sidebar" data-i18n-title="sidebar.hide_sidebar"><i data-lucide="panel-left-close"></i></button>
+              <!-- Cerrar drawer (solo móvil) -->
+              <button type="button" id="sidebar-close-btn" class="sidebar-icon-btn sidebar-close-btn" aria-label="Cerrar" title="Cerrar"><i data-lucide="x"></i></button>
             </div>
           </div>
+          <!-- Search input (solo móvil) — reemplaza al "Buscar tareas" del footer -->
+          <button type="button" id="sidebar-search-mobile" class="sidebar-search-mobile">
+            <i data-lucide="search"></i>
+            <span data-i18n="sidebar.search">Buscar tareas</span>
+          </button>
         </div>
 
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
 
-        <div id="archived-section" class="archived-section-wrap"></div>
-
-        <div id="notes-sidebar-section" class="notes-sidebar-section-wrap"></div>
+        <!-- Agrupador "Más" — colapsa Archivados + Notas en móvil para
+             que no compitan con la lista de proyectos. En desktop las
+             dos secciones se mantienen visibles directamente. -->
+        <details class="sidebar-more-group" id="sidebar-more-group">
+          <summary class="sidebar-more-summary">
+            <i data-lucide="chevron-down" class="sidebar-more-chevron"></i>
+            <span data-i18n="sidebar.more">Más</span>
+          </summary>
+          <div id="archived-section" class="archived-section-wrap"></div>
+          <div id="notes-sidebar-section" class="notes-sidebar-section-wrap"></div>
+        </details>
 
         <div class="sidebar-footer">
           <div class="sidebar-search-row">
@@ -498,11 +513,13 @@
       function openSidebar() {
         sidebar.classList.add("sidebar-open");
         backdrop.classList.add("active");
+        document.body.classList.add("drawer-open");
         document.body.style.overflow = "hidden";
       }
       function closeSidebar() {
         sidebar.classList.remove("sidebar-open");
         backdrop.classList.remove("active");
+        document.body.classList.remove("drawer-open");
         document.body.style.overflow = "";
       }
 
@@ -723,6 +740,23 @@
         });
       }
 
+      // Cerrar drawer desde el botón ✕ del header del sidebar.
+      var sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+      if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener("click", closeSidebar);
+      }
+
+      // Buscar desde el atajo del header del drawer → reusa búsqueda global.
+      var sidebarSearchMobile = document.getElementById("sidebar-search-mobile");
+      if (sidebarSearchMobile) {
+        sidebarSearchMobile.addEventListener("click", function() {
+          closeSidebar();
+          setTimeout(function() {
+            if (typeof showGlobalSearch === "function") showGlobalSearch();
+          }, 180);
+        });
+      }
+
       // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil.
       var mobileSettingsBtn = document.getElementById("mobile-settings-btn");
       if (mobileSettingsBtn) {
@@ -796,6 +830,15 @@
       // carga directamente en vista Hoy).
       if (typeof window.syncBnavActive === "function") {
         setTimeout(window.syncBnavActive, 0);
+      }
+
+      // Grupo "Más" (Archivados + Notas): abierto en desktop (sidebar
+      // siempre visible, no tiene sentido esconder), cerrado en móvil
+      // (drawer compacto). Sin esto, los wrappers internos quedarían
+      // ocultos en desktop por el comportamiento nativo de <details>.
+      var moreGroup = document.getElementById("sidebar-more-group");
+      if (moreGroup) {
+        if (!isMobile()) moreGroup.setAttribute("open", "");
       }
 
     })();

@@ -16,6 +16,7 @@ export const es = {
   "sidebar.archived_empty":   "Sin archivados",
   "sidebar.notes":            "Notas",
   "sidebar.notes_empty":      "Sin notas todavía",
+  "sidebar.more":             "Más",
   "sidebar.add_list_title":   "Nueva lista guardada",
 
   // ── Perfil ────────────────────────────────────────────────
