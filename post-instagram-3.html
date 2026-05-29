@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>AnTask · Post Instagram #3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1080px; overflow: hidden; background: #06060C; }
+
+    .canvas {
+      position: relative;
+      width: 1080px; height: 1080px;
+      overflow: hidden;
+      background: #06060C;
+    }
+
+    /* ── Atmósfera ── */
+    .orb-green {
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 70%);
+      bottom: -150px; right: -100px;
+      border-radius: 50%;
+    }
+    .orb-violet {
+      position: absolute;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(109,40,217,0.15) 0%, transparent 70%);
+      top: -100px; left: -80px;
+      border-radius: 50%;
+    }
+    .grain {
+      position: absolute; inset: 0; opacity: 0.038; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+    }
+
+    /* ── Layout ── */
+    .content {
+      position: relative; z-index: 2;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      padding: 68px 84px 60px;
+    }
+
+    /* ── Eyebrow ── */
+    .eyebrow {
+      font-family: 'Figtree', sans-serif;
+      font-size: 17px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: #10B981; margin-bottom: 30px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .eyebrow::before {
+      content: ''; display: block;
+      width: 28px; height: 2px;
+      background: #10B981; border-radius: 2px;
+    }
+
+    /* ── Titular ── */
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 78px; font-weight: 800;
+      line-height: 1.0; letter-spacing: -0.03em;
+      margin-bottom: 52px;
+    }
+    .line-1 { color: #F0EEFF; display: block; }
+    .line-2 { color: transparent; -webkit-text-stroke: 2px rgba(240,238,255,0.2); display: block; }
+    .line-3 { color: #10B981; display: block; }
+
+    /* ── Items de privacidad ── */
+    .privacy-list {
+      display: flex; flex-direction: column; gap: 0;
+      margin-bottom: 48px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .privacy-item {
+      display: flex; align-items: center; gap: 24px;
+      padding: 26px 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      transition: background 0.2s;
+    }
+    .privacy-item:last-child { border-bottom: none; }
+
+    .privacy-item::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: #10B981;
+      opacity: 0;
+    }
+    .privacy-item:nth-child(1)::before { opacity: 1; }
+    .privacy-item:nth-child(2)::before { opacity: 0.7; }
+    .privacy-item:nth-child(3)::before { opacity: 0.45; }
+    .privacy-item:nth-child(4)::before { opacity: 0.25; }
+
+    .item-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .icon-green { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
+    .icon-violet { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); }
+    .icon-cyan { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); }
+    .icon-amber { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+
+    .item-body { flex: 1; }
+    .item-title {
+      font-family: 'Figtree', sans-serif;
+      font-size: 22px; font-weight: 600;
+      color: #E0D8FF; margin-bottom: 3px;
+    }
+    .item-desc {
+      font-family: 'Figtree', sans-serif;
+      font-size: 17px; font-weight: 300;
+      color: #60608A; line-height: 1.4;
+    }
+
+    .item-badge {
+      font-family: 'Figtree', sans-serif;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 999px;
+    }
+    .badge-green {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #34D399;
+    }
+    .badge-muted {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #555580;
+    }
+
+    /* ── Divisor ── */
+    .divider {
+      width: 100%; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.2) 20%, rgba(16,185,129,0.45) 50%, rgba(16,185,129,0.2) 80%, transparent 100%);
+      margin-bottom: 36px; flex-shrink: 0;
+    }
+
+    /* ── Fila inferior ── */
+    .bottom-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .cta-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px; font-weight: 700;
+      color: #F0EEFF; letter-spacing: -0.01em;
+    }
+    .cta-text .accent { color: #10B981; }
+    .brand {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px; font-weight: 800;
+      color: #7C3AED; letter-spacing: -0.03em;
+    }
+    .tagline {
+      font-family: 'Figtree', sans-serif;
+      font-size: 15px; font-weight: 300;
+      font-style: italic; color: #44445A;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="orb-violet"></div>
+    <div class="orb-green"></div>
+    <div class="grain"></div>
+
+    <div class="content">
+
+      <div class="eyebrow">Privacidad real</div>
+
+      <h1 class="headline">
+        <span class="line-1">Tus tareas</span>
+        <span class="line-2">no le importan</span>
+        <span class="line-3">a nadie más.</span>
+      </h1>
+
+      <div class="privacy-list">
+        <div class="privacy-item">
+          <div class="item-icon icon-green">🔒</div>
+          <div class="item-body">
+            <div class="item-title">100% local</div>
+            <div class="item-desc">Todo se guarda en tu dispositivo. Solo tuyo.</div>
+          </div>
+          <div class="item-badge badge-green">✓ Activo</div>
+        </div>
+        <div class="privacy-item">
+          <div class="item-icon icon-violet">🚫</div>
+          <div class="item-body">
+            <div class="item-title">Sin tracking</div>
+            <div class="item-desc">Cero cookies de rastreo. Cero perfiles de usuario.</div>
+          </div>
+          <div class="item-badge badge-green">✓ Activo</div>
+        </div>
+        <div class="privacy-item">
+          <div class="item-icon icon-cyan">📡</div>
+          <div class="item-body">
+            <div class="item-title">Sin servidores propios</div>
+            <div class="item-desc">La nube es opcional. Tú decides si sincronizas.</div>
+          </div>
+          <div class="item-badge badge-green">✓ Activo</div>
+        </div>
+        <div class="privacy-item">
+          <div class="item-icon icon-amber">💸</div>
+          <div class="item-body">
+            <div class="item-title">Sin suscripciones para lo básico</div>
+            <div class="item-desc">Gratis para siempre en funciones esenciales.</div>
+          </div>
+          <div class="item-badge badge-green">✓ Activo</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="bottom-row">
+        <div class="cta-text">Descárgala gratis <span class="accent">→</span></div>
+        <div class="brand">
+          <div class="brand-name">antask</div>
+          <div class="tagline">Tus tareas, tu día. Tuyo.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
