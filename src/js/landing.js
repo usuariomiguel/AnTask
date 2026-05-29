@@ -192,6 +192,41 @@ function initMobileNav() {
   else mq.addListener(onMqChange);
 }
 
+// ─── Theme toggle (dark / light) ───────────────────────────────────────
+function initThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+
+  const root = document.documentElement;
+  const KEY = "antask-landing-theme";
+
+  const updateAria = () => {
+    const current = root.getAttribute("data-theme") === "light" ? "light" : "dark";
+    btn.setAttribute("aria-label", current === "light" ? "Cambiar a tema oscuro" : "Cambiar a tema claro");
+    btn.setAttribute("title", current === "light" ? "Tema oscuro" : "Tema claro");
+  };
+  updateAria();
+
+  btn.addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem(KEY, next); } catch (_) {}
+    updateAria();
+  });
+
+  // Reacciona a cambios del sistema solo si el usuario no eligió manualmente.
+  const mq = window.matchMedia("(prefers-color-scheme: light)");
+  const onSystemChange = (e) => {
+    let saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (_) {}
+    if (saved) return;
+    root.setAttribute("data-theme", e.matches ? "light" : "dark");
+    updateAria();
+  };
+  if (mq.addEventListener) mq.addEventListener("change", onSystemChange);
+  else mq.addListener(onSystemChange);
+}
+
 // ─── Boot ──────────────────────────────────────────────────────────────
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot);
@@ -204,4 +239,5 @@ function boot() {
   initBillingToggle();
   initTypingChip();
   initMobileNav();
+  initThemeToggle();
 }

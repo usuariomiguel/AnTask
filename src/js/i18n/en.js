@@ -55,6 +55,7 @@ export const en = {
   "nav.search":               "Search",
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
+  "nav.calendar":             "Calendar",
 
   // ── Toast / status ────────────────────────────────────────
   "toast.task_deleted":       "Task deleted",

@@ -1471,6 +1471,7 @@ function activateTodayView() {
     var bar = document.getElementById("label-filter-bar");
     if (bar) bar.hidden = true;  // sin filtro de etiquetas en Hoy
   }
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 /**
@@ -4055,6 +4056,8 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 })();
 
 window.showCalendarPanel = showCalendarPanel;
+window.activateTodayView = activateTodayView;
+window.getActiveView = function() { return activeView; };
 
 function showCalendarPanel() {
   var calPanel = document.getElementById("cal-panel");
@@ -4073,6 +4076,7 @@ function showCalendarPanel() {
   calPanel.hidden = false;
   _setActiveViewTab("cal");
   renderCalendar();
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 function _restoreMainPanel() {
@@ -4084,6 +4088,7 @@ function _restoreMainPanel() {
   tasksPanel.hidden = !hasContent;
   _setActiveViewTab("tasks");
   if (isVirtualView) renderTasks();
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 function _setActiveViewTab(view) {
