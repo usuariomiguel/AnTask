@@ -310,59 +310,59 @@ function showSmartListEditor(existing) {
 
   box.innerHTML =
     '<div class="modal-icon"><i data-lucide="list-filter"></i></div>' +
-    '<p class="modal-label">' + (isEdit ? "Editar lista" : "Nueva lista guardada") + '</p>' +
+    '<p class="modal-label">' + (isEdit ? t("smartlist.modal.edit_title") : t("smartlist.modal.new_title")) + '</p>' +
 
     '<div class="sl-form-row">' +
-      '<label class="sl-form-label">Nombre</label>' +
-      '<input class="modal-input sl-name" type="text" maxlength="50" placeholder="Ej: Urgentes con #trabajo" value="' + escHtml(data.name) + '">' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_name") + '</label>' +
+      '<input class="modal-input sl-name" type="text" maxlength="50" placeholder="' + escHtml(t("smartlist.modal.name_placeholder")) + '" value="' + escHtml(data.name) + '">' +
     '</div>' +
 
     '<div class="sl-form-row sl-form-row-icon">' +
-      '<label class="sl-form-label">Icono</label>' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_icon") + '</label>' +
       '<input class="modal-input sl-icon" type="text" maxlength="3" placeholder="🔍" value="' + escHtml(data.icon || "") + '">' +
     '</div>' +
 
     '<div class="sl-form-row">' +
-      '<label class="sl-form-label">Estado</label>' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_status") + '</label>' +
       '<select class="modal-input sl-status">' +
-        opt("pending", "Pendientes", data.filters.status) +
-        opt("done",    "Hechas",     data.filters.status) +
-        opt("any",     "Todas",      data.filters.status) +
+        opt("pending", t("filter.pending"), data.filters.status) +
+        opt("done",    t("filter.done"),    data.filters.status) +
+        opt("any",     t("filter.all"),     data.filters.status) +
       '</select>' +
     '</div>' +
 
     '<div class="sl-form-row">' +
-      '<label class="sl-form-label">Prioridad</label>' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_priority") + '</label>' +
       '<select class="modal-input sl-priority">' +
-        opt("any",    "Cualquiera",  data.filters.priority) +
-        opt("high",   "Alta",        data.filters.priority) +
-        opt("medium", "Media",       data.filters.priority) +
-        opt("low",    "Baja",        data.filters.priority) +
+        opt("any",    t("filter.any"),     data.filters.priority) +
+        opt("high",   t("priority.high"),  data.filters.priority) +
+        opt("medium", t("priority.medium"), data.filters.priority) +
+        opt("low",    t("priority.low"),   data.filters.priority) +
       '</select>' +
     '</div>' +
 
     '<div class="sl-form-row">' +
-      '<label class="sl-form-label">Fecha límite</label>' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_duedate") + '</label>' +
       '<select class="modal-input sl-duedate">' +
-        opt("any",       "Cualquiera",       data.filters.dueDate) +
-        opt("overdue",   "Vencidas",         data.filters.dueDate) +
-        opt("today",     "Hoy",              data.filters.dueDate) +
-        opt("this_week", "Esta semana",      data.filters.dueDate) +
-        opt("no_date",   "Sin fecha",        data.filters.dueDate) +
+        opt("any",       t("filter.any"),       data.filters.dueDate) +
+        opt("overdue",   t("filter.overdue"),   data.filters.dueDate) +
+        opt("today",     t("filter.today"),     data.filters.dueDate) +
+        opt("this_week", t("filter.this_week"), data.filters.dueDate) +
+        opt("no_date",   t("filter.no_date"),   data.filters.dueDate) +
       '</select>' +
     '</div>' +
 
     '<div class="sl-form-row">' +
-      '<label class="sl-form-label">Con etiqueta</label>' +
+      '<label class="sl-form-label">' + t("smartlist.modal.label_label") + '</label>' +
       '<select class="modal-input sl-label">' +
-        '<option value="">(cualquiera)</option>' +
+        '<option value="">' + escHtml(t("smartlist.modal.any_label")) + '</option>' +
         allLabels.map(function (l) { return opt(l, "#" + l, data.filters.label); }).join("") +
       '</select>' +
     '</div>' +
 
     '<div class="modal-actions">' +
-      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
-      '<button type="button" class="modal-btn modal-btn-confirm">' + (isEdit ? "Guardar" : "Crear") + '</button>' +
+      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+      '<button type="button" class="modal-btn modal-btn-confirm">' + (isEdit ? t("modal.save") : t("modal.create")) + '</button>' +
     '</div>';
 
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
@@ -414,13 +414,14 @@ function showSmartListEditor(existing) {
 function showSmartListMenu(sl, anchorOrPoint) {
   closeCtxMenu();
   const items = [
-    { label: "Editar", action: function () { showSmartListEditor(sl); } },
+    { label: t("action.edit"), action: function () { showSmartListEditor(sl); } },
     null,
     {
-      label: "Eliminar",
+      label: t("action.delete"),
       danger: true,
       action: async function () {
-        const ok = await modalConfirm("¿Eliminar la lista <strong>" + escHtml(sl.name) + "</strong>? Las tareas que filtra no se borran.", "Eliminar");
+        const msg = t("smartlist.confirm_delete").replace("{name}", "<strong>" + escHtml(sl.name) + "</strong>");
+        const ok = await modalConfirm(msg, t("modal.delete"));
         if (!ok) return;
         smartLists = smartLists.filter(function (s) { return s.id !== sl.id; });
         saveSmartLists();
@@ -525,14 +526,16 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // PREFERENCIAS DE BOTONES DE TAREA
 // Debe declararse antes del bloque de arranque (applyTaskPrefs lo usa).
 // ═══════════════════════════════════════════════════════════════
+// label se accede dinámicamente a través de t() en el render, para que
+// cambie de idioma sin reiniciar.
 const TASK_BTN_DEFS = [
-  { key: "priority", label: "Prioridad",   icon: "flag"          },
-  { key: "status",   label: "Estado",      icon: "circle-dashed" },
-  { key: "date",     label: "Fecha",       icon: "calendar"      },
-  { key: "recur",    label: "Repetir",     icon: "repeat"        },
-  { key: "comment",  label: "Nota rápida", icon: "message-circle"},
-  { key: "labels",   label: "Etiquetas",   icon: "tag"           },
-  { key: "subtasks", label: "Subtareas",   icon: "list-plus"     },
+  { key: "priority", labelKey: "task_btn.priority", icon: "flag"          },
+  { key: "status",   labelKey: "task_btn.status",   icon: "circle-dashed" },
+  { key: "date",     labelKey: "task_btn.date",     icon: "calendar"      },
+  { key: "recur",    labelKey: "task_btn.recur",    icon: "repeat"        },
+  { key: "comment",  labelKey: "task_btn.comment",  icon: "message-circle"},
+  { key: "labels",   labelKey: "task_btn.labels",   icon: "tag"           },
+  { key: "subtasks", labelKey: "task_btn.subtasks", icon: "list-plus"     },
 ];
 
 // ─── ARRANQUE ────────────────────────────────────────────────
@@ -742,7 +745,7 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "s" || e.key === "S") {
     e.preventDefault();
     (async function() {
-      var name = await modalPrompt("Nueva sección", "", "Nombre de la sección");
+      var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
       if (name === null) return;
       var trimmed = name.trim();
       if (!trimmed) return;
@@ -792,15 +795,15 @@ function showIconPicker(project) {
   }).join('');
 
   box.innerHTML =
-    '<p class="modal-label">Icono del proyecto</p>' +
+    '<p class="modal-label">' + t("project.icon_picker_title") + '</p>' +
     '<div class="icon-picker-grid">' + gridHtml + '</div>' +
     '<div class="icon-picker-custom">' +
       '<input class="modal-input icon-picker-input" type="text" maxlength="4"' +
-        ' placeholder="O escribe un emoji..." autocomplete="off"/>' +
+        ' placeholder="' + escHtml(t("project.icon_placeholder")) + '" autocomplete="off"/>' +
     '</div>' +
     '<div class="modal-actions">' +
-      (project.icon ? '<button type="button" class="modal-btn modal-btn-cancel icon-picker-clear">Quitar icono</button>' : '') +
-      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+      (project.icon ? '<button type="button" class="modal-btn modal-btn-cancel icon-picker-clear">' + t("project.icon_clear") + '</button>' : '') +
+      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
     '</div>';
 
   function apply(emoji) {
@@ -838,38 +841,38 @@ function showColorPicker(project) {
   var { overlay, box } = createModalBase();
 
   var colors = [
-    { name: "Rojo",      hex: "#ef4444" },
-    { name: "Naranja",   hex: "#f97316" },
-    { name: "Ámbar",     hex: "#f59e0b" },
-    { name: "Oro",       hex: "#d97706" },
-    { name: "Lima",      hex: "#84cc16" },
-    { name: "Verde",     hex: "#22c55e" },
-    { name: "Esmeralda", hex: "#10b981" },
-    { name: "Cian",      hex: "#06b6d4" },
-    { name: "Azul",      hex: "#3b82f6" },
-    { name: "Índigo",    hex: "#6366f1" },
-    { name: "Violeta",   hex: "#8b5cf6" },
-    { name: "Púrpura",   hex: "#a855f7" },
-    { name: "Rosa",      hex: "#ec4899" },
-    { name: "Marrón",    hex: "#78716c" },
-    { name: "Gris",      hex: "#64748b" },
-    { name: "Plateado",  hex: "#94a3b8" },
+    { key: "color.red",      hex: "#ef4444" },
+    { key: "color.orange",   hex: "#f97316" },
+    { key: "color.amber",    hex: "#f59e0b" },
+    { key: "color.gold",     hex: "#d97706" },
+    { key: "color.lime",     hex: "#84cc16" },
+    { key: "color.green",    hex: "#22c55e" },
+    { key: "color.emerald",  hex: "#10b981" },
+    { key: "color.cyan",     hex: "#06b6d4" },
+    { key: "color.blue",     hex: "#3b82f6" },
+    { key: "color.indigo",   hex: "#6366f1" },
+    { key: "color.violet",   hex: "#8b5cf6" },
+    { key: "color.purple",   hex: "#a855f7" },
+    { key: "color.pink",     hex: "#ec4899" },
+    { key: "color.brown",    hex: "#78716c" },
+    { key: "color.gray",     hex: "#64748b" },
+    { key: "color.silver",   hex: "#94a3b8" },
   ];
 
   var swatchesHtml = colors.map(function(c) {
     return '<button type="button" class="color-picker-swatch' +
       (project.color === c.hex ? " color-picker-swatch--active" : "") +
-      '" data-color="' + c.hex + '" title="' + c.name +
+      '" data-color="' + c.hex + '" title="' + escHtml(t(c.key)) +
       '" style="background:' + c.hex + '"></button>';
   }).join("");
 
   box.innerHTML =
     '<div class="modal-icon"><i data-lucide="palette"></i></div>' +
-    '<p class="modal-label">Color del proyecto</p>' +
+    '<p class="modal-label">' + t("project.color_picker_title") + '</p>' +
     '<div class="color-picker-grid">' + swatchesHtml + "</div>" +
     '<div class="modal-actions">' +
-      (project.color ? '<button type="button" class="modal-btn modal-btn-cancel color-picker-clear">Sin color</button>' : "") +
-      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+      (project.color ? '<button type="button" class="modal-btn modal-btn-cancel color-picker-clear">' + t("project.color_clear") + '</button>' : "") +
+      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
     "</div>";
 
   if (window.lucide) lucide.createIcons({ nodes: [box] });
@@ -905,7 +908,7 @@ function modalProjectPicker(excludeProjectId) {
   return new Promise(function(resolve) {
     var available = projects.filter(function(p) { return p.id !== excludeProjectId; });
     if (available.length === 0) {
-      modalAlert("No hay otros proyectos disponibles.", "info");
+      modalAlert(t("task.no_other_projects"), "info");
       resolve(null);
       return;
     }
@@ -980,7 +983,7 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
 newProjectBtn.addEventListener("click", function() {
   showProjectTemplatesModal({
     onPickBlank: async function () {
-      const name = await modalPrompt("Nombre del proyecto", "", "mi-proyecto…");
+      const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
       if (!name) return;
       _createProjectWithTasks(name, [], {});
     },
@@ -1000,8 +1003,8 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
   const project = getActiveProject();
   if (!project) return;
   const confirmed = await modalConfirm(
-    'Eliminar <strong>' + escHtml(project.name) + '</strong> y todas sus tareas?',
-    "Eliminar"
+    t("project.confirm_delete").replace("{name}", escHtml(project.name)),
+    t("modal.delete")
   );
   if (!confirmed) return;
   projects = projects.filter(function(p) { return p.id !== project.id; });
@@ -1021,13 +1024,14 @@ function _updateReminderBtn(btn, task) {
   if (task.reminderAt) {
     const d = new Date(task.reminderAt);
     if (!isNaN(d.getTime())) {
-      btn.title = "Recordatorio: " + d.toLocaleString("es-ES", {
+      var localeR = getLang() === "en" ? "en-GB" : "es-ES";
+      btn.title = t("reminder.has") + " " + d.toLocaleString(localeR, {
         weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
       });
       return;
     }
   }
-  btn.title = "Establecer recordatorio";
+  btn.title = t("reminder.set");
 }
 
 // ─── PREVIEW DE LENGUAJE NATURAL (chips bajo el task-input) ───
@@ -1199,7 +1203,7 @@ clearDoneBtn.addEventListener("click", function() {
 // ─── EXPORTAR (workspace completo) ───────────────────────────
 exportBtn.addEventListener("click", function() {
   if (projects.length === 0) {
-    modalAlert("No hay proyectos que exportar.", "info");
+    modalAlert(t("task.nothing_to_export"), "info");
     return;
   }
   // Restore base64 so the exported JSON is fully self-contained (no IDB deps).
@@ -1238,8 +1242,8 @@ importFile.addEventListener("change", async function() {
     // ── Backup de workspace completo (version 2) ──
     if (parsed.version === 2 && Array.isArray(parsed.projects)) {
       const confirmed = await modalConfirm(
-        "Esto reemplazará <strong>todos los proyectos actuales</strong> con el backup. ¿Continuar?",
-        "Restaurar workspace"
+        t("backup.restore_confirm"),
+        t("backup.restore_title")
       );
       if (!confirmed) return;
       // Extract images from imported data into IDB before writing to localStorage.
@@ -1278,11 +1282,16 @@ importFile.addEventListener("change", async function() {
       renderSidebar();
       activateProject(activeProjectId);
       var secCount = Array.isArray(parsed.sections) ? parsed.sections.length : 0;
-      await modalAlert(
-        "Workspace restaurado con " + projects.length + " proyecto(s)" +
-        (secCount > 0 ? " y " + secCount + " sección(es)" : "") + ".",
-        "info"
-      );
+      var restoredMsg;
+      if (secCount > 0) {
+        restoredMsg = t("backup.restored_with_secs")
+          .replace("{count}", String(projects.length))
+          .replace("{sec}", String(secCount));
+      } else {
+        restoredMsg = (projects.length === 1 ? t("backup.restored_one") : t("backup.restored_other"))
+          .replace("{count}", String(projects.length));
+      }
+      await modalAlert(restoredMsg, "info");
       return;
     }
 
@@ -1290,25 +1299,30 @@ importFile.addEventListener("change", async function() {
     const currentProject = getActiveProject();
     const importedTasks = Array.isArray(parsed) ? parsed : parsed.tasks;
     if (!Array.isArray(importedTasks)) {
-      await modalAlert("Formato no válido. Asegúrate de importar un backup generado por antask.", "error");
+      await modalAlert(t("backup.invalid_format"), "error");
       return;
     }
     if (!currentProject) {
-      await modalAlert("Selecciona un proyecto antes de importar un backup de proyecto individual.", "error");
+      await modalAlert(t("backup.need_active"), "error");
       return;
     }
     currentProject.tasks = sanitizeTasks(importedTasks);
     if (typeof parsed.notes === "string") currentProject.notes = parsed.notes;
     saveAndRender();
   } catch(e) {
-    await modalAlert("No se pudo importar. Revisa que el archivo sea un JSON válido.", "error");
+    await modalAlert(t("backup.parse_error"), "error");
   } finally {
     importFile.value = "";
   }
 });
 
 // ─── FILTROS ─────────────────────────────────────────────────
-var _filterLabels = { all: "Todas", pending: "Pendientes", done: "Hechas" };
+// _filterLabels se accede dinámicamente vía t() para que cambie de idioma.
+function _filterLabel(key) {
+  return key === "all" ? t("filter.all") :
+         key === "pending" ? t("filter.pending") :
+         key === "done" ? t("filter.done") : key;
+}
 
 function applyFilter(value) {
   currentFilter = value;
@@ -1340,7 +1354,7 @@ function _syncFilterPanel(filter, sort) {
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (triggerBtn) triggerBtn.classList.remove("filter-trigger-btn--active");
   var labelEl = document.getElementById("filter-trigger-label");
-  if (labelEl) labelEl.textContent = "Filtrar";
+  if (labelEl) labelEl.textContent = t("filter.trigger_label");
 }
 
 function _updateFilterTriggerLabel() {
@@ -1348,10 +1362,10 @@ function _updateFilterTriggerLabel() {
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (!labelEl) return;
   var parts = [];
-  if (currentFilter !== "all")    parts.push(currentFilter === "pending" ? "Pendientes" : "Hechas");
-  if (currentSort   !== "manual") parts.push(currentSort === "priority" ? "Prioridad" : currentSort === "due" ? "Fecha" : "A–Z");
+  if (currentFilter !== "all")    parts.push(currentFilter === "pending" ? t("filter.pending") : t("filter.done"));
+  if (currentSort   !== "manual") parts.push(currentSort === "priority" ? t("sort.priority") : currentSort === "due" ? t("sort.due") : t("sort.az"));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
-  labelEl.textContent = parts.length > 0 ? parts.join(", ") : "Filtrar";
+  labelEl.textContent = parts.length > 0 ? parts.join(", ") : t("filter.trigger_label");
 }
 
 // ─── STORAGE EVENT ───────────────────────────────────────────
@@ -1644,7 +1658,7 @@ function renderSmartListsSection() {
   var addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "smart-lists-add-btn";
-  addBtn.title = "Nueva lista guardada";
+  addBtn.title = t("sidebar.new_smartlist");
   addBtn.setAttribute("aria-label", "Nueva lista guardada");
   addBtn.innerHTML = '<i data-lucide="plus"></i>';
   addBtn.addEventListener("click", function (e) {
@@ -1675,7 +1689,7 @@ function renderSmartListsSection() {
       '<div class="project-item-top">' +
         '<span class="project-item-icon">' + escHtml(sl.icon || "🔍") + '</span>' +
         '<span class="project-item-name">' + escHtml(sl.name) + '</span>' +
-        '<button type="button" class="project-kebab-btn smart-list-kebab" title="Opciones"><i data-lucide="ellipsis"></i></button>' +
+        '<button type="button" class="project-kebab-btn smart-list-kebab" title="' + t("action.options") + '"><i data-lucide="ellipsis"></i></button>' +
       '</div>';
     li.addEventListener("click", function (e) {
       if (e.target.closest(".smart-list-kebab")) return;
@@ -1804,7 +1818,7 @@ function renderSectionHeader(section, sectionProjects) {
   menuBtn.type = "button";
   menuBtn.className = "section-menu-btn";
   menuBtn.innerHTML = '<i data-lucide="ellipsis"></i>';
-  menuBtn.title = "Opciones de sección";
+  menuBtn.title = t("section.options");
   menuBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     showSectionMenu(section, menuBtn);
@@ -1895,7 +1909,7 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
     iconBtn.type = "button";
     iconBtn.className = "project-item-icon";
     iconBtn.textContent = project.icon;
-    iconBtn.title = "Cambiar icono";
+    iconBtn.title = t("project.change_icon");
     iconBtn.addEventListener("click", function(e) {
       e.stopPropagation();
       showIconPicker(project);
@@ -1905,10 +1919,10 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const nameSpan = document.createElement("span");
   nameSpan.className = "project-item-name";
   nameSpan.textContent = project.name;
-  nameSpan.title = "Doble clic para renombrar";
+  nameSpan.title = t("project.dblclick_rename");
   nameSpan.addEventListener("dblclick", async function(e) {
     e.stopPropagation();
-    const newName = await modalPrompt("Cambiar nombre del proyecto", project.name, project.name);
+    const newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
     if (newName === null) return;
     const trimmed = capitalizeFirst(newName.trim());
     if (!trimmed || trimmed === project.name) return;
@@ -1930,7 +1944,7 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   kebabBtn.type = "button";
   kebabBtn.className = "project-kebab-btn";
   kebabBtn.innerHTML = '<i data-lucide="ellipsis"></i>';
-  kebabBtn.title = "Opciones";
+  kebabBtn.title = t("project.kebab_title");
   kebabBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     showProjectMenu(project, kebabBtn);
@@ -2090,9 +2104,9 @@ async function showSectionMenu(section, anchor) {
 
   var items = [
     {
-      label: "Renombrar sección",
+      label: t("section.rename"),
       action: async function() {
-        var newName = await modalPrompt("Cambiar nombre de sección", section.name, section.name);
+        var newName = await modalPrompt(t("section.rename_prompt"), section.name, section.name);
         if (newName === null) return;
         var trimmed = capitalizeFirst(newName.trim());
         if (!trimmed || trimmed === section.name) return;
@@ -2103,17 +2117,18 @@ async function showSectionMenu(section, anchor) {
     },
     null,
     {
-      label: "Eliminar sección",
+      label: t("section.delete"),
       danger: true,
       action: async function() {
         var inSection = projects.filter(function(p) { return p.sectionId === section.id; });
         var count     = inSection.length;
+        var safeName  = escHtml(section.name);
         var message   = count === 0
-          ? "¿Eliminar la sección <strong>" + escHtml(section.name) + "</strong>?"
-          : "¿Eliminar la sección <strong>" + escHtml(section.name) + "</strong> y sus " +
-            count + " proyecto" + (count === 1 ? "" : "s") +
-            "? Esta acción no se puede deshacer.";
-        var ok = await modalConfirm(message, "Eliminar");
+          ? t("section.confirm_delete").replace("{name}", safeName)
+          : (count === 1
+              ? t("section.confirm_delete_cascade_one").replace("{name}", safeName)
+              : t("section.confirm_delete_cascade").replace("{name}", safeName).replace("{count}", String(count)));
+        var ok = await modalConfirm(message, t("modal.delete"));
         if (!ok) return;
 
         // Borrar también todos los proyectos de la sección (cascada).
@@ -2162,13 +2177,14 @@ async function showProjectMenu(project, anchor) {
   });
 
   var assignGroup = sectionOptions.length > 0
-    ? [{ label: "Mover a sección", header: true }].concat(sectionOptions).concat([null])
+    ? [{ _id: "move-to-section", label: t("project.move_to_section"), header: true }].concat(sectionOptions).concat([null])
     : [];
 
   var archiveItems = project.archived
     ? [
         {
-          label: "Restaurar proyecto",
+          _id: "restore",
+          label: t("project.restore"),
           action: function() {
             project.archived = false;
             saveProjects();
@@ -2177,12 +2193,13 @@ async function showProjectMenu(project, anchor) {
         },
         null,
         {
-          label: "Eliminar permanentemente",
+          _id: "delete-permanent",
+          label: t("project.delete_permanent"),
           danger: true,
           action: async function() {
             var ok = await modalConfirm(
-              "¿Eliminar permanentemente <strong>" + escHtml(project.name) + "</strong> y todas sus tareas? Esta acción no se puede deshacer.",
-              "Eliminar"
+              t("project.confirm_delete_permanent").replace("{name}", escHtml(project.name)),
+              t("modal.delete")
             );
             if (!ok) return;
             projects = projects.filter(function(p) { return p.id !== project.id; });
@@ -2198,17 +2215,17 @@ async function showProjectMenu(project, anchor) {
       ]
     : [
         {
-          label: "Cambiar icono",
+          label: t("project.change_icon"),
           action: function() { showIconPicker(project); }
         },
         {
-          label: "Cambiar color",
+          label: t("project.change_color"),
           action: function() { showColorPicker(project); }
         },
         {
-          label: "Renombrar proyecto",
+          label: t("project.rename"),
           action: async function() {
-            var newName = await modalPrompt("Cambiar nombre del proyecto", project.name, project.name);
+            var newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
             if (newName === null) return;
             var trimmed = capitalizeFirst(newName.trim());
             if (!trimmed || trimmed === project.name) return;
@@ -2220,7 +2237,8 @@ async function showProjectMenu(project, anchor) {
         },
         null,
         {
-          label: "Archivar proyecto",
+          _id: "archive",
+          label: t("project.archive"),
           action: function() {
             project.archived = true;
             project.sectionId = null;
@@ -2235,12 +2253,13 @@ async function showProjectMenu(project, anchor) {
           }
         },
         {
-          label: "Eliminar proyecto",
+          _id: "delete",
+          label: t("project.delete"),
           danger: true,
           action: async function() {
             var ok = await modalConfirm(
-              "¿Eliminar el proyecto <strong>" + escHtml(project.name) + "</strong> y todas sus tareas?",
-              "Eliminar"
+              t("project.confirm_delete").replace("{name}", escHtml(project.name)),
+              t("modal.delete")
             );
             if (!ok) return;
             projects = projects.filter(function(p) { return p.id !== project.id; });
@@ -2261,11 +2280,9 @@ async function showProjectMenu(project, anchor) {
   if (project.id === INBOX_ID) {
     items = items.filter(function(it) {
       if (!it || it === null) return true;
-      var lbl = it.label || "";
-      return lbl !== "Archivar proyecto" &&
-             lbl !== "Eliminar proyecto" &&
-             lbl !== "Mover a sección" &&
-             lbl !== "Quitar de sección";
+      return it._id !== "archive" &&
+             it._id !== "delete" &&
+             it._id !== "move-to-section";
     });
   }
 
@@ -2297,13 +2314,13 @@ async function showTodayMenu(x, y) {
   var items = [
     {
       label: pending.length > 0
-        ? "Completar las " + pending.length + " tareas de hoy"
-        : "Completar tareas de hoy",
+        ? t("today.menu.complete_n").replace("{count}", String(pending.length))
+        : t("today.menu.complete"),
       action: async function() {
         if (pending.length === 0) return;
         var ok = await modalConfirm(
-          "¿Marcar las <strong>" + pending.length + "</strong> tareas de hoy como completadas?",
-          "Completar"
+          t("today.menu.complete_confirm").replace("{count}", String(pending.length)),
+          t("today.menu.complete_title")
         );
         if (!ok) return;
         pending.forEach(function(it) {
@@ -2314,14 +2331,15 @@ async function showTodayMenu(x, y) {
       }
     },
     {
-      label: "Posponer todas a mañana",
+      label: t("today.menu.postpone_all"),
       action: async function() {
         var unfinished = pending.filter(function(it) { return !it.task.done; });
         if (unfinished.length === 0) return;
         var ok = await modalConfirm(
-          "¿Mover <strong>" + unfinished.length + "</strong> tarea" +
-          (unfinished.length === 1 ? "" : "s") + " a mañana?",
-          "Posponer"
+          (unfinished.length === 1
+            ? t("today.menu.postpone_confirm_one")
+            : t("today.menu.postpone_confirm_other")).replace("{count}", String(unfinished.length)),
+          t("today.menu.postpone_title")
         );
         if (!ok) return;
         var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -2353,14 +2371,14 @@ async function showInboxMenu(inboxProject, x, y) {
 
   var items = [
     {
-      label: inboxProject.icon ? "Cambiar icono" : "Asignar icono",
+      label: inboxProject.icon ? t("inbox.menu.change_icon") : t("inbox.menu.assign_icon"),
       action: function() { showIconPicker(inboxProject); }
     }
   ];
 
   if (inboxProject.icon) {
     items.push({
-      label: "Quitar icono",
+      label: t("inbox.menu.remove_icon"),
       action: function() {
         inboxProject.icon = null;
         saveProjects();
@@ -2373,14 +2391,15 @@ async function showInboxMenu(inboxProject, x, y) {
 
   items.push({
     label: completed.length > 0
-      ? "Limpiar completadas (" + completed.length + ")"
-      : "Limpiar completadas",
+      ? t("inbox.menu.clear_done_n").replace("{count}", String(completed.length))
+      : t("inbox.menu.clear_done"),
     action: async function() {
       if (completed.length === 0) return;
       var ok = await modalConfirm(
-        "¿Eliminar <strong>" + completed.length + "</strong> tarea" +
-        (completed.length === 1 ? " completada" : "s completadas") + " del Inbox?",
-        "Limpiar"
+        (completed.length === 1
+          ? t("inbox.menu.clear_done_confirm_one")
+          : t("inbox.menu.clear_done_confirm_other")).replace("{count}", String(completed.length)),
+        t("inbox.menu.clear_done_title")
       );
       if (!ok) return;
       inboxProject.tasks = inboxProject.tasks.filter(function(t) { return !t.done; });
@@ -2388,14 +2407,16 @@ async function showInboxMenu(inboxProject, x, y) {
     }
   });
 
+  // Marcamos la acción "vaciar" con id para poder filtrarla cuando el inbox está vacío.
   items.push({
-    label: "Vaciar Inbox",
+    _id: "empty-inbox",
+    label: t("inbox.menu.empty"),
     danger: true,
     action: async function() {
       if (inboxProject.tasks.length === 0) return;
       var ok = await modalConfirm(
-        "¿Eliminar <strong>todas las " + inboxProject.tasks.length + " tareas</strong> del Inbox? Esta acción no se puede deshacer.",
-        "Vaciar"
+        t("inbox.menu.empty_confirm").replace("{count}", String(inboxProject.tasks.length)),
+        t("inbox.menu.empty_title")
       );
       if (!ok) return;
       inboxProject.tasks = [];
@@ -2407,7 +2428,7 @@ async function showInboxMenu(inboxProject, x, y) {
   if (pending.length === 0 && completed.length === 0) {
     items = items.filter(function(it) {
       if (!it) return true;
-      return it.label !== "Vaciar Inbox";
+      return it._id !== "empty-inbox";
     });
   }
 
@@ -2428,7 +2449,7 @@ async function showInboxMenu(inboxProject, x, y) {
   var newSectionBtn = document.getElementById("new-section-btn");
   if (newSectionBtn) {
     newSectionBtn.addEventListener("click", async function() {
-      var name = await modalPrompt("Nueva sección", "", "Nombre de la sección");
+      var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
       if (name === null) return;
       var trimmed = name.trim();
       if (!trimmed) return;
@@ -2514,10 +2535,8 @@ function renderTasks() {
     const empty = document.createElement("li");
     empty.className = "today-empty empty-illustrated";
     const hasAnyTask = project.tasks.length > 0;
-    const title = hasAnyTask ? "Sin tareas que mostrar" : "Empezar este proyecto";
-    const sub   = hasAnyTask
-      ? "Cambia el filtro o limpia las completadas para ver más."
-      : "Apunta lo siguiente que quieras hacer y construye desde ahí.";
+    const title = hasAnyTask ? t("empty.tasks.title_filtered") : t("empty.tasks.title_new");
+    const sub   = hasAnyTask ? t("empty.tasks.sub_filter") : t("empty.tasks.sub_default");
     empty.innerHTML =
       '<div class="empty-illustrated-visual">' +
         '<div class="empty-illustrated-halo"></div>' +
@@ -2526,7 +2545,7 @@ function renderTasks() {
       '<p class="empty-illustrated-title">' + title + '</p>' +
       '<p class="empty-illustrated-sub">' + sub + '</p>' +
       '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
-        '<i data-lucide="plus"></i> Añadir tarea' +
+        '<i data-lucide="plus"></i> ' + t("empty.cta.add_task") +
       '</button>';
     taskList.appendChild(empty);
     _wireEmptyStateCTA(empty);
@@ -2534,7 +2553,8 @@ function renderTasks() {
 
   // Contadores / título
   const pending = project.tasks.filter(function(t) { return !t.done; }).length;
-  taskCounter.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+  taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
+    .replace("{count}", String(pending));
   projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
@@ -2556,7 +2576,7 @@ function _updateTaskNode(node, task) {
 
   checkbox.checked    = task.done;
   text.textContent    = task.text;
-  comment.textContent = task.comment || "Sin comentario";
+  comment.textContent = task.comment || t("task.no_comment");
   node.classList.toggle("done", task.done);
 
   applyStatusToNode(node, task);
@@ -2651,7 +2671,7 @@ function _buildTaskNode(task, project) {
       e.stopPropagation();
       startInlineEdit(text, task);
     });
-    text.title = "Doble clic para renombrar";
+    text.title = t("project.dblclick_rename");
 
     statusBtn.addEventListener("click", function(e) {
       e.stopPropagation();
@@ -2709,7 +2729,7 @@ function _buildTaskNode(task, project) {
 
     commentBtn.addEventListener("click", async function(e) {
       e.stopPropagation();
-      const next = await modalPrompt("Comentario", task.comment || "", "escribe un comentario...");
+      const next = await modalPrompt(t("task.comment_prompt"), task.comment || "", t("task.comment_placeholder"));
       if (next === null) return;
       task.comment = next.trim().slice(0, 300);
       saveAndRender();
@@ -2723,7 +2743,7 @@ function _buildTaskNode(task, project) {
 
     subAddBtn.addEventListener("click", async function(e) {
       e.stopPropagation();
-      const subText = await modalPrompt("Nueva subtarea", "", "escribe la subtarea...");
+      const subText = await modalPrompt(t("task.new_subtask_prompt"), "", t("task.subtask_placeholder"));
       if (!subText || !subText.trim()) return;
       task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
       saveAndRender();
@@ -2737,10 +2757,10 @@ function _buildTaskNode(task, project) {
       const editCommentBtn = document.createElement("button");
       editCommentBtn.type = "button";
       editCommentBtn.className = "mobile-inline-btn";
-      editCommentBtn.textContent = task.comment ? "Editar comentario" : "Añadir comentario";
+      editCommentBtn.textContent = task.comment ? t("task.edit_comment") : t("task.add_comment");
       editCommentBtn.addEventListener("click", async function(e) {
         e.stopPropagation();
-        const next = await modalPrompt("Comentario", task.comment || "", "escribe un comentario...");
+        const next = await modalPrompt(t("task.comment_prompt"), task.comment || "", t("task.comment_placeholder"));
         if (next === null) return;
         task.comment = next.trim().slice(0, 300);
         saveAndRender();
@@ -2749,10 +2769,10 @@ function _buildTaskNode(task, project) {
       const addSubtaskBtn = document.createElement("button");
       addSubtaskBtn.type = "button";
       addSubtaskBtn.className = "mobile-inline-btn";
-      addSubtaskBtn.textContent = "+ Añadir subtarea";
+      addSubtaskBtn.textContent = t("task.add_subtask");
       addSubtaskBtn.addEventListener("click", async function(e) {
         e.stopPropagation();
-        const subText = await modalPrompt("Nueva subtarea", "", "escribe la subtarea...");
+        const subText = await modalPrompt(t("task.new_subtask_prompt"), "", t("task.subtask_placeholder"));
         if (!subText || !subText.trim()) return;
         task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
         saveAndRender();
@@ -2838,7 +2858,7 @@ function _buildTaskNode(task, project) {
       closeCtxMenu();
       var items = [
         {
-          label: "Mover a proyecto...",
+          label: t("task.move_to_project"),
           action: async function() {
             var targetId = await modalProjectPicker(project.id);
             if (!targetId) return;
@@ -2948,7 +2968,8 @@ function renderTodayView() {
 
   // Contador en el footer
   if (taskCounter) {
-    taskCounter.textContent = items.length + (items.length === 1 ? " tarea" : " tareas") + " para hoy";
+    taskCounter.textContent = (items.length === 1 ? t("today.counter_one") : t("today.counter_other"))
+      .replace("{count}", String(items.length));
   }
 
   if (items.length === 0) {
@@ -2959,10 +2980,10 @@ function renderTodayView() {
         '<div class="empty-illustrated-halo"></div>' +
         '<div class="empty-illustrated-icon">☀️</div>' +
       '</div>' +
-      '<p class="empty-illustrated-title">Todo limpio para hoy</p>' +
-      '<p class="empty-illustrated-sub">Sin vencidas ni pendientes para hoy. Aprovecha el respiro o adelanta algo.</p>' +
+      '<p class="empty-illustrated-title">' + t("today.empty_title_full") + '</p>' +
+      '<p class="empty-illustrated-sub">' + t("today.empty_sub_full") + '</p>' +
       '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
-        '<i data-lucide="plus"></i> Añadir tarea' +
+        '<i data-lucide="plus"></i> ' + t("empty.cta.add_task") +
       '</button>';
     taskList.appendChild(empty);
     _wireEmptyStateCTA(empty);
@@ -3013,7 +3034,8 @@ function renderSmartListView() {
   });
 
   if (taskCounter) {
-    taskCounter.textContent = items.length + (items.length === 1 ? " tarea" : " tareas");
+    taskCounter.textContent = (items.length === 1 ? t("smartlist.counter_one") : t("smartlist.counter_other"))
+      .replace("{count}", String(items.length));
   }
 
   if (items.length === 0) {
@@ -3024,8 +3046,8 @@ function renderSmartListView() {
         '<div class="empty-illustrated-halo"></div>' +
         '<div class="empty-illustrated-icon">' + (list.icon || "🔍") + '</div>' +
       '</div>' +
-      '<p class="empty-illustrated-title">Sin resultados</p>' +
-      '<p class="empty-illustrated-sub">Ninguna tarea cumple este filtro ahora mismo.</p>';
+      '<p class="empty-illustrated-title">' + t("smartlist.empty_title") + '</p>' +
+      '<p class="empty-illustrated-sub">' + t("smartlist.empty_subtitle") + '</p>';
     taskList.appendChild(empty);
     return;
   }
@@ -3045,12 +3067,13 @@ function renderTodayItem(task, project, todayStr) {
   var hasDate   = !!task.dueDate;
   var due       = hasDate ? new Date(task.dueDate + "T00:00:00") : null;
   var diff      = hasDate ? Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000) : 0;
+  var localeD = getLang() === "en" ? "en-GB" : "es-ES";
   var dateLabel = !hasDate ? ""
-    : diff === 0 ? "Hoy"
-    : diff === 1 ? "Mañana"
-    : diff === -1 ? "Ayer"
-    : diff < 0  ? "Hace " + (-diff) + "d"
-    : due.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+    : diff === 0 ? t("date.today")
+    : diff === 1 ? t("date.tomorrow")
+    : diff === -1 ? t("date.yesterday")
+    : diff < 0  ? t("date.n_days_ago").replace("{n}", String(-diff))
+    : due.toLocaleDateString(localeD, { day: "2-digit", month: "short" });
   var overdue = hasDate && diff < 0;
 
   var li = document.createElement("li");
@@ -3103,10 +3126,9 @@ function renderTodayItem(task, project, todayStr) {
   }
 
   if (task.priority) {
-    var prioLabels = { high: "Alta", medium: "Media", low: "Baja" };
     var pEl = document.createElement("span");
     pEl.className = "today-prio today-prio-" + task.priority;
-    pEl.textContent = prioLabels[task.priority];
+    pEl.textContent = t("priority." + task.priority);
     meta.appendChild(pEl);
   }
 
@@ -3245,7 +3267,7 @@ function renderLabelFilterBar() {
   const allBtn = document.createElement("button");
   allBtn.type = "button";
   allBtn.className = "label-filter-btn" + (currentLabelFilter === null ? " active" : "");
-  allBtn.textContent = "Todas";
+  allBtn.textContent = t("label.all");
   allBtn.addEventListener("click", function() {
     currentLabelFilter = null;
     renderLabelFilterBar();
@@ -3291,7 +3313,7 @@ async function showLabelPicker(task) {
               '<input type="checkbox" value="' + escHtml(l) + '" ' + checked + ' />' +
               '<span class="label-picker-dot" style="background:' + color + '"></span>' +
               '<span class="label-picker-name">' + escHtml(l) + '</span>' +
-              '<button type="button" class="label-delete-btn" data-label="' + escHtml(l) + '" title="Eliminar etiqueta"><i data-lucide="x"></i></button>' +
+              '<button type="button" class="label-delete-btn" data-label="' + escHtml(l) + '" title="' + t("label.delete_title") + '"><i data-lucide="x"></i></button>' +
               '</label>';
           }).join("");
 
@@ -3950,7 +3972,10 @@ function renderBulkBar() {
   if (!selectMode) { bulkActionBar.hidden = true; return; }
   bulkActionBar.hidden = false;
   var n = selectedTaskIds.size;
-  if (bulkCount) bulkCount.textContent = n + " seleccionada" + (n !== 1 ? "s" : "");
+  if (bulkCount) {
+    bulkCount.textContent = (n === 1 ? t("bulk.count_one") : t("bulk.count_other"))
+      .replace("{count}", String(n));
+  }
 }
 
 function toggleTaskSelection(taskId, node) {
@@ -4199,7 +4224,7 @@ function _setActiveViewTab(view) {
   // Eyebrow que indica la vista actual encima del título
   var eyebrow = document.getElementById("view-eyebrow");
   if (eyebrow) {
-    var labels = { tasks: "Lista", agenda: "Agenda", cal: "Calendario" };
+    var labels = { tasks: t("view.eyebrow_tasks"), agenda: t("view.eyebrow_agenda"), cal: t("view.eyebrow_calendar") };
     eyebrow.textContent = labels[view] || "";
   }
 }
@@ -4339,10 +4364,10 @@ function _checkStorageWarning() {
   var el = document.getElementById("save-status");
   if (!el) return;
   if (pct >= 90) {
-    el.textContent = "⚠ Almacenamiento al " + pct + "% — exporta tu workspace";
+    el.textContent = t("save.storage_warn").replace("{pct}", String(pct));
     el.style.color = "var(--c-danger, #ef4444)";
   } else if (pct >= 75) {
-    el.textContent = "Almacenamiento al " + pct + "%";
+    el.textContent = t("save.storage_info").replace("{pct}", String(pct));
     el.style.color = "var(--c-warning, #f97316)";
   } else {
     el.style.color = "";
@@ -4526,8 +4551,9 @@ async function saveActiveNote() {
 
   var statusEl = document.getElementById("note-save-status");
   if (statusEl) {
-    var t = new Date();
-    statusEl.textContent = "Guardado " + t.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    var nowDate = new Date();
+    var localeS = getLang() === "en" ? "en-GB" : "es-ES";
+    statusEl.textContent = t("save.saved_at").replace("{time}", nowDate.toLocaleTimeString(localeS, { hour: "2-digit", minute: "2-digit" }));
     statusEl.classList.add("note-save-status--flash");
     setTimeout(function() { statusEl.classList.remove("note-save-status--flash"); }, 800);
   }
@@ -4537,9 +4563,9 @@ function showNoteMenu(note, anchor) {
   closeCtxMenu();
   var items = [
     {
-      label: "Renombrar",
+      label: t("note.rename"),
       action: async function() {
-        var newName = await modalPrompt("Renombrar nota", note.name, note.name);
+        var newName = await modalPrompt(t("note.rename_prompt"), note.name, note.name);
         if (newName === null) return;
         var trimmed = newName.trim().slice(0, 80);
         if (!trimmed || trimmed === note.name) return;
@@ -4555,10 +4581,13 @@ function showNoteMenu(note, anchor) {
     },
     null,
     {
-      label: "Eliminar nota",
+      label: t("note.action_delete"),
       danger: true,
       action: async function() {
-        var ok = await modalConfirm("¿Eliminar la nota <strong>" + escHtml(note.name) + "</strong>?", "Eliminar");
+        var ok = await modalConfirm(
+          t("note.confirm_delete").replace("{name}", escHtml(note.name)),
+          t("note.confirm_delete_btn")
+        );
         if (!ok) return;
         standaloneNotes = standaloneNotes.filter(function(n) { return n.id !== note.id; });
         saveStandaloneNotes();
@@ -4655,7 +4684,7 @@ function showNoteMenu(note, anchor) {
 
   if (newNoteBtn) {
     newNoteBtn.addEventListener("click", async function() {
-      var name = await modalPrompt("Nombre de la nota", "", "Mi nota...");
+      var name = await modalPrompt(t("note.name_prompt"), "", t("note.name_placeholder"));
       if (!name || !name.trim()) return;
       var note = sanitizeStandaloneNote({
         id:        "note-" + generateId(),
@@ -4698,7 +4727,7 @@ function showTaskPrefsModal() {
     var on = taskPrefs[def.key] !== false;
     return '<label class="task-pref-row">' +
       '<span class="task-pref-icon"><i data-lucide="' + def.icon + '"></i></span>' +
-      '<span class="task-pref-label">' + def.label + '</span>' +
+      '<span class="task-pref-label">' + t(def.labelKey) + '</span>' +
       '<span class="task-pref-toggle' + (on ? " task-pref-on" : "") + '" data-key="' + def.key + '">' +
         '<span class="task-pref-thumb"></span>' +
       '</span>' +
@@ -4707,20 +4736,20 @@ function showTaskPrefsModal() {
 
   var compactOn = taskPrefs.compactView === true;
   box.innerHTML =
-    '<p class="modal-label">Vista</p>' +
+    '<p class="modal-label">' + t("task_prefs.view_section") + '</p>' +
     '<div class="task-pref-list">' +
       '<label class="task-pref-row">' +
         '<span class="task-pref-icon"><i data-lucide="rows-3"></i></span>' +
-        '<span class="task-pref-label">Vista compacta</span>' +
+        '<span class="task-pref-label">' + t("task_prefs.compact_view") + '</span>' +
         '<span class="task-pref-toggle' + (compactOn ? " task-pref-on" : "") + '" data-key="compactView" data-type="view">' +
           '<span class="task-pref-thumb"></span>' +
         '</span>' +
       '</label>' +
     '</div>' +
-    '<p class="modal-label" style="margin-top:1rem">Botones de tarea</p>' +
+    '<p class="modal-label" style="margin-top:1rem">' + t("task_prefs.buttons_section") + '</p>' +
     '<div class="task-pref-list">' + rowsHtml + '</div>' +
     '<div class="modal-actions">' +
-      '<button class="modal-btn modal-btn-confirm">Listo</button>' +
+      '<button class="modal-btn modal-btn-confirm">' + t("modal.done") + '</button>' +
     '</div>';
 
   if (window.lucide) lucide.createIcons({ nodes: [box] });
@@ -4963,13 +4992,13 @@ function _updateProfileMenu(user) {
 
   if (user) {
     var initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
-    var displayName = user.displayName || user.email || "Usuario";
+    var displayName = user.displayName || user.email || t("profile.user_default");
     if (pfAvatar)    pfAvatar.textContent    = initial;
     if (pfAvatarTop) pfAvatarTop.textContent = initial;
     if (pfName)      pfName.textContent      = displayName;
     if (pfNameTop)   pfNameTop.textContent   = displayName;
-    if (pfSub)       pfSub.textContent       = "Sincronizado";
-    if (pfSubTop)    pfSubTop.textContent    = "Sincronización activa";
+    if (pfSub)       pfSub.textContent       = t("profile.synced");
+    if (pfSubTop)    pfSubTop.textContent    = t("profile.sync_active");
     if (pfSyncName)  pfSyncName.textContent  = user.email || user.displayName || "";
     if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
@@ -4977,8 +5006,8 @@ function _updateProfileMenu(user) {
     if (pfAvatarTop) pfAvatarTop.textContent = "A";
     if (pfName)      pfName.textContent      = "antask";
     if (pfNameTop)   pfNameTop.textContent   = "antask";
-    if (pfSub)       pfSub.textContent       = "Local";
-    if (pfSubTop)    pfSubTop.textContent    = "Almacenamiento local";
+    if (pfSub)       pfSub.textContent       = t("profile.local");
+    if (pfSubTop)    pfSubTop.textContent    = t("profile.local_storage");
   }
 }
 
@@ -5065,16 +5094,19 @@ function _showSyncConflictModal(cloudData, uid) {
   var cloudCount = Array.isArray(cloudData.projects) ? cloudData.projects.length : 0;
   var { overlay, box } = createModalBase();
 
+  var bodyKey = "sync.conflict_body_" +
+    (localCount === 1 ? "one_" : "other_") +
+    (cloudCount === 1 ? "one"   : "other");
+  var conflictBody = t(bodyKey)
+    .replace("{local}", String(localCount))
+    .replace("{cloud}", String(cloudCount));
+
   box.innerHTML =
-    '<p class="modal-label">Conflicto de datos</p>' +
-    '<p style="font-size:0.88rem;color:var(--t-soft);margin-bottom:1.2rem;line-height:1.55">' +
-      'Tienes <strong>' + localCount + ' proyecto' + (localCount !== 1 ? "s" : "") + ' locales</strong> ' +
-      'y <strong>' + cloudCount + ' proyecto' + (cloudCount !== 1 ? "s" : "") + ' en la nube</strong>. ' +
-      '¿Cuáles quieres usar?' +
-    '</p>' +
+    '<p class="modal-label">' + t("sync.conflict_title") + '</p>' +
+    '<p style="font-size:0.88rem;color:var(--t-soft);margin-bottom:1.2rem;line-height:1.55">' + conflictBody + '</p>' +
     '<div class="modal-actions" style="flex-direction:column;gap:0.5rem">' +
-      '<button type="button" class="modal-btn modal-btn-confirm" id="_sc-cloud">☁ Usar datos de la nube</button>' +
-      '<button type="button" class="modal-btn modal-btn-cancel" id="_sc-local">💻 Subir mis datos locales</button>' +
+      '<button type="button" class="modal-btn modal-btn-confirm" id="_sc-cloud">' + t("sync.use_cloud") + '</button>' +
+      '<button type="button" class="modal-btn modal-btn-cancel" id="_sc-local">' + t("sync.use_local") + '</button>' +
     '</div>';
 
   // No se puede cerrar con Escape — el usuario debe elegir

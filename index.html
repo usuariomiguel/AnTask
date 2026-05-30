@@ -190,7 +190,7 @@
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
               <div id="pf-sync-user" hidden>
                 <div class="profile-sync-row"><span class="profile-item-ico"><i data-lucide="cloud"></i></span><span id="pf-sync-name"></span></div>
-                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn">Desconectar</button>
+                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn" data-i18n="profile.signout">Desconectar</button>
               </div>
             </div>
           </div>
@@ -244,13 +244,13 @@
               <!-- Tabs de vista -->
               <div class="view-nav-tabs" id="view-nav-tabs">
                 <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
-                  <i data-lucide="list-todo"></i><span>Lista</span>
+                  <i data-lucide="list-todo"></i><span data-i18n="nav.tasks">Lista</span>
                 </button>
                 <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
-                  <i data-lucide="calendar-range"></i><span>Agenda</span>
+                  <i data-lucide="calendar-range"></i><span data-i18n="nav.agenda">Agenda</span>
                 </button>
                 <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
-                  <i data-lucide="calendar-days"></i><span>Mes</span>
+                  <i data-lucide="calendar-days"></i><span data-i18n="nav.calendar_short">Mes</span>
                 </button>
               </div>
               <div class="view-nav-right">
@@ -258,47 +258,47 @@
                 <div class="filter-wrap" id="filter-wrap" style="position:relative">
                   <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
                     <i data-lucide="sliders-horizontal"></i>
-                    <span id="filter-trigger-label">Filtrar</span>
+                    <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
                     <i data-lucide="chevron-down" class="filter-caret"></i>
                   </button>
                   <div class="filter-panel" id="filter-panel" hidden>
                     <div class="filter-panel-section">
-                      <span class="filter-panel-label">Mostrar</span>
+                      <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
                       <div class="filter-panel-opts">
-                        <button type="button" class="filter-opt filter-opt--active" data-filter="all">Todas</button>
-                        <button type="button" class="filter-opt" data-filter="pending">Pendientes</button>
-                        <button type="button" class="filter-opt" data-filter="done">✓ Hechas</button>
+                        <button type="button" class="filter-opt filter-opt--active" data-filter="all" data-i18n="filter.all">Todas</button>
+                        <button type="button" class="filter-opt" data-filter="pending" data-i18n="filter.pending">Pendientes</button>
+                        <button type="button" class="filter-opt" data-filter="done" data-i18n="filter.done">✓ Hechas</button>
                       </div>
                     </div>
                     <div class="filter-panel-sep"></div>
                     <div class="filter-panel-section">
-                      <span class="filter-panel-label">Ordenar</span>
+                      <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
                       <div class="filter-panel-opts">
-                        <button type="button" class="filter-opt filter-opt--active" data-sort="manual">↕ Manual</button>
-                        <button type="button" class="filter-opt" data-sort="priority">↑ Prioridad</button>
-                        <button type="button" class="filter-opt" data-sort="due">Fecha límite</button>
-                        <button type="button" class="filter-opt" data-sort="az">A–Z</button>
+                        <button type="button" class="filter-opt filter-opt--active" data-sort="manual" data-i18n="sort.manual">↕ Manual</button>
+                        <button type="button" class="filter-opt" data-sort="priority" data-i18n="sort.priority_arrow">↑ Prioridad</button>
+                        <button type="button" class="filter-opt" data-sort="due" data-i18n="sort.due_short">Fecha límite</button>
+                        <button type="button" class="filter-opt" data-sort="az" data-i18n="sort.az">A–Z</button>
                       </div>
                     </div>
                   </div>
                 </div>
                 <!-- Seleccionar (sólo en vista Lista) -->
-                <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas"><i data-lucide="square-check-big"></i></button>
+                <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas" data-i18n-title="action.select_tasks"><i data-lucide="square-check-big"></i></button>
                 <!-- Personalizar acciones de tareas -->
-                <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones"><i data-lucide="settings-2"></i></button>
+                <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones" data-i18n-title="action.customize"><i data-lucide="settings-2"></i></button>
                 <!-- Más acciones (sólo en vista Lista) -->
                 <div style="position:relative" id="more-actions-wrap">
-                  <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones"><i data-lucide="ellipsis"></i></button>
+                  <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones" data-i18n-title="action.more"><i data-lucide="ellipsis"></i></button>
                   <div class="more-actions-panel" id="more-actions-panel" hidden>
-                    <button type="button" id="clear-done"><i data-lucide="check-check"></i> Limpiar hechas</button>
-                    <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> Eliminar proyecto</button>
+                    <button type="button" id="clear-done"><i data-lucide="check-check"></i> <span data-i18n="action.clear_done">Limpiar hechas</span></button>
+                    <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> <span data-i18n="project.delete">Eliminar proyecto</span></button>
                   </div>
                 </div>
                 <!-- Refs ocultos que el JS necesita -->
                 <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
                 <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
               </div>
-              <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto"><i data-lucide="x"></i></button>
+              <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto" data-i18n-title="action.close_project"><i data-lucide="x"></i></button>
             </div>
           </div>
 
@@ -314,16 +314,16 @@
           <div id="label-filter-bar" class="label-filter-bar" hidden></div>
           <div class="bulk-action-bar" id="bulk-action-bar" hidden>
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
-            <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> Marcar hechas</button>
-            <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> Pendientes</button>
-            <button type="button" id="bulk-move-btn" class="bulk-move-btn"><i data-lucide="folder-input"></i> Mover a...</button>
-            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> Eliminar</button>
-            <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn">Cancelar</button>
+            <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> <span data-i18n="bulk.mark_done">Marcar hechas</span></button>
+            <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> <span data-i18n="bulk.mark_pending">Pendientes</span></button>
+            <button type="button" id="bulk-move-btn" class="bulk-move-btn"><i data-lucide="folder-input"></i> <span data-i18n="bulk.move_to">Mover a...</span></button>
+            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="bulk.delete">Eliminar</span></button>
+            <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn" data-i18n="bulk.cancel">Cancelar</button>
           </div>
           <ul id="task-list" class="task-list" aria-live="polite"></ul>
           <footer class="stats">
             <span id="task-counter">0 pendientes</span>
-            <span id="save-status" class="save-status">Sin cambios recientes</span>
+            <span id="save-status" class="save-status" data-i18n="save.no_recent">Sin cambios recientes</span>
           </footer>
         </div>
 

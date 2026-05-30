@@ -5,14 +5,19 @@
 // (dueOffset = días desde la creación del proyecto), prioridad y
 // recurrencia opcionales. Al aplicar el template, los offsets se
 // convierten en fechas absolutas tomando como base "hoy".
+//
+// Los textos visibles (nombre, descripción, tareas) NO viven aquí:
+// se resuelven dinámicamente vía t() para soportar i18n. Cada
+// template lleva una `id` que coincide con el prefijo de claves
+// (tpl.<id>.name, tpl.<id>.desc, tpl.<id>.task.N).
 // ═══════════════════════════════════════════════════════════════
 
-import { createModalBase, closeModal, modalPrompt } from "./modal.js";
+import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
+import { t } from "../i18n/index.js";
 
 /**
  * @typedef {object} TemplateTaskSpec
- * @property {string}                       text
  * @property {number}                       [dueOffset]   - Días desde hoy hasta el dueDate
  * @property {"high"|"medium"|"low"}        [priority]
  * @property {number}                       [recurDays]
@@ -21,118 +26,114 @@ import { escHtml } from "../utils/html.js";
 /**
  * @typedef {object} ProjectTemplate
  * @property {string}              id
- * @property {string}              name
  * @property {string}              icon
  * @property {string}              [color]
- * @property {string}              description
  * @property {TemplateTaskSpec[]}  tasks
  */
 
 /** @type {ProjectTemplate[]} */
 export const PROJECT_TEMPLATES = [
   {
-    id:          "moving",
-    name:        "Mudanza",
-    icon:        "🏠",
-    color:       "#f97316",
-    description: "Pasos típicos para una mudanza",
+    id:    "moving",
+    icon:  "🏠",
+    color: "#f97316",
     tasks: [
-      { text: "Comparar empresas de mudanza",                       dueOffset: 3,  priority: "high" },
-      { text: "Contratar furgoneta o transportistas",               dueOffset: 7 },
-      { text: "Pedir cajas y embalaje",                             dueOffset: 10 },
-      { text: "Empaquetar cocina",                                  dueOffset: 14 },
-      { text: "Empaquetar dormitorios",                             dueOffset: 17 },
-      { text: "Empaquetar salón y otros",                           dueOffset: 20 },
-      { text: "Notificar cambio de dirección (banco, subs)",        dueOffset: 14 },
-      { text: "Empadronamiento en el nuevo domicilio",              dueOffset: 25 },
-      { text: "Día de la mudanza",                                  dueOffset: 21, priority: "high" },
-      { text: "Limpieza piso antiguo (entrega llaves)",             dueOffset: 22 },
-      { text: "Alta luz / agua / internet en nuevo piso",           dueOffset: 21, priority: "medium" },
+      { dueOffset: 3,  priority: "high"   },
+      { dueOffset: 7                      },
+      { dueOffset: 10                     },
+      { dueOffset: 14                     },
+      { dueOffset: 17                     },
+      { dueOffset: 20                     },
+      { dueOffset: 14                     },
+      { dueOffset: 25                     },
+      { dueOffset: 21, priority: "high"   },
+      { dueOffset: 22                     },
+      { dueOffset: 21, priority: "medium" },
     ],
   },
   {
-    id:          "trip",
-    name:        "Viaje",
-    icon:        "✈️",
-    color:       "#3b82f6",
-    description: "Preparar un viaje con vuelo",
+    id:    "trip",
+    icon:  "✈️",
+    color: "#3b82f6",
     tasks: [
-      { text: "Reservar vuelos",                                    dueOffset: 60, priority: "high" },
-      { text: "Reservar alojamiento",                               dueOffset: 50, priority: "high" },
-      { text: "Revisar caducidad pasaporte / DNI",                  dueOffset: 40 },
-      { text: "Visados o requisitos de entrada",                    dueOffset: 30 },
-      { text: "Sacar moneda local o tarjeta sin comisión",          dueOffset: 14 },
-      { text: "Copia digital de documentos importantes",            dueOffset: 7 },
-      { text: "Previsión del tiempo y hacer maleta",                dueOffset: 2 },
-      { text: "Check-in online y tarjeta de embarque",              dueOffset: 1, priority: "high" },
-      { text: "Comprobar medicación / cargadores / adaptadores",    dueOffset: 1 },
+      { dueOffset: 60, priority: "high" },
+      { dueOffset: 50, priority: "high" },
+      { dueOffset: 40 },
+      { dueOffset: 30 },
+      { dueOffset: 14 },
+      { dueOffset: 7  },
+      { dueOffset: 2  },
+      { dueOffset: 1,  priority: "high" },
+      { dueOffset: 1  },
     ],
   },
   {
-    id:          "new-job",
-    name:        "Nuevo trabajo",
-    icon:        "💼",
-    color:       "#8b5cf6",
-    description: "Primer mes en un trabajo nuevo",
+    id:    "new-job",
+    icon:  "💼",
+    color: "#8b5cf6",
     tasks: [
-      { text: "Firmar contrato y enviar documentación",             dueOffset: 0,  priority: "high" },
-      { text: "Setup laptop y cuentas (mail, slack…)",              dueOffset: 2 },
-      { text: "Conocer el equipo — 1:1 con cada compañero",         dueOffset: 7 },
-      { text: "Leer documentación interna del producto",            dueOffset: 10 },
-      { text: "Configurar entorno de desarrollo",                   dueOffset: 5 },
-      { text: "Primera reunión con manager (expectativas)",         dueOffset: 3,  priority: "high" },
-      { text: "Apuntar dudas y preguntar antes del viernes",        dueOffset: 4 },
-      { text: "Review 30 días con manager",                         dueOffset: 30 },
+      { dueOffset: 0,  priority: "high" },
+      { dueOffset: 2  },
+      { dueOffset: 7  },
+      { dueOffset: 10 },
+      { dueOffset: 5  },
+      { dueOffset: 3,  priority: "high" },
+      { dueOffset: 4  },
+      { dueOffset: 30 },
     ],
   },
   {
-    id:          "course",
-    name:        "Curso / aprendizaje",
-    icon:        "🎓",
-    color:       "#22c55e",
-    description: "Estructura para un curso o tema nuevo",
+    id:    "course",
+    icon:  "🎓",
+    color: "#22c55e",
     tasks: [
-      { text: "Definir objetivo concreto del aprendizaje",          priority: "high" },
-      { text: "Recopilar materiales (libros, vídeos, cursos)",      dueOffset: 3 },
-      { text: "Planificar sesiones semanales",                      dueOffset: 5 },
-      { text: "Hacer ejercicios prácticos",                         recurDays: 2 },
-      { text: "Repaso de lo aprendido",                             recurDays: 7 },
-      { text: "Mini-proyecto final aplicando todo",                 dueOffset: 30 },
+      { priority: "high" },
+      { dueOffset: 3 },
+      { dueOffset: 5 },
+      { recurDays: 2 },
+      { recurDays: 7 },
+      { dueOffset: 30 },
     ],
   },
   {
-    id:          "event",
-    name:        "Evento o fiesta",
-    icon:        "🎉",
-    color:       "#ec4899",
-    description: "Organizar cumple, boda, reunión…",
+    id:    "event",
+    icon:  "🎉",
+    color: "#ec4899",
     tasks: [
-      { text: "Definir fecha y lugar",                              dueOffset: 0,  priority: "high" },
-      { text: "Hacer lista de invitados",                           dueOffset: 3 },
-      { text: "Enviar invitaciones (o save the date)",              dueOffset: 7 },
-      { text: "Reservar catering o bebida",                         dueOffset: 14 },
-      { text: "Confirmar asistencias (RSVP)",                       dueOffset: 21 },
-      { text: "Decoración y música",                                dueOffset: 25 },
-      { text: "Día del evento",                                     dueOffset: 30, priority: "high" },
-      { text: "Agradecer asistencia (fotos, mensaje)",              dueOffset: 31 },
+      { dueOffset: 0,  priority: "high" },
+      { dueOffset: 3  },
+      { dueOffset: 7  },
+      { dueOffset: 14 },
+      { dueOffset: 21 },
+      { dueOffset: 25 },
+      { dueOffset: 30, priority: "high" },
+      { dueOffset: 31 },
     ],
   },
   {
-    id:          "health",
-    name:        "Trámites médicos",
-    icon:        "🏥",
-    color:       "#06b6d4",
-    description: "Citas, pruebas y seguimiento",
+    id:    "health",
+    icon:  "🏥",
+    color: "#06b6d4",
     tasks: [
-      { text: "Pedir cita con médico de familia",                   dueOffset: 0,  priority: "high" },
-      { text: "Llevar listado de medicación y síntomas",            dueOffset: 3 },
-      { text: "Pruebas / análisis solicitados",                     dueOffset: 7 },
-      { text: "Recoger resultados",                                 dueOffset: 14 },
-      { text: "Cita de seguimiento",                                dueOffset: 21 },
-      { text: "Revisión anual",                                     recurDays: 365 },
+      { dueOffset: 0,  priority: "high" },
+      { dueOffset: 3  },
+      { dueOffset: 7  },
+      { dueOffset: 14 },
+      { dueOffset: 21 },
+      { recurDays: 365 },
     ],
   },
 ];
+
+// `id` -> prefijo de clave i18n. "new-job" usa "newjob" para
+// evitar guiones en los identificadores de claves.
+function tplKeyPrefix(id) {
+  return id === "new-job" ? "newjob" : id;
+}
+
+function tplName(tpl)        { return t("tpl." + tplKeyPrefix(tpl.id) + ".name"); }
+function tplDesc(tpl)        { return t("tpl." + tplKeyPrefix(tpl.id) + ".desc"); }
+function tplTaskText(tpl, i) { return t("tpl." + tplKeyPrefix(tpl.id) + ".task." + i); }
 
 /** Convierte un dueOffset (días desde hoy) a fecha ISO YYYY-MM-DD. */
 function offsetToISO(offsetDays) {
@@ -151,15 +152,18 @@ function offsetToISO(offsetDays) {
  * @returns {Array<{text:string, priority:string|null, dueDate:string|null, recurDays:number|null}>}
  */
 export function buildTasksFromTemplate(template) {
-  return template.tasks.map(function (spec) {
+  return template.tasks.map(function (spec, i) {
     return {
-      text:      spec.text,
+      text:      tplTaskText(template, i),
       priority:  spec.priority  || null,
       dueDate:   typeof spec.dueOffset === "number" ? offsetToISO(spec.dueOffset) : null,
       recurDays: spec.recurDays || null,
     };
   });
 }
+
+/** Devuelve el nombre traducido (para mostrar en cabeceras externas). */
+export function getTemplateName(template) { return tplName(template); }
 
 /**
  * Abre la galería de templates. El caller decide qué hacer:
@@ -172,30 +176,34 @@ export function showProjectTemplatesModal(deps) {
   const { overlay, box } = createModalBase();
   box.className = "modal-box modal-box-templates";
 
+  function metaTasks(n) {
+    return (n === 1 ? t("tpl.meta.tasks_one") : t("tpl.meta.tasks_other")).replace("{count}", String(n));
+  }
+
   // Card especial "En blanco" como primera opción
   const blankCard =
     '<button type="button" class="tpl-card tpl-card-blank" data-tpl-id="__blank__">' +
       '<span class="tpl-icon">📄</span>' +
-      '<span class="tpl-name">En blanco</span>' +
-      '<span class="tpl-meta">Empieza desde cero</span>' +
+      '<span class="tpl-name">' + escHtml(t("tpl.blank.name")) + '</span>' +
+      '<span class="tpl-meta">' + escHtml(t("tpl.blank.meta")) + '</span>' +
     '</button>';
 
-  const templateCards = PROJECT_TEMPLATES.map(function (t) {
-    const colorStyle = t.color ? ' style="--tpl-color: ' + t.color + '"' : "";
-    return '<button type="button" class="tpl-card" data-tpl-id="' + t.id + '"' + colorStyle + '>' +
-      '<span class="tpl-icon">' + t.icon + '</span>' +
-      '<span class="tpl-name">' + escHtml(t.name) + '</span>' +
-      '<span class="tpl-meta">' + t.tasks.length + ' tarea' + (t.tasks.length === 1 ? "" : "s") + '</span>' +
+  const templateCards = PROJECT_TEMPLATES.map(function (tpl) {
+    const colorStyle = tpl.color ? ' style="--tpl-color: ' + tpl.color + '"' : "";
+    return '<button type="button" class="tpl-card" data-tpl-id="' + tpl.id + '"' + colorStyle + '>' +
+      '<span class="tpl-icon">' + tpl.icon + '</span>' +
+      '<span class="tpl-name">' + escHtml(tplName(tpl)) + '</span>' +
+      '<span class="tpl-meta">' + escHtml(metaTasks(tpl.tasks.length)) + '</span>' +
     '</button>';
   }).join("");
 
   box.innerHTML =
     '<div class="modal-icon"><span class="tpl-preview-icon">✨</span></div>' +
-    '<p class="modal-label">Nuevo proyecto</p>' +
-    '<p class="modal-sub">Empieza desde una plantilla o uno en blanco</p>' +
+    '<p class="modal-label">' + t("tpl.modal.title") + '</p>' +
+    '<p class="modal-sub">' + t("tpl.modal.sub") + '</p>' +
     '<div class="tpl-grid">' + blankCard + templateCards + '</div>' +
     '<div class="modal-actions">' +
-      '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
     '</div>';
 
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
@@ -231,42 +239,46 @@ export function showTemplatePreview(template) {
     const { overlay, box } = createModalBase();
     box.className = "modal-box modal-box-tpl-preview";
 
-    const tasksHTML = template.tasks.map(function (t) {
-      const priorityChip = t.priority
-        ? '<span class="tpl-task-prio tpl-task-prio-' + t.priority + '">' +
-            (t.priority === "high" ? "Alta" : t.priority === "medium" ? "Media" : "Baja") +
+    const tasksHTML = template.tasks.map(function (spec, i) {
+      const priorityChip = spec.priority
+        ? '<span class="tpl-task-prio tpl-task-prio-' + spec.priority + '">' +
+            t("tpl.prio." + spec.priority) +
           '</span>'
         : "";
-      const dueChip = (typeof t.dueOffset === "number")
+      const dueChip = (typeof spec.dueOffset === "number")
         ? '<span class="tpl-task-due">' +
-            (t.dueOffset === 0 ? "Hoy" :
-             t.dueOffset === 1 ? "Mañana" :
-             "En " + t.dueOffset + "d") +
+            (spec.dueOffset === 0 ? t("tpl.chip.today") :
+             spec.dueOffset === 1 ? t("tpl.chip.tomorrow") :
+             t("tpl.chip.in_days").replace("{n}", String(spec.dueOffset))) +
           '</span>'
         : "";
-      const recurChip = t.recurDays
-        ? '<span class="tpl-task-recur">↻ Cada ' + t.recurDays + "d" + '</span>'
+      const recurChip = spec.recurDays
+        ? '<span class="tpl-task-recur">' + t("tpl.chip.recur").replace("{n}", String(spec.recurDays)) + '</span>'
         : "";
       return '<li class="tpl-task-row">' +
-        '<span class="tpl-task-text">' + escHtml(t.text) + '</span>' +
+        '<span class="tpl-task-text">' + escHtml(tplTaskText(template, i)) + '</span>' +
         '<span class="tpl-task-chips">' + dueChip + priorityChip + recurChip + '</span>' +
       '</li>';
     }).join("");
 
+    const tplLocalizedName = tplName(template);
+    const countLabel = (template.tasks.length === 1
+      ? t("tpl.preview.tasks_count_one")
+      : t("tpl.preview.tasks_count_other")).replace("{count}", String(template.tasks.length));
+
     box.innerHTML =
       '<div class="modal-icon"><span class="tpl-preview-icon">' + template.icon + '</span></div>' +
-      '<p class="modal-label">' + escHtml(template.name) + '</p>' +
-      '<p class="modal-sub">' + escHtml(template.description) + '</p>' +
+      '<p class="modal-label">' + escHtml(tplLocalizedName) + '</p>' +
+      '<p class="modal-sub">' + escHtml(tplDesc(template)) + '</p>' +
       '<input class="modal-input tpl-name-input" type="text" maxlength="60"' +
-        ' value="' + escHtml(template.name) + '" placeholder="Nombre del proyecto" />' +
+        ' value="' + escHtml(tplLocalizedName) + '" placeholder="' + escHtml(t("tpl.preview.name_placeholder")) + '" />' +
       '<div class="tpl-tasks-preview-wrap">' +
-        '<p class="tpl-tasks-preview-label">Se crearán ' + template.tasks.length + ' tarea' +
-          (template.tasks.length === 1 ? "" : "s") + ':</p>' +
+        '<p class="tpl-tasks-preview-label">' + escHtml(countLabel) + '</p>' +
         '<ul class="tpl-tasks-preview">' + tasksHTML + '</ul>' +
       '</div>' +
       '<div class="modal-actions">' +
-        '<button type="button" class="modal-btn modal-btn-cancel">Atrás</button>' +
-        '<button type="button" class="modal-btn modal-btn-confirm">Usar plantilla</button>' +
+        '<button type="button" class="modal-btn modal-btn-cancel">' + t("tpl.preview.back") + '</button>' +
+        '<button type="button" class="modal-btn modal-btn-confirm">' + t("tpl.preview.confirm") + '</button>' +
       '</div>';
 
     const input   = box.querySelector(".tpl-name-input");
