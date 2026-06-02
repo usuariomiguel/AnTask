@@ -1796,9 +1796,6 @@ function renderSectionHeader(section, sectionProjects) {
   const li = document.createElement("li");
   li.className = "section-header";
   li.setAttribute("data-section-id", section.id);
-  // Color determinista por sección: alimenta el dot del header y el
-  // chevron. Mismo helper que para proyectos.
-  li.style.setProperty("--section-color", _projectColorFromId(section.id));
 
   const chevron = document.createElement("span");
   chevron.className = "section-chevron" +
@@ -2659,7 +2656,7 @@ function _buildTaskNode(task, project) {
           } else {
             saveAndRender();
           }
-        }, 320);
+        }, 460);
       } else {
         node.classList.add("task-uncompleting");
         setTimeout(function() { saveAndRender(); }, 220);

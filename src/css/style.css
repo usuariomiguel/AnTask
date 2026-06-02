@@ -710,24 +710,6 @@ body {
   cursor: pointer;
 }
 
-/* Color dot — ancla visual delante del nombre del proyecto. Solo en
-   proyectos del usuario (no Hoy/Inbox pinned) y solo si no tienen su
-   propio emoji icon. Usa --project-color (asignado siempre desde JS,
-   ya sea project.color explícito o hash determinista del id). */
-.project-item:not(.project-item-pinned):not(:has(.project-item-icon)) .project-item-name::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--project-color, var(--c-primary-500));
-  margin-right: 9px;
-  vertical-align: middle;
-  flex-shrink: 0;
-  position: relative;
-  top: -1px;
-}
-
 .project-item:hover .project-item-name {
   color: var(--text-primary);
 }
@@ -1988,9 +1970,9 @@ button:focus-visible {
 
 /* ─── TASK COMPLETION ANIMATIONS ────────────────────────────── */
 @keyframes taskComplete {
-  0%   { transform: scale(1);    opacity: 1; }
-  20%  { transform: scale(1.005); opacity: 1; }
-  100% { transform: scale(1);    opacity: 0.45; }
+  0%   { transform: scale(1);     opacity: 1; }
+  45%  { transform: scale(1.012); opacity: 1; }  /* mantiene la fila visible mientras se dibuja el check */
+  100% { transform: scale(1);     opacity: 0.45; }
 }
 
 @keyframes taskUncomplete {
@@ -2006,7 +1988,7 @@ button:focus-visible {
 }
 
 .task-completing {
-  animation: taskComplete 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: taskComplete 0.44s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
 }
 
@@ -2033,8 +2015,13 @@ button:focus-visible {
   overflow: hidden;
 }
 
-.task-summary .task-toggle {
+.task-summary .task-toggle-wrap {
   flex-shrink: 0;
+}
+
+.task-toggle-wrap {
+  position: relative;
+  display: inline-flex;
 }
 
 /* Custom checkbox — circle */
@@ -2058,20 +2045,33 @@ button:focus-visible {
   background: var(--c-primary-500);
   border-color: var(--c-primary-500);
   box-shadow: 0 0 8px rgba(139, 92, 246, 0.40);
-  animation: check-pop 0.25s var(--ease-out) both;
+  animation: check-pop 0.25s var(--ease-out) both,
+             check-pulse 0.5s var(--ease-out) both;
 }
 
-.task-toggle:checked::after {
-  content: '✓';
+/* Tick dibujado con un path SVG (stroke-dashoffset). El SVG es hermano del
+   input dentro de .task-toggle-wrap y se superpone al círculo. */
+.task-check {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
-  animation: check-draw 0.22s var(--ease-out) 0.05s both;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.task-check path {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+}
+
+.task-toggle:checked ~ .task-check path {
+  animation: check-svg-draw 0.3s var(--ease-out) 0.06s forwards;
 }
 
 @keyframes check-pop {
@@ -2080,9 +2080,14 @@ button:focus-visible {
   100% { transform: scale(1); }
 }
 
-@keyframes check-draw {
-  from { clip-path: inset(0 100% 0 0); opacity: 0.4; }
-  to   { clip-path: inset(0 0%   0 0); opacity: 1;   }
+@keyframes check-svg-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Pulso radial al marcar: un anillo que crece y se desvanece. */
+@keyframes check-pulse {
+  0%   { box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.50), 0 0 8px rgba(139, 92, 246, 0.40); }
+  100% { box-shadow: 0 0 0 9px rgba(139, 92, 246, 0),    0 0 8px rgba(139, 92, 246, 0.40); }
 }
 
 .task-toggle:hover {
@@ -6008,28 +6013,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   white-space: nowrap;
 }
 
-/* Dot de color delante del nombre de la sección — ancla visual.
-   Usa --section-color (hash determinista, asignado desde JS). */
-.section-header .section-name::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--section-color, var(--c-primary-500));
-  margin-right: 8px;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-  opacity: 0.85;
-}
-
-/* El chevron toma una pizca del color de la sección para reforzar
-   el sistema visual sin gritarlo. */
-.section-header .section-chevron {
-  color: color-mix(in srgb, var(--section-color, var(--text-tertiary)) 55%, var(--text-tertiary));
-}
-
 .section-count {
   font-size: var(--fs-xs);
   font-weight: var(--fw-medium);
@@ -7790,39 +7773,25 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
      Checkbox: hit area 44×44, círculo visual sigue 18px vía ::before
      (que pinta el borde/relleno). El input real queda transparente,
      el ::after del tick se reubica con inset:13px para centrarse. */
-  .task-summary .task-toggle,
-  .task-summary .task-toggle:checked {
+  /* Hit area 44×44 en el wrapper; el círculo visual (input) sigue 18px,
+     centrado, con el tick SVG superpuesto. */
+  .task-summary .task-toggle-wrap {
     width: 44px;
     height: 44px;
-    border: 0;
-    background: transparent !important;
     margin: -13px -8px -13px -13px;
-    position: relative;
-    box-shadow: none !important;
-    animation: none;
+    align-items: center;
+    justify-content: center;
   }
-  .task-summary .task-toggle::before {
-    content: '';
+  .task-summary .task-toggle,
+  .task-summary .task-toggle:checked {
     position: absolute;
-    inset: 13px;
-    border: 1.5px solid var(--border-strong);
-    border-radius: 50%;
-    background: transparent;
-    transition: border-color var(--dur-fast) var(--ease-out),
-                background var(--dur-fast) var(--ease-out),
-                box-shadow var(--dur-fast) var(--ease-out);
-    pointer-events: none;
-  }
-  .task-summary .task-toggle:checked::before {
-    background: var(--c-primary-500);
-    border-color: var(--c-primary-500);
-    box-shadow: 0 0 8px rgba(139, 92, 246, 0.40);
-  }
-  .task-summary .task-toggle:checked::after {
-    inset: 13px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    animation: none; /* evita que check-pop pise el centrado */
   }
   /* Tap feedback: halo morado suave alrededor del círculo cuando se pulsa */
-  .task-summary .task-toggle:active::before {
+  .task-summary .task-toggle:active {
     box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.15);
     border-color: var(--c-primary-400);
   }
