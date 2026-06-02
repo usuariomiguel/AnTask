@@ -1878,8 +1878,8 @@ button:focus-visible {
   padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--r-md);
-  margin-bottom: var(--sp-2);
+  border-radius: 0;
+  margin-bottom: -1px; /* colapsa los bordes adyacentes en un único divisor */
   cursor: pointer;
   max-width: 100%;
   overflow: hidden;
@@ -1890,7 +1890,7 @@ button:focus-visible {
               opacity var(--dur-base) var(--ease-out);
   position: relative;
   animation: itemIn 0.22s var(--ease-out) both;
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 /* Left accent bar — always on, priority-aware. Centrada verticalmente,
@@ -2250,8 +2250,6 @@ body.hide-task-subtasks .task-actions > .subtask-add-btn { display: none !import
 body.tasks-compact .task-item {
   padding-top:    var(--sp-2);
   padding-bottom: var(--sp-2);
-  margin-bottom:  2px;
-  border-radius:  var(--r-sm);
 }
 body.tasks-compact .task-item::before {
   height: 12px;
@@ -6102,8 +6100,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
    tema oscuro (por defecto) y se deja negro en tema claro. */
 .openmoji {
   display: inline-block;
-  width: 1.18em;
-  height: 1.18em;
+  width: 1.28em;
+  height: 1.28em;
   vertical-align: -0.22em;
   object-fit: contain;
   user-select: none;

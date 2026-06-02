@@ -46,6 +46,14 @@ for (const f of files) {
   if (m) for (const s of m) seqs.add(s);
 }
 
+// Engrosa el trazo de los SVG "black" (line-art) para que se vean más marcados.
+const STROKE_FACTOR = 1.6;
+function thicken(svg) {
+  return svg.replace(/stroke-width="([0-9.]+)"/g, (_, w) => {
+    return `stroke-width="${(parseFloat(w) * STROKE_FACTOR).toFixed(3)}"`;
+  });
+}
+
 // Convierte una secuencia emoji al nombre de fichero OpenMoji (hex mayúsculas, '-').
 function toCode(seq) {
   return [...seq].map((ch) => ch.codePointAt(0).toString(16).toUpperCase()).join("-");
@@ -68,7 +76,8 @@ for (const seq of seqs) {
     try {
       const res = await fetch(`${BASE}/${code}.svg`);
       if (res.ok) {
-        const body = await res.text();
+        let body = await res.text();
+        if (STYLE === "black") body = thicken(body);
         writeFileSync(dest, body, "utf8");
         saved = code;
         break;
