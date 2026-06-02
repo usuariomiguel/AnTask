@@ -6096,6 +6096,24 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   transform: scale(1.15);
 }
 
+/* ── OpenMoji ── emojis renderizados como SVG (ver src/js/utils/openmoji.js).
+   Se dimensiona en 1em para heredar el font-size del contexto donde aparece.
+   Estilo "black" (line-art monocromo): trazo negro → se invierte a blanco en
+   tema oscuro (por defecto) y se deja negro en tema claro. */
+.openmoji {
+  display: inline-block;
+  width: 1.18em;
+  height: 1.18em;
+  vertical-align: -0.22em;
+  object-fit: contain;
+  user-select: none;
+  filter: invert(1);
+}
+
+:root[data-theme="light"] .openmoji {
+  filter: none;
+}
+
 /* ── Icon picker modal ── */
 .icon-picker-grid {
   display: grid;
