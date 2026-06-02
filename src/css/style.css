@@ -2199,7 +2199,7 @@ button:focus-visible {
               transform    var(--dur-fast) var(--ease-out);
 }
 
-/* Hover-reveal: solo opacidad/escala, el espacio se mantiene */
+/* Botones de acción siempre visibles (sin hover-reveal). */
 .task-actions > .priority-btn,
 .task-actions > .status-btn,
 .task-actions > .date-btn,
@@ -2207,13 +2207,6 @@ button:focus-visible {
 .task-actions > .comment-btn,
 .task-actions > .label-add-btn,
 .task-actions > .subtask-add-btn {
-  opacity: 0;
-  transform: scale(0.96);
-  pointer-events: none;
-}
-
-.task-item:hover .task-actions > button,
-.task-item:focus-within .task-actions > button {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
