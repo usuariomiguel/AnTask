@@ -10,6 +10,7 @@ export const TASK_PREFS_KEY   = "antask-task-prefs";
 export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";
 export const SMART_LISTS_KEY  = "antask-smart-lists";
+export const PROFILE_KEY      = "antask-profile";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

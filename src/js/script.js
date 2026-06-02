@@ -35,6 +35,7 @@ import {
   THEME_KEY,
   SECTIONS_KEY,
   SMART_LISTS_KEY,
+  PROFILE_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -51,6 +52,7 @@ import {
   loadMetadata,
   loadTaskPrefs,
   loadSmartLists,
+  loadProfile,
 } from "./state/persistence.js";
 import {
   STATUS_CYCLE,
@@ -514,6 +516,7 @@ let _archivedExpanded  = false;
 let _notesExpanded     = false;
 let _smartListsExpanded = false;
 let taskPrefs         = loadTaskPrefs();
+let userProfile       = loadProfile();
 
 // ─── MULTI-SELECT ─────────────────────────────────────────────
 let selectMode = false;
@@ -543,6 +546,7 @@ try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e)
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
+try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }
 
 // Recordatorios por tarea — programar timers cuando AnsoNotif ya esté
 // inicializado (lo hace sections-and-profile.js, que se carga después).
@@ -4987,26 +4991,107 @@ function _updateProfileMenu(user) {
   if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
   if (pfSyncUser)  pfSyncUser.hidden  = !user;
 
+  // Valores base según el modo (cuenta Google vs. local).
+  var baseName, baseInitial;
   if (user) {
-    var initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
-    var displayName = user.displayName || user.email || t("profile.user_default");
-    if (pfAvatar)    pfAvatar.textContent    = initial;
-    if (pfAvatarTop) pfAvatarTop.textContent = initial;
-    if (pfName)      pfName.textContent      = displayName;
-    if (pfNameTop)   pfNameTop.textContent   = displayName;
-    if (pfSub)       pfSub.textContent       = t("profile.synced");
-    if (pfSubTop)    pfSubTop.textContent    = t("profile.sync_active");
-    if (pfSyncName)  pfSyncName.textContent  = user.email || user.displayName || "";
+    baseInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
+    baseName = user.displayName || user.email || t("profile.user_default");
+    if (pfSub)      pfSub.textContent      = t("profile.synced");
+    if (pfSubTop)   pfSubTop.textContent   = t("profile.sync_active");
+    if (pfSyncName) pfSyncName.textContent = user.email || user.displayName || "";
     if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
-    if (pfAvatar)    pfAvatar.textContent    = "A";
-    if (pfAvatarTop) pfAvatarTop.textContent = "A";
-    if (pfName)      pfName.textContent      = "antask";
-    if (pfNameTop)   pfNameTop.textContent   = "antask";
-    if (pfSub)       pfSub.textContent       = t("profile.local");
-    if (pfSubTop)    pfSubTop.textContent    = t("profile.local_storage");
+    baseInitial = "A";
+    baseName = "antask";
+    if (pfSub)    pfSub.textContent    = t("profile.local");
+    if (pfSubTop) pfSubTop.textContent = t("profile.local_storage");
   }
+
+  // El perfil local del usuario (nombre + avatar emoji) tiene prioridad.
+  var name  = (userProfile.name && userProfile.name.trim()) || baseName;
+  var emoji = userProfile.icon || "";
+  var avatarValue = emoji || (name ? name.charAt(0).toUpperCase() : baseInitial);
+
+  _applyAvatar(pfAvatar, avatarValue, !!emoji);
+  _applyAvatar(pfAvatarTop, avatarValue, !!emoji);
+  if (pfName)    pfName.textContent    = name;
+  if (pfNameTop) pfNameTop.textContent = name;
 }
+
+function _applyAvatar(el, value, isEmoji) {
+  if (!el) return;
+  el.textContent = value;
+  el.classList.toggle("profile-avatar--emoji", !!isEmoji);
+}
+
+function saveProfile() {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (_) {}
+}
+
+// Modal de edición del perfil local: nombre + avatar emoji (OpenMoji).
+function showProfileModal() {
+  var { overlay, box } = createModalBase();
+
+  var emojis = [
+    "🙂","😎","🤓","🧑","👤","🧑‍💻","🦸","🧙","🐱","🐶",
+    "🦊","🐼","🐧","🦉","🦄","🐲","🌟","⭐","🔥","⚡",
+    "🚀","🎯","💎","🎨","🎵","📚","💡","🌈","🌙","☀️",
+    "🌿","🍀","🌸","🌊","❤️","💪","🧠","👑","🏆","🦋",
+  ];
+
+  var current = userProfile.icon || "";
+  var gridHtml = emojis.map(function(e) {
+    return '<button type="button" class="icon-picker-emoji' +
+      (current === e ? ' icon-picker-emoji--active' : '') +
+      '" data-emoji="' + e + '">' + e + '</button>';
+  }).join('');
+
+  box.innerHTML =
+    '<p class="modal-label">' + t("profile.edit_title") + '</p>' +
+    '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
+      ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
+      ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
+    '<p class="modal-label">' + t("profile.avatar_label") + '</p>' +
+    '<div class="icon-picker-grid">' + gridHtml + '</div>' +
+    '<div class="modal-actions">' +
+      (userProfile.icon ? '<button type="button" class="modal-btn modal-btn-cancel profile-avatar-clear">' + t("project.icon_clear") + '</button>' : '') +
+      '<button type="button" class="modal-btn modal-btn-cancel profile-cancel">' + t("modal.cancel") + '</button>' +
+      '<button type="button" class="modal-btn modal-btn-confirm profile-save">' + t("modal.save") + '</button>' +
+    '</div>';
+
+  var nameInput = box.querySelector('.profile-name-input');
+  var pickedIcon = userProfile.icon || "";
+
+  box.querySelectorAll('.icon-picker-emoji').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      pickedIcon = btn.dataset.emoji;
+      box.querySelectorAll('.icon-picker-emoji').forEach(function(b) {
+        b.classList.toggle('icon-picker-emoji--active', b === btn);
+      });
+    });
+  });
+
+  function save() {
+    userProfile.name = nameInput.value.trim();
+    userProfile.icon = pickedIcon;
+    saveProfile();
+    _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null);
+    closeModal(overlay);
+  }
+
+  overlay._cancel = function() { closeModal(overlay); };
+  box.querySelector('.profile-cancel').addEventListener('click', function() { closeModal(overlay); });
+  box.querySelector('.profile-save').addEventListener('click', save);
+  var clearBtn = box.querySelector('.profile-avatar-clear');
+  if (clearBtn) clearBtn.addEventListener('click', function() { pickedIcon = ""; save(); });
+
+  nameInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); save(); }
+  });
+
+  setTimeout(function() { nameInput.focus(); nameInput.select(); }, 50);
+}
+window.showProfileModal = showProfileModal;
 
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;

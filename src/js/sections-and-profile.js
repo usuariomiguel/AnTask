@@ -79,6 +79,15 @@ import { t } from "./i18n/index.js";
     });
   }
 
+  var pfEditBtn = document.getElementById("pf-edit-btn");
+  if (pfEditBtn) {
+    pfEditBtn.addEventListener("click", function() {
+      profileDropdown.hidden = true;
+      profileBtn.setAttribute("aria-expanded", "false");
+      if (typeof window.showProfileModal === "function") window.showProfileModal();
+    });
+  }
+
   var shortcutsItem = document.getElementById("shortcuts-btn");
   if (shortcutsItem) {
     shortcutsItem.addEventListener("click", function() {

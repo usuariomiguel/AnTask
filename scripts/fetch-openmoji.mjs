@@ -11,9 +11,9 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-// Estilo: "color" (por defecto) o "black" (line-art monocromo).
-//   node scripts/fetch-openmoji.mjs black
-const STYLE = process.argv[2] === "black" ? "black" : "color";
+// Estilo: "black" (line-art monocromo, por defecto) o "color".
+//   node scripts/fetch-openmoji.mjs color
+const STYLE = process.argv[2] === "color" ? "color" : "black";
 const OUT_DIR = join(ROOT, "public", "emoji");
 const VERSION = "15.1.0";
 const BASE = `https://cdn.jsdelivr.net/npm/openmoji@${VERSION}/${STYLE}/svg`;
