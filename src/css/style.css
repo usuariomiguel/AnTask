@@ -2310,7 +2310,7 @@ body.tasks-compact .task-labels-container .task-label-chip {
   transition: background 0.2s var(--ease-out), border-color 0.2s;
   flex-shrink: 0;
 }
-:root[data-theme="light"] .task-pref-toggle {
+:root[data-theme="light"] .task-pref-toggle:not(.task-pref-on) {
   background: rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.10);
 }
