@@ -47,7 +47,7 @@ for (const f of files) {
 }
 
 // Engrosa el trazo de los SVG "black" (line-art) para que se vean más marcados.
-const STROKE_FACTOR = 1.6;
+const STROKE_FACTOR = 1.25;
 function thicken(svg) {
   return svg.replace(/stroke-width="([0-9.]+)"/g, (_, w) => {
     return `stroke-width="${(parseFloat(w) * STROKE_FACTOR).toFixed(3)}"`;
