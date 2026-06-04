@@ -325,6 +325,16 @@ export const es = {
   "quick_capture.placeholder":"Escribe la tarea y pulsa Enter...",
   "quick_capture.hint":       "<kbd>Enter</kbd> para crear · <kbd>Esc</kbd> para cancelar",
   "quick_capture.added_to":   "Añadida a",
+  "quick_capture.nl_title":     "Puedes escribir:",
+  "quick_capture.nl_dates":     "Fecha",
+  "quick_capture.nl_dates_ex":  "hoy · mañana · lunes · en 3 días",
+  "quick_capture.nl_recur":     "Repetir",
+  "quick_capture.nl_recur_ex":  "cada 7 días · todos los lunes",
+  "quick_capture.nl_priority":  "Prioridad",
+  "quick_capture.nl_priority_ex":"p1 · p2 · p3",
+  "quick_capture.nl_label":     "Etiqueta",
+  "quick_capture.nl_label_ex":  "#trabajo",
+  "task.quick_hint":            "captura rápida",
 
   // ── Importar / exportar ───────────────────────────────────
   "import.confirm_replace":   "Esto reemplazará <strong>todos los proyectos actuales</strong> con el backup. ¿Continuar?",

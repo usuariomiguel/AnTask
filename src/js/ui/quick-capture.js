@@ -66,6 +66,7 @@ export function showQuickCapture(deps) {
     '<input class="modal-input quick-capture-input" type="text" maxlength="120" autocomplete="off"' +
       ' placeholder="' + t("quick_capture.placeholder") + '" />' +
     '<div class="quick-capture-preview nl-preview" hidden></div>' +
+    _cheatsheetHTML() +
     '<div class="quick-capture-hint">' + t("quick_capture.hint") + '</div>';
 
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
@@ -131,4 +132,27 @@ export function showQuickCapture(deps) {
 
   // Focus inmediato
   setTimeout(function () { input.focus(); }, 40);
+}
+
+/** Chuleta de lenguaje natural: qué tokens puede escribir el usuario. */
+function _cheatsheetHTML() {
+  const rows = [
+    { icon: "calendar", label: t("quick_capture.nl_dates"),    ex: t("quick_capture.nl_dates_ex") },
+    { icon: "repeat",   label: t("quick_capture.nl_recur"),    ex: t("quick_capture.nl_recur_ex") },
+    { icon: "flag",     label: t("quick_capture.nl_priority"), ex: t("quick_capture.nl_priority_ex") },
+    { icon: "tag",      label: t("quick_capture.nl_label"),    ex: t("quick_capture.nl_label_ex") },
+  ];
+  return '<div class="quick-capture-cheats">' +
+    '<span class="qc-cheat-title">' + t("quick_capture.nl_title") + '</span>' +
+    rows.map(function (r) {
+      const codes = r.ex.split("·").map(function (s) {
+        return '<code>' + escHtml(s.trim()) + '</code>';
+      }).join("");
+      return '<div class="qc-cheat-row">' +
+        '<span class="qc-cheat-ico"><i data-lucide="' + r.icon + '"></i></span>' +
+        '<span class="qc-cheat-label">' + escHtml(r.label) + '</span>' +
+        '<span class="qc-cheat-ex">' + codes + '</span>' +
+      '</div>';
+    }).join("") +
+  '</div>';
 }

@@ -325,6 +325,16 @@ export const en = {
   "quick_capture.placeholder":"Type the task and press Enter...",
   "quick_capture.hint":       "<kbd>Enter</kbd> to create · <kbd>Esc</kbd> to cancel",
   "quick_capture.added_to":   "Added to",
+  "quick_capture.nl_title":     "You can type:",
+  "quick_capture.nl_dates":     "Date",
+  "quick_capture.nl_dates_ex":  "hoy · mañana · lunes · en 3 días",
+  "quick_capture.nl_recur":     "Repeat",
+  "quick_capture.nl_recur_ex":  "cada 7 días · todos los lunes",
+  "quick_capture.nl_priority":  "Priority",
+  "quick_capture.nl_priority_ex":"p1 · p2 · p3",
+  "quick_capture.nl_label":     "Label",
+  "quick_capture.nl_label_ex":  "#trabajo",
+  "task.quick_hint":            "quick capture",
 
   // ── Import / export ───────────────────────────────────────
   "import.confirm_replace":   "This will replace <strong>all current projects</strong> with the backup. Continue?",

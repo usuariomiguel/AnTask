@@ -885,6 +885,7 @@ function showColorPicker(project) {
     project.color = color;
     saveProjects();
     renderSidebar();
+    renderTasks(); // refresca el acento (barra izq. + check) al instante
     closeModal(overlay);
   }
 
@@ -1889,6 +1890,11 @@ function _projectColorFromId(id) {
   return "hsl(" + hue + ", 62%, 58%)";
 }
 
+/** Color efectivo de un proyecto: el elegido por el usuario o el hash del id. */
+function _projectColor(project) {
+  return (project && (project.color || _projectColorFromId(project.id))) || "var(--c-primary-500)";
+}
+
 function renderProjectItem(project, indented, isArchived, parentEl) {
   const target = parentEl || projectListEl;
   const li = document.createElement("li");
@@ -2520,6 +2526,8 @@ function renderTasks() {
       _updateTaskNode(node, task);
     }
     existing.delete(task.id);
+    // Refresca el acento (color del proyecto) por si cambió el color.
+    node.style.setProperty("--task-accent", _projectColor(project));
 
     // Reordenar si es necesario (mover solo si no está en su sitio).
     const targetSibling = prevNode ? prevNode.nextSibling : taskList.firstChild;
@@ -2626,6 +2634,8 @@ function _buildTaskNode(task, project) {
     const node       = template.content.firstElementChild.cloneNode(true);
     node.setAttribute("data-task-id", task.id);
     node.setAttribute("draggable", "false");
+    // Color del proyecto → el check de completar usa este acento.
+    node.style.setProperty("--task-accent", _projectColor(project));
 
     const checkbox   = node.querySelector(".task-toggle");
     const text       = node.querySelector(".task-text");
@@ -3081,6 +3091,8 @@ function renderTodayItem(task, project, todayStr) {
   li.className = "today-item" +
     (task.priority ? " today-priority-" + task.priority : "") +
     (overdue ? " today-overdue" : "");
+  // Color del proyecto → el check de completar usa este acento.
+  li.style.setProperty("--task-accent", _projectColor(project));
 
   // Checkbox para marcar hecha
   var cb = document.createElement("input");
@@ -4258,35 +4270,44 @@ function showAgendaPanel() {
 
 function showShortcutsHelp() {
   const { overlay, box } = createModalBase();
+  box.classList.add("modal-box-shortcuts");
+
+  function row(keys, desc) {
+    return '<div class="sc-row"><span class="sc-keys">' + keys + '</span>' +
+           '<span class="sc-desc">' + desc + '</span></div>';
+  }
+  function group(title, rows) {
+    return '<div class="sc-group"><div class="sc-group-title">' + title + '</div>' + rows + '</div>';
+  }
 
   box.innerHTML =
     '<p class="modal-label">Atajos de teclado</p>' +
-    '<table class="shortcuts-table">' +
-      '<tbody>' +
-        '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
-        '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
-        '<tr><td><kbd>A</kbd></td><td>Vista de agenda</td></tr>' +
-        '<tr><td><kbd>C</kbd></td><td>Vista calendario</td></tr>' +
-        '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
-        '<tr><td><kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd></td><td>Captura rápida (al Inbox)</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td colspan="2" style="opacity:.7;padding-top:.6rem"><strong>Al crear tarea</strong> — sintaxis natural:</td></tr>' +
-        '<tr><td><kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd></td><td>Fecha límite</td></tr>' +
-        '<tr><td><kbd>en 3 días</kbd> <kbd>15/3</kbd></td><td>Fecha relativa o numérica</td></tr>' +
-        '<tr><td><kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd></td><td>Recurrencia</td></tr>' +
-        '<tr><td><kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd></td><td>Prioridad alta · media · baja</td></tr>' +
-        '<tr><td><kbd>#etiqueta</kbd></td><td>Crear/asignar etiqueta</td></tr>' +
-        '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Navegar entre tareas</td></tr>' +
-        '<tr><td><kbd>Enter</kbd> / <kbd>Esp.</kbd></td><td>Expandir / colapsar tarea</td></tr>' +
-        '<tr><td><kbd>E</kbd></td><td>Editar texto de la tarea</td></tr>' +
-        '<tr><td><kbd>D</kbd></td><td>Marcar hecha / pendiente</td></tr>' +
-        '<tr><td><kbd>Supr</kbd></td><td>Eliminar tarea (con deshacer)</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td><kbd>Esc</kbd></td><td>Cerrar modal abierto</td></tr>' +
-      '</tbody>' +
-    '</table>' +
+    '<div class="shortcuts-cols">' +
+      group("General",
+        row('<kbd>N</kbd>', 'Enfocar campo nueva tarea') +
+        row('<kbd>S</kbd>', 'Nueva sección') +
+        row('<kbd>A</kbd>', 'Vista de agenda') +
+        row('<kbd>C</kbd>', 'Vista calendario') +
+        row('<kbd>Ctrl</kbd>+<kbd>K</kbd>', 'Búsqueda global') +
+        row('<kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd>', 'Captura rápida (al Inbox)')
+      ) +
+      group("En una tarea",
+        row('<kbd>↑</kbd> <kbd>↓</kbd>', 'Navegar entre tareas') +
+        row('<kbd>Enter</kbd> / <kbd>Esp.</kbd>', 'Expandir / colapsar tarea') +
+        row('<kbd>E</kbd>', 'Editar texto de la tarea') +
+        row('<kbd>D</kbd>', 'Marcar hecha / pendiente') +
+        row('<kbd>Supr</kbd>', 'Eliminar tarea (con deshacer)') +
+        row('<kbd>Esc</kbd>', 'Cerrar modal abierto')
+      ) +
+      group("Al crear tarea — sintaxis natural",
+        row('<kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd>', 'Fecha límite') +
+        row('<kbd>en 3 días</kbd> <kbd>15/3</kbd>', 'Fecha relativa o numérica') +
+        row('<kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd>', 'Recurrencia') +
+        row('<kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd>', 'Prioridad alta · media · baja') +
+        row('<kbd>#etiqueta</kbd>', 'Crear/asignar etiqueta') +
+        row('<kbd>?</kbd>', 'Ver esta lista de atajos')
+      ) +
+    '</div>' +
     '<div class="modal-actions">' +
       '<button class="modal-btn modal-btn-confirm">Cerrar</button>' +
     '</div>';
