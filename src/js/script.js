@@ -2636,6 +2636,7 @@ function _buildTaskNode(task, project) {
     const statusBtn     = node.querySelector(".status-btn");
     const priorityBtn   = node.querySelector(".priority-btn");
     const recurBtn   = node.querySelector(".recur-btn");
+    const kebabBtn   = node.querySelector(".task-kebab-btn");
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
     checkbox.addEventListener("change", function() {
@@ -2851,13 +2852,29 @@ function _buildTaskNode(task, project) {
       }
     });
 
-    // ── Menú contextual (click derecho) ──────────────────────
-    node.addEventListener("contextmenu", async function(e) {
-      if (e.target.closest("button, input")) return;
-      e.preventDefault();
+    function openTaskActionsMenu(anchorOrPoint) {
       if (selectMode) return;
       closeCtxMenu();
+
+      var clickAction = function(selector) {
+        return function() {
+          var btn = node.querySelector(selector);
+          if (btn) btn.click();
+        };
+      };
+
       var items = [
+        { label: t("action.rename"), action: function() { startInlineEdit(text, task); } },
+        null,
+        { label: t("task_btn.priority"),  action: clickAction(".priority-btn") },
+        { label: t("task_btn.status"),    action: clickAction(".status-btn") },
+        { label: t("task_btn.date"),      action: clickAction(".date-btn") },
+        { label: t("task_btn.recur"),     action: clickAction(".recur-btn") },
+        { label: t("task_btn.reminder"),  action: clickAction(".reminder-btn") },
+        { label: task.comment ? t("task.edit_comment") : t("task.add_comment"), action: clickAction(".comment-btn") },
+        { label: t("task_btn.labels"),    action: clickAction(".label-add-btn") },
+        { label: t("task_btn.subtasks"),  action: clickAction(".subtask-add-btn") },
+        null,
         {
           label: t("task.move_to_project"),
           action: async function() {
@@ -2872,15 +2889,16 @@ function _buildTaskNode(task, project) {
             target.tasks.unshift(moved);
             saveAndRender();
           }
-        }
+        },
+        { label: t("action.delete"), danger: true, action: clickAction(".delete-btn") },
       ];
+
       var menu = _buildCtxMenu(items);
-      var fakeAnchor = {
-        getBoundingClientRect: function() {
-          return { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
-        }
-      };
-      positionCtxMenu(menu, fakeAnchor);
+      if (anchorOrPoint && typeof anchorOrPoint.x === "number") {
+        positionCtxMenuAt(menu, anchorOrPoint.x, anchorOrPoint.y);
+      } else {
+        positionCtxMenu(menu, anchorOrPoint);
+      }
       _ctxMenu = menu;
       requestAnimationFrame(function() {
         _ctxCloseHandler = function(ev) {
@@ -2888,6 +2906,24 @@ function _buildTaskNode(task, project) {
         };
         document.addEventListener("mousedown", _ctxCloseHandler);
       });
+    }
+
+    if (kebabBtn) {
+      kebabBtn.addEventListener("click", function(e) {
+        // En móvil, el script inline abre el action sheet nativo. En desktop,
+        // el ⋯ sustituye al grupo completo de botones secundarios.
+        if (window.matchMedia("(max-width: 768px)").matches) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openTaskActionsMenu(kebabBtn);
+      });
+    }
+
+    // ── Menú contextual (click derecho) ──────────────────────
+    node.addEventListener("contextmenu", async function(e) {
+      if (e.target.closest("button, input")) return;
+      e.preventDefault();
+      openTaskActionsMenu({ x: e.clientX, y: e.clientY });
     });
 
     // ── Checkbox de selección ─────────────────────────────────
