@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>antask</title>
+    <meta name="theme-color" content="#09090d" />
+    <!-- Content Security Policy
+         • script-src 'unsafe-inline' cubre los dos bloques inline de este HTML
+           (mobile UI + SW registration). Mover a ficheros externos los
+           eliminaría y permitiría quitar 'unsafe-inline'.
+         • Fuentes (Inter / JetBrains Mono) son self-hosted vía @fontsource-variable,
+           empaquetadas con Vite → font-src 'self' es suficiente.
+         • connect-src permite Firebase Auth/Firestore + Plausible (opt-in).
+         • frame-ancestors bloquea clickjacking.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src  'self' 'unsafe-inline' https://plausible.io https://apis.google.com https://accounts.google.com;
+      style-src   'self' 'unsafe-inline' https://accounts.google.com;
+      font-src    'self' data:;
+      img-src     'self' data: blob: https:;
+      connect-src 'self'
+                  https://*.googleapis.com
+                  https://*.firebaseio.com
+                  wss://*.firebaseio.com
+                  https://identitytoolkit.googleapis.com
+                  https://securetoken.googleapis.com
+                  https://accounts.google.com
+                  https://apis.google.com
+                  https://*.firebaseapp.com
+                  https://plausible.io;
+      frame-src   https://accounts.google.com https://*.firebaseapp.com https://apis.google.com;
+      frame-ancestors 'none';
+      base-uri    'self';
+    " />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg">
+    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+    <!-- CSS render-blocking → evita el FOUC mientras carga el módulo JS -->
+    <link rel="stylesheet" href="./src/css/style.css">
+  </head>
+  <body>
+
+    <!-- ── SPLASH / LOADING SCREEN ──────────────────────────── -->
+    <div id="splash" aria-hidden="true" role="status" aria-label="Cargando antask">
+      <div class="splash-inner">
+        <svg class="splash-icon" viewBox="0 0 92 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7C3AED"/>
+              <stop offset="0.5" stop-color="#EC4899"/>
+              <stop offset="1" stop-color="#06B6DA"/>
+            </linearGradient>
+            <filter id="sg-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <path class="splash-mark"
+            d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z"
+            fill="url(#sg)"/>
+        </svg>
+
+        <div class="splash-wordmark" aria-label="antask">
+          <span class="splash-an">antask</span>
+        </div>
+        <p class="splash-tagline">Tus tareas, tu día.</p>
+      </div>
+    </div>
+
+    <div class="layout">
+
+      <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
+      <header class="mobile-header" id="mobile-header">
+        <div class="mobile-header-left">
+          <button type="button" class="mobile-icon-btn" id="mobile-projects-btn" aria-label="Proyectos" data-i18n-aria="a11y.mobile_projects"><i data-lucide="menu"></i></button>
+        </div>
+        <div class="mobile-header-center">
+          <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
+          <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
+          <div class="mobile-header-project">
+            <span class="mobile-header-title" id="mobile-header-title"></span>
+            <span class="mobile-header-count" id="mobile-header-count"></span>
+          </div>
+        </div>
+        <div class="mobile-header-right">
+          <button type="button" class="mobile-icon-btn" id="mobile-settings-btn" aria-label="Ajustes" data-i18n-aria="a11y.mobile_settings"><i data-lucide="settings"></i></button>
+        </div>
+      </header>
+
+      <!-- ── MOBILE BODY: sidebar + main ──────────────────── -->
+      <div class="mobile-body">
+
+      <!-- ── SIDEBAR BACKDROP ──────────────────────────────── -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+      <!-- ── SIDEBAR ─────────────────────────────────────── -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-header-top">
+            <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
+            <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
+            <div class="sidebar-header-actions">
+              <button type="button" id="new-section-btn" class="sidebar-icon-btn" aria-label="Nueva sección de proyectos" title="Nueva sección de proyectos" data-i18n-aria="sidebar.new_section" data-i18n-title="sidebar.new_section"><i data-lucide="layers"></i></button>
+              <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn sidebar-icon-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos" data-i18n-aria="sidebar.hide_sidebar" data-i18n-title="sidebar.hide_sidebar"><i data-lucide="panel-left-close"></i></button>
+              <!-- Cerrar drawer (solo móvil) -->
+              <button type="button" id="sidebar-close-btn" class="sidebar-icon-btn sidebar-close-btn" aria-label="Cerrar" title="Cerrar"><i data-lucide="x"></i></button>
+            </div>
+          </div>
+          <!-- Search input (solo móvil) — reemplaza al "Buscar tareas" del footer -->
+          <button type="button" id="sidebar-search-mobile" class="sidebar-search-mobile">
+            <i data-lucide="search"></i>
+            <span data-i18n="sidebar.search">Buscar tareas</span>
+          </button>
+        </div>
+
+        <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
+
+        <!-- Agrupador "Más" — colapsa Archivados + Notas en móvil para
+             que no compitan con la lista de proyectos. En desktop las
+             dos secciones se mantienen visibles directamente. -->
+        <details class="sidebar-more-group" id="sidebar-more-group">
+          <summary class="sidebar-more-summary">
+            <i data-lucide="chevron-down" class="sidebar-more-chevron"></i>
+            <span data-i18n="sidebar.more">Más</span>
+          </summary>
+          <div id="archived-section" class="archived-section-wrap"></div>
+          <div id="notes-sidebar-section" class="notes-sidebar-section-wrap"></div>
+        </details>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-search-row">
+            <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> <span data-i18n="sidebar.search">Buscar tareas</span></button>
+          </div>
+          <div class="new-item-row">
+            <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> <span data-i18n="sidebar.new_project">Proyecto</span></button>
+            <button type="button" id="new-note-btn" class="new-note-btn"><i data-lucide="file-plus"></i> <span data-i18n="sidebar.new_note">Nota</span></button>
+          </div>
+          <!-- Profile menu -->
+          <div class="profile-wrap" id="profile-wrap">
+            <button type="button" class="profile-btn" id="profile-btn" aria-haspopup="true" aria-expanded="false">
+              <span class="profile-avatar" id="profile-avatar">A</span>
+              <div class="profile-meta">
+                <span class="profile-name" id="profile-name">antask</span>
+                <span class="profile-sub" id="profile-sub" data-i18n="profile.local">Local</span>
+              </div>
+              <span class="profile-dots">···</span>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown" hidden>
+              <div class="profile-dropdown-user">
+                <span class="profile-avatar profile-avatar-lg" id="profile-avatar-top">A</span>
+                <div>
+                  <div class="profile-dropdown-name" id="profile-name-top">antask</div>
+                  <div class="profile-dropdown-sub" id="profile-sub-top" data-i18n="profile.local_storage">Almacenamiento local</div>
+                </div>
+              </div>
+              <div class="profile-sep"></div>
+              <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico"><i data-lucide="upload"></i></span> <span data-i18n="profile.export">Exportar workspace</span></button>
+              <label class="profile-item" for="pf-import-input"><span class="profile-item-ico"><i data-lucide="download"></i></span> <span data-i18n="profile.import">Importar workspace</span></label>
+              <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+              <div class="profile-sep"></div>
+              <button type="button" class="profile-item profile-item-toggle" id="pf-notif-btn">
+                <span class="profile-item-ico" id="pf-notif-ico"><i data-lucide="bell"></i></span>
+                <span class="profile-item-label" id="pf-notif-label" data-i18n="profile.notifications">Activar avisos</span>
+                <span class="profile-toggle-pill" id="pf-notif-pill">OFF</span>
+              </button>
+              <div class="profile-notif-options" id="pf-notif-options" hidden>
+                <div class="profile-notif-times-block">
+                  <span class="profile-notif-times-label">Horas de aviso</span>
+                  <div class="profile-notif-times-list" id="pf-notif-times-list"></div>
+                  <div class="profile-notif-times-add">
+                    <input type="time" id="pf-notif-new-time" value="12:00">
+                    <button type="button" class="profile-notif-add-btn" id="pf-notif-add">
+                      <i data-lucide="plus"></i> Añadir
+                    </button>
+                  </div>
+                </div>
+                <button type="button" class="profile-notif-test-btn" id="pf-notif-test">
+                  <i data-lucide="bell-ring"></i> Probar aviso
+                </button>
+              </div>
+              <div class="profile-sep"></div>
+              <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> <span data-i18n="profile.theme">Cambiar tema</span></button>
+              <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> <span data-i18n="profile.shortcuts">Atajos de teclado</span></button>
+              <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> <span data-i18n="profile.tour">Ver tour de bienvenida</span></button>
+              <button type="button" class="profile-item" id="pf-lang-btn"><span class="profile-item-ico"><i data-lucide="languages"></i></span> <span data-i18n="profile.lang_switch">Switch to English</span></button>
+              <div class="profile-sep" id="pf-sync-sep" hidden></div>
+              <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
+              <div id="pf-sync-user" hidden>
+                <div class="profile-sync-row"><span class="profile-item-ico"><i data-lucide="cloud"></i></span><span id="pf-sync-name"></span></div>
+                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn" data-i18n="profile.signout">Desconectar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── MAIN PANEL ──────────────────────────────────── -->
+      <main class="main-panel" id="main-panel">
+
+        <!-- Estado vacío: ningún proyecto seleccionado -->
+        <div class="empty-state" id="empty-state">
+          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
+          <div class="empty-state-visual">
+            <div class="empty-orb empty-orb--1"></div>
+            <div class="empty-orb empty-orb--2"></div>
+            <div class="empty-orb empty-orb--3"></div>
+            <div class="empty-orb empty-orb--4"></div>
+            <div class="empty-orb empty-orb--5"></div>
+            <div class="empty-ring empty-ring--1"><span class="empty-ring-dot"></span></div>
+            <div class="empty-ring empty-ring--2"><span class="empty-ring-dot"></span></div>
+            <svg class="empty-logo" viewBox="0 0 92 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="eg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#7C3AED"/>
+                  <stop offset="0.5" stop-color="#EC4899"/>
+                  <stop offset="1" stop-color="#06B6DA"/>
+                </linearGradient>
+              </defs>
+              <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
+            </svg>
+          </div>
+          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres abrir?</p>
+          <p class="empty-state-sub" data-i18n="empty.sub">Selecciona un proyecto o una nota desde la barra lateral</p>
+        </div>
+
+        <!-- Barra de control persistente: header + form + nav de vistas -->
+        <div class="ctrl-bar" id="ctrl-bar" hidden>
+
+          <div class="tasks-header">
+            <div class="tasks-header-left">
+              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
+              <div class="tasks-header-titleblock">
+                <span class="view-eyebrow" id="view-eyebrow" hidden>Lista</span>
+                <div class="title-row">
+                  <h2 id="project-title" class="project-title"></h2>
+                  <span id="project-subtitle" class="subtitle"></span>
+                </div>
+              </div>
+            </div>
+            <div class="header-actions">
+              <!-- Tabs de vista -->
+              <div class="view-nav-tabs" id="view-nav-tabs">
+                <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
+                  <i data-lucide="list-todo"></i><span data-i18n="nav.tasks">Lista</span>
+                </button>
+                <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
+                  <i data-lucide="calendar-range"></i><span data-i18n="nav.agenda">Agenda</span>
+                </button>
+                <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
+                  <i data-lucide="calendar-days"></i><span data-i18n="nav.calendar_short">Mes</span>
+                </button>
+              </div>
+              <div class="view-nav-right">
+                <!-- Filtrar unificado (sólo en vista Lista) -->
+                <div class="filter-wrap" id="filter-wrap" style="position:relative">
+                  <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
+                    <i data-lucide="sliders-horizontal"></i>
+                    <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
+                    <i data-lucide="chevron-down" class="filter-caret"></i>
+                  </button>
+                  <div class="filter-panel" id="filter-panel" hidden>
+                    <div class="filter-panel-section">
+                      <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
+                      <div class="filter-panel-opts">
+                        <button type="button" class="filter-opt filter-opt--active" data-filter="all" data-i18n="filter.all">Todas</button>
+                        <button type="button" class="filter-opt" data-filter="pending" data-i18n="filter.pending">Pendientes</button>
+                        <button type="button" class="filter-opt" data-filter="done" data-i18n="filter.done">✓ Hechas</button>
+                      </div>
+                    </div>
+                    <div class="filter-panel-sep"></div>
+                    <div class="filter-panel-section">
+                      <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
+                      <div class="filter-panel-opts">
+                        <button type="button" class="filter-opt filter-opt--active" data-sort="manual" data-i18n="sort.manual">↕ Manual</button>
+                        <button type="button" class="filter-opt" data-sort="priority" data-i18n="sort.priority_arrow">↑ Prioridad</button>
+                        <button type="button" class="filter-opt" data-sort="due" data-i18n="sort.due_short">Fecha límite</button>
+                        <button type="button" class="filter-opt" data-sort="az" data-i18n="sort.az">A–Z</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Seleccionar (sólo en vista Lista) -->
+                <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas" data-i18n-title="action.select_tasks"><i data-lucide="square-check-big"></i></button>
+                <!-- Personalizar acciones de tareas -->
+                <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones" data-i18n-title="action.customize"><i data-lucide="settings-2"></i></button>
+                <!-- Más acciones (sólo en vista Lista) -->
+                <div style="position:relative" id="more-actions-wrap">
+                  <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones" data-i18n-title="action.more"><i data-lucide="ellipsis"></i></button>
+                  <div class="more-actions-panel" id="more-actions-panel" hidden>
+                    <button type="button" id="clear-done"><i data-lucide="check-check"></i> <span data-i18n="action.clear_done">Limpiar hechas</span></button>
+                    <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> <span data-i18n="project.delete">Eliminar proyecto</span></button>
+                  </div>
+                </div>
+                <!-- Refs ocultos que el JS necesita -->
+                <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
+                <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+              </div>
+              <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto" data-i18n-title="action.close_project"><i data-lucide="x"></i></button>
+            </div>
+          </div>
+
+          <form id="task-form" class="task-form">
+            <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" data-i18n-ph="task.input.placeholder" maxlength="120" autocomplete="off" required />
+            <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
+          </form>
+
+        </div><!-- /.ctrl-bar -->
+
+        <!-- Vista Lista (tareas) -->
+        <div class="tasks-panel" id="tasks-panel" hidden>
+          <div id="label-filter-bar" class="label-filter-bar" hidden></div>
+          <div class="bulk-action-bar" id="bulk-action-bar" hidden>
+            <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
+            <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> <span data-i18n="bulk.mark_done">Marcar hechas</span></button>
+            <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> <span data-i18n="bulk.mark_pending">Pendientes</span></button>
+            <button type="button" id="bulk-move-btn" class="bulk-move-btn"><i data-lucide="folder-input"></i> <span data-i18n="bulk.move_to">Mover a...</span></button>
+            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="bulk.delete">Eliminar</span></button>
+            <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn" data-i18n="bulk.cancel">Cancelar</button>
+          </div>
+          <ul id="task-list" class="task-list" aria-live="polite"></ul>
+          <footer class="stats">
+            <span id="task-counter">0 pendientes</span>
+            <span id="save-status" class="save-status" data-i18n="save.no_recent">Sin cambios recientes</span>
+          </footer>
+        </div>
+
+        <!-- Vista Agenda -->
+        <div class="alt-panel agenda-panel" id="agenda-panel" hidden>
+          <div id="agenda-content" class="agenda-content"></div>
+        </div>
+
+        <!-- Vista Nota -->
+        <div class="note-panel" id="note-panel" hidden>
+          <div class="note-panel-header">
+            <h2 class="note-title" id="note-title" contenteditable="true" spellcheck="false" data-placeholder="Sin título" data-i18n-dp="note.title_placeholder"></h2>
+            <div class="note-toolbar">
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="strikeThrough" title="Tachado"><s>S</s></button>
+              <span class="note-toolbar-sep"></span>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="1" title="Muy pequeño"  ><span style="font-size:0.60em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="2" title="Pequeño"      ><span style="font-size:0.78em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="3" title="Normal"       ><span style="font-size:0.95em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="5" title="Grande"       ><span style="font-size:1.20em;font-weight:700">A</span></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="7" title="Muy grande"   ><span style="font-size:1.50em;font-weight:700">A</span></button>
+              <span class="note-toolbar-sep"></span>
+              <div class="fmt-color-wrap">
+                <button type="button" class="fmt-btn note-fmt-btn fmt-color-btn" title="Color de texto"><span class="fmt-color-label">A</span></button>
+                <div class="fmt-color-palette" hidden>
+                  <button class="fmt-color-swatch" data-color="#ef4444" style="background:#ef4444" title="Rojo"></button>
+                  <button class="fmt-color-swatch" data-color="#f97316" style="background:#f97316" title="Naranja"></button>
+                  <button class="fmt-color-swatch" data-color="#eab308" style="background:#eab308" title="Amarillo"></button>
+                  <button class="fmt-color-swatch" data-color="#22c55e" style="background:#22c55e" title="Verde"></button>
+                  <button class="fmt-color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="Azul"></button>
+                  <button class="fmt-color-swatch" data-color="#a855f7" style="background:#a855f7" title="Morado"></button>
+                  <button class="fmt-color-swatch" data-color="#ec4899" style="background:#ec4899" title="Rosa"></button>
+                  <button class="fmt-color-swatch fmt-color-clear" data-color="" title="Quitar color">✕</button>
+                </div>
+              </div>
+              <span class="note-toolbar-sep"></span>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertUnorderedList" title="Lista con viñetas"><i data-lucide="list"></i></button>
+              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertOrderedList"   title="Lista numerada" ><i data-lucide="list-ordered"></i></button>
+            </div>
+            <button type="button" id="close-note-btn" class="close-panel-btn" title="Cerrar nota"><i data-lucide="x"></i></button>
+          </div>
+          <div
+            id="note-editor"
+            class="note-editor"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            data-placeholder="Empieza a escribir..."
+            data-i18n-dp="note.body_placeholder"
+            spellcheck="true"
+          ></div>
+        </div>
+
+        <!-- Vista Calendario -->
+        <div class="alt-panel cal-panel" id="cal-panel" hidden>
+          <div class="cal-month-nav">
+            <button type="button" id="cal-prev-btn" class="cal-nav-btn" aria-label="Mes anterior"><i data-lucide="chevron-left"></i></button>
+            <span id="cal-month-label" class="cal-month-label"></span>
+            <button type="button" id="cal-next-btn" class="cal-nav-btn" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
+          </div>
+          <div id="cal-content" class="cal-content"></div>
+        </div>
+
+      </main>
+
+      <!-- ── FAB CREATION SHEET ─────────────────────────────── -->
+      <div class="fab-backdrop" id="fab-backdrop"></div>
+      <div class="fab-sheet" id="fab-sheet" aria-hidden="true">
+        <div class="fab-sheet-drag"></div>
+        <form id="fab-form" class="fab-form" novalidate>
+          <input id="fab-input" type="text" placeholder="Nueva tarea..." data-i18n-ph="task.input.placeholder_fab" maxlength="120" autocomplete="off" />
+          <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
+        </form>
+      </div>
+
+      </div><!-- /.mobile-body -->
+
+      <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
+      <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
+        <!-- SVG mask con notch para que el FAB encaje visualmente -->
+        <svg class="mobile-bottom-nav-bg" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,0 L160,0 C168,0 172,4 175,12 C180,30 200,42 220,30 C232,22 232,8 240,0 L400,0 L400,64 L0,64 Z"/>
+        </svg>
+        <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
+          <i data-lucide="calendar-check"></i>
+          <span data-i18n="nav.today">Hoy</span>
+        </button>
+        <button type="button" class="mobile-bottom-btn" id="bnav-agenda-btn">
+          <i data-lucide="calendar-range"></i>
+          <span data-i18n="nav.agenda">Agenda</span>
+        </button>
+        <!-- Hueco central donde flota el FAB con notch -->
+        <div class="mobile-bottom-spacer" aria-hidden="true">
+          <!-- FAB anclado al centro real del nav vía position:absolute -->
+          <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
+            <i data-lucide="plus" class="fab-icon-plus"></i>
+            <i data-lucide="x"    class="fab-icon-close"></i>
+          </button>
+        </div>
+        <button type="button" class="mobile-bottom-btn" id="bnav-calendar-btn">
+          <i data-lucide="calendar-days"></i>
+          <span data-i18n="nav.calendar">Calendario</span>
+        </button>
+        <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
+          <i data-lucide="search"></i>
+          <span data-i18n="nav.search">Buscar</span>
+        </button>
+      </nav>
+
+    </div>
+
+    <template id="task-item-template">
+      <li class="task-item" tabindex="0" aria-expanded="false">
+        <div class="task-main-row">
+          <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
+          <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
+          <div class="task-summary">
+            <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
+            <span class="task-text"></span>
+            <span class="task-labels-container"></span>
+          </div>
+          <div class="task-actions">
+            <span class="task-due-container"></span>
+            <span class="task-recur-container"></span>
+            <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
+            <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
+            <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
+            <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
+            <button type="button" class="reminder-btn" title="Recordatorio"><i data-lucide="bell"></i> Aviso</button>
+            <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
+            <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Etiq.</button>
+            <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub.</button>
+            <button type="button" class="delete-btn" aria-label="Eliminar tarea"><i data-lucide="x"></i></button>
+            <span class="expand-indicator" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+            <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
+          </div>
+        </div>
+        <div class="task-extra-content">
+          <p class="task-comment"></p>
+          <ul class="subtask-list" aria-label="Subtareas"></ul>
+        </div>
+      </li>
+    </template>
+
+    <!-- ── SHEET BACKDROP (body-level for correct fixed positioning) ── -->
+    <div class="sheet-backdrop" id="sheet-backdrop"></div>
+
+    <!-- ── TASK ACTION SHEET (body-level for correct fixed positioning) ── -->
+    <div class="task-action-sheet" id="task-action-sheet" aria-modal="true" role="dialog" aria-label="Opciones de tarea">
+      <div class="task-action-sheet-handle"></div>
+      <p class="task-action-sheet-title" id="sheet-task-title">Opciones</p>
+      <div class="task-action-sheet-body">
+        <button type="button" class="sheet-action-btn" data-sheet-action="priority"><i data-lucide="flag"></i> Prioridad</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="status"><i data-lucide="circle-dashed"></i> Estado</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="date"><i data-lucide="calendar"></i> Fecha</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="comment"><i data-lucide="message-circle"></i> Comentario</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="recur"><i data-lucide="repeat"></i> Repetición</button>
+        <button type="button" class="sheet-action-btn" data-sheet-action="reminder"><i data-lucide="bell"></i> Recordatorio</button>
+        <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
+      </div>
+    </div>
+
+    <!-- Paste options toast -->
+    <div class="paste-toast" id="paste-toast" role="status" aria-live="polite">
+      <span class="paste-toast-msg">Pegar como:</span>
+      <button class="paste-toast-btn" id="paste-btn-plain" type="button">Sin formato</button>
+      <button class="paste-toast-btn paste-toast-btn-fmt" id="paste-btn-format" type="button">Con formato</button>
+      <div class="paste-toast-bar"></div>
+    </div>
+
+    <!-- App entry (ES module). Lucide y Firebase están bundleados vía npm,
+         sin dependencias de CDN externas. -->
+    <script type="module" src="./src/js/main.js"></script>
+    <script>
+    // ── MOBILE UI LOGIC ──────────────────────────────────────────
+    (function() {
+      var isMobile = function() { return window.innerWidth <= 768; };
+
+      // ── Sidebar toggle ────────────────────────────────────────
+      var backdrop   = document.getElementById("sidebar-backdrop");
+      var sidebar    = document.querySelector(".sidebar");
+
+      function openSidebar() {
+        sidebar.classList.add("sidebar-open");
+        backdrop.classList.add("active");
+        document.body.classList.add("drawer-open");
+        document.body.style.overflow = "hidden";
+      }
+      function closeSidebar() {
+        sidebar.classList.remove("sidebar-open");
+        backdrop.classList.remove("active");
+        document.body.classList.remove("drawer-open");
+        document.body.style.overflow = "";
+      }
+
+      if (backdrop) backdrop.addEventListener("click", closeSidebar);
+
+      if (sidebar) {
+        sidebar.addEventListener("click", function(e) {
+          var item = e.target.closest(".project-item");
+          if (item && isMobile()) setTimeout(closeSidebar, 120);
+        });
+      }
+
+
+      // ── Task action sheet ─────────────────────────────────────
+      var actionSheet   = document.getElementById("task-action-sheet");
+      var sheetBackdrop = document.getElementById("sheet-backdrop");
+      var sheetTitle    = document.getElementById("sheet-task-title");
+      var currentTaskNode = null;
+
+      function openSheet(taskNode) {
+        if (!actionSheet || !isMobile()) return;
+        currentTaskNode = taskNode;
+        var textEl = taskNode.querySelector(".task-text");
+        if (sheetTitle && textEl) sheetTitle.textContent = textEl.textContent.trim().slice(0, 50);
+        actionSheet.classList.add("open");
+        sheetBackdrop.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSheet() {
+        if (!actionSheet) return;
+        actionSheet.classList.remove("open");
+        sheetBackdrop.classList.remove("active");
+        document.body.style.overflow = "";
+        currentTaskNode = null;
+        // Remove any inline sub-options
+        var sub = actionSheet.querySelector(".sheet-sub-panel");
+        if (sub) sub.remove();
+      }
+
+      if (sheetBackdrop) sheetBackdrop.addEventListener("click", closeSheet);
+
+      // ── Kebab de tarea → action sheet ────────────────────────
+      var taskListEl = document.getElementById("task-list");
+      if (taskListEl) {
+        taskListEl.addEventListener("click", function(e) {
+          if (!isMobile()) return;
+          var kebab = e.target.closest(".task-kebab-btn");
+          if (!kebab) return;
+          e.stopPropagation();
+          var taskNode = kebab.closest(".task-item");
+          if (taskNode) openSheet(taskNode);
+        });
+      }
+
+
+      if (actionSheet) {
+        actionSheet.addEventListener("click", function(e) {
+          var btn = e.target.closest("[data-sheet-action]");
+          if (!btn || !currentTaskNode) return;
+          var action = btn.dataset.sheetAction;
+
+          // Priority and Status: show sub-options inline, then close after pick
+          if (action === "priority" || action === "status") {
+            showSubOptions(action, btn);
+            return;
+          }
+
+          var sel = action === "date"     ? ".date-btn" :
+                    action === "comment"  ? ".comment-btn" :
+                    action === "labels"   ? ".label-add-btn" :
+                    action === "subtask"  ? ".subtask-add-btn" :
+                    action === "recur"    ? ".recur-btn" :
+                    action === "reminder" ? ".reminder-btn" :
+                    action === "delete"   ? ".delete-btn" : null;
+          var target = sel && currentTaskNode.querySelector(sel);
+          closeSheet();
+          if (target) setTimeout(function() { target.click(); }, 80);
+        });
+      }
+
+      function showSubOptions(action, sourceBtn) {
+        // Remove any existing sub-panel
+        var existing = actionSheet.querySelector(".sheet-sub-panel");
+        if (existing) existing.remove();
+
+        var options = action === "priority"
+          ? [
+              { label: "▲ Alta",    value: "high",   cls: "sub-high" },
+              { label: "◆ Media",   value: "medium", cls: "sub-medium" },
+              { label: "▽ Baja",    value: "low",    cls: "sub-low" },
+              { label: "✕ Quitar",  value: "none",   cls: "sub-none" },
+            ]
+          : [
+              { label: "▶ En progreso", value: "progress", cls: "sub-progress" },
+              { label: "⏸ En espera",  value: "waiting",  cls: "sub-waiting" },
+              { label: "✕ Quitar",      value: "none",     cls: "sub-none" },
+            ];
+
+        var sub = document.createElement("div");
+        sub.className = "sheet-sub-panel";
+        sub.innerHTML = '<p class="sheet-sub-title">' +
+          (action === "priority" ? "// Prioridad" : "// Estado") + '</p>';
+
+        var grid = document.createElement("div");
+        grid.className = "sheet-sub-grid";
+
+        options.forEach(function(opt) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "sheet-sub-btn " + opt.cls;
+          b.textContent = opt.label;
+          b.addEventListener("click", function(e) {
+            e.stopPropagation();
+            var taskNode = currentTaskNode;
+            var taskId = taskNode && taskNode.dataset.taskId;
+            if (action === "status") {
+              if (taskId && window.setTaskStatus) window.setTaskStatus(taskId, opt.value);
+            } else {
+              // Priority: cycle the desktop button to the target value
+              var desktopBtn = taskNode && taskNode.querySelector(".priority-btn");
+              if (desktopBtn) {
+                var cycles = 0;
+                function cycleToValue() {
+                  if (cycles++ > 5) return;
+                  desktopBtn.click();
+                  var reached = false;
+                  if (opt.value === "none") reached = !taskNode.classList.contains("priority-high") && !taskNode.classList.contains("priority-medium") && !taskNode.classList.contains("priority-low");
+                  else                     reached = taskNode.classList.contains("priority-" + opt.value);
+                  if (!reached) setTimeout(cycleToValue, 30);
+                }
+                cycleToValue();
+              }
+            }
+            closeSheet();
+          });
+          grid.appendChild(b);
+        });
+
+        sub.appendChild(grid);
+
+        // Insert after action body
+        var body = actionSheet.querySelector(".task-action-sheet-body");
+        body.after(sub);
+        // Scroll sheet into view
+        sub.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+
+      // ── Bottom navigation ─────────────────────────────────────
+      var bnavToday    = document.getElementById("bnav-today-btn");
+      var bnavAgenda   = document.getElementById("bnav-agenda-btn");
+      var bnavCalendar = document.getElementById("bnav-calendar-btn");
+      var bnavSearch   = document.getElementById("bnav-search-btn");
+      var allBnavBtns  = [bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
+
+      function setActiveBnavBtn(btn) {
+        allBnavBtns.forEach(function(b) {
+          if (b) b.classList.remove("active");
+        });
+        if (btn) btn.classList.add("active");
+      }
+
+      // Sincroniza el destino activo con el estado real de la app.
+      function syncBnavActive() {
+        try {
+          var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
+          if (av === "today") { setActiveBnavBtn(bnavToday); return; }
+          var calPanel    = document.getElementById("cal-panel");
+          var agendaPanel = document.getElementById("agenda-panel");
+          if (agendaPanel && !agendaPanel.hidden) { setActiveBnavBtn(bnavAgenda); return; }
+          if (calPanel    && !calPanel.hidden)    { setActiveBnavBtn(bnavCalendar); return; }
+          setActiveBnavBtn(null);
+        } catch (e) {
+          setActiveBnavBtn(null);
+        }
+      }
+      window.syncBnavActive = syncBnavActive;
+
+      if (bnavToday) {
+        bnavToday.addEventListener("click", function() {
+          setActiveBnavBtn(bnavToday);
+          if (typeof window.activateTodayView === "function") {
+            window.activateTodayView();
+          }
+        });
+      }
+
+      if (bnavAgenda) {
+        bnavAgenda.addEventListener("click", function() {
+          setActiveBnavBtn(bnavAgenda);
+          if (typeof window.showAgendaPanel === "function") {
+            window.showAgendaPanel();
+          }
+        });
+      }
+
+      if (bnavCalendar) {
+        bnavCalendar.addEventListener("click", function() {
+          setActiveBnavBtn(bnavCalendar);
+          if (typeof window.showCalendarPanel === "function") {
+            window.showCalendarPanel();
+          }
+        });
+      }
+
+      if (bnavSearch) {
+        bnavSearch.addEventListener("click", function() {
+          setActiveBnavBtn(null);
+          if (typeof showGlobalSearch === "function") showGlobalSearch();
+        });
+      }
+
+      // Botón Proyectos (hamburger) del header móvil → abre drawer del sidebar.
+      var mobileProjectsBtn = document.getElementById("mobile-projects-btn");
+      if (mobileProjectsBtn) {
+        mobileProjectsBtn.addEventListener("click", function() {
+          openSidebar();
+        });
+      }
+
+      // Cerrar drawer desde el botón ✕ del header del sidebar.
+      var sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+      if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener("click", closeSidebar);
+      }
+
+      // Buscar desde el atajo del header del drawer → reusa búsqueda global.
+      var sidebarSearchMobile = document.getElementById("sidebar-search-mobile");
+      if (sidebarSearchMobile) {
+        sidebarSearchMobile.addEventListener("click", function() {
+          closeSidebar();
+          setTimeout(function() {
+            if (typeof showGlobalSearch === "function") showGlobalSearch();
+          }, 180);
+        });
+      }
+
+      // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil.
+      var mobileSettingsBtn = document.getElementById("mobile-settings-btn");
+      if (mobileSettingsBtn) {
+        mobileSettingsBtn.addEventListener("click", function() {
+          openSidebar();
+          setTimeout(function() {
+            var pb = document.getElementById("profile-btn");
+            if (pb) pb.click();
+          }, 300);
+        });
+      }
+
+      // Limpiar activo del nav al cerrar el sidebar
+      var _origCloseSidebar = closeSidebar;
+      closeSidebar = function() {
+        _origCloseSidebar();
+        setActiveBnavBtn(null);
+      };
+
+      // ── Header auto-hide al scroll ─────────────────────────────
+      // Escucha en captura cualquier scroll de un contenedor interno
+      // (task-list, agenda, cal-content, etc) y oculta/muestra el header
+      // según la dirección del scroll. Threshold pequeño evita parpadeo.
+      var mobileHeader = document.getElementById("mobile-header");
+      var lastScrollY  = 0;
+      var lastDirChange = 0;
+      var SCROLL_THRESHOLD = 6;
+      var TOP_RESET = 8;
+
+      function onScrollCapture(e) {
+        if (!isMobile() || !mobileHeader) return;
+        var el = e.target;
+        if (!el || el.nodeType !== 1) return;
+        // Solo nos interesan scrolls de elementos dentro de .mobile-body
+        if (!el.closest || !el.closest(".mobile-body")) return;
+
+        var sy = el.scrollTop;
+        // Cerca del top: siempre mostrar
+        if (sy < TOP_RESET) {
+          mobileHeader.classList.remove("mobile-header--hidden");
+          lastScrollY = sy;
+          return;
+        }
+        var delta = sy - lastScrollY;
+        if (delta > SCROLL_THRESHOLD) {
+          // Scroll hacia abajo → ocultar
+          mobileHeader.classList.add("mobile-header--hidden");
+          lastScrollY = sy;
+        } else if (delta < -SCROLL_THRESHOLD) {
+          // Scroll hacia arriba → mostrar
+          mobileHeader.classList.remove("mobile-header--hidden");
+          lastScrollY = sy;
+        }
+      }
+
+      document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
+
+      // Al cambiar de vista (cambio de panel scrolleable), resetear lastScrollY
+      // y mostrar el header. Lo hacemos vigilando mutaciones del atributo
+      // 'hidden' en los paneles principales.
+      ["tasks-panel", "agenda-panel", "cal-panel"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        new MutationObserver(function() {
+          lastScrollY = 0;
+          if (mobileHeader) mobileHeader.classList.remove("mobile-header--hidden");
+        }).observe(el, { attributes: true, attributeFilter: ["hidden"] });
+      });
+
+      // Sync inicial del active state en la bottom nav (por si la app
+      // carga directamente en vista Hoy).
+      if (typeof window.syncBnavActive === "function") {
+        setTimeout(window.syncBnavActive, 0);
+      }
+
+      // Grupo "Más" (Archivados + Notas): abierto en desktop (sidebar
+      // siempre visible, no tiene sentido esconder), cerrado en móvil
+      // (drawer compacto). Sin esto, los wrappers internos quedarían
+      // ocultos en desktop por el comportamiento nativo de <details>.
+      var moreGroup = document.getElementById("sidebar-more-group");
+      if (moreGroup) {
+        if (!isMobile()) moreGroup.setAttribute("open", "");
+      }
+
+    })();
+    </script>
+    <!-- El Service Worker lo registra automáticamente vite-plugin-pwa. -->
+    <!-- window.lucide se expone desde setup-lucide.js (módulo bundleado). -->
+
+    <!-- ── COOKIE CONSENT BANNER ──────────────────────────────── -->
+    <div id="consent-banner" class="consent-banner" hidden aria-hidden="true" role="dialog"
+         aria-label="Preferencias de privacidad" aria-modal="false">
+      <div class="consent-banner__body">
+        <p class="consent-banner__text">
+          <span data-i18n="consent.text">antask guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?</span>
+          <a href="./PRIVACY.md" target="_blank" rel="noopener" class="consent-banner__link" data-i18n="consent.privacy_link">Política de privacidad</a>
+        </p>
+        <div class="consent-banner__actions">
+          <button type="button" id="consent-decline" class="consent-btn consent-btn--secondary" data-i18n="consent.decline">
+            Solo lo esencial
+          </button>
+          <button type="button" id="consent-accept" class="consent-btn consent-btn--primary" data-i18n="consent.accept">
+            Aceptar analytics
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

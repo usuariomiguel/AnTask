@@ -15,10 +15,10 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
-      // Multi-page: la app (/) y la landing comercial (/landing).
+      // Multi-page: landing (/) y la app (/app).
       input: {
         main: "index.html",
-        landing: "landing.html",
+        app: "app.html",
       },
       output: {
         manualChunks(id) {
