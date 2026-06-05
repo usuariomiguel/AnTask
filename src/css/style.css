@@ -710,6 +710,24 @@ body {
   cursor: pointer;
 }
 
+/* Color dot — ancla visual delante del nombre del proyecto. Solo en
+   proyectos del usuario (no Hoy/Inbox pinned) y solo si no tienen su
+   propio emoji icon. Usa --project-color (asignado siempre desde JS,
+   ya sea project.color explícito o hash determinista del id). */
+.project-item:not(.project-item-pinned):not(:has(.project-item-icon)) .project-item-name::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--project-color, var(--c-primary-500));
+  margin-right: 9px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+
 .project-item:hover .project-item-name {
   color: var(--text-primary);
 }

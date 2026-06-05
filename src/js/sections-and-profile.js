@@ -123,7 +123,11 @@ import { t } from "./i18n/index.js";
   var pfSimpleBtn  = document.getElementById("pf-simple-btn");
   var pfSimplePill = document.getElementById("pf-simple-pill");
   function _syncSimplePill() {
-    if (pfSimplePill) pfSimplePill.textContent = window.isSimpleMode && window.isSimpleMode() ? "ON" : "OFF";
+    var on = !!(window.isSimpleMode && window.isSimpleMode());
+    if (pfSimplePill) {
+      pfSimplePill.textContent = on ? "ON" : "OFF";
+      pfSimplePill.classList.toggle("on", on);
+    }
   }
   _syncSimplePill();
   if (pfSimpleBtn) {

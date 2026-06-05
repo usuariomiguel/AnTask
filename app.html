@@ -157,6 +157,8 @@
                 </div>
               </div>
               <div class="profile-sep"></div>
+              <button type="button" class="profile-item" id="pf-edit-btn"><span class="profile-item-ico"><i data-lucide="pencil-line"></i></span> <span data-i18n="profile.edit">Editar perfil</span></button>
+              <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico"><i data-lucide="upload"></i></span> <span data-i18n="profile.export">Exportar workspace</span></button>
               <label class="profile-item" for="pf-import-input"><span class="profile-item-ico"><i data-lucide="download"></i></span> <span data-i18n="profile.import">Importar workspace</span></label>
               <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
@@ -185,6 +187,11 @@
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> <span data-i18n="profile.theme">Cambiar tema</span></button>
               <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> <span data-i18n="profile.shortcuts">Atajos de teclado</span></button>
               <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> <span data-i18n="profile.tour">Ver tour de bienvenida</span></button>
+              <button type="button" class="profile-item profile-item-toggle" id="pf-simple-btn">
+                <span class="profile-item-ico"><i data-lucide="sparkles"></i></span>
+                <span class="profile-item-label" data-i18n="profile.simple_mode">Modo simple</span>
+                <span class="profile-toggle-pill" id="pf-simple-pill">ON</span>
+              </button>
               <button type="button" class="profile-item" id="pf-lang-btn"><span class="profile-item-ico"><i data-lucide="languages"></i></span> <span data-i18n="profile.lang_switch">Switch to English</span></button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
@@ -222,8 +229,13 @@
               <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
             </svg>
           </div>
-          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres abrir?</p>
-          <p class="empty-state-sub" data-i18n="empty.sub">Selecciona un proyecto o una nota desde la barra lateral</p>
+          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres hacer?</p>
+          <div class="empty-state-actions">
+            <button type="button" class="empty-action-btn" id="empty-open-inbox">📥 <span data-i18n="empty.open_inbox">Abrir Inbox</span></button>
+            <button type="button" class="empty-action-btn empty-action-btn--primary" id="empty-new-project"><i data-lucide="plus"></i> <span data-i18n="empty.new_project">Crear proyecto</span></button>
+            <button type="button" class="empty-action-btn" id="empty-new-note"><i data-lucide="file-plus"></i> <span data-i18n="empty.new_note">Crear nota</span></button>
+          </div>
+          <p class="empty-state-tip" aria-hidden="true"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>␣</kbd> <span data-i18n="empty.tip">captura rápida</span></p>
         </div>
 
         <!-- Barra de control persistente: header + form + nav de vistas -->
@@ -306,6 +318,7 @@
             <input id="task-input" type="text" placeholder="Nueva tarea (prueba: todos los lunes p1 #personal)" data-i18n-ph="task.input.placeholder" maxlength="120" autocomplete="off" required />
             <button type="submit"><i data-lucide="plus"></i> <span data-i18n="task.add_btn">Añadir</span></button>
           </form>
+          <div class="task-form-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>␣</kbd> <span data-i18n="task.quick_hint">captura rápida</span></div>
 
         </div><!-- /.ctrl-bar -->
 
@@ -409,6 +422,11 @@
         <svg class="mobile-bottom-nav-bg" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0,0 L160,0 C168,0 172,4 175,12 C180,30 200,42 220,30 C232,22 232,8 240,0 L400,0 L400,64 L0,64 Z"/>
         </svg>
+        <!-- Solo visible en modo simple: acceso directo al Inbox -->
+        <button type="button" class="mobile-bottom-btn" id="bnav-inbox-btn">
+          <i data-lucide="inbox"></i>
+          <span data-i18n="sidebar.inbox">Inbox</span>
+        </button>
         <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
@@ -443,7 +461,10 @@
           <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
           <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
           <div class="task-summary">
-            <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
+            <span class="task-toggle-wrap">
+              <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
+              <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+            </span>
             <span class="task-text"></span>
             <span class="task-labels-container"></span>
           </div>
@@ -669,11 +690,12 @@
       }
 
       // ── Bottom navigation ─────────────────────────────────────
+      var bnavInbox    = document.getElementById("bnav-inbox-btn");
       var bnavToday    = document.getElementById("bnav-today-btn");
       var bnavAgenda   = document.getElementById("bnav-agenda-btn");
       var bnavCalendar = document.getElementById("bnav-calendar-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
-      var allBnavBtns  = [bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
+      var allBnavBtns  = [bnavInbox, bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -687,6 +709,10 @@
         try {
           var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
           if (av === "today") { setActiveBnavBtn(bnavToday); return; }
+          if (document.documentElement.classList.contains("simple-mode") &&
+              window.getActiveProjectId && window.getActiveProjectId() === "__inbox__") {
+            setActiveBnavBtn(bnavInbox); return;
+          }
           var calPanel    = document.getElementById("cal-panel");
           var agendaPanel = document.getElementById("agenda-panel");
           if (agendaPanel && !agendaPanel.hidden) { setActiveBnavBtn(bnavAgenda); return; }
@@ -697,6 +723,15 @@
         }
       }
       window.syncBnavActive = syncBnavActive;
+
+      if (bnavInbox) {
+        bnavInbox.addEventListener("click", function() {
+          setActiveBnavBtn(bnavInbox);
+          if (typeof window.activateProject === "function") {
+            window.activateProject("__inbox__");
+          }
+        });
+      }
 
       if (bnavToday) {
         bnavToday.addEventListener("click", function() {
