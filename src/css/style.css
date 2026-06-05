@@ -9550,3 +9550,37 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
   .consent-banner__body { flex-direction: column; align-items: stretch; }
   .consent-banner__actions { justify-content: flex-end; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MODO SIMPLE  (clase .simple-mode en <html>)
+   Oculta — sin eliminar — todo lo accesorio para dejar el flujo
+   esencial: abrir el Inbox, crear tareas y ponerles recordatorios.
+   Se desactiva desde el menú de perfil → "Modo simple" (vuelve todo).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* — Sidebar: fuera secciones, smart lists, archivados y notas — */
+.simple-mode #new-section-btn,
+.simple-mode .smart-lists-header,
+.simple-mode .smart-list-item,
+.simple-mode .sidebar-section-empty,
+.simple-mode #sidebar-more-group,
+.simple-mode #new-note-btn { display: none !important; }
+
+/* — Cabecera de vista: solo "Lista" (sin Agenda ni Mes) — */
+.simple-mode #view-tab-agenda,
+.simple-mode #view-tab-cal,
+.simple-mode #task-prefs-btn { display: none !important; }
+
+/* — Estado vacío: fuera "crear nota" — */
+.simple-mode #empty-new-note { display: none !important; }
+
+/* — Bottom-nav móvil en modo simple: solo Inbox + FAB (Nueva) + Buscar — */
+#bnav-inbox-btn { display: none; }            /* oculto fuera de modo simple */
+.simple-mode #bnav-inbox-btn { display: flex; }
+.simple-mode #bnav-today-btn,
+.simple-mode #bnav-projects-btn,
+.simple-mode #bnav-calendar-btn { display: none !important; }
+
+/* — Menú de perfil: fuera tour y atajos (ruido) — */
+.simple-mode #tour-btn,
+.simple-mode #shortcuts-btn { display: none !important; }

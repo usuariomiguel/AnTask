@@ -184,6 +184,11 @@
                 </button>
               </div>
               <div class="profile-sep"></div>
+              <button type="button" class="profile-item profile-item-toggle" id="pf-simple-btn">
+                <span class="profile-item-ico"><i data-lucide="wand-sparkles"></i></span>
+                <span class="profile-item-label" data-i18n="profile.simple_mode">Modo simple</span>
+                <span class="profile-toggle-pill" id="pf-simple-pill">ON</span>
+              </button>
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> <span data-i18n="profile.theme">Cambiar tema</span></button>
               <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> <span data-i18n="profile.shortcuts">Atajos de teclado</span></button>
               <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> <span data-i18n="profile.tour">Ver tour de bienvenida</span></button>
@@ -413,6 +418,11 @@
 
       <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
+        <!-- Solo visible en modo simple: acceso directo al Inbox -->
+        <button type="button" class="mobile-bottom-btn" id="bnav-inbox-btn">
+          <i data-lucide="inbox"></i>
+          <span data-i18n="sidebar.inbox">Inbox</span>
+        </button>
         <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
@@ -676,11 +686,12 @@
       }
 
       // ── Bottom navigation ─────────────────────────────────────
+      var bnavInbox    = document.getElementById("bnav-inbox-btn");
       var bnavToday    = document.getElementById("bnav-today-btn");
       var bnavProjects = document.getElementById("bnav-projects-btn");
       var bnavCalendar = document.getElementById("bnav-calendar-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
-      var allBnavBtns  = [bnavToday, bnavProjects, bnavCalendar, bnavSearch];
+      var allBnavBtns  = [bnavInbox, bnavToday, bnavProjects, bnavCalendar, bnavSearch];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -694,6 +705,10 @@
         try {
           var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
           if (av === "today") { setActiveBnavBtn(bnavToday); return; }
+          if (document.documentElement.classList.contains("simple-mode") &&
+              window.getActiveProjectId && window.getActiveProjectId() === "__inbox__") {
+            setActiveBnavBtn(bnavInbox); return;
+          }
           var calPanel    = document.getElementById("cal-panel");
           if (calPanel    && !calPanel.hidden)    { setActiveBnavBtn(bnavCalendar); return; }
           setActiveBnavBtn(null);
@@ -702,6 +717,15 @@
         }
       }
       window.syncBnavActive = syncBnavActive;
+
+      if (bnavInbox) {
+        bnavInbox.addEventListener("click", function() {
+          setActiveBnavBtn(bnavInbox);
+          if (typeof window.activateProject === "function") {
+            window.activateProject("__inbox__");
+          }
+        });
+      }
 
       if (bnavToday) {
         bnavToday.addEventListener("click", function() {

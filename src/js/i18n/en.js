@@ -29,6 +29,7 @@ export const en = {
   "profile.export":           "Export workspace",
   "profile.import":           "Import workspace",
   "profile.notifications":    "Enable notifications",
+  "profile.simple_mode":      "Simple mode",
   "profile.theme":            "Toggle theme",
   "profile.shortcuts":        "Keyboard shortcuts",
   "profile.tour":             "View welcome tour",

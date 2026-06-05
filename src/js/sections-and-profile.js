@@ -119,6 +119,21 @@ import { t } from "./i18n/index.js";
     });
   }
 
+  // ─── Toggle Modo simple ──────────────────────────────────────
+  var pfSimpleBtn  = document.getElementById("pf-simple-btn");
+  var pfSimplePill = document.getElementById("pf-simple-pill");
+  function _syncSimplePill() {
+    if (pfSimplePill) pfSimplePill.textContent = window.isSimpleMode && window.isSimpleMode() ? "ON" : "OFF";
+  }
+  _syncSimplePill();
+  if (pfSimpleBtn) {
+    pfSimpleBtn.addEventListener("click", function() {
+      if (window.setSimpleMode) window.setSimpleMode(!(window.isSimpleMode && window.isSimpleMode()));
+      _syncSimplePill();
+      profileDropdown.hidden = true;
+    });
+  }
+
   if (pfSigninBtn) {
     pfSigninBtn.addEventListener("click", function() {
       profileDropdown.hidden = true;

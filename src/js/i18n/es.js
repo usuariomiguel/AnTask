@@ -29,6 +29,7 @@ export const es = {
   "profile.export":           "Exportar workspace",
   "profile.import":           "Importar workspace",
   "profile.notifications":    "Activar avisos",
+  "profile.simple_mode":      "Modo simple",
   "profile.theme":            "Cambiar tema",
   "profile.shortcuts":        "Atajos de teclado",
   "profile.tour":             "Ver tour de bienvenida",
