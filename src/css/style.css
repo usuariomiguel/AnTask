@@ -470,7 +470,7 @@ body {
 }
 
 .task-kebab-btn {
-  display: none !important;
+  display: inline-flex !important;
 }
 
 /* ─── COLLAPSE / EXPAND BTNS ─────────────────────────────────── */
@@ -2225,17 +2225,67 @@ button:focus-visible {
               transform    var(--dur-fast) var(--ease-out);
 }
 
-/* Botones de acción siempre visibles (sin hover-reveal). */
-.task-actions > .priority-btn,
-.task-actions > .status-btn,
-.task-actions > .date-btn,
-.task-actions > .recur-btn,
-.task-actions > .comment-btn,
-.task-actions > .label-add-btn,
-.task-actions > .subtask-add-btn {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
+/* Progressive disclosure: la tarjeta limpia muestra solo metadata activa
+   (fecha/repetición/prioridad/estado/aviso) y el menú ⋯. Las acciones
+   de edición aparecen al pasar el mouse, al enfocar por teclado o al
+   expandir la tarea. */
+@media (min-width: 769px) {
+  .task-actions > .priority-btn:not(.priority-high-btn):not(.priority-medium-btn):not(.priority-low-btn),
+  .task-actions > .status-btn:not(.status-progress-btn):not(.status-waiting-btn),
+  .task-actions > .date-btn,
+  .task-actions > .recur-btn:not(.recur-active),
+  .task-actions > .reminder-btn:not(.reminder-active),
+  .task-actions > .comment-btn,
+  .task-actions > .label-add-btn,
+  .task-actions > .subtask-add-btn,
+  .task-actions > .delete-btn {
+    display: none;
+  }
+
+  .task-item:hover .task-actions > .priority-btn,
+  .task-item:hover .task-actions > .status-btn,
+  .task-item:hover .task-actions > .date-btn,
+  .task-item:hover .task-actions > .recur-btn,
+  .task-item:hover .task-actions > .reminder-btn,
+  .task-item:hover .task-actions > .comment-btn,
+  .task-item:hover .task-actions > .label-add-btn,
+  .task-item:hover .task-actions > .subtask-add-btn,
+  .task-item:hover .task-actions > .delete-btn,
+  .task-item:focus-within .task-actions > .priority-btn,
+  .task-item:focus-within .task-actions > .status-btn,
+  .task-item:focus-within .task-actions > .date-btn,
+  .task-item:focus-within .task-actions > .recur-btn,
+  .task-item:focus-within .task-actions > .reminder-btn,
+  .task-item:focus-within .task-actions > .comment-btn,
+  .task-item:focus-within .task-actions > .label-add-btn,
+  .task-item:focus-within .task-actions > .subtask-add-btn,
+  .task-item:focus-within .task-actions > .delete-btn,
+  .task-item.expanded .task-actions > .priority-btn,
+  .task-item.expanded .task-actions > .status-btn,
+  .task-item.expanded .task-actions > .date-btn,
+  .task-item.expanded .task-actions > .recur-btn,
+  .task-item.expanded .task-actions > .reminder-btn,
+  .task-item.expanded .task-actions > .comment-btn,
+  .task-item.expanded .task-actions > .label-add-btn,
+  .task-item.expanded .task-actions > .subtask-add-btn,
+  .task-item.expanded .task-actions > .delete-btn {
+    display: inline-flex;
+  }
+
+  .task-actions > .task-kebab-btn {
+    width: 28px;
+    min-width: 28px;
+    padding: 0;
+    opacity: 0.62;
+  }
+
+  .task-actions > .task-kebab-btn:hover,
+  .task-actions > .task-kebab-btn:focus-visible {
+    opacity: 1;
+    color: var(--text-primary);
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.22);
+  }
 }
 
 /* Badges activos: siempre visibles */
@@ -2243,7 +2293,9 @@ button:focus-visible {
 .task-actions > .priority-btn.priority-medium-btn,
 .task-actions > .priority-btn.priority-low-btn,
 .task-actions > .status-btn.status-progress-btn,
-.task-actions > .status-btn.status-waiting-btn {
+.task-actions > .status-btn.status-waiting-btn,
+.task-actions > .recur-btn.recur-active,
+.task-actions > .reminder-btn.reminder-active {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
