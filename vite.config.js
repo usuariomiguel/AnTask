@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 // @ts-ignore — Vitest injects the `test` key; plain Vite ignores it.
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   root: ".",
   publicDir: "public",
 
@@ -51,8 +51,10 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.js",
 
-      // Actualización automática silenciosa cuando hay nueva versión.
-      registerType: "autoUpdate",
+      // En build: actualización automática silenciosa. En dev: "prompt"
+      // para que el SW NO fuerce recargas de página en cada cambio
+      // (cada regeneración del SW provocaba reloads molestos).
+      registerType: command === "build" ? "autoUpdate" : "prompt",
 
       // Activo también en dev para que las notificaciones funcionen.
       devOptions: {
@@ -69,4 +71,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

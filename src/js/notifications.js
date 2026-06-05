@@ -8,6 +8,7 @@ window.AnsoNotif = (function() {
   var ENABLED_KEY    = "anso-notif-enabled";
   var TIMES_KEY      = "anso-notif-times";       // JSON array ["HH:MM", ...]
   var FIRED_KEY      = "anso-notif-fired";       // JSON { date, times: ["HH:MM"] }
+  var REM_FIRED_KEY  = "anso-reminder-fired";    // JSON ["taskId|reminderAt", ...]
   var LEGACY_TIME    = "anso-notif-time";        // single HH:MM (compat)
   var LEGACY_LAST    = "anso-notif-last-fire-date";
   var DEFAULT_TIMES  = ["09:00"];
@@ -81,6 +82,8 @@ window.AnsoNotif = (function() {
       localStorage.setItem(ENABLED_KEY, "1");
       _checkAndFire();
       _rescheduleNext();
+      // Arma los recordatorios por tarea sin esperar a una edición/recarga.
+      if (_lastProjectList) scheduleTaskReminders(_lastProjectList);
       return true;
     });
   }
@@ -270,7 +273,11 @@ window.AnsoNotif = (function() {
     _checkAndFire();
     _rescheduleNext();
     document.addEventListener("visibilitychange", function() {
-      if (!document.hidden) _checkAndFire();
+      if (!document.hidden) {
+        _checkAndFire();
+        // Recupera recordatorios por tarea que vencieron con la app oculta.
+        if (_lastProjectList) scheduleTaskReminders(_lastProjectList);
+      }
     });
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", function(event) {
@@ -297,6 +304,34 @@ window.AnsoNotif = (function() {
   // ─── Recordatorios por tarea ─────────────────────────────────
   // Map<taskId, setTimeoutId>
   var _taskTimers = Object.create(null);
+  // Última lista de proyectos vista — para re-programar/recuperar al
+  // volver a la app (visibilitychange) sin depender de script.js.
+  var _lastProjectList = null;
+  // Ventana de recuperación: si un recordatorio venció mientras la app
+  // estaba cerrada, lo lanzamos al reabrir SOLO si fue dentro de las
+  // últimas 48 h (evita avalanchas de avisos viejos al activar permisos).
+  var CATCHUP_WINDOW = 48 * 60 * 60 * 1000;
+
+  function _reminderKey(task) { return task.id + "|" + (task.reminderAt || ""); }
+
+  function _firedReminders() {
+    try {
+      var arr = JSON.parse(localStorage.getItem(REM_FIRED_KEY) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function _isReminderFired(task) {
+    return _firedReminders().indexOf(_reminderKey(task)) !== -1;
+  }
+  function _markReminderFired(task) {
+    var list = _firedReminders();
+    var key  = _reminderKey(task);
+    if (list.indexOf(key) !== -1) return;
+    list.push(key);
+    // Poda: conservamos solo las últimas 300 entradas para no crecer sin fin.
+    if (list.length > 300) list = list.slice(list.length - 300);
+    try { localStorage.setItem(REM_FIRED_KEY, JSON.stringify(list)); } catch (e) {}
+  }
 
   function _cancelAllTaskReminders() {
     for (var id in _taskTimers) {
@@ -309,11 +344,16 @@ window.AnsoNotif = (function() {
    * Re-programa todos los recordatorios puntuales mirando todas las tareas.
    * Llamar tras cada saveProjects o cambio de reminderAt.
    *
+   * Además recupera los que vencieron con la app cerrada: como el
+   * `setTimeout` muere al cerrar la pestaña, al reabrir lanzamos aquí los
+   * que pasaron de hora y aún no se habían avisado (dentro de la ventana).
+   *
    * @param {Array} projectList
    */
   function scheduleTaskReminders(projectList) {
     if (!isSupported()) return;
     _cancelAllTaskReminders();
+    if (Array.isArray(projectList)) _lastProjectList = projectList;
     if (!isEnabled()) return;
     if (!Array.isArray(projectList)) return;
     var now = Date.now();
@@ -326,11 +366,21 @@ window.AnsoNotif = (function() {
       if (!p || p.archived) return;
       (p.tasks || []).forEach(function (t) {
         if (!t || t.done || !t.reminderAt) return;
+        if (_isReminderFired(t)) return;         // ya avisado — no repetir
         var fireAt = new Date(t.reminderAt).getTime();
         if (isNaN(fireAt)) return;
         var delay = fireAt - now;
-        if (delay <= 0)         return;  // pasado — ignorar
-        if (delay > MAX_DELAY)  return;  // demasiado lejos — re-programar al volver
+
+        if (delay <= 0) {
+          // Venció mientras la app no corría.
+          if (now - fireAt <= CATCHUP_WINDOW) {
+            _fireTaskReminder(t, p);             // recuperación: avisa ahora
+          } else {
+            _markReminderFired(t);               // demasiado viejo — silenciar
+          }
+          return;
+        }
+        if (delay > MAX_DELAY) return;           // demasiado lejos — re-programar al volver
 
         (function (task, project) {
           _taskTimers[task.id] = setTimeout(function () {
@@ -344,6 +394,8 @@ window.AnsoNotif = (function() {
 
   function _fireTaskReminder(task, project) {
     if (!isEnabled()) return;
+    if (_isReminderFired(task)) return;          // anti-duplicado
+    _markReminderFired(task);
     _showNotification(
       t("notif.reminder_title") + ": " + task.text.slice(0, 70),
       "[" + (project.name || t("notif.unknown_project")) + "]",

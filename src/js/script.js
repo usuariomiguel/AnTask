@@ -35,6 +35,7 @@ import {
   THEME_KEY,
   SECTIONS_KEY,
   SMART_LISTS_KEY,
+  PROFILE_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -51,6 +52,7 @@ import {
   loadMetadata,
   loadTaskPrefs,
   loadSmartLists,
+  loadProfile,
 } from "./state/persistence.js";
 import {
   STATUS_CYCLE,
@@ -126,7 +128,8 @@ window.showGlobalSearch = openGlobalSearch;
  *  - Si hay proyecto activo (no Hoy) → ahí
  *  - Si no → Inbox (fallback)
  */
-function openQuickCapture() {
+function openQuickCapture(opts) {
+  opts = opts || {};
   showQuickCapture({
     getTarget: function() {
       var current = activeView === "project" ? getActiveProject() : null;
@@ -138,6 +141,12 @@ function openQuickCapture() {
       const created = _createTaskInProject(targetProject, rawText);
       if (!created) return;
       saveProjects();
+      // Desde una vista que no es de proyecto (Hoy/Agenda/Calendario/smart-list)
+      // la tarea va al Inbox; si se pide, redirigir allí para que se vea.
+      if (opts.redirectToInbox && activeView !== "project") {
+        activateProject(INBOX_ID);
+        return;
+      }
       renderSidebar();
       // Si la captura es para el proyecto que tenemos abierto, re-pintar tareas.
       if (activeView === "project" && activeProjectId === targetProject.id) {
@@ -212,6 +221,25 @@ migrateStorageIfNeeded();
 // Proyecto especial "Inbox" — siempre existe, fijo al tope de la sidebar.
 const INBOX_ID = "__inbox__";
 
+// ─── MODO SIMPLE ─────────────────────────────────────────────
+// Reduce la app a su esencia: llegar, abrir el Inbox y crear tareas con
+// recordatorios. No borra nada — sólo oculta el resto de la UI vía la clase
+// `simple-mode` en <html> y se puede desactivar ("Modo avanzado").
+const SIMPLE_MODE_KEY = "antask_simple_mode";
+function isSimpleMode() {
+  return localStorage.getItem(SIMPLE_MODE_KEY) !== "0"; // ON por defecto
+}
+function applySimpleMode() {
+  document.documentElement.classList.toggle("simple-mode", isSimpleMode());
+}
+function setSimpleMode(on) {
+  localStorage.setItem(SIMPLE_MODE_KEY, on ? "1" : "0");
+  applySimpleMode();
+}
+window.isSimpleMode = isSimpleMode;
+window.setSimpleMode = setSimpleMode;
+applySimpleMode();
+
 let projects        = loadProjects();
 let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
@@ -232,7 +260,9 @@ let activeSmartListId = null;
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
 
-let activeProjectId = localStorage.getItem(ACTIVE_KEY) || null;
+// En modo simple, si no hay nada activo arrancamos directos en el Inbox
+// (sin pantalla de bienvenida) para que el usuario escriba ya.
+let activeProjectId = localStorage.getItem(ACTIVE_KEY) || (isSimpleMode() ? INBOX_ID : null);
 let activeNoteId    = null;
 // Vista activa: "project" (default) | "today" (vista Hoy virtual).
 let activeView      = "project";
@@ -514,6 +544,7 @@ let _archivedExpanded  = false;
 let _notesExpanded     = false;
 let _smartListsExpanded = false;
 let taskPrefs         = loadTaskPrefs();
+let userProfile       = loadProfile();
 
 // ─── MULTI-SELECT ─────────────────────────────────────────────
 let selectMode = false;
@@ -543,6 +574,12 @@ try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e)
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
+try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }
+
+// Modo simple en escritorio: cursor listo en "nueva tarea" al abrir.
+if (isSimpleMode() && taskInput && !matchMedia("(hover: none)").matches) {
+  setTimeout(function () { try { taskInput.focus(); } catch (e) {} }, 650);
+}
 
 // Recordatorios por tarea — programar timers cuando AnsoNotif ya esté
 // inicializado (lo hace sections-and-profile.js, que se carga después).
@@ -881,6 +918,7 @@ function showColorPicker(project) {
     project.color = color;
     saveProjects();
     renderSidebar();
+    renderTasks(); // refresca el acento (barra izq. + check) al instante
     closeModal(overlay);
   }
 
@@ -996,6 +1034,17 @@ newProjectBtn.addEventListener("click", function() {
       });
     },
   });
+});
+
+// ─── ACCIONES DEL EMPTY STATE ────────────────────────────────
+document.getElementById("empty-open-inbox")?.addEventListener("click", function() {
+  activateProject(INBOX_ID);
+});
+document.getElementById("empty-new-project")?.addEventListener("click", function() {
+  newProjectBtn.click();
+});
+document.getElementById("empty-new-note")?.addEventListener("click", function() {
+  document.getElementById("new-note-btn")?.click();
 });
 
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
@@ -1166,8 +1215,11 @@ function closeFabSheet() {
 }
 
 if (mobileFab) {
+  // El botón "Nueva" abre la MISMA captura rápida que el atajo de PC
+  // (preview de chips + chuleta de lenguaje natural). En vistas que no son
+  // de proyecto, la tarea va al Inbox y redirige allí.
   mobileFab.addEventListener("click", function() {
-    fabSheet && fabSheet.classList.contains("open") ? closeFabSheet() : openFabSheet();
+    openQuickCapture({ redirectToInbox: true });
   });
 }
 if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
@@ -1175,16 +1227,23 @@ if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
 if (fabForm) {
   fabForm.addEventListener("submit", function(e) {
     e.preventDefault();
-    let project = getActiveProject();
-    if (!project) {
-      project = projects.find(function(p) { return p.id === INBOX_ID; });
-      if (!project) return;
-    }
     if (!fabInput) return;
+    // En vistas que NO son de proyecto (Hoy, Agenda, Calendario, smart-lists)
+    // no hay un destino real: la tarea va al Inbox y redirigimos allí para que
+    // el usuario la vea (en Hoy no aparecería si no vence hoy).
+    var inViewProject = activeView === "project";
+    var project = inViewProject ? getActiveProject() : null;
+    if (!project) project = projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!project) return;
     const created = _createTaskInProject(project, fabInput.value);
     if (!created) return;
     closeFabSheet();
-    saveAndRender();
+    if (!inViewProject) {
+      saveProjects();
+      activateProject(INBOX_ID); // redirige a Inbox
+    } else {
+      saveAndRender();
+    }
   });
 }
 
@@ -1796,9 +1855,6 @@ function renderSectionHeader(section, sectionProjects) {
   const li = document.createElement("li");
   li.className = "section-header";
   li.setAttribute("data-section-id", section.id);
-  // Color determinista por sección: alimenta el dot del header y el
-  // chevron. Mismo helper que para proyectos.
-  li.style.setProperty("--section-color", _projectColorFromId(section.id));
 
   const chevron = document.createElement("span");
   chevron.className = "section-chevron" +
@@ -1886,6 +1942,11 @@ function _projectColorFromId(id) {
   }
   var hue = Math.abs(hash) % 360;
   return "hsl(" + hue + ", 62%, 58%)";
+}
+
+/** Color efectivo de un proyecto: el elegido por el usuario o el hash del id. */
+function _projectColor(project) {
+  return (project && (project.color || _projectColorFromId(project.id))) || "var(--c-primary-500)";
 }
 
 function renderProjectItem(project, indented, isArchived, parentEl) {
@@ -2519,6 +2580,8 @@ function renderTasks() {
       _updateTaskNode(node, task);
     }
     existing.delete(task.id);
+    // Refresca el acento (color del proyecto) por si cambió el color.
+    node.style.setProperty("--task-accent", _projectColor(project));
 
     // Reordenar si es necesario (mover solo si no está en su sitio).
     const targetSibling = prevNode ? prevNode.nextSibling : taskList.firstChild;
@@ -2625,6 +2688,8 @@ function _buildTaskNode(task, project) {
     const node       = template.content.firstElementChild.cloneNode(true);
     node.setAttribute("data-task-id", task.id);
     node.setAttribute("draggable", "false");
+    // Color del proyecto → el check de completar usa este acento.
+    node.style.setProperty("--task-accent", _projectColor(project));
 
     const checkbox   = node.querySelector(".task-toggle");
     const text       = node.querySelector(".task-text");
@@ -2635,6 +2700,7 @@ function _buildTaskNode(task, project) {
     const statusBtn     = node.querySelector(".status-btn");
     const priorityBtn   = node.querySelector(".priority-btn");
     const recurBtn   = node.querySelector(".recur-btn");
+    const kebabBtn   = node.querySelector(".task-kebab-btn");
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
     checkbox.addEventListener("change", function() {
@@ -2659,7 +2725,7 @@ function _buildTaskNode(task, project) {
           } else {
             saveAndRender();
           }
-        }, 320);
+        }, 460);
       } else {
         node.classList.add("task-uncompleting");
         setTimeout(function() { saveAndRender(); }, 220);
@@ -2850,13 +2916,29 @@ function _buildTaskNode(task, project) {
       }
     });
 
-    // ── Menú contextual (click derecho) ──────────────────────
-    node.addEventListener("contextmenu", async function(e) {
-      if (e.target.closest("button, input")) return;
-      e.preventDefault();
+    function openTaskActionsMenu(anchorOrPoint) {
       if (selectMode) return;
       closeCtxMenu();
+
+      var clickAction = function(selector) {
+        return function() {
+          var btn = node.querySelector(selector);
+          if (btn) btn.click();
+        };
+      };
+
       var items = [
+        { label: t("action.rename"), action: function() { startInlineEdit(text, task); } },
+        null,
+        { label: t("task_btn.priority"),  action: clickAction(".priority-btn") },
+        { label: t("task_btn.status"),    action: clickAction(".status-btn") },
+        { label: t("task_btn.date"),      action: clickAction(".date-btn") },
+        { label: t("task_btn.recur"),     action: clickAction(".recur-btn") },
+        { label: t("task_btn.reminder"),  action: clickAction(".reminder-btn") },
+        { label: task.comment ? t("task.edit_comment") : t("task.add_comment"), action: clickAction(".comment-btn") },
+        { label: t("task_btn.labels"),    action: clickAction(".label-add-btn") },
+        { label: t("task_btn.subtasks"),  action: clickAction(".subtask-add-btn") },
+        null,
         {
           label: t("task.move_to_project"),
           action: async function() {
@@ -2871,15 +2953,16 @@ function _buildTaskNode(task, project) {
             target.tasks.unshift(moved);
             saveAndRender();
           }
-        }
+        },
+        { label: t("action.delete"), danger: true, action: clickAction(".delete-btn") },
       ];
+
       var menu = _buildCtxMenu(items);
-      var fakeAnchor = {
-        getBoundingClientRect: function() {
-          return { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
-        }
-      };
-      positionCtxMenu(menu, fakeAnchor);
+      if (anchorOrPoint && typeof anchorOrPoint.x === "number") {
+        positionCtxMenuAt(menu, anchorOrPoint.x, anchorOrPoint.y);
+      } else {
+        positionCtxMenu(menu, anchorOrPoint);
+      }
       _ctxMenu = menu;
       requestAnimationFrame(function() {
         _ctxCloseHandler = function(ev) {
@@ -2887,6 +2970,24 @@ function _buildTaskNode(task, project) {
         };
         document.addEventListener("mousedown", _ctxCloseHandler);
       });
+    }
+
+    if (kebabBtn) {
+      kebabBtn.addEventListener("click", function(e) {
+        // En móvil, el script inline abre el action sheet nativo. En desktop,
+        // el ⋯ sustituye al grupo completo de botones secundarios.
+        if (window.matchMedia("(max-width: 768px)").matches) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openTaskActionsMenu(kebabBtn);
+      });
+    }
+
+    // ── Menú contextual (click derecho) ──────────────────────
+    node.addEventListener("contextmenu", async function(e) {
+      if (e.target.closest("button, input")) return;
+      e.preventDefault();
+      openTaskActionsMenu({ x: e.clientX, y: e.clientY });
     });
 
     // ── Checkbox de selección ─────────────────────────────────
@@ -3080,6 +3181,8 @@ function renderTodayItem(task, project, todayStr) {
   li.className = "today-item" +
     (task.priority ? " today-priority-" + task.priority : "") +
     (overdue ? " today-overdue" : "");
+  // Color del proyecto → el check de completar usa este acento.
+  li.style.setProperty("--task-accent", _projectColor(project));
 
   // Checkbox para marcar hecha
   var cb = document.createElement("input");
@@ -4171,6 +4274,7 @@ window.showCalendarPanel = showCalendarPanel;
 window.showAgendaPanel   = showAgendaPanel;
 window.activateTodayView = activateTodayView;
 window.getActiveView = function() { return activeView; };
+window.getActiveProjectId = function() { return activeProjectId; };
 
 function showCalendarPanel() {
   var calPanel = document.getElementById("cal-panel");
@@ -4257,35 +4361,44 @@ function showAgendaPanel() {
 
 function showShortcutsHelp() {
   const { overlay, box } = createModalBase();
+  box.classList.add("modal-box-shortcuts");
+
+  function row(keys, desc) {
+    return '<div class="sc-row"><span class="sc-keys">' + keys + '</span>' +
+           '<span class="sc-desc">' + desc + '</span></div>';
+  }
+  function group(title, rows) {
+    return '<div class="sc-group"><div class="sc-group-title">' + title + '</div>' + rows + '</div>';
+  }
 
   box.innerHTML =
     '<p class="modal-label">Atajos de teclado</p>' +
-    '<table class="shortcuts-table">' +
-      '<tbody>' +
-        '<tr><td><kbd>N</kbd></td><td>Enfocar campo nueva tarea</td></tr>' +
-        '<tr><td><kbd>S</kbd></td><td>Nueva sección</td></tr>' +
-        '<tr><td><kbd>A</kbd></td><td>Vista de agenda</td></tr>' +
-        '<tr><td><kbd>C</kbd></td><td>Vista calendario</td></tr>' +
-        '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Búsqueda global</td></tr>' +
-        '<tr><td><kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd></td><td>Captura rápida (al Inbox)</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td colspan="2" style="opacity:.7;padding-top:.6rem"><strong>Al crear tarea</strong> — sintaxis natural:</td></tr>' +
-        '<tr><td><kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd></td><td>Fecha límite</td></tr>' +
-        '<tr><td><kbd>en 3 días</kbd> <kbd>15/3</kbd></td><td>Fecha relativa o numérica</td></tr>' +
-        '<tr><td><kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd></td><td>Recurrencia</td></tr>' +
-        '<tr><td><kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd></td><td>Prioridad alta · media · baja</td></tr>' +
-        '<tr><td><kbd>#etiqueta</kbd></td><td>Crear/asignar etiqueta</td></tr>' +
-        '<tr><td><kbd>?</kbd></td><td>Ver esta lista de atajos</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Navegar entre tareas</td></tr>' +
-        '<tr><td><kbd>Enter</kbd> / <kbd>Esp.</kbd></td><td>Expandir / colapsar tarea</td></tr>' +
-        '<tr><td><kbd>E</kbd></td><td>Editar texto de la tarea</td></tr>' +
-        '<tr><td><kbd>D</kbd></td><td>Marcar hecha / pendiente</td></tr>' +
-        '<tr><td><kbd>Supr</kbd></td><td>Eliminar tarea (con deshacer)</td></tr>' +
-        '<tr class="shortcuts-sep"><td colspan="2"></td></tr>' +
-        '<tr><td><kbd>Esc</kbd></td><td>Cerrar modal abierto</td></tr>' +
-      '</tbody>' +
-    '</table>' +
+    '<div class="shortcuts-cols">' +
+      group("General",
+        row('<kbd>N</kbd>', 'Enfocar campo nueva tarea') +
+        row('<kbd>S</kbd>', 'Nueva sección') +
+        row('<kbd>A</kbd>', 'Vista de agenda') +
+        row('<kbd>C</kbd>', 'Vista calendario') +
+        row('<kbd>Ctrl</kbd>+<kbd>K</kbd>', 'Búsqueda global') +
+        row('<kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd>', 'Captura rápida (al Inbox)')
+      ) +
+      group("En una tarea",
+        row('<kbd>↑</kbd> <kbd>↓</kbd>', 'Navegar entre tareas') +
+        row('<kbd>Enter</kbd> / <kbd>Esp.</kbd>', 'Expandir / colapsar tarea') +
+        row('<kbd>E</kbd>', 'Editar texto de la tarea') +
+        row('<kbd>D</kbd>', 'Marcar hecha / pendiente') +
+        row('<kbd>Supr</kbd>', 'Eliminar tarea (con deshacer)') +
+        row('<kbd>Esc</kbd>', 'Cerrar modal abierto')
+      ) +
+      group("Al crear tarea — sintaxis natural",
+        row('<kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd>', 'Fecha límite') +
+        row('<kbd>en 3 días</kbd> <kbd>15/3</kbd>', 'Fecha relativa o numérica') +
+        row('<kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd>', 'Recurrencia') +
+        row('<kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd>', 'Prioridad alta · media · baja') +
+        row('<kbd>#etiqueta</kbd>', 'Crear/asignar etiqueta') +
+        row('<kbd>?</kbd>', 'Ver esta lista de atajos')
+      ) +
+    '</div>' +
     '<div class="modal-actions">' +
       '<button class="modal-btn modal-btn-confirm">Cerrar</button>' +
     '</div>';
@@ -4718,6 +4831,7 @@ function applyTaskPrefs() {
     document.body.classList.toggle("hide-task-" + def.key, taskPrefs[def.key] === false);
   });
   document.body.classList.toggle("tasks-compact", taskPrefs.compactView === true);
+  document.body.classList.toggle("tasks-actions-fixed", taskPrefs.actionsFixed === true);
 }
 
 function showTaskPrefsModal() {
@@ -4742,6 +4856,13 @@ function showTaskPrefsModal() {
         '<span class="task-pref-icon"><i data-lucide="rows-3"></i></span>' +
         '<span class="task-pref-label">' + t("task_prefs.compact_view") + '</span>' +
         '<span class="task-pref-toggle' + (compactOn ? " task-pref-on" : "") + '" data-key="compactView" data-type="view">' +
+          '<span class="task-pref-thumb"></span>' +
+        '</span>' +
+      '</label>' +
+      '<label class="task-pref-row">' +
+        '<span class="task-pref-icon"><i data-lucide="ellipsis"></i></span>' +
+        '<span class="task-pref-label">' + t("task_prefs.actions_fixed") + '</span>' +
+        '<span class="task-pref-toggle' + (taskPrefs.actionsFixed === true ? " task-pref-on" : "") + '" data-key="actionsFixed" data-type="view">' +
           '<span class="task-pref-thumb"></span>' +
         '</span>' +
       '</label>' +
@@ -4990,26 +5111,107 @@ function _updateProfileMenu(user) {
   if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
   if (pfSyncUser)  pfSyncUser.hidden  = !user;
 
+  // Valores base según el modo (cuenta Google vs. local).
+  var baseName, baseInitial;
   if (user) {
-    var initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
-    var displayName = user.displayName || user.email || t("profile.user_default");
-    if (pfAvatar)    pfAvatar.textContent    = initial;
-    if (pfAvatarTop) pfAvatarTop.textContent = initial;
-    if (pfName)      pfName.textContent      = displayName;
-    if (pfNameTop)   pfNameTop.textContent   = displayName;
-    if (pfSub)       pfSub.textContent       = t("profile.synced");
-    if (pfSubTop)    pfSubTop.textContent    = t("profile.sync_active");
-    if (pfSyncName)  pfSyncName.textContent  = user.email || user.displayName || "";
+    baseInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
+    baseName = user.displayName || user.email || t("profile.user_default");
+    if (pfSub)      pfSub.textContent      = t("profile.synced");
+    if (pfSubTop)   pfSubTop.textContent   = t("profile.sync_active");
+    if (pfSyncName) pfSyncName.textContent = user.email || user.displayName || "";
     if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
-    if (pfAvatar)    pfAvatar.textContent    = "A";
-    if (pfAvatarTop) pfAvatarTop.textContent = "A";
-    if (pfName)      pfName.textContent      = "antask";
-    if (pfNameTop)   pfNameTop.textContent   = "antask";
-    if (pfSub)       pfSub.textContent       = t("profile.local");
-    if (pfSubTop)    pfSubTop.textContent    = t("profile.local_storage");
+    baseInitial = "A";
+    baseName = "antask";
+    if (pfSub)    pfSub.textContent    = t("profile.local");
+    if (pfSubTop) pfSubTop.textContent = t("profile.local_storage");
   }
+
+  // El perfil local del usuario (nombre + avatar emoji) tiene prioridad.
+  var name  = (userProfile.name && userProfile.name.trim()) || baseName;
+  var emoji = userProfile.icon || "";
+  var avatarValue = emoji || (name ? name.charAt(0).toUpperCase() : baseInitial);
+
+  _applyAvatar(pfAvatar, avatarValue, !!emoji);
+  _applyAvatar(pfAvatarTop, avatarValue, !!emoji);
+  if (pfName)    pfName.textContent    = name;
+  if (pfNameTop) pfNameTop.textContent = name;
 }
+
+function _applyAvatar(el, value, isEmoji) {
+  if (!el) return;
+  el.textContent = value;
+  el.classList.toggle("profile-avatar--emoji", !!isEmoji);
+}
+
+function saveProfile() {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (_) {}
+}
+
+// Modal de edición del perfil local: nombre + avatar emoji (OpenMoji).
+function showProfileModal() {
+  var { overlay, box } = createModalBase();
+
+  var emojis = [
+    "🙂","😎","🤓","🧑","👤","🧑‍💻","🦸","🧙","🐱","🐶",
+    "🦊","🐼","🐧","🦉","🦄","🐲","🌟","⭐","🔥","⚡",
+    "🚀","🎯","💎","🎨","🎵","📚","💡","🌈","🌙","☀️",
+    "🌿","🍀","🌸","🌊","❤️","💪","🧠","👑","🏆","🦋",
+  ];
+
+  var current = userProfile.icon || "";
+  var gridHtml = emojis.map(function(e) {
+    return '<button type="button" class="icon-picker-emoji' +
+      (current === e ? ' icon-picker-emoji--active' : '') +
+      '" data-emoji="' + e + '">' + e + '</button>';
+  }).join('');
+
+  box.innerHTML =
+    '<p class="modal-label">' + t("profile.edit_title") + '</p>' +
+    '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
+      ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
+      ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
+    '<p class="modal-label">' + t("profile.avatar_label") + '</p>' +
+    '<div class="icon-picker-grid">' + gridHtml + '</div>' +
+    '<div class="modal-actions">' +
+      (userProfile.icon ? '<button type="button" class="modal-btn modal-btn-cancel profile-avatar-clear">' + t("project.icon_clear") + '</button>' : '') +
+      '<button type="button" class="modal-btn modal-btn-cancel profile-cancel">' + t("modal.cancel") + '</button>' +
+      '<button type="button" class="modal-btn modal-btn-confirm profile-save">' + t("modal.save") + '</button>' +
+    '</div>';
+
+  var nameInput = box.querySelector('.profile-name-input');
+  var pickedIcon = userProfile.icon || "";
+
+  box.querySelectorAll('.icon-picker-emoji').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      pickedIcon = btn.dataset.emoji;
+      box.querySelectorAll('.icon-picker-emoji').forEach(function(b) {
+        b.classList.toggle('icon-picker-emoji--active', b === btn);
+      });
+    });
+  });
+
+  function save() {
+    userProfile.name = nameInput.value.trim();
+    userProfile.icon = pickedIcon;
+    saveProfile();
+    _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null);
+    closeModal(overlay);
+  }
+
+  overlay._cancel = function() { closeModal(overlay); };
+  box.querySelector('.profile-cancel').addEventListener('click', function() { closeModal(overlay); });
+  box.querySelector('.profile-save').addEventListener('click', save);
+  var clearBtn = box.querySelector('.profile-avatar-clear');
+  if (clearBtn) clearBtn.addEventListener('click', function() { pickedIcon = ""; save(); });
+
+  nameInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); save(); }
+  });
+
+  setTimeout(function() { nameInput.focus(); nameInput.select(); }, 50);
+}
+window.showProfileModal = showProfileModal;
 
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;

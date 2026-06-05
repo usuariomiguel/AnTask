@@ -6,6 +6,7 @@
   "description": "Gestión de tareas y notas — sin servidores, sin cuentas, sin rastro.",
   "scripts": {
     "dev": "vite",
+    "emoji": "node scripts/fetch-openmoji.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p jsconfig.json",

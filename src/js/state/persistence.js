@@ -14,6 +14,7 @@ import {
   METADATA_KEY,
   TASK_PREFS_KEY,
   SMART_LISTS_KEY,
+  PROFILE_KEY,
 } from "./keys.js";
 import { sanitizeProject, sanitizeStandaloneNote, sanitizeSmartList } from "./sanitize.js";
 
@@ -69,6 +70,17 @@ export function loadTaskPrefs() {
   try {
     const raw = localStorage.getItem(TASK_PREFS_KEY);
     return raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+/** Perfil local del usuario (nombre + avatar emoji). @returns {{name?: string, icon?: string}} */
+export function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    const p = raw ? JSON.parse(raw) : {};
+    return p && typeof p === "object" ? p : {};
   } catch (_) {
     return {};
   }

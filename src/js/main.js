@@ -19,6 +19,7 @@ import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
 import { applyDomTranslations, getLang, setLang, t } from "./i18n/index.js";
 import "./setup-lucide.js";
+import { initOpenmoji } from "./utils/openmoji.js";
 import "./paste-utils.js";
 import "./notifications.js";
 import "./script.js";
@@ -33,6 +34,9 @@ window.t = t;
 
 // Aplica traducciones antes de que el usuario vea el contenido.
 applyDomTranslations();
+
+// Sustituye emojis nativos por SVG de OpenMoji (coherentes en todos los OS).
+initOpenmoji();
 
 if (analyticsAllowed()) initAnalytics();
 

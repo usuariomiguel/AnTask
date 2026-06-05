@@ -22,9 +22,14 @@ export const en = {
   // ── Profile ───────────────────────────────────────────────
   "profile.local":            "Local",
   "profile.local_storage":    "Local storage",
+  "profile.edit":             "Edit profile",
+  "profile.edit_title":       "Your name",
+  "profile.name_placeholder": "Type your name...",
+  "profile.avatar_label":     "Pick an avatar",
   "profile.export":           "Export workspace",
   "profile.import":           "Import workspace",
   "profile.notifications":    "Enable notifications",
+  "profile.simple_mode":      "Simple mode",
   "profile.theme":            "Toggle theme",
   "profile.shortcuts":        "Keyboard shortcuts",
   "profile.tour":             "View welcome tour",
@@ -57,6 +62,7 @@ export const en = {
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
   "nav.agenda":               "Agenda",
+  "nav.new":                  "New",
   "nav.calendar":             "Calendar",
 
   // ── Toast / status ────────────────────────────────────────
@@ -95,8 +101,12 @@ export const en = {
   "a11y.loading":             "Loading antask",
 
   // ── Empty state ───────────────────────────────────────────
-  "empty.title":              "What do you want to open?",
+  "empty.title":              "What do you want to do?",
   "empty.sub":                "Select a project or note from the sidebar",
+  "empty.open_inbox":         "Open Inbox",
+  "empty.new_project":        "New project",
+  "empty.new_note":           "New note",
+  "empty.tip":                "quick capture",
 
   // ── Today (view) ──────────────────────────────────────────
   "today.empty_title":        "All clear",
@@ -321,6 +331,16 @@ export const en = {
   "quick_capture.placeholder":"Type the task and press Enter...",
   "quick_capture.hint":       "<kbd>Enter</kbd> to create · <kbd>Esc</kbd> to cancel",
   "quick_capture.added_to":   "Added to",
+  "quick_capture.nl_title":     "You can type:",
+  "quick_capture.nl_dates":     "Date",
+  "quick_capture.nl_dates_ex":  "hoy · mañana · lunes · en 3 días",
+  "quick_capture.nl_recur":     "Repeat",
+  "quick_capture.nl_recur_ex":  "cada 7 días · todos los lunes",
+  "quick_capture.nl_priority":  "Priority",
+  "quick_capture.nl_priority_ex":"p1 · p2 · p3",
+  "quick_capture.nl_label":     "Label",
+  "quick_capture.nl_label_ex":  "#trabajo",
+  "task.quick_hint":            "quick capture",
 
   // ── Import / export ───────────────────────────────────────
   "import.confirm_replace":   "This will replace <strong>all current projects</strong> with the backup. Continue?",
@@ -332,6 +352,7 @@ export const en = {
   // ── Task preferences ──────────────────────────────────────
   "task_prefs.view_section":  "View",
   "task_prefs.compact_view":  "Compact view",
+  "task_prefs.actions_fixed": "Always show actions",
   "task_prefs.buttons_section":"Task buttons",
   "task_btn.priority":        "Priority",
   "task_btn.status":          "Status",
