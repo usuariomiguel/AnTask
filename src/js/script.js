@@ -1003,6 +1003,17 @@ newProjectBtn.addEventListener("click", function() {
   });
 });
 
+// ─── ACCIONES DEL EMPTY STATE ────────────────────────────────
+document.getElementById("empty-open-inbox")?.addEventListener("click", function() {
+  activateProject(INBOX_ID);
+});
+document.getElementById("empty-new-project")?.addEventListener("click", function() {
+  newProjectBtn.click();
+});
+document.getElementById("empty-new-note")?.addEventListener("click", function() {
+  document.getElementById("new-note-btn")?.click();
+});
+
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
 if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
   const project = getActiveProject();
@@ -4776,6 +4787,7 @@ function applyTaskPrefs() {
     document.body.classList.toggle("hide-task-" + def.key, taskPrefs[def.key] === false);
   });
   document.body.classList.toggle("tasks-compact", taskPrefs.compactView === true);
+  document.body.classList.toggle("tasks-actions-fixed", taskPrefs.actionsFixed === true);
 }
 
 function showTaskPrefsModal() {
@@ -4800,6 +4812,13 @@ function showTaskPrefsModal() {
         '<span class="task-pref-icon"><i data-lucide="rows-3"></i></span>' +
         '<span class="task-pref-label">' + t("task_prefs.compact_view") + '</span>' +
         '<span class="task-pref-toggle' + (compactOn ? " task-pref-on" : "") + '" data-key="compactView" data-type="view">' +
+          '<span class="task-pref-thumb"></span>' +
+        '</span>' +
+      '</label>' +
+      '<label class="task-pref-row">' +
+        '<span class="task-pref-icon"><i data-lucide="ellipsis"></i></span>' +
+        '<span class="task-pref-label">' + t("task_prefs.actions_fixed") + '</span>' +
+        '<span class="task-pref-toggle' + (taskPrefs.actionsFixed === true ? " task-pref-on" : "") + '" data-key="actionsFixed" data-type="view">' +
           '<span class="task-pref-thumb"></span>' +
         '</span>' +
       '</label>' +

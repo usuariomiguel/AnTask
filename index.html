@@ -224,8 +224,13 @@
               <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
             </svg>
           </div>
-          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres abrir?</p>
-          <p class="empty-state-sub" data-i18n="empty.sub">Selecciona un proyecto o una nota desde la barra lateral</p>
+          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres hacer?</p>
+          <div class="empty-state-actions">
+            <button type="button" class="empty-action-btn" id="empty-open-inbox">📥 <span data-i18n="empty.open_inbox">Abrir Inbox</span></button>
+            <button type="button" class="empty-action-btn empty-action-btn--primary" id="empty-new-project"><i data-lucide="plus"></i> <span data-i18n="empty.new_project">Crear proyecto</span></button>
+            <button type="button" class="empty-action-btn" id="empty-new-note"><i data-lucide="file-plus"></i> <span data-i18n="empty.new_note">Crear nota</span></button>
+          </div>
+          <p class="empty-state-tip" aria-hidden="true"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>␣</kbd> <span data-i18n="empty.tip">captura rápida</span></p>
         </div>
 
         <!-- Barra de control persistente: header + form + nav de vistas -->
@@ -416,9 +421,9 @@
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
         </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-agenda-btn">
-          <i data-lucide="calendar-range"></i>
-          <span data-i18n="nav.agenda">Agenda</span>
+        <button type="button" class="mobile-bottom-btn" id="bnav-projects-btn">
+          <i data-lucide="layers"></i>
+          <span data-i18n="nav.projects">Proyectos</span>
         </button>
         <!-- Hueco central donde flota el FAB con notch -->
         <div class="mobile-bottom-spacer" aria-hidden="true">
@@ -676,10 +681,10 @@
 
       // ── Bottom navigation ─────────────────────────────────────
       var bnavToday    = document.getElementById("bnav-today-btn");
-      var bnavAgenda   = document.getElementById("bnav-agenda-btn");
+      var bnavProjects = document.getElementById("bnav-projects-btn");
       var bnavCalendar = document.getElementById("bnav-calendar-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
-      var allBnavBtns  = [bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
+      var allBnavBtns  = [bnavToday, bnavProjects, bnavCalendar, bnavSearch];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -694,8 +699,6 @@
           var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
           if (av === "today") { setActiveBnavBtn(bnavToday); return; }
           var calPanel    = document.getElementById("cal-panel");
-          var agendaPanel = document.getElementById("agenda-panel");
-          if (agendaPanel && !agendaPanel.hidden) { setActiveBnavBtn(bnavAgenda); return; }
           if (calPanel    && !calPanel.hidden)    { setActiveBnavBtn(bnavCalendar); return; }
           setActiveBnavBtn(null);
         } catch (e) {
@@ -713,12 +716,11 @@
         });
       }
 
-      if (bnavAgenda) {
-        bnavAgenda.addEventListener("click", function() {
-          setActiveBnavBtn(bnavAgenda);
-          if (typeof window.showAgendaPanel === "function") {
-            window.showAgendaPanel();
-          }
+      if (bnavProjects) {
+        bnavProjects.addEventListener("click", function() {
+          // Proyectos abre el drawer del sidebar (overlay); no es una vista,
+          // así que no marca estado activo persistente.
+          openSidebar();
         });
       }
 

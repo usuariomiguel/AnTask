@@ -1064,6 +1064,75 @@ body {
   z-index: 1;
 }
 
+/* ── Empty state: acciones rápidas ── */
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.4rem;
+  position: relative;
+  z-index: 1;
+}
+.empty-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+.empty-action-btn:hover {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.empty-action-btn .lucide { width: 15px; height: 15px; stroke-width: 2; }
+.empty-action-btn--primary {
+  background: var(--grad-primary);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.30);
+}
+.empty-action-btn--primary:hover {
+  color: #fff;
+  filter: brightness(1.06);
+}
+
+.empty-state-tip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  position: relative;
+  z-index: 1;
+}
+.empty-state-tip kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 1px 5px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-xs);
+  color: var(--text-secondary);
+}
+@media (max-width: 768px) {
+  .empty-state-tip { display: none; }
+}
+
 /* ─── TASKS PANEL ────────────────────────────────────────────── */
 /* ── Control bar (header + form + view-nav, siempre visible con proyecto) */
 .ctrl-bar {
@@ -2270,6 +2339,12 @@ button:focus-visible {
   .task-item.expanded .task-actions > .subtask-add-btn,
   .task-item.expanded .task-actions > .delete-btn {
     display: inline-flex;
+  }
+
+  /* Modo "acciones siempre visibles" (preferencia del usuario): anula el
+     ocultado por defecto y muestra todas las acciones sin hover. */
+  body.tasks-actions-fixed .task-actions > button {
+    display: inline-flex !important;
   }
 
   .task-actions > .task-kebab-btn {

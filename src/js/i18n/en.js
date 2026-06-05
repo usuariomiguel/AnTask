@@ -61,6 +61,7 @@ export const en = {
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
   "nav.agenda":               "Agenda",
+  "nav.projects":             "Projects",
   "nav.calendar":             "Calendar",
 
   // ── Toast / status ────────────────────────────────────────
@@ -99,8 +100,12 @@ export const en = {
   "a11y.loading":             "Loading antask",
 
   // ── Empty state ───────────────────────────────────────────
-  "empty.title":              "What do you want to open?",
+  "empty.title":              "What do you want to do?",
   "empty.sub":                "Select a project or note from the sidebar",
+  "empty.open_inbox":         "Open Inbox",
+  "empty.new_project":        "New project",
+  "empty.new_note":           "New note",
+  "empty.tip":                "quick capture",
 
   // ── Today (view) ──────────────────────────────────────────
   "today.empty_title":        "All clear",
@@ -346,6 +351,7 @@ export const en = {
   // ── Task preferences ──────────────────────────────────────
   "task_prefs.view_section":  "View",
   "task_prefs.compact_view":  "Compact view",
+  "task_prefs.actions_fixed": "Always show actions",
   "task_prefs.buttons_section":"Task buttons",
   "task_btn.priority":        "Priority",
   "task_btn.status":          "Status",

@@ -61,6 +61,7 @@ export const es = {
   "nav.inbox":                "Bandeja",
   "nav.today":                "Hoy",
   "nav.agenda":               "Agenda",
+  "nav.projects":             "Proyectos",
   "nav.calendar":             "Calendario",
 
   // ── Toast / estado ────────────────────────────────────────
@@ -99,8 +100,12 @@ export const es = {
   "a11y.loading":             "Cargando antask",
 
   // ── Empty state ───────────────────────────────────────────
-  "empty.title":              "¿Qué quieres abrir?",
+  "empty.title":              "¿Qué quieres hacer?",
   "empty.sub":                "Selecciona un proyecto o una nota desde la barra lateral",
+  "empty.open_inbox":         "Abrir Inbox",
+  "empty.new_project":        "Crear proyecto",
+  "empty.new_note":           "Crear nota",
+  "empty.tip":                "captura rápida",
 
   // ── Hoy (vista) ───────────────────────────────────────────
   "today.empty_title":        "Todo limpio",
@@ -346,6 +351,7 @@ export const es = {
   // ── Preferencias de tarea ─────────────────────────────────
   "task_prefs.view_section":  "Vista",
   "task_prefs.compact_view":  "Vista compacta",
+  "task_prefs.actions_fixed": "Acciones siempre visibles",
   "task_prefs.buttons_section":"Botones de tarea",
   "task_btn.priority":        "Prioridad",
   "task_btn.status":          "Estado",
