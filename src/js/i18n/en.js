@@ -61,7 +61,7 @@ export const en = {
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
   "nav.agenda":               "Agenda",
-  "nav.projects":             "Projects",
+  "nav.new":                  "New",
   "nav.calendar":             "Calendar",
 
   // ── Toast / status ────────────────────────────────────────

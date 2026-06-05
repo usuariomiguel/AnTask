@@ -128,7 +128,8 @@ window.showGlobalSearch = openGlobalSearch;
  *  - Si hay proyecto activo (no Hoy) → ahí
  *  - Si no → Inbox (fallback)
  */
-function openQuickCapture() {
+function openQuickCapture(opts) {
+  opts = opts || {};
   showQuickCapture({
     getTarget: function() {
       var current = activeView === "project" ? getActiveProject() : null;
@@ -140,6 +141,12 @@ function openQuickCapture() {
       const created = _createTaskInProject(targetProject, rawText);
       if (!created) return;
       saveProjects();
+      // Desde una vista que no es de proyecto (Hoy/Agenda/Calendario/smart-list)
+      // la tarea va al Inbox; si se pide, redirigir allí para que se vea.
+      if (opts.redirectToInbox && activeView !== "project") {
+        activateProject(INBOX_ID);
+        return;
+      }
       renderSidebar();
       // Si la captura es para el proyecto que tenemos abierto, re-pintar tareas.
       if (activeView === "project" && activeProjectId === targetProject.id) {
@@ -1182,8 +1189,11 @@ function closeFabSheet() {
 }
 
 if (mobileFab) {
+  // El botón "Nueva" abre la MISMA captura rápida que el atajo de PC
+  // (preview de chips + chuleta de lenguaje natural). En vistas que no son
+  // de proyecto, la tarea va al Inbox y redirige allí.
   mobileFab.addEventListener("click", function() {
-    fabSheet && fabSheet.classList.contains("open") ? closeFabSheet() : openFabSheet();
+    openQuickCapture({ redirectToInbox: true });
   });
 }
 if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
@@ -1191,16 +1201,23 @@ if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
 if (fabForm) {
   fabForm.addEventListener("submit", function(e) {
     e.preventDefault();
-    let project = getActiveProject();
-    if (!project) {
-      project = projects.find(function(p) { return p.id === INBOX_ID; });
-      if (!project) return;
-    }
     if (!fabInput) return;
+    // En vistas que NO son de proyecto (Hoy, Agenda, Calendario, smart-lists)
+    // no hay un destino real: la tarea va al Inbox y redirigimos allí para que
+    // el usuario la vea (en Hoy no aparecería si no vence hoy).
+    var inViewProject = activeView === "project";
+    var project = inViewProject ? getActiveProject() : null;
+    if (!project) project = projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!project) return;
     const created = _createTaskInProject(project, fabInput.value);
     if (!created) return;
     closeFabSheet();
-    saveAndRender();
+    if (!inViewProject) {
+      saveProjects();
+      activateProject(INBOX_ID); // redirige a Inbox
+    } else {
+      saveAndRender();
+    }
   });
 }
 
