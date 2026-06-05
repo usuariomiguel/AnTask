@@ -19,6 +19,15 @@
           document.documentElement.setAttribute("data-theme", "dark");
         }
       })();
+
+      // Si el usuario ya tiene datos, ir directo a la app.
+      (function() {
+        try {
+          if (localStorage.getItem("anso-projects")) {
+            location.replace("./app.html");
+          }
+        } catch(e) {}
+      })();
     </script>
 
     <!-- Open Graph / Twitter -->
