@@ -44,13 +44,24 @@ export function showConsentBannerIfNeeded(onDecision) {
     setConsent("all");
     _dismiss(banner);
     onDecision("all");
+    _notifyDecided("all");
   }, { once: true });
 
   banner.querySelector("#consent-decline")?.addEventListener("click", function () {
     setConsent("essential");
     _dismiss(banner);
     onDecision("essential");
+    _notifyDecided("essential");
   }, { once: true });
+}
+
+/**
+ * Avisa al resto de la app de que el usuario ya decidió el consentimiento.
+ * Lo usa el onboarding para no solaparse con el banner en el primer arranque.
+ * @param {"all"|"essential"} value
+ */
+function _notifyDecided(value) {
+  document.dispatchEvent(new CustomEvent("antask:consent-decided", { detail: value }));
 }
 
 /** @param {HTMLElement} banner */

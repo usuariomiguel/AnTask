@@ -418,10 +418,6 @@
 
       <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
-        <!-- SVG mask con notch para que el FAB encaje visualmente -->
-        <svg class="mobile-bottom-nav-bg" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0,0 L160,0 C168,0 172,4 175,12 C180,30 200,42 220,30 C232,22 232,8 240,0 L400,0 L400,64 L0,64 Z"/>
-        </svg>
         <!-- Solo visible en modo simple: acceso directo al Inbox -->
         <button type="button" class="mobile-bottom-btn" id="bnav-inbox-btn">
           <i data-lucide="inbox"></i>
@@ -431,21 +427,21 @@
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
         </button>
+        <!-- Botón de creación rápida integrado en la fila (abre el fab-sheet) -->
+        <button type="button" class="mobile-bottom-btn mobile-bottom-btn--create" id="mobile-fab" aria-label="Nueva tarea">
+          <span class="mobile-create-icon">
+            <i data-lucide="plus" class="fab-icon-plus"></i>
+            <i data-lucide="x"    class="fab-icon-close"></i>
+          </span>
+          <span data-i18n="nav.new">Nueva</span>
+        </button>
         <button type="button" class="mobile-bottom-btn" id="bnav-agenda-btn">
           <i data-lucide="calendar-range"></i>
           <span data-i18n="nav.agenda">Agenda</span>
         </button>
-        <!-- Hueco central donde flota el FAB con notch -->
-        <div class="mobile-bottom-spacer" aria-hidden="true">
-          <!-- FAB anclado al centro real del nav vía position:absolute -->
-          <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
-            <i data-lucide="plus" class="fab-icon-plus"></i>
-            <i data-lucide="x"    class="fab-icon-close"></i>
-          </button>
-        </div>
         <button type="button" class="mobile-bottom-btn" id="bnav-calendar-btn">
           <i data-lucide="calendar-days"></i>
-          <span data-i18n="nav.calendar">Calendario</span>
+          <span data-i18n="nav.calendar_short">Mes</span>
         </button>
         <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
           <i data-lucide="search"></i>

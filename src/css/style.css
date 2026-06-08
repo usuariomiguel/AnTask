@@ -471,6 +471,13 @@ body {
 
 .task-kebab-btn {
   display: inline-flex !important;
+  position: relative;
+}
+/* Área de toque ≥44px sin agrandar el icono ni la fila densa. */
+.task-kebab-btn::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 
 /* ─── COLLAPSE / EXPAND BTNS ─────────────────────────────────── */
@@ -4139,8 +4146,8 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   /* "Más acciones" — icono ghost, sin borde */
   .more-actions-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -4799,8 +4806,8 @@ body.project-dragging .project-item { cursor: grabbing; }
   /* Botón ✕ cerrar — visible solo en móvil */
   .sidebar-close-btn {
     display: inline-flex;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
   .sidebar-close-btn .lucide { width: 20px; height: 20px; }
 
@@ -6704,6 +6711,13 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   opacity: 0;
   transition: opacity 0.14s, background 0.13s;
   flex-shrink: 0;
+  position: relative;
+}
+/* Área de toque ≥44px sin alterar el tamaño visual del icono. */
+.project-kebab-btn::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
 }
 .project-kebab-btn .lucide {
   width: 13px;
@@ -6713,6 +6727,10 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 .project-item:hover .project-kebab-btn { opacity: 1; }
 .project-kebab-btn:hover { background: rgba(139, 92, 246, 0.10); color: var(--t-soft); }
+/* En táctil no hay hover: el kebab debe verse siempre. */
+@media (hover: none) {
+  .project-kebab-btn { opacity: 1; }
+}
 
 /* (legacy) .new-section-btn retirado — el botón ahora vive en
  * .sidebar-header-actions con clase .sidebar-icon-btn. */
