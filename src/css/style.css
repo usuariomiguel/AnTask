@@ -3,16 +3,19 @@
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 /*
- * Design system v2 — alineado con reference-design (violet/SaaS premium).
+ * Design system v3 — rediseño cálido "Tierra" (acento oliva).
+ * Fuente de verdad: design_handoff_antask_v1/tokens.css.
  * Estructura:
- *   1. Brand primary (violet scale + gradient)
+ *   1. Brand primary (escala oliva + gradient)
  *   2. Surface layers (deep / canvas / card / raised / overlay)
  *   3. Borders, text, semantic
  *   4. Tag pastels (paired bg + fg)
  *   5. Typography, spacing, radii, shadows, motion
  *   6. Legacy aliases — apuntan a tokens nuevos para no romper CSS existente.
- *      Las fases siguientes irán migrando consumidores a los tokens nuevos
- *      y los aliases acabarán retirándose.
+ *
+ * Modo oscuro (por defecto) = "Oscuro cálido" (marrón + miel).
+ * En oscuro el acento se ACLARA para leer sobre fondo oscuro, y el
+ * texto sobre relleno de acento pasa a ser oscuro (--accent-on).
  */
 :root {
   color-scheme: dark;
@@ -20,63 +23,70 @@
   --vt-y: 30px;
 
   /* ─── 1. BRAND PRIMARY ──────────────────────────────────────── */
-  --c-primary-50:  #f5f3ff;
-  --c-primary-100: #ede9fe;
-  --c-primary-200: #ddd6fe;
-  --c-primary-300: #c4b5fd;
-  --c-primary-400: #a78bfa;
-  --c-primary-500: #8b5cf6;  /* primary action */
-  --c-primary-600: #7c3aed;
-  --c-primary-700: #6d28d9;
-  --c-primary-800: #5b21b6;
+  --c-primary-50:  #f7f8ee;
+  --c-primary-100: #eef0da;
+  --c-primary-200: #dde2b8;
+  --c-primary-300: #c3d18a;
+  --c-primary-400: #b3c176;
+  --c-primary-500: #a3b366;  /* primary action (oliva claro) */
+  --c-primary-600: #8a9a5b;
+  --c-primary-700: #6f7a3d;
+  --c-primary-800: #566030;
 
-  --grad-primary:       linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-  --grad-primary-hover: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  --glow-primary:       0 4px 14px rgba(139, 92, 246, 0.35);
-  --ring-primary:       0 0 0 3px rgba(139, 92, 246, 0.22);
+  --accent-on:   #241910;                    /* texto sobre relleno de acento */
+  --accent-tint: rgba(163, 179, 102, 0.15);  /* fondos teñidos (nav activa, chips) */
+
+  --grad-primary:       linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
+  --grad-primary-hover: linear-gradient(135deg, #97a865 0%, #66713a 100%);
+  --glow-primary:       0 4px 14px rgba(163, 179, 102, 0.30);
+  --ring-primary:       0 0 0 3px rgba(163, 179, 102, 0.22);
 
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
-  --surface-deep:    #0a0a0f;   /* sidebar, capa más profunda */
-  --surface-canvas:  #111118;   /* canvas principal */
-  --surface-card:    #16161f;   /* tarjetas / paneles */
-  --surface-raised:  #1c1c27;   /* hover, raised */
-  --surface-overlay: rgba(28, 28, 39, 0.96);
-  --surface-input:   rgba(255, 255, 255, 0.04);
+  --surface-deep:    #100c08;   /* sidebar, capa más profunda */
+  --surface-canvas:  #17120d;   /* canvas principal */
+  --surface-card:    #211a13;   /* tarjetas / paneles */
+  --surface-raised:  #2c241b;   /* hover, raised, segmento activo */
+  --surface-overlay: rgba(38, 30, 22, 0.96);
+  --surface-input:   rgba(255, 245, 230, 0.045);
 
   /* ─── 3. BORDERS / TEXT / SEMANTIC ──────────────────────────── */
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.10);
-  --border-strong:  rgba(255, 255, 255, 0.16);
+  --border-subtle:  rgba(255, 238, 214, 0.07);
+  --border-default: rgba(255, 238, 214, 0.09);
+  --border-strong:  rgba(255, 238, 214, 0.16);
   --border-focus:   var(--c-primary-500);
 
-  --text-primary:   #f4f4f8;
-  --text-secondary: #b4b3c5;
-  --text-tertiary:  #7e7d92;
-  --text-disabled:  #4d4c5e;
-  --text-inverse:   #0a0a0f;
+  --text-primary:   #f1e9dc;
+  --text-secondary: #b6a691;
+  --text-tertiary:  #80715c;
+  --text-disabled:  #55492f;
+  --text-inverse:   #17120d;
 
-  --c-success: #34d399;
-  --c-warning: #fbbf24;
-  --c-danger:  #fb7185;
-  --c-info:    #60a5fa;
+  --c-success: #5fb3a3;
+  --c-warning: #e0a35a;
+  --c-danger:  #e07a6a;
+  --c-info:    #73b6d2;
 
   /* ─── 4. TAG PASTELS (paired bg + fg) ───────────────────────── */
-  --tag-violet-bg: rgba(167, 139, 250, 0.16);
-  --tag-violet-fg: #c4b5fd;
-  --tag-pink-bg:   rgba(244, 114, 182, 0.16);
-  --tag-pink-fg:   #f9a8d4;
-  --tag-amber-bg:  rgba(251, 191, 36, 0.14);
-  --tag-amber-fg:  #fcd34d;
-  --tag-green-bg:  rgba(52, 211, 153, 0.14);
-  --tag-green-fg:  #6ee7b7;
-  --tag-blue-bg:   rgba(96, 165, 250, 0.14);
-  --tag-blue-fg:   #93c5fd;
-  --tag-rose-bg:   rgba(251, 113, 133, 0.14);
-  --tag-rose-fg:   #fda4af;
-  --tag-cyan-bg:   rgba(34, 211, 238, 0.14);
-  --tag-cyan-fg:   #67e8f9;
-  --tag-slate-bg:  rgba(148, 163, 184, 0.14);
-  --tag-slate-fg:  #cbd5e1;
+  --tag-violet-bg: rgba(163, 179, 102, 0.16);
+  --tag-violet-fg: #c3d18a;
+  --tag-pink-bg:   rgba(224, 122, 106, 0.16);
+  --tag-pink-fg:   #f0a396;
+  --tag-amber-bg:  rgba(224, 163, 90, 0.16);
+  --tag-amber-fg:  #f0bd84;
+  --tag-green-bg:  rgba(95, 179, 163, 0.16);
+  --tag-green-fg:  #7fd0c0;
+  --tag-blue-bg:   rgba(115, 182, 210, 0.14);
+  --tag-blue-fg:   #9dcde0;
+  --tag-rose-bg:   rgba(224, 122, 106, 0.14);
+  --tag-rose-fg:   #f2b3a8;
+  --tag-cyan-bg:   rgba(95, 179, 163, 0.14);
+  --tag-cyan-fg:   #8fd8c9;
+  --tag-slate-bg:  rgba(180, 165, 140, 0.14);
+  --tag-slate-fg:  #cabba2;
+
+  /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
+  --row-hover: rgba(255, 238, 214, 0.055);  /* hover de fila */
+  --kbd-bg:    rgba(255, 245, 230, 0.07);
 
   /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────── */
   --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
@@ -172,12 +182,12 @@
   --t-muted:   var(--text-tertiary);
 
   --b-subtle: var(--border-default);
-  --b-active: rgba(139, 92, 246, 0.45);
-  --b-glow:   rgba(139, 92, 246, 0.80);
+  --b-active: rgba(163, 179, 102, 0.45);
+  --b-glow:   rgba(163, 179, 102, 0.80);
 
-  --glow-cyan: 0 0 0 3px rgba(139, 92, 246, 0.18), 0 0 20px rgba(139, 92, 246, 0.10);
-  --glow-blue: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 20px rgba(96, 165, 250, 0.08);
-  --glow-pink: 0 0 0 3px rgba(251, 113, 133, 0.18), 0 0 20px rgba(251, 113, 133, 0.08);
+  --glow-cyan: 0 0 0 3px rgba(163, 179, 102, 0.18), 0 0 20px rgba(163, 179, 102, 0.10);
+  --glow-blue: 0 0 0 3px rgba(115, 182, 210, 0.18), 0 0 20px rgba(115, 182, 210, 0.08);
+  --glow-pink: 0 0 0 3px rgba(224, 122, 106, 0.18), 0 0 20px rgba(224, 122, 106, 0.08);
 
   --radius-sm: var(--r-xs);
   --radius-md: var(--r-sm);
@@ -190,7 +200,11 @@
 /* ─── SCROLLBAR ──────────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.12) transparent;
+  scrollbar-color: rgba(255, 238, 214, 0.14) transparent;
+}
+
+:root[data-theme="light"] * {
+  scrollbar-color: rgba(74, 58, 38, 0.24) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -203,31 +217,31 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(255, 238, 214, 0.14);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%);
+  background: rgba(255, 238, 214, 0.30);
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.14);
+  background: rgba(74, 58, 38, 0.24);
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #7c3aed 0%, #4f46e5 100%);
+  background: rgba(74, 58, 38, 0.42);
 }
 
 /* ─── TEXT SELECTION ─────────────────────────────────────────── */
 ::selection {
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(163, 179, 102, 0.35);
   color: #fff;
 }
 
 :root[data-theme="light"] ::selection {
-  background: rgba(124, 58, 237, 0.20);
-  color: #1a1a24;
+  background: rgba(111, 122, 61, 0.22);
+  color: #2a251d;
 }
 
 /* ─── VIEW TRANSITION ────────────────────────────────────────── */
@@ -258,74 +272,104 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Brand primary — algo más oscuro para contraste sobre blanco */
-  --c-primary-300: #a78bfa;
-  --c-primary-400: #8b5cf6;
-  --c-primary-500: #7c3aed;
-  --c-primary-600: #6d28d9;
-  --c-primary-700: #5b21b6;
+  /* Brand primary — oliva, más oscuro para contraste sobre papel */
+  --c-primary-300: #a3b366;
+  --c-primary-400: #8a9a5b;
+  --c-primary-500: #6f7a3d;   /* oliva */
+  --c-primary-600: #5a6330;
+  --c-primary-700: #4a5228;
+  --c-primary-800: #3d441f;
 
-  --grad-primary:       linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  --grad-primary-hover: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
-  --glow-primary:       0 4px 14px rgba(124, 58, 237, 0.28);
-  --ring-primary:       0 0 0 3px rgba(124, 58, 237, 0.18);
+  --accent-on:   #fffdf6;
+  --accent-tint: rgba(111, 122, 61, 0.14);
 
-  /* Surfaces */
-  --surface-deep:    #f4f4f8;
-  --surface-canvas:  #fafafa;
-  --surface-card:    #ffffff;
-  --surface-raised:  #f7f7fb;
-  --surface-overlay: rgba(255, 255, 255, 0.96);
-  --surface-input:   rgba(0, 0, 0, 0.025);
+  --grad-primary:       linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
+  --grad-primary-hover: linear-gradient(135deg, #7d8c50 0%, #4a5228 100%);
+  --glow-primary:       0 4px 14px rgba(111, 122, 61, 0.28);
+  --ring-primary:       0 0 0 3px rgba(111, 122, 61, 0.20);
+
+  /* Surfaces — papel cálido. OJO: la sidebar sigue oscura (ver .sidebar) */
+  --surface-deep:    #221d16;
+  --surface-canvas:  #f4efe3;
+  --surface-card:    #fffdf6;
+  --surface-raised:  #efe6d4;
+  --surface-overlay: rgba(255, 253, 246, 0.97);
+  --surface-input:   #fffdf6;
 
   /* Borders */
-  --border-subtle:  rgba(0, 0, 0, 0.05);
-  --border-default: rgba(0, 0, 0, 0.09);
-  --border-strong:  rgba(0, 0, 0, 0.14);
+  --border-subtle:  rgba(50, 40, 24, 0.08);
+  --border-default: rgba(50, 40, 24, 0.11);
+  --border-strong:  rgba(50, 40, 24, 0.18);
 
   /* Text */
-  --text-primary:   #1a1a24;
-  --text-secondary: #52525e;
-  --text-tertiary:  #6a6a76;
-  --text-disabled:  #c8c8d0;
-  --text-inverse:   #ffffff;
+  --text-primary:   #2a251d;
+  --text-secondary: #6a6151;
+  --text-tertiary:  #7a7060;
+  --text-disabled:  #b3a892;
+  --text-inverse:   #f2ece0;
 
   /* Semantic */
-  --c-success: #059669;
-  --c-warning: #d97706;
-  --c-danger:  #e11d48;
-  --c-info:    #2563eb;
+  --c-success: #3f8a7d;
+  --c-warning: #b58236;
+  --c-danger:  #b0524a;
+  --c-info:    #3d6e85;
 
-  /* Tag pastels — más saturados sobre blanco */
-  --tag-violet-bg: rgba(124, 58, 237, 0.10);
-  --tag-violet-fg: #6d28d9;
-  --tag-pink-bg:   rgba(219, 39, 119, 0.10);
-  --tag-pink-fg:   #be185d;
-  --tag-amber-bg:  rgba(217, 119, 6, 0.10);
-  --tag-amber-fg:  #b45309;
-  --tag-green-bg:  rgba(5, 150, 105, 0.10);
-  --tag-green-fg:  #047857;
-  --tag-blue-bg:   rgba(37, 99, 235, 0.10);
-  --tag-blue-fg:   #1d4ed8;
-  --tag-rose-bg:   rgba(225, 29, 72, 0.10);
-  --tag-rose-fg:   #be123c;
-  --tag-cyan-bg:   rgba(8, 145, 178, 0.10);
-  --tag-cyan-fg:   #0e7490;
-  --tag-slate-bg:  rgba(71, 85, 105, 0.10);
-  --tag-slate-fg:  #334155;
+  /* Tag pastels — más saturados sobre papel */
+  --tag-violet-bg: rgba(111, 122, 61, 0.12);
+  --tag-violet-fg: #5a6330;
+  --tag-pink-bg:   rgba(176, 82, 74, 0.12);
+  --tag-pink-fg:   #9a453e;
+  --tag-amber-bg:  rgba(194, 135, 58, 0.18);
+  --tag-amber-fg:  #945f1c;
+  --tag-green-bg:  rgba(63, 138, 125, 0.15);
+  --tag-green-fg:  #2f7163;
+  --tag-blue-bg:   rgba(61, 110, 133, 0.12);
+  --tag-blue-fg:   #35617a;
+  --tag-rose-bg:   rgba(176, 82, 74, 0.10);
+  --tag-rose-fg:   #8f3f38;
+  --tag-cyan-bg:   rgba(63, 138, 125, 0.10);
+  --tag-cyan-fg:   #2f7163;
+  --tag-slate-bg:  rgba(120, 108, 88, 0.14);
+  --tag-slate-fg:  #6f6555;
 
-  /* Shadows — más suaves sobre blanco */
-  --shadow-sm:   0 1px 2px rgba(20, 20, 30, 0.06);
-  --shadow-md:   0 4px 12px rgba(20, 20, 30, 0.08);
-  --shadow-lg:   0 12px 32px rgba(20, 20, 30, 0.12);
-  --shadow-card: 0 1px 3px rgba(20, 20, 30, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  /* Interacción */
+  --row-hover: #efe6d4;
+  --kbd-bg:    #e7dfcf;
+
+  /* Shadows — más suaves, con tinte cálido */
+  --shadow-sm:   0 1px 2px rgba(50, 40, 24, 0.06);
+  --shadow-md:   0 4px 12px rgba(50, 40, 24, 0.08);
+  --shadow-lg:   0 12px 32px rgba(50, 40, 24, 0.12);
+  --shadow-card: 0 1px 3px rgba(50, 40, 24, 0.06), 0 0 0 1px rgba(50, 40, 24, 0.04);
 
   /* Aliases que necesitan tinte específico en light (no cascadean limpio) */
-  --b-active:  rgba(124, 58, 237, 0.45);
-  --b-glow:    rgba(124, 58, 237, 0.75);
-  --glow-cyan: 0 0 0 3px rgba(124, 58, 237, 0.15);
-  --glow-blue: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  --glow-pink: 0 0 0 3px rgba(225, 29, 72, 0.15);
+  --b-active:  rgba(111, 122, 61, 0.45);
+  --b-glow:    rgba(111, 122, 61, 0.75);
+  --glow-cyan: 0 0 0 3px rgba(111, 122, 61, 0.15);
+  --glow-blue: 0 0 0 3px rgba(61, 110, 133, 0.15);
+  --glow-pink: 0 0 0 3px rgba(176, 82, 74, 0.15);
+}
+
+/* ─── SIDEBAR OSCURA EN TEMA CLARO ───────────────────────────────
+   Rasgo distintivo del rediseño "Tierra": la sidebar permanece oscura
+   (#221d16) mientras el resto de la app es clara. Tokens propios
+   re-declarados en el ámbito de .sidebar para que todo su contenido
+   (texto, bordes, inputs, item activo) cascadee correctamente. */
+:root[data-theme="light"] .sidebar {
+  --text-primary:   #f2ece0;
+  --text-secondary: #b3a892;
+  --text-tertiary:  #7a7059;
+  --text-disabled:  #55492f;
+  --border-subtle:  rgba(255, 245, 225, 0.06);
+  --border-default: rgba(255, 245, 225, 0.08);
+  --border-strong:  rgba(255, 245, 225, 0.15);
+  --surface-input:  rgba(255, 250, 240, 0.05);
+  --accent-tint:    rgba(138, 154, 91, 0.20);  /* item activo */
+  --c-primary-400:  #a3b366;                    /* acento aclarado sobre oscuro */
+  --c-primary-500:  #a3b366;
+  --accent-on:      #241910;
+  --row-hover:      rgba(255, 245, 225, 0.05);
+  --kbd-bg:         rgba(255, 245, 230, 0.07);
 }
 
 /* ─── LUCIDE ICONS ───────────────────────────────────────────── */
@@ -374,14 +418,13 @@ body {
   overflow: hidden;
   display: flex;
   align-items: stretch;
-  background-color: var(--bg-void);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 102, 241, 0.22) 0%, transparent 65%);
+  /* Shell flotante "Tierra": el body es el escritorio (desk) sobre el que
+     flotan sidebar y panel de contenido. Canvas plano, sin radiales. */
+  background-color: #0c0906;
 }
 
 :root[data-theme="light"] body {
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.07) 0%, transparent 65%);
+  background-color: #e3d8c2;
 }
 
 /* ─── BRAND LOGO ─────────────────────────────────────────────── */
