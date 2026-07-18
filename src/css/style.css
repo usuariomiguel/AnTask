@@ -9117,7 +9117,13 @@ button {
   .task-list--project { margin-bottom: 88px; padding-bottom: 11px; }
 }
 
-/* Cabecera de grupo por etiqueta en el Inbox (las "listas" del prototipo) */
+/* Las tareas de otros proyectos no se reordenan desde el Inbox. */
+.task-item--foreign .drag-handle {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Cabecera de grupo por proyecto en el Inbox (las "listas" del prototipo) */
 .inbox-group-head {
   list-style: none;
   display: flex;

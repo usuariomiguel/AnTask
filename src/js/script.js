@@ -1652,7 +1652,12 @@ function renderPinnedItems(inboxProject) {
 
   // ── Item Inbox — proyecto real, fijado ─────────────────────────
   if (inboxProject) {
-    var pending = (inboxProject.tasks || []).filter(function(t) { return !t.done; }).length;
+    // El Inbox muestra el pool completo → su contador también.
+    var pending = 0;
+    projects.forEach(function(p) {
+      if (p.archived) return;
+      (p.tasks || []).forEach(function(t) { if (!t.done) pending++; });
+    });
     var inbox = document.createElement("li");
     inbox.className = "project-item project-item-pinned project-item-inbox" +
       (activeView === "project" && activeProjectId === INBOX_ID ? " active" : "");
@@ -2569,7 +2574,20 @@ function renderTasks() {
 
   taskList.classList.add("task-list--project");
 
-  let visible = getVisibleTasks(project);
+  // El Inbox del prototipo muestra TODO el pool: sus propias tareas
+  // ("Sin lista") más las de cada proyecto, agrupadas por proyecto.
+  const isInbox = project.id === INBOX_ID;
+  let items = getVisibleTasks(project).map(function(tk) {
+    return { task: tk, project: project };
+  });
+  if (isInbox) {
+    projects.forEach(function(p) {
+      if (p.id === INBOX_ID || p.archived) return;
+      getVisibleTasks(p).forEach(function(tk) {
+        items.push({ task: tk, project: p });
+      });
+    });
+  }
 
   // Plegado de completadas (prototipo): con el filtro "Todas", las
   // pendientes van primero y las hechas quedan tras una fila-resumen
@@ -2577,43 +2595,40 @@ function renderTasks() {
   // array de tareas no cambia.
   let foldedDone = [];
   const foldDone = currentFilter === "all" && currentSort === "manual";
-  let pendingTasks = visible;
+  let pendingItems = items;
   if (foldDone) {
-    pendingTasks = visible.filter(function(tk) { return !tk.done; });
-    foldedDone = visible.filter(function(tk) { return tk.done; });
+    pendingItems = items.filter(function(it) { return !it.task.done; });
+    foldedDone = items.filter(function(it) { return it.task.done; });
   }
 
-  // Agrupar el Inbox por etiqueta (las "listas" del prototipo): las
-  // pendientes se ordenan por su primera etiqueta y cada grupo lleva
-  // cabecera con punto de color; las sin etiqueta van al final.
-  let labelGroups = null;
-  const groupByLabel = project.id === INBOX_ID && currentSort === "manual" &&
-    !currentLabelFilter && (currentFilter === "all" || currentFilter === "pending");
-  if (groupByLabel) {
-    const byLabel = new Map();
-    pendingTasks.forEach(function(tk) {
-      const key = (Array.isArray(tk.labels) && tk.labels.length > 0) ? tk.labels[0] : "";
-      if (!byLabel.has(key)) byLabel.set(key, []);
-      byLabel.get(key).push(tk);
+  // Agrupar el Inbox por proyecto (las "listas" del prototipo): cada
+  // proyecto es un grupo con cabecera y punto en su color; las tareas
+  // del propio Inbox van al final bajo "Sin lista".
+  let inboxGroups = null;
+  if (isInbox && currentSort === "manual" &&
+      (currentFilter === "all" || currentFilter === "pending")) {
+    const byProj = new Map();
+    pendingItems.forEach(function(it) {
+      const k = it.project.id;
+      if (!byProj.has(k)) byProj.set(k, { project: it.project, items: [] });
+      byProj.get(k).items.push(it);
     });
-    const order = (project.labels || []).filter(function(l) { return byLabel.has(l); });
-    byLabel.forEach(function(_, k) {
-      if (k !== "" && order.indexOf(k) === -1) order.push(k);
+    const groups = [];
+    projects.forEach(function(p) {
+      if (p.id !== INBOX_ID && byProj.has(p.id)) groups.push(byProj.get(p.id));
     });
-    if (byLabel.has("")) order.push("");
-    // Solo agrupar si hay al menos una etiqueta real en juego.
-    if (order.length > 1 || (order.length === 1 && order[0] !== "")) {
-      labelGroups = order.map(function(k) { return { label: k, tasks: byLabel.get(k) }; });
-      pendingTasks = [];
-      labelGroups.forEach(function(g) { pendingTasks = pendingTasks.concat(g.tasks); });
+    if (byProj.has(INBOX_ID)) groups.push(byProj.get(INBOX_ID));
+    // Cabeceras solo si hay algún proyecto real en juego.
+    if (groups.length > 1 || (groups.length === 1 && groups[0].project.id !== INBOX_ID)) {
+      inboxGroups = groups;
+      pendingItems = [];
+      groups.forEach(function(g) { pendingItems = pendingItems.concat(g.items); });
     }
   }
 
-  if (foldDone) {
-    visible = _doneFoldExpanded ? pendingTasks.concat(foldedDone) : pendingTasks;
-  } else {
-    visible = pendingTasks;
-  }
+  let visible = foldDone
+    ? (_doneFoldExpanded ? pendingItems.concat(foldedDone) : pendingItems)
+    : pendingItems;
 
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
   // cualquier nodo huérfano (`.today-item`, `.today-empty`, ...) que no
@@ -2632,20 +2647,23 @@ function renderTasks() {
   // Build/reuse + colocar en orden
   let prevNode = null;
   for (let i = 0; i < visible.length; i++) {
-    const task = visible[i];
+    const task = visible[i].task;
+    const taskProject = visible[i].project;
     let node = existing.get(task.id);
     if (!node || node._task !== task) {
       // El objeto task cambió de referencia (sync remoto, import…)
       // → reconstruir el nodo entero para que los listeners apunten al nuevo task.
       if (node) node.remove();
-      node = _buildTaskNode(task, project);
+      node = _buildTaskNode(task, taskProject);
     } else {
       // Mismo objeto task → solo refrescar lo visible (barato).
       _updateTaskNode(node, task);
     }
     existing.delete(task.id);
     // Refresca el acento (color del proyecto) por si cambió el color.
-    node.style.setProperty("--task-accent", _projectColor(project));
+    node.style.setProperty("--task-accent", _projectColor(taskProject));
+    // Las tareas de otros proyectos no se reordenan desde el Inbox.
+    node.classList.toggle("task-item--foreign", taskProject.id !== project.id);
 
     // Reordenar si es necesario (mover solo si no está en su sitio).
     const targetSibling = prevNode ? prevNode.nextSibling : taskList.firstChild;
@@ -2656,11 +2674,12 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
-  // Cabeceras de grupo por etiqueta (se recrean en cada render: la
+  // Cabeceras de grupo por proyecto (se recrean en cada render: la
   // limpieza inicial las retira por no tener data-task-id).
-  if (labelGroups) {
-    labelGroups.forEach(function(g) {
-      if (g.tasks.length === 0) return;
+  if (inboxGroups) {
+    inboxGroups.forEach(function(g) {
+      if (g.items.length === 0) return;
+      const isNone = g.project.id === INBOX_ID;
       const head = document.createElement("li");
       head.className = "inbox-group-head";
       head.innerHTML =
@@ -2668,14 +2687,20 @@ function renderTasks() {
         '<span class="inbox-group-name"></span>' +
         '<span class="inbox-group-count"></span>' +
         '<span class="inbox-group-rule"></span>';
-      head.querySelector(".inbox-group-name").textContent =
-        g.label || t("inbox.group_none");
-      head.querySelector(".inbox-group-count").textContent = "(" + g.tasks.length + ")";
-      if (g.label) {
-        head.querySelector(".inbox-group-dot").style.background = getLabelColor(g.label);
+      head.querySelector(".inbox-group-name").textContent = isNone
+        ? t("inbox.group_none")
+        : (g.project.icon ? g.project.icon + " " : "") + g.project.name;
+      head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
+      if (!isNone) {
+        head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
+      }
+      if (!isNone) {
+        head.style.cursor = "pointer";
+        head.title = t("today.go_to_project") + " " + g.project.name;
+        head.addEventListener("click", function() { activateProject(g.project.id); });
       }
       const firstNode = taskList.querySelector(
-        '[data-task-id="' + CSS.escape(g.tasks[0].id) + '"]');
+        '[data-task-id="' + CSS.escape(g.items[0].task.id) + '"]');
       if (firstNode) taskList.insertBefore(head, firstNode);
     });
   }
@@ -2685,7 +2710,7 @@ function renderTasks() {
   if (foldedDone.length > 0) {
     const fold = document.createElement("li");
     fold.className = "done-fold" + (_doneFoldExpanded ? " done-fold--open" : "");
-    const preview = foldedDone.slice(0, 2).map(function(tk) { return tk.text; }).join(", ") +
+    const preview = foldedDone.slice(0, 2).map(function(it) { return it.task.text; }).join(", ") +
       (foldedDone.length > 2 ? "…" : "");
     fold.innerHTML =
       '<span class="done-fold-check"><i data-lucide="check"></i></span>' +
@@ -2716,7 +2741,7 @@ function renderTasks() {
     });
     // Entre pendientes y hechas: justo antes del nodo de la primera hecha.
     const firstDoneNode = _doneFoldExpanded && foldedDone.length
-      ? taskList.querySelector('[data-task-id="' + CSS.escape(foldedDone[0].id) + '"]')
+      ? taskList.querySelector('[data-task-id="' + CSS.escape(foldedDone[0].task.id) + '"]')
       : null;
     taskList.insertBefore(fold, firstDoneNode);
     if (window.lucide) lucide.createIcons({ nodes: [fold] });
@@ -2727,7 +2752,7 @@ function renderTasks() {
   if (visible.length === 0 && foldedDone.length === 0) {
     const empty = document.createElement("li");
     empty.className = "today-empty empty-illustrated";
-    const hasAnyTask = project.tasks.length > 0;
+    const hasAnyTask = isInbox ? items.length > 0 : project.tasks.length > 0;
     const title = hasAnyTask ? t("empty.tasks.title_filtered") : t("empty.tasks.title_new");
     const sub   = hasAnyTask ? t("empty.tasks.sub_filter") : t("empty.tasks.sub_default");
     empty.innerHTML =
@@ -2744,11 +2769,18 @@ function renderTasks() {
     _wireEmptyStateCTA(empty);
   }
 
-  // Contadores / título
-  const pending = project.tasks.filter(function(t) { return !t.done; }).length;
+  // Contadores / título — el Inbox cuenta el pool completo que muestra
+  let poolTasks = project.tasks;
+  if (isInbox) {
+    poolTasks = [];
+    projects.forEach(function(p) {
+      if (!p.archived) poolTasks = poolTasks.concat(p.tasks || []);
+    });
+  }
+  const pending = poolTasks.filter(function(t) { return !t.done; }).length;
   taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
     .replace("{count}", String(pending));
-  projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0
