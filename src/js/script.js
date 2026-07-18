@@ -1224,6 +1224,14 @@ if (mobileFab) {
 }
 if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
 
+// Barra de captura flotante de escritorio → misma captura rápida del atajo
+var captureBar = document.getElementById("capture-bar");
+if (captureBar) {
+  captureBar.addEventListener("click", function() {
+    openQuickCapture({ redirectToInbox: activeView !== "project" });
+  });
+}
+
 if (fabForm) {
   fabForm.addEventListener("submit", function(e) {
     e.preventDefault();
@@ -1539,7 +1547,12 @@ function activateTodayView() {
 
   document.title = t("view.today_title") + " — antask";
   if (projectTitleEl)  projectTitleEl.textContent  = t("view.today_title");
-  if (projectSubtitle) projectSubtitle.textContent = t("view.today_subtitle");
+  if (projectSubtitle) {
+    // Fecha larga como en el prototipo: "Sábado, 18 de julio"
+    var fecha = new Date().toLocaleDateString(getLang() === "en" ? "en-GB" : "es-ES",
+      { weekday: "long", day: "numeric", month: "long" });
+    projectSubtitle.textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  }
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -2546,9 +2559,11 @@ function renderTasks() {
     return;
   }
   if (activeView === "smart-list") {
+    _removeHoyHeaderExtra();
     renderSmartListView();
     return;
   }
+  _removeHoyHeaderExtra();
   const project = getActiveProject();
   if (!project) { taskList.innerHTML = ""; return; }
 
@@ -3048,58 +3063,212 @@ function renderTodayView() {
   taskList.innerHTML = "";
   var today = new Date().toISOString().slice(0, 10);
 
-  // Recopilar tareas pendientes con dueDate <= hoy de TODOS los proyectos
-  var items = [];
+  // Agrupar como el prototipo: vencidas / para hoy (incluye las hechas hoy,
+  // para el progreso) / sin fecha como sugeridas.
+  var overdue = [], todays = [], nodate = [];
   projects.forEach(function(p) {
     if (p.archived) return;
-    (p.tasks || []).forEach(function(t) {
-      if (t.done) return;
-      if (!t.dueDate || t.dueDate > today) return;
-      items.push({ task: t, project: p });
+    (p.tasks || []).forEach(function(tk) {
+      if (!tk.dueDate) { if (!tk.done) nodate.push({ task: tk, project: p }); return; }
+      if (tk.dueDate < today) { if (!tk.done) overdue.push({ task: tk, project: p }); }
+      else if (tk.dueDate === today) todays.push({ task: tk, project: p });
     });
   });
 
-  // Orden: vencidas primero, luego por prioridad
   var prioRank = { high: 0, medium: 1, low: 2 };
-  items.sort(function(a, b) {
+  function prioOf(x) {
+    return prioRank[x.task.priority] != null ? prioRank[x.task.priority] : 3;
+  }
+  function byDue(a, b) {
     if (a.task.dueDate !== b.task.dueDate) {
       return a.task.dueDate < b.task.dueDate ? -1 : 1;
     }
-    var pa = prioRank[a.task.priority] != null ? prioRank[a.task.priority] : 3;
-    var pb = prioRank[b.task.priority] != null ? prioRank[b.task.priority] : 3;
-    return pa - pb;
-  });
+    return prioOf(a) - prioOf(b);
+  }
+  overdue.sort(byDue);
+  todays.sort(byDue);
+  nodate.sort(function(a, b) { return prioOf(a) - prioOf(b); });
+
+  var hoyDone  = todays.filter(function(x) { return x.task.done; }).length;
+  var totalHoy = overdue.length + todays.length;
+  var pending  = totalHoy - hoyDone;
 
   // Contador en el footer
   if (taskCounter) {
-    taskCounter.textContent = (items.length === 1 ? t("today.counter_one") : t("today.counter_other"))
-      .replace("{count}", String(items.length));
+    taskCounter.textContent = (pending === 1 ? t("today.counter_one") : t("today.counter_other"))
+      .replace("{count}", String(pending));
   }
 
-  if (items.length === 0) {
-    var empty = document.createElement("li");
-    empty.className = "today-empty empty-illustrated";
-    empty.innerHTML =
-      '<div class="empty-illustrated-visual">' +
-        '<div class="empty-illustrated-halo"></div>' +
-        '<div class="empty-illustrated-icon">☀️</div>' +
-      '</div>' +
-      '<p class="empty-illustrated-title">' + t("today.empty_title_full") + '</p>' +
-      '<p class="empty-illustrated-sub">' + t("today.empty_sub_full") + '</p>' +
-      '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
-        '<i data-lucide="plus"></i> ' + t("empty.cta.add_task") +
-      '</button>';
-    taskList.appendChild(empty);
-    _wireEmptyStateCTA(empty);
-    if (window.lucide) lucide.createIcons();
-    return;
+  // Stats + anillo de progreso en la cabecera
+  _renderHoyHeaderExtra(hoyDone, totalHoy, overdue.length);
+
+  var allClear = overdue.length === 0 && todays.length === 0;
+
+  if (allClear) {
+    var clearLi = document.createElement("li");
+    clearLi.className = "hoy-allclear";
+    clearLi.innerHTML =
+      '<span class="hoy-allclear-badge"><i data-lucide="check-check"></i></span>' +
+      '<p class="hoy-allclear-title">' + t("today.empty_title_full") + '</p>' +
+      '<p class="hoy-allclear-sub">' + t("today.empty_sub_full") + '</p>';
+    taskList.appendChild(clearLi);
   }
 
-  items.forEach(function(it) {
-    taskList.appendChild(renderTodayItem(it.task, it.project, today));
+  // ── Vencidas ──
+  if (overdue.length > 0) {
+    var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
+      t("hoy.move_all"), function() { _hoySetDueToday(overdue); });
+    overdue.forEach(function(it) {
+      secV.list.appendChild(renderTodayItem(it.task, it.project, today, "overdue"));
+    });
+    taskList.appendChild(secV.li);
+  }
+
+  // ── Para hoy — siempre visible, con quick-add contextual ──
+  var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDone + "/" + todays.length, null, null);
+  todays.forEach(function(it) {
+    secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
   });
+  secH.list.appendChild(_hoyQuickAddEl(today));
+  taskList.appendChild(secH.li);
+
+  // ── Sin fecha · sugeridas ──
+  if (nodate.length > 0) {
+    var secN = _hoySectionEl("nodate", t("hoy.nodate"), String(nodate.length),
+      t("hoy.schedule_all"), function() { _hoySetDueToday(nodate); });
+    nodate.forEach(function(it) {
+      secN.list.appendChild(renderTodayItem(it.task, it.project, today, "nodate"));
+    });
+    taskList.appendChild(secN.li);
+  }
 
   if (window.lucide) lucide.createIcons({ nodes: [taskList] });
+
+  if (_hoyQuickAddRefocus) {
+    _hoyQuickAddRefocus = false;
+    var qa = taskList.querySelector(".hoy-quickadd-input");
+    if (qa) qa.focus();
+  }
+}
+
+// ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
+
+var _hoyQuickAddRefocus = false;
+
+function _hoySectionEl(tone, label, count, actionLabel, onAction) {
+  var li = document.createElement("li");
+  li.className = "hoy-section hoy-section--" + tone;
+  var head = document.createElement("div");
+  head.className = "hoy-section-head";
+  head.innerHTML =
+    '<span class="hoy-section-dot"></span>' +
+    '<span class="hoy-section-title"></span>' +
+    '<span class="hoy-section-count"></span>' +
+    '<span class="hoy-section-rule"></span>';
+  head.querySelector(".hoy-section-title").textContent = label;
+  head.querySelector(".hoy-section-count").textContent = "(" + count + ")";
+  if (actionLabel && onAction) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "hoy-section-action";
+    btn.innerHTML = '<i data-lucide="arrow-right"></i> ';
+    btn.appendChild(document.createTextNode(actionLabel));
+    btn.addEventListener("click", onAction);
+    head.appendChild(btn);
+  }
+  var list = document.createElement("ul");
+  list.className = "hoy-section-list";
+  li.appendChild(head);
+  li.appendChild(list);
+  return { li: li, list: list };
+}
+
+/** Acción masiva del prototipo: fija dueDate=hoy en las tareas dadas. */
+function _hoySetDueToday(items) {
+  if (!items || items.length === 0) return;
+  var today = new Date().toISOString().slice(0, 10);
+  items.forEach(function(it) { it.task.dueDate = today; });
+  saveProjects();
+  renderTasks();
+  renderSidebar();
+}
+
+/** Quick-add contextual del bloque "Para hoy": crea en el Inbox con fecha hoy. */
+function _hoyQuickAddEl(todayStr) {
+  var li = document.createElement("li");
+  li.className = "hoy-quickadd";
+  li.innerHTML =
+    '<span class="hoy-quickadd-ico"><i data-lucide="plus"></i></span>' +
+    '<input type="text" class="hoy-quickadd-input" maxlength="120" autocomplete="off">' +
+    '<button type="button" class="hoy-quickadd-btn" hidden><i data-lucide="plus"></i> ' +
+      '<span></span></button>';
+  var input = li.querySelector(".hoy-quickadd-input");
+  var btn = li.querySelector(".hoy-quickadd-btn");
+  input.placeholder = t("hoy.quickadd_ph");
+  btn.querySelector("span").textContent = t("task.add_btn");
+  function submit() {
+    var value = input.value.trim();
+    if (!value) return;
+    var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!inbox) return;
+    var created = _createTaskInProject(inbox, value);
+    if (!created) return;
+    // El parser NL puede haber fijado ya una fecha ("mañana"); si no, va a hoy.
+    if (!created.dueDate) created.dueDate = todayStr;
+    saveProjects();
+    _hoyQuickAddRefocus = true;
+    renderTasks();
+    renderSidebar();
+  }
+  input.addEventListener("input", function() { btn.hidden = input.value.trim() === ""; });
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); submit(); }
+    else if (e.key === "Escape") { input.value = ""; btn.hidden = true; input.blur(); }
+  });
+  btn.addEventListener("mousedown", function(e) { e.preventDefault(); });
+  btn.addEventListener("click", submit);
+  li.addEventListener("click", function(e) { if (e.target === li) input.focus(); });
+  return li;
+}
+
+/** Stats "N de M hechas · X vencidas" + anillo de progreso en la cabecera. */
+function _renderHoyHeaderExtra(done, total, overdueN) {
+  var host = document.querySelector(".tasks-header .header-actions");
+  if (!host) return;
+  var el = document.getElementById("hoy-header-extra");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "hoy-header-extra";
+    el.className = "hoy-header-extra";
+    host.insertBefore(el, host.firstChild);
+  }
+  var pct = total > 0 ? Math.round((done / total) * 100) : 100;
+  var R = 17, C = 2 * Math.PI * R;
+  var offset = C * (1 - pct / 100);
+  var overdueTxt = overdueN > 0
+    ? ' <span class="hoy-stats-overdue">· ' + overdueN + " " +
+      (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</span>"
+    : "";
+  el.innerHTML =
+    '<span class="hoy-stats">' +
+      t("hoy.done_of")
+        .replace("{done}", "<strong>" + done + "</strong>")
+        .replace("{total}", String(total)) +
+      overdueTxt +
+    "</span>" +
+    '<span class="hoy-ring" title="' + t("hoy.ring_title") + '">' +
+      '<svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">' +
+        '<circle cx="21" cy="21" r="17" fill="none" class="hoy-ring-track" stroke-width="4.5"></circle>' +
+        '<circle cx="21" cy="21" r="17" fill="none" class="hoy-ring-bar" stroke-width="4.5" stroke-linecap="round" ' +
+          'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '"></circle>' +
+      "</svg>" +
+      '<span class="hoy-ring-pct">' + pct + "%</span>" +
+    "</span>";
+}
+
+function _removeHoyHeaderExtra() {
+  var el = document.getElementById("hoy-header-extra");
+  if (el) el.remove();
 }
 
 /** Render para vistas tipo smart-list (filtros guardados). Reusa
@@ -3165,9 +3334,9 @@ function renderSmartListView() {
   if (window.lucide) lucide.createIcons({ nodes: [taskList] });
 }
 
-function renderTodayItem(task, project, todayStr) {
-  // Cuando la tarea NO tiene fecha (caso smart list "Sin fecha"),
-  // el badge de fecha se omite y no marcamos overdue.
+function renderTodayItem(task, project, todayStr, tone) {
+  // Cuando la tarea NO tiene fecha (caso smart list "Sin fecha" o sección
+  // "sugeridas"), el badge de fecha se omite y no marcamos overdue.
   var hasDate   = !!task.dueDate;
   var due       = hasDate ? new Date(task.dueDate + "T00:00:00") : null;
   var diff      = hasDate ? Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000) : 0;
@@ -3179,22 +3348,33 @@ function renderTodayItem(task, project, todayStr) {
     : diff < 0  ? t("date.n_days_ago").replace("{n}", String(-diff))
     : due.toLocaleDateString(localeD, { day: "2-digit", month: "short" });
   var overdue = hasDate && diff < 0;
+  var done = !!task.done;
 
   var li = document.createElement("li");
   li.className = "today-item" +
+    (tone ? " today-item--" + tone : "") +
+    (done ? " today-item--done" : "") +
     (task.priority ? " today-priority-" + task.priority : "") +
     (overdue ? " today-overdue" : "");
   // Color del proyecto → el check de completar usa este acento.
   li.style.setProperty("--task-accent", _projectColor(project));
 
-  // Checkbox para marcar hecha
+  // Checkbox para marcar hecha / reabrir
   var cb = document.createElement("input");
   cb.type = "checkbox";
   cb.className = "today-check";
-  cb.checked = false;
-  cb.setAttribute("aria-label", "Marcar como hecha");
+  cb.checked = done;
+  cb.setAttribute("aria-label", done ? t("hoy.reopen") : "Marcar como hecha");
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
+    if (!cb.checked) {
+      // Reabrir una tarea hecha hoy (visible en la sección "Para hoy")
+      task.done = false;
+      saveProjects();
+      renderTasks();
+      renderSidebar();
+      return;
+    }
     task.done = true;
     task.status = null;
     li.classList.add("today-completing");
@@ -3212,30 +3392,18 @@ function renderTodayItem(task, project, todayStr) {
     }, 280);
   });
 
-  // Cuerpo: prioridad + texto + proyecto
-  var body = document.createElement("div");
-  body.className = "today-body";
-
   var text = document.createElement("span");
   text.className = "today-text";
   text.textContent = task.text;
-  body.appendChild(text);
 
-  var meta = document.createElement("div");
-  meta.className = "today-meta";
+  li.appendChild(cb);
+  li.appendChild(text);
 
-  if (dateLabel) {
-    var dEl = document.createElement("span");
-    dEl.className = "today-date" + (overdue ? " today-date-overdue" : "");
-    dEl.textContent = dateLabel;
-    meta.appendChild(dEl);
-  }
-
-  if (task.priority) {
+  if (task.priority && !done) {
     var pEl = document.createElement("span");
     pEl.className = "today-prio today-prio-" + task.priority;
     pEl.textContent = t("priority." + task.priority);
-    meta.appendChild(pEl);
+    li.appendChild(pEl);
   }
 
   var projBadge = document.createElement("button");
@@ -3251,15 +3419,37 @@ function renderTodayItem(task, project, todayStr) {
       setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
     }
   });
-  meta.appendChild(projBadge);
+  li.appendChild(projBadge);
 
-  body.appendChild(meta);
+  // Acción contextual (aparece en hover): mover/programar a hoy
+  if (!done && (tone === "overdue" || tone === "nodate")) {
+    var act = document.createElement("button");
+    act.type = "button";
+    act.className = "today-move-btn today-move-btn--" + tone;
+    act.innerHTML = '<i data-lucide="arrow-right"></i> ';
+    act.appendChild(document.createTextNode(
+      tone === "overdue" ? t("hoy.move_one") : t("hoy.schedule_one")));
+    act.addEventListener("click", function(e) {
+      e.stopPropagation();
+      task.dueDate = todayStr;
+      saveProjects();
+      renderTasks();
+      renderSidebar();
+    });
+    li.appendChild(act);
+  }
 
-  li.appendChild(cb);
-  li.appendChild(body);
+  if (dateLabel) {
+    var dEl = document.createElement("span");
+    dEl.className = "today-date-pill" +
+      (tone === "today" ? " today-date-pill--today" : "") +
+      (overdue ? " today-date-pill--overdue" : "");
+    dEl.textContent = dateLabel;
+    li.appendChild(dEl);
+  }
 
-  // Clic en el cuerpo (no en checkbox ni badge) → ir al proyecto + scroll a la tarea
-  body.addEventListener("click", function() {
+  // Clic en la fila (no en checkbox ni botones) → ir al proyecto + scroll a la tarea
+  li.addEventListener("click", function() {
     activateProject(project.id);
     if (typeof navigateToTask === "function") {
       setTimeout(function() { navigateToTask(project.id, task.id); }, 60);

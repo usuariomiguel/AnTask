@@ -3,6 +3,7 @@
 export const es = {
   // ── Sidebar ───────────────────────────────────────────────
   "sidebar.search":           "Buscar tareas",
+  "sidebar.search_short":     "Buscar",
   "sidebar.new_project":      "Proyecto",
   "sidebar.new_note":         "Nota",
   "sidebar.inbox":            "Inbox",
@@ -118,6 +119,22 @@ export const es = {
   "today.task_count_one":     "tarea para hoy",
   "today.task_count_other":   "tareas para hoy",
   "today.go_to_project":      "Ir al proyecto",
+
+  "hoy.overdue":              "Vencidas",
+  "hoy.for_today":            "Para hoy",
+  "hoy.nodate":               "Sin fecha · sugeridas",
+  "hoy.move_all":             "Mover todas a hoy",
+  "hoy.schedule_all":         "Programar todas hoy",
+  "hoy.move_one":             "Mover a hoy",
+  "hoy.schedule_one":         "Programar hoy",
+  "hoy.quickadd_ph":          "Añadir una tarea para hoy…",
+  "hoy.done_of":              "{done} de {total} hechas",
+  "hoy.overdue_one":          "vencida",
+  "hoy.overdue_other":        "vencidas",
+  "hoy.ring_title":           "Progreso del día",
+  "hoy.reopen":               "Reabrir tarea",
+  "capture.bar_hint":         "Captura rápida — pulsa para escribir…",
+  "capture.open":             "Abrir captura rápida",
 
   // ── Smart lists ───────────────────────────────────────────
   "smartlist.empty_title":    "Sin resultados",

@@ -3,6 +3,7 @@
 export const en = {
   // ── Sidebar ───────────────────────────────────────────────
   "sidebar.search":           "Search tasks",
+  "sidebar.search_short":     "Search",
   "sidebar.new_project":      "Project",
   "sidebar.new_note":         "Note",
   "sidebar.inbox":            "Inbox",
@@ -118,6 +119,22 @@ export const en = {
   "today.task_count_one":     "task for today",
   "today.task_count_other":   "tasks for today",
   "today.go_to_project":      "Go to project",
+
+  "hoy.overdue":              "Overdue",
+  "hoy.for_today":            "For today",
+  "hoy.nodate":               "No date · suggested",
+  "hoy.move_all":             "Move all to today",
+  "hoy.schedule_all":         "Schedule all for today",
+  "hoy.move_one":             "Move to today",
+  "hoy.schedule_one":         "Schedule today",
+  "hoy.quickadd_ph":          "Add a task for today…",
+  "hoy.done_of":              "{done} of {total} done",
+  "hoy.overdue_one":          "overdue",
+  "hoy.overdue_other":        "overdue",
+  "hoy.ring_title":           "Today's progress",
+  "hoy.reopen":               "Reopen task",
+  "capture.bar_hint":         "Quick capture — press to type…",
+  "capture.open":             "Open quick capture",
 
   // ── Smart lists ───────────────────────────────────────────
   "smartlist.empty_title":    "No results",

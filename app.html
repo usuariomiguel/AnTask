@@ -114,6 +114,11 @@
             <i data-lucide="search"></i>
             <span data-i18n="sidebar.search">Buscar tareas</span>
           </button>
+          <!-- Buscador de escritorio — arriba, bajo el brand (prototipo Tierra) -->
+          <button type="button" id="global-search-btn" class="global-search-btn">
+            <span class="global-search-btn-main"><i data-lucide="search"></i> <span data-i18n="sidebar.search_short">Buscar</span></span>
+            <kbd class="global-search-kbd">Ctrl K</kbd>
+          </button>
         </div>
 
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
@@ -131,9 +136,6 @@
         </details>
 
         <div class="sidebar-footer">
-          <div class="sidebar-search-row">
-            <button type="button" id="global-search-btn" class="global-search-btn"><i data-lucide="search"></i> <span data-i18n="sidebar.search">Buscar tareas</span></button>
-          </div>
           <div class="new-item-row">
             <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> <span data-i18n="sidebar.new_project">Proyecto</span></button>
             <button type="button" id="new-note-btn" class="new-note-btn"><i data-lucide="file-plus"></i> <span data-i18n="sidebar.new_note">Nota</span></button>
@@ -401,6 +403,13 @@
           </div>
           <div id="cal-content" class="cal-content"></div>
         </div>
+
+        <!-- Barra de captura rápida flotante (solo escritorio, prototipo Tierra) -->
+        <button type="button" id="capture-bar" class="capture-bar" aria-label="Abrir captura rápida" data-i18n-aria="capture.open">
+          <span class="capture-bar-ico"><i data-lucide="plus"></i></span>
+          <span class="capture-bar-text" data-i18n="capture.bar_hint">Captura rápida — pulsa para escribir…</span>
+          <kbd class="capture-bar-kbd">Ctrl ⇧ Espacio</kbd>
+        </button>
 
       </main>
 
