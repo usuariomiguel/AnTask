@@ -2630,6 +2630,71 @@ function renderTasks() {
     ? (_doneFoldExpanded ? pendingItems.concat(foldedDone) : pendingItems)
     : pendingItems;
 
+  // ── Inbox agrupado: cada proyecto es un BLOQUE separado (como las
+  // secciones de Hoy), no filas dentro de un único contenedor. Aquí
+  // reconstruimos la lista entera en lugar de usar el diff plano.
+  if (inboxGroups) {
+    taskList.classList.remove("task-list--project");
+    taskList.innerHTML = "";
+
+    inboxGroups.forEach(function(g) {
+      if (g.items.length === 0) return;
+      const isNone = g.project.id === INBOX_ID;
+      const sec = document.createElement("li");
+      sec.className = "hoy-section inbox-group-block";
+      const head = document.createElement("div");
+      head.className = "inbox-group-head";
+      head.innerHTML =
+        '<span class="inbox-group-dot"></span>' +
+        '<span class="inbox-group-name"></span>' +
+        '<span class="inbox-group-count"></span>' +
+        '<span class="inbox-group-rule"></span>';
+      head.querySelector(".inbox-group-name").textContent = isNone
+        ? t("inbox.group_none")
+        : (g.project.icon ? g.project.icon + " " : "") + g.project.name;
+      head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
+      if (!isNone) {
+        head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
+        head.style.cursor = "pointer";
+        head.title = t("today.go_to_project") + " " + g.project.name;
+        head.addEventListener("click", function() { activateProject(g.project.id); });
+      }
+      const ul = document.createElement("ul");
+      ul.className = "inbox-group-list";
+      g.items.forEach(function(it) {
+        const node = _buildTaskNode(it.task, it.project);
+        node.style.setProperty("--task-accent", _projectColor(it.project));
+        node.classList.toggle("task-item--foreign", it.project.id !== project.id);
+        ul.appendChild(node);
+      });
+      sec.appendChild(head);
+      sec.appendChild(ul);
+      taskList.appendChild(sec);
+    });
+
+    if (foldedDone.length > 0) {
+      taskList.appendChild(_buildDoneFoldRow(foldedDone));
+      if (_doneFoldExpanded) {
+        const doneSec = document.createElement("li");
+        doneSec.className = "hoy-section inbox-group-block";
+        const doneUl = document.createElement("ul");
+        doneUl.className = "inbox-group-list";
+        foldedDone.forEach(function(it) {
+          const node = _buildTaskNode(it.task, it.project);
+          node.style.setProperty("--task-accent", _projectColor(it.project));
+          node.classList.toggle("task-item--foreign", it.project.id !== project.id);
+          doneUl.appendChild(node);
+        });
+        doneSec.appendChild(doneUl);
+        taskList.appendChild(doneSec);
+      }
+    }
+
+    _renderTasksFooter(project, isInbox);
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
   // cualquier nodo huérfano (`.today-item`, `.today-empty`, ...) que no
   // pertenece al diff por data-task-id.
@@ -2674,72 +2739,11 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
-  // Cabeceras de grupo por proyecto (se recrean en cada render: la
-  // limpieza inicial las retira por no tener data-task-id).
-  if (inboxGroups) {
-    inboxGroups.forEach(function(g) {
-      if (g.items.length === 0) return;
-      const isNone = g.project.id === INBOX_ID;
-      const head = document.createElement("li");
-      head.className = "inbox-group-head";
-      head.innerHTML =
-        '<span class="inbox-group-dot"></span>' +
-        '<span class="inbox-group-name"></span>' +
-        '<span class="inbox-group-count"></span>' +
-        '<span class="inbox-group-rule"></span>';
-      head.querySelector(".inbox-group-name").textContent = isNone
-        ? t("inbox.group_none")
-        : (g.project.icon ? g.project.icon + " " : "") + g.project.name;
-      head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
-      if (!isNone) {
-        head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
-      }
-      if (!isNone) {
-        head.style.cursor = "pointer";
-        head.title = t("today.go_to_project") + " " + g.project.name;
-        head.addEventListener("click", function() { activateProject(g.project.id); });
-      }
-      const firstNode = taskList.querySelector(
-        '[data-task-id="' + CSS.escape(g.items[0].task.id) + '"]');
-      if (firstNode) taskList.insertBefore(head, firstNode);
-    });
-  }
-
   // Fila-resumen de completadas (se recrea en cada render: la limpieza
-  // inicial la retira por no tener data-task-id).
+  // inicial la retira por no tener data-task-id). Entre pendientes y
+  // hechas: justo antes del nodo de la primera hecha.
   if (foldedDone.length > 0) {
-    const fold = document.createElement("li");
-    fold.className = "done-fold" + (_doneFoldExpanded ? " done-fold--open" : "");
-    const preview = foldedDone.slice(0, 2).map(function(it) { return it.task.text; }).join(", ") +
-      (foldedDone.length > 2 ? "…" : "");
-    fold.innerHTML =
-      '<span class="done-fold-check"><i data-lucide="check"></i></span>' +
-      '<span class="done-fold-label"><b></b><span class="done-fold-preview"></span></span>' +
-      '<span class="done-fold-toggle">' +
-        '<span class="done-fold-toggle-text"></span><i data-lucide="chevron-down"></i>' +
-      '</span>';
-    fold.querySelector("b").textContent =
-      (foldedDone.length === 1 ? t("fold.completed_one") : t("fold.completed_other"))
-        .replace("{count}", String(foldedDone.length));
-    fold.querySelector(".done-fold-preview").textContent =
-      _doneFoldExpanded ? "" : " — " + preview;
-    fold.querySelector(".done-fold-toggle-text").textContent =
-      _doneFoldExpanded ? t("fold.hide") : t("fold.show");
-    fold.setAttribute("role", "button");
-    fold.setAttribute("tabindex", "0");
-    fold.setAttribute("aria-expanded", _doneFoldExpanded ? "true" : "false");
-    fold.addEventListener("click", function() {
-      _doneFoldExpanded = !_doneFoldExpanded;
-      renderTasks();
-    });
-    fold.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        _doneFoldExpanded = !_doneFoldExpanded;
-        renderTasks();
-      }
-    });
-    // Entre pendientes y hechas: justo antes del nodo de la primera hecha.
+    const fold = _buildDoneFoldRow(foldedDone);
     const firstDoneNode = _doneFoldExpanded && foldedDone.length
       ? taskList.querySelector('[data-task-id="' + CSS.escape(foldedDone[0].task.id) + '"]')
       : null;
@@ -2769,7 +2773,13 @@ function renderTasks() {
     _wireEmptyStateCTA(empty);
   }
 
-  // Contadores / título — el Inbox cuenta el pool completo que muestra
+  _renderTasksFooter(project, isInbox);
+
+  if (window.lucide) lucide.createIcons();
+}
+
+/** Contadores / título de la vista proyecto. El Inbox cuenta el pool completo. */
+function _renderTasksFooter(project, isInbox) {
   let poolTasks = project.tasks;
   if (isInbox) {
     poolTasks = [];
@@ -2786,8 +2796,42 @@ function renderTasks() {
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — antask"
     : project.name + " — antask";
+}
 
-  if (window.lucide) lucide.createIcons();
+/** Fila-resumen «N completadas — Mostrar/Ocultar» (prototipo Inbox). */
+function _buildDoneFoldRow(foldedDone) {
+  const fold = document.createElement("li");
+  fold.className = "done-fold" + (_doneFoldExpanded ? " done-fold--open" : "");
+  const preview = foldedDone.slice(0, 2).map(function(it) { return it.task.text; }).join(", ") +
+    (foldedDone.length > 2 ? "…" : "");
+  fold.innerHTML =
+    '<span class="done-fold-check"><i data-lucide="check"></i></span>' +
+    '<span class="done-fold-label"><b></b><span class="done-fold-preview"></span></span>' +
+    '<span class="done-fold-toggle">' +
+      '<span class="done-fold-toggle-text"></span><i data-lucide="chevron-down"></i>' +
+    '</span>';
+  fold.querySelector("b").textContent =
+    (foldedDone.length === 1 ? t("fold.completed_one") : t("fold.completed_other"))
+      .replace("{count}", String(foldedDone.length));
+  fold.querySelector(".done-fold-preview").textContent =
+    _doneFoldExpanded ? "" : " — " + preview;
+  fold.querySelector(".done-fold-toggle-text").textContent =
+    _doneFoldExpanded ? t("fold.hide") : t("fold.show");
+  fold.setAttribute("role", "button");
+  fold.setAttribute("tabindex", "0");
+  fold.setAttribute("aria-expanded", _doneFoldExpanded ? "true" : "false");
+  fold.addEventListener("click", function() {
+    _doneFoldExpanded = !_doneFoldExpanded;
+    renderTasks();
+  });
+  fold.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      _doneFoldExpanded = !_doneFoldExpanded;
+      renderTasks();
+    }
+  });
+  return fold;
 }
 
 /**

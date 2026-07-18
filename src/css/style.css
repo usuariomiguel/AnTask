@@ -9123,6 +9123,19 @@ button {
   pointer-events: none;
 }
 
+/* Lista anidada dentro de cada bloque de grupo del Inbox */
+.inbox-group-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.inbox-group-list .task-item { margin-bottom: 0; }
+/* El bloque de hechas no lleva cabecera: compensa el padding superior. */
+.inbox-group-block > .inbox-group-list:first-child { padding-top: 2px; }
+
 /* Cabecera de grupo por proyecto en el Inbox (las "listas" del prototipo) */
 .inbox-group-head {
   list-style: none;
