@@ -3593,11 +3593,17 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.appendChild(cb);
   li.appendChild(text);
 
+  // Chips y acciones en un contenedor: en escritorio es display:contents
+  // (misma fila) y en móvil salta a una segunda línea con sangría.
+  var meta = document.createElement("span");
+  meta.className = "today-meta";
+  li.appendChild(meta);
+
   if (task.priority && !done) {
     var pEl = document.createElement("span");
     pEl.className = "today-prio today-prio-" + task.priority;
     pEl.textContent = t("priority." + task.priority);
-    li.appendChild(pEl);
+    meta.appendChild(pEl);
   }
 
   var projBadge = document.createElement("button");
@@ -3613,7 +3619,7 @@ function renderTodayItem(task, project, todayStr, tone) {
       setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
     }
   });
-  li.appendChild(projBadge);
+  meta.appendChild(projBadge);
 
   // Acción contextual (aparece en hover): mover/programar a hoy
   if (!done && (tone === "overdue" || tone === "nodate")) {
@@ -3630,7 +3636,7 @@ function renderTodayItem(task, project, todayStr, tone) {
       renderTasks();
       renderSidebar();
     });
-    li.appendChild(act);
+    meta.appendChild(act);
   }
 
   if (dateLabel) {
@@ -3639,7 +3645,7 @@ function renderTodayItem(task, project, todayStr, tone) {
       (tone === "today" ? " today-date-pill--today" : "") +
       (overdue ? " today-date-pill--overdue" : "");
     dEl.textContent = dateLabel;
-    li.appendChild(dEl);
+    meta.appendChild(dEl);
   }
 
   // Clic en la fila (no en checkbox ni botones) → ir al proyecto + scroll a la tarea

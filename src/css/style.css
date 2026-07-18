@@ -8699,6 +8699,24 @@ button {
   text-decoration-color: color-mix(in srgb, var(--text-tertiary) 55%, transparent);
 }
 
+/* Chips/acciones de la fila: misma línea en escritorio, segunda línea
+ * con sangría en móvil (donde no caben junto al texto). */
+.today-meta { display: contents; }
+@media (max-width: 768px) {
+  .today-item { flex-wrap: wrap; row-gap: 7px; padding: 10px 12px; }
+  .today-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    flex-basis: 100%;
+    margin-left: 33px;  /* checkbox 20px + gap 13px */
+  }
+  .today-meta:empty { display: none; }
+  /* Sin hover en táctil: la acción por fila se oculta, quedan las masivas */
+  .today-move-btn { display: none; }
+}
+
 .today-prio {
   flex-shrink: 0;
   font-size: var(--fs-xs);
