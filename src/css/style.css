@@ -364,6 +364,8 @@
   --border-default: rgba(255, 245, 225, 0.08);
   --border-strong:  rgba(255, 245, 225, 0.15);
   --surface-input:  rgba(255, 250, 240, 0.05);
+  --surface-overlay: rgba(38, 30, 22, 0.96);   /* dropdowns internos (perfil) */
+  --surface-raised:  #332b20;
   --accent-tint:    rgba(138, 154, 91, 0.20);  /* item activo */
   --c-primary-400:  #a3b366;                    /* acento aclarado sobre oscuro */
   --c-primary-500:  #a3b366;
@@ -501,6 +503,48 @@ body {
   overflow: hidden;
 }
 
+/* ─── SHELL FLOTANTE (solo escritorio) ───────────────────────────
+   El rediseño Tierra separa sidebar y panel de contenido del canvas:
+   ambos flotan sobre el "desk" (fondo del body) con radio 14px, borde
+   y sombra propia. En móvil (≤768px) el shell vuelve a ser pegado. */
+:root {
+  --shell-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 20px -6px rgba(0, 0, 0, 0.5),
+    0 24px 48px -14px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="light"] {
+  --shell-shadow:
+    0 1px 2px rgba(50, 40, 24, 0.05),
+    0 6px 14px -4px rgba(50, 40, 24, 0.10),
+    0 18px 36px -12px rgba(50, 40, 24, 0.18);
+}
+
+@media (min-width: 769px) {
+  .mobile-body {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .sidebar {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shell-shadow);
+  }
+
+  .sidebar.sidebar-collapsed {
+    border: none;
+    box-shadow: none;
+  }
+
+  .main-panel {
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shell-shadow);
+  }
+}
+
 .mobile-header,
 .mobile-toolbar,
 .task-action-sheet,
@@ -553,11 +597,6 @@ body {
   color: var(--c-primary-300);
 }
 
-:root[data-theme="light"] .sidebar-icon-btn:hover,
-:root[data-theme="light"] .sidebar-collapse-btn:hover {
-  background: rgba(111, 122, 61, 0.06);
-  color: var(--c-primary-500);
-}
 
 .sidebar-icon-btn .lucide,
 .sidebar-collapse-btn .lucide {
@@ -719,25 +758,8 @@ body {
   box-shadow: 0 0 14px 2px color-mix(in srgb, var(--project-color, var(--c-primary-500)) 70%, transparent);
 }
 
-:root[data-theme="light"] .project-item::before {
-  background: var(--c-primary-500);
-}
-
-:root[data-theme="light"] .project-item:hover {
-  background: color-mix(in srgb, var(--project-color, var(--c-primary-600)) 6%, transparent);
-}
-
-:root[data-theme="light"] .project-item.active {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--project-color, var(--c-primary-600)) 16%, transparent) 0%,
-    color-mix(in srgb, var(--project-color, var(--c-primary-600)) 4%, transparent) 100%
-  );
-}
-
-:root[data-theme="light"] .project-item.active::before {
-  box-shadow: 0 0 12px 1px color-mix(in srgb, var(--project-color, var(--c-primary-600)) 50%, transparent);
-}
+/* (Sin overrides light para .project-item: la sidebar es oscura en ambos
+   temas en el rediseño Tierra, así que aplican las reglas base.) */
 
 .project-item-name {
   font-size: var(--fs-base);
@@ -792,9 +814,6 @@ body {
   color: var(--project-color, var(--c-primary-400));
 }
 
-:root[data-theme="light"] .project-item.active .project-item-count {
-  color: var(--project-color, var(--c-primary-500));
-}
 
 /* ─── PROJECT PROGRESS BAR ───────────────────────────────────── */
 .project-item-top {
@@ -826,9 +845,8 @@ body {
   opacity: 1;
 }
 
-:root[data-theme="light"] .project-progress-bar {
-  background: rgba(0, 0, 0, 0.07);
-}
+/* barra de progreso: mismo track translúcido claro en ambos temas
+   (la sidebar es siempre oscura) */
 
 .project-empty {
   font-size: 0.78rem;
@@ -917,16 +935,16 @@ body {
   background: radial-gradient(circle, rgba(111, 122, 61,0.18), transparent 70%);
 }
 :root[data-theme="light"] .empty-orb--2 {
-  background: radial-gradient(circle, rgba(236,72,153,0.14), transparent 70%);
+  background: radial-gradient(circle, rgba(224, 163, 90,0.14), transparent 70%);
 }
 :root[data-theme="light"] .empty-orb--3 {
-  background: radial-gradient(circle, rgba(6,182,218,0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(95, 179, 163,0.12), transparent 70%);
 }
 :root[data-theme="light"] .empty-orb--4 {
   background: radial-gradient(circle, rgba(111, 122, 61,0.08), transparent 70%);
 }
 :root[data-theme="light"] .empty-orb--5 {
-  background: radial-gradient(circle, rgba(6,182,218,0.07), transparent 70%);
+  background: radial-gradient(circle, rgba(95, 179, 163,0.07), transparent 70%);
 }
 :root[data-theme="light"] .empty-logo {
   filter: drop-shadow(0 0 14px rgba(111, 122, 61,0.30));
@@ -941,6 +959,11 @@ body {
   overflow: hidden;
   position: relative;
   background: var(--surface-canvas);
+}
+
+/* Shell flotante: en claro el panel usa card (papel) como el prototipo */
+:root[data-theme="light"] .main-panel {
+  background: var(--surface-card);
 }
 
 /* Bottom nav — hidden on desktop, shown via mobile media query */
@@ -1007,14 +1030,14 @@ body {
 .empty-orb--2 {
   width: 110px;
   height: 110px;
-  background: radial-gradient(circle, rgba(236,72,153,0.25), transparent 70%);
+  background: radial-gradient(circle, rgba(224, 163, 90,0.25), transparent 70%);
   filter: blur(22px);
   animation: orb-drift-2 10s ease-in-out infinite;
 }
 .empty-orb--3 {
   width: 80px;
   height: 80px;
-  background: radial-gradient(circle, rgba(6,182,218,0.20), transparent 70%);
+  background: radial-gradient(circle, rgba(95, 179, 163,0.20), transparent 70%);
   filter: blur(18px);
   animation: orb-drift-3 13s ease-in-out infinite;
 }
@@ -1029,7 +1052,7 @@ body {
 .empty-orb--5 {
   width: 160px;
   height: 160px;
-  background: radial-gradient(circle, rgba(6,182,218,0.10), transparent 70%);
+  background: radial-gradient(circle, rgba(95, 179, 163,0.10), transparent 70%);
   filter: blur(40px);
   animation: orb-drift-2 18s ease-in-out infinite reverse;
 }
@@ -1051,7 +1074,7 @@ body {
 .empty-ring--2 {
   width: 170px;
   height: 170px;
-  border-color: rgba(236,72,153,0.15);
+  border-color: rgba(224, 163, 90,0.15);
   animation: ring-spin 28s linear infinite reverse;
 }
 
@@ -1064,8 +1087,8 @@ body {
   box-shadow: 0 0 6px 2px rgba(163, 179, 102,0.6);
 }
 .empty-ring--2 .empty-ring-dot {
-  background: #ec4899;
-  box-shadow: 0 0 6px 2px rgba(236,72,153,0.5);
+  background: #e0a35a;
+  box-shadow: 0 0 6px 2px rgba(224, 163, 90,0.5);
 }
 
 @keyframes ring-spin {
@@ -2007,25 +2030,28 @@ button:focus-visible {
 .task-list::-webkit-scrollbar-track { background: transparent; }
 
 /* ─── TASK ITEM ──────────────────────────────────────────────── */
+/* Estilo "tarjetas" del rediseño Tierra: cada fila es una tarjeta
+   elevada (fondo card + borde sutil + sombra pequeña + radio 8px). */
 .task-item {
   display: grid;
   gap: 0;
-  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  padding: 9px var(--sp-3) 9px var(--sp-4);
+  min-height: 47px;
+  align-content: center;
   background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 0;
-  margin-bottom: -1px; /* colapsa los bordes adyacentes en un único divisor */
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  margin-bottom: 6px;
   cursor: pointer;
   max-width: 100%;
   overflow: hidden;
   transition: background var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out),
+              box-shadow 150ms var(--ease-out),
               opacity var(--dur-base) var(--ease-out);
   position: relative;
   animation: itemIn 0.22s var(--ease-out) both;
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
 /* Left accent bar — always on, priority-aware. Centrada verticalmente,
@@ -2045,16 +2071,15 @@ button:focus-visible {
               box-shadow var(--dur-fast) var(--ease-out);
 }
 
-/* Priority-aware accent bar */
-.task-item:has(.priority-high-btn)::before   { background: rgba(251, 113, 133, 0.40); height: 50%; }
-.task-item:has(.priority-medium-btn)::before { background: rgba(251, 191, 36, 0.40);  height: 50%; }
-.task-item:has(.priority-low-btn)::before    { background: rgba(96, 165, 250, 0.40);  height: 50%; }
+/* Priority-aware accent bar — paleta cálida (views.jsx PRIO) */
+.task-item:has(.priority-high-btn)::before   { background: rgba(224, 122, 106, 0.55); height: 50%; }
+.task-item:has(.priority-medium-btn)::before { background: rgba(224, 163, 90, 0.55);  height: 50%; }
+.task-item:has(.priority-low-btn)::before    { background: rgba(163, 179, 102, 0.55); height: 50%; }
 
 .task-item:hover {
-  background: var(--surface-raised);
-  border-color: var(--border-default);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  background: var(--row-hover);
+  border-color: var(--border-strong);
+  box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
 }
 
 .task-item:hover::before {
@@ -2062,13 +2087,13 @@ button:focus-visible {
   background: var(--task-accent, var(--c-primary-500));
   box-shadow: none;
 }
-.task-item:has(.priority-high-btn):hover::before   { background: rgba(251, 113, 133, 0.65); box-shadow: none; }
-.task-item:has(.priority-medium-btn):hover::before { background: rgba(251, 191, 36, 0.65);  box-shadow: none; }
-.task-item:has(.priority-low-btn):hover::before    { background: rgba(96, 165, 250, 0.65);  box-shadow: none; }
+.task-item:has(.priority-high-btn):hover::before   { background: var(--c-danger);  box-shadow: none; }
+.task-item:has(.priority-medium-btn):hover::before { background: var(--c-warning); box-shadow: none; }
+.task-item:has(.priority-low-btn):hover::before    { background: var(--c-primary-500); box-shadow: none; }
 
 /* Status background tint */
-.task-item:has(.status-progress-btn) { background: rgba(52, 211, 153, 0.030); }
-.task-item:has(.status-waiting-btn)  { background: rgba(251, 191, 36, 0.030); }
+.task-item:has(.status-progress-btn) { background: rgba(95, 179, 163, 0.040); }
+.task-item:has(.status-waiting-btn)  { background: rgba(224, 163, 90, 0.040); }
 
 .task-item:focus-visible {
   outline: none;
@@ -2077,8 +2102,6 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .task-item {
-  background: var(--surface-card);
-  border-color: var(--border-default);
   box-shadow: var(--shadow-sm);
 }
 
@@ -2086,15 +2109,18 @@ button:focus-visible {
   background: color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 55%, transparent);
 }
 
+:root[data-theme="light"] .task-item:has(.priority-high-btn)::before   { background: rgba(176, 71, 63, 0.55);  }
+:root[data-theme="light"] .task-item:has(.priority-medium-btn)::before { background: rgba(191, 134, 54, 0.55); }
+:root[data-theme="light"] .task-item:has(.priority-low-btn)::before    { background: rgba(111, 122, 61, 0.55); }
+
 :root[data-theme="light"] .task-item:hover {
-  background: var(--surface-raised);
+  background: var(--row-hover);
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
 }
 
 :root[data-theme="light"] .task-item:hover::before {
   background: var(--task-accent, var(--c-primary-500));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 25%, transparent);
 }
 
 @keyframes itemIn {
@@ -2177,13 +2203,13 @@ button:focus-visible {
   display: inline-flex;
 }
 
-/* Custom checkbox — circle */
+/* Custom checkbox — circle (19px, borde 1.7px, como el prototipo Tierra) */
 .task-toggle {
   appearance: none;
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--border-strong);
+  width: 19px;
+  height: 19px;
+  border: 1.7px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
   cursor: pointer;
@@ -2208,11 +2234,11 @@ button:focus-visible {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   pointer-events: none;
   fill: none;
-  stroke: #fff;
+  stroke: var(--accent-on);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -2247,8 +2273,8 @@ button:focus-visible {
 }
 
 .task-toggle:hover {
-  border-color: var(--c-primary-400);
-  box-shadow: 0 0 6px rgba(163, 179, 102, 0.20);
+  border-color: var(--c-primary-500);
+  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
 :root[data-theme="light"] .task-toggle:checked {
@@ -5905,7 +5931,7 @@ kbd {
   overflow: visible;
   transform-origin: center;
   filter: drop-shadow(0 0 32px rgba(111, 122, 61, 0.50))
-          drop-shadow(0 0 12px rgba(236, 72, 153, 0.30));
+          drop-shadow(0 0 12px rgba(224, 163, 90, 0.30));
   animation:
     splash-logo-pop     0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both,
     splash-logo-breathe 3.2s  ease-in-out                        0.90s infinite;
@@ -6436,19 +6462,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   transform: none;
 }
 
-:root[data-theme="light"] .new-project-btn,
-:root[data-theme="light"] .new-note-btn {
-  color: var(--text-secondary);
-  border-color: var(--border-default);
-  background: transparent;
-  box-shadow: none;
-}
-:root[data-theme="light"] .new-project-btn:hover,
-:root[data-theme="light"] .new-note-btn:hover {
-  background: rgba(111, 122, 61, 0.05);
-  border-color: rgba(111, 122, 61, 0.40);
-  color: var(--c-primary-500);
-}
+/* (Botones de la sidebar footer: siempre sobre fondo oscuro, sin
+   overrides light.) */
 
 .new-project-btn .lucide,
 .new-note-btn .lucide {
@@ -6925,10 +6940,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   animation: profile-drop-in 0.18s cubic-bezier(0.34, 1.3, 0.64, 1) both;
 }
 
-:root[data-theme="light"] .profile-dropdown {
-  background: #fff;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.11);
-}
+/* (El dropdown de perfil vive dentro de la sidebar oscura: mismo estilo
+   en ambos temas.) */
 
 @keyframes profile-drop-in {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
@@ -7024,9 +7037,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   background: rgba(52, 211, 153, 0.10);
   border-color: rgba(52, 211, 153, 0.32);
 }
-:root[data-theme="light"] .profile-toggle-pill {
-  background: rgba(0, 0, 0, 0.05);
-}
 
 .profile-notif-options {
   padding: 0.45rem 0.75rem 0.55rem;
@@ -7109,9 +7119,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-size: 0.72rem;
   color: var(--t-primary);
   color-scheme: dark;
-}
-:root[data-theme="light"] .profile-notif-times-add input[type="time"] {
-  color-scheme: light;
 }
 
 .profile-notif-add-btn {
@@ -8946,10 +8953,6 @@ button {
   cursor: pointer;
 }
 
-:root[data-theme="light"] .smart-list-item.active {
-  background: rgba(111, 122, 61, 0.10);
-  color: var(--c-primary-600);
-}
 
 /* ═══════════════════════════════════════════════════════════════
    BOTÓN "AVISO" (recordatorio por tarea)
@@ -9236,8 +9239,8 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 .nl-chip-prio-low    { background: rgba(96,165,250,0.14);  border-color: rgba(96,165,250,0.28);  color: #93c5fd; }
 
 .nl-chip-label {
-  background: rgba(34, 211, 238, 0.10);
-  border-color: rgba(34, 211, 238, 0.22);
+  background: rgba(95, 179, 163, 0.10);
+  border-color: rgba(95, 179, 163, 0.22);
   color: #67e8f9;
 }
 
@@ -9399,7 +9402,7 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 }
 .onb-chip-date  { background: rgba(163, 179, 102, 0.16); border-color: rgba(163, 179, 102, 0.28); color: var(--c-primary-300); }
 .onb-chip-prio  { background: rgba(251, 113, 133, 0.16); border-color: rgba(251, 113, 133, 0.28); color: #fda4af; }
-.onb-chip-label { background: rgba(34, 211, 238, 0.16); border-color: rgba(34, 211, 238, 0.28); color: #67e8f9; }
+.onb-chip-label { background: rgba(95, 179, 163, 0.16); border-color: rgba(95, 179, 163, 0.28); color: #67e8f9; }
 
 /* ── Tabla de atajos paso 3 ─────────────────────────────────── */
 .onb-shortcuts {
