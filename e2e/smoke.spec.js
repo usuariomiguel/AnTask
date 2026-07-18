@@ -2,8 +2,10 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Limpia localStorage, navega a la app, abre Inbox y espera a que el
- * input sea usable. El task-input está oculto hasta que hay un proyecto activo.
+ * Limpia localStorage, navega a la app y abre el Inbox. En escritorio
+ * la creación de tareas va por la captura rápida (barra flotante
+ * #capture-bar), como en el prototipo Tierra: el input superior solo
+ * existe en móvil.
  */
 async function freshLoad(page) {
   // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
@@ -20,18 +22,26 @@ async function freshLoad(page) {
   // Espera a que la sidebar cargue (el splash tiene un fallback de 500ms).
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
 
-  // Activa el Inbox para que el panel de tareas (y el input) se muestren.
+  // Activa el Inbox para que el panel de tareas se muestre.
   await page.click(".project-item-inbox");
 
-  // Ahora el input debe ser visible.
-  await page.waitForSelector("#task-input", { state: "visible", timeout: 5_000 });
+  // La barra de captura flotante debe ser visible (escritorio).
+  await page.waitForSelector("#capture-bar", { state: "visible", timeout: 5_000 });
+}
+
+/** Crea una tarea con la captura rápida y espera a que el modal cierre. */
+async function addTask(page, text) {
+  await page.click("#capture-bar");
+  await page.waitForSelector(".quick-capture-input", { state: "visible", timeout: 5_000 });
+  await page.fill(".quick-capture-input", text);
+  await page.press(".quick-capture-input", "Enter");
+  await expect(page.locator(".quick-capture-input")).toHaveCount(0);
 }
 
 test("crear tarea en Inbox y que aparezca en la lista", async ({ page }) => {
   await freshLoad(page);
 
-  await page.fill("#task-input", "Comprar leche");
-  await page.press("#task-input", "Enter");
+  await addTask(page, "Comprar leche");
 
   await expect(
     page.locator("#task-list .task-item").filter({ hasText: "Comprar leche" })
@@ -41,8 +51,7 @@ test("crear tarea en Inbox y que aparezca en la lista", async ({ page }) => {
 test("completar una tarea marca el checkbox", async ({ page }) => {
   await freshLoad(page);
 
-  await page.fill("#task-input", "Tarea para completar");
-  await page.press("#task-input", "Enter");
+  await addTask(page, "Tarea para completar");
 
   const taskItem = page.locator("#task-list .task-item").filter({ hasText: "Tarea para completar" });
   await expect(taskItem).toBeVisible();
@@ -54,8 +63,7 @@ test("completar una tarea marca el checkbox", async ({ page }) => {
 test("las tareas persisten tras recargar la página", async ({ page }) => {
   await freshLoad(page);
 
-  await page.fill("#task-input", "Tarea persistente");
-  await page.press("#task-input", "Enter");
+  await addTask(page, "Tarea persistente");
 
   await expect(
     page.locator("#task-list .task-item").filter({ hasText: "Tarea persistente" })
@@ -70,13 +78,18 @@ test("las tareas persisten tras recargar la página", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("el parser NL acepta tokens de fecha y prioridad en el input", async ({ page }) => {
+test("el parser NL acepta tokens de fecha y prioridad en la captura", async ({ page }) => {
   await freshLoad(page);
 
-  await page.fill("#task-input", "Informe urgente hoy p1");
-  await expect(page.locator("#task-input")).toHaveValue("Informe urgente hoy p1");
+  await page.click("#capture-bar");
+  await page.waitForSelector(".quick-capture-input", { state: "visible" });
+  await page.fill(".quick-capture-input", "Informe urgente hoy p1");
+  await expect(page.locator(".quick-capture-input")).toHaveValue("Informe urgente hoy p1");
 
-  await page.press("#task-input", "Enter");
+  // La preview de chips NL debe reaccionar a los tokens.
+  await expect(page.locator(".quick-capture-preview")).toBeVisible();
+
+  await page.press(".quick-capture-input", "Enter");
 
   // El texto limpio (sin tokens) debe aparecer en la lista.
   await expect(
@@ -89,8 +102,7 @@ test("crear múltiples tareas y verificar que todas aparecen", async ({ page }) 
 
   const tareas = ["Primera tarea", "Segunda tarea", "Tercera tarea"];
   for (const texto of tareas) {
-    await page.fill("#task-input", texto);
-    await page.press("#task-input", "Enter");
+    await addTask(page, texto);
   }
 
   for (const texto of tareas) {

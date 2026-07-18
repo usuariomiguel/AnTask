@@ -57,9 +57,12 @@ test("a11y: pantalla inicial", async ({ page }) => {
 test("a11y: Inbox con tareas", async ({ page }) => {
   await loadFresh(page);
   await page.click(".project-item-inbox");
-  await page.waitForSelector("#task-input", { state: "visible" });
-  await page.fill("#task-input", "Tarea a11y");
-  await page.press("#task-input", "Enter");
+  // En escritorio la creación va por la captura rápida (prototipo Tierra).
+  await page.waitForSelector("#capture-bar", { state: "visible" });
+  await page.click("#capture-bar");
+  await page.waitForSelector(".quick-capture-input", { state: "visible" });
+  await page.fill(".quick-capture-input", "Tarea a11y");
+  await page.press(".quick-capture-input", "Enter");
   await page.waitForSelector("#task-list .task-item");
 
   const results = await new AxeBuilder({ page })

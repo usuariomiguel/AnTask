@@ -139,6 +139,7 @@ export const en = {
   "fold.completed_other":     "{count} completed",
   "fold.show":                "Show",
   "fold.hide":                "Hide",
+  "inbox.group_none":         "No list",
 
   // ── Smart lists ───────────────────────────────────────────
   "smartlist.empty_title":    "No results",

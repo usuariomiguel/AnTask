@@ -2576,10 +2576,43 @@ function renderTasks() {
   // que permite ocultarlas. Solo presentación — el orden real del
   // array de tareas no cambia.
   let foldedDone = [];
-  if (currentFilter === "all" && currentSort === "manual") {
-    const pendingTasks = visible.filter(function(tk) { return !tk.done; });
+  const foldDone = currentFilter === "all" && currentSort === "manual";
+  let pendingTasks = visible;
+  if (foldDone) {
+    pendingTasks = visible.filter(function(tk) { return !tk.done; });
     foldedDone = visible.filter(function(tk) { return tk.done; });
+  }
+
+  // Agrupar el Inbox por etiqueta (las "listas" del prototipo): las
+  // pendientes se ordenan por su primera etiqueta y cada grupo lleva
+  // cabecera con punto de color; las sin etiqueta van al final.
+  let labelGroups = null;
+  const groupByLabel = project.id === INBOX_ID && currentSort === "manual" &&
+    !currentLabelFilter && (currentFilter === "all" || currentFilter === "pending");
+  if (groupByLabel) {
+    const byLabel = new Map();
+    pendingTasks.forEach(function(tk) {
+      const key = (Array.isArray(tk.labels) && tk.labels.length > 0) ? tk.labels[0] : "";
+      if (!byLabel.has(key)) byLabel.set(key, []);
+      byLabel.get(key).push(tk);
+    });
+    const order = (project.labels || []).filter(function(l) { return byLabel.has(l); });
+    byLabel.forEach(function(_, k) {
+      if (k !== "" && order.indexOf(k) === -1) order.push(k);
+    });
+    if (byLabel.has("")) order.push("");
+    // Solo agrupar si hay al menos una etiqueta real en juego.
+    if (order.length > 1 || (order.length === 1 && order[0] !== "")) {
+      labelGroups = order.map(function(k) { return { label: k, tasks: byLabel.get(k) }; });
+      pendingTasks = [];
+      labelGroups.forEach(function(g) { pendingTasks = pendingTasks.concat(g.tasks); });
+    }
+  }
+
+  if (foldDone) {
     visible = _doneFoldExpanded ? pendingTasks.concat(foldedDone) : pendingTasks;
+  } else {
+    visible = pendingTasks;
   }
 
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
@@ -2623,6 +2656,30 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
+  // Cabeceras de grupo por etiqueta (se recrean en cada render: la
+  // limpieza inicial las retira por no tener data-task-id).
+  if (labelGroups) {
+    labelGroups.forEach(function(g) {
+      if (g.tasks.length === 0) return;
+      const head = document.createElement("li");
+      head.className = "inbox-group-head";
+      head.innerHTML =
+        '<span class="inbox-group-dot"></span>' +
+        '<span class="inbox-group-name"></span>' +
+        '<span class="inbox-group-count"></span>' +
+        '<span class="inbox-group-rule"></span>';
+      head.querySelector(".inbox-group-name").textContent =
+        g.label || t("inbox.group_none");
+      head.querySelector(".inbox-group-count").textContent = "(" + g.tasks.length + ")";
+      if (g.label) {
+        head.querySelector(".inbox-group-dot").style.background = getLabelColor(g.label);
+      }
+      const firstNode = taskList.querySelector(
+        '[data-task-id="' + CSS.escape(g.tasks[0].id) + '"]');
+      if (firstNode) taskList.insertBefore(head, firstNode);
+    });
+  }
+
   // Fila-resumen de completadas (se recrea en cada render: la limpieza
   // inicial la retira por no tener data-task-id).
   if (foldedDone.length > 0) {
@@ -2659,7 +2716,7 @@ function renderTasks() {
     });
     // Entre pendientes y hechas: justo antes del nodo de la primera hecha.
     const firstDoneNode = _doneFoldExpanded && foldedDone.length
-      ? taskList.querySelector('[data-task-id="' + foldedDone[0].id + '"]')
+      ? taskList.querySelector('[data-task-id="' + CSS.escape(foldedDone[0].id) + '"]')
       : null;
     taskList.insertBefore(fold, firstDoneNode);
     if (window.lucide) lucide.createIcons({ nodes: [fold] });

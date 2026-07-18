@@ -1577,10 +1577,10 @@ button:focus-visible {
   box-shadow: none;
 }
 
-/* En escritorio la fila sobria del prototipo no lleva botón: se envía
- * con Enter (o desde la barra de captura flotante). */
+/* En escritorio la creación va por la barra de captura flotante
+ * (prototipo): la fila superior de añadir solo existe en móvil. */
 @media (min-width: 769px) {
-  .task-form button[type="submit"] { display: none; }
+  .task-form { display: none; }
 }
 
 /* Primary action button (form submit) — mismo lenguaje que .new-project-btn */
@@ -2089,8 +2089,6 @@ button:focus-visible {
   padding-bottom: 2rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(163, 179, 102, 0.18) transparent;
-  mask-image: linear-gradient(to bottom, black calc(100% - 3rem), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 3rem), transparent 100%);
 }
 
 .task-list::-webkit-scrollbar { width: 4px; }
@@ -9117,6 +9115,42 @@ button {
   :root[data-theme="light"] .task-list--project { background: rgba(50, 42, 28, 0.032); }
   /* el padding inferior para la barra de captura pasa al panel */
   .task-list--project { margin-bottom: 88px; padding-bottom: 11px; }
+}
+
+/* Cabecera de grupo por etiqueta en el Inbox (las "listas" del prototipo) */
+.inbox-group-head {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 1px 3px 10px;
+}
+.inbox-group-head ~ .inbox-group-head,
+.task-item + .inbox-group-head { margin-top: 12px; }
+.inbox-group-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.inbox-group-name {
+  font-size: 14.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.inbox-group-count {
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.inbox-group-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-default), transparent);
+  margin-left: 2px;
 }
 
 /* Fila-resumen de completadas plegable (prototipo Inbox) */
