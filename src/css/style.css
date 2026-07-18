@@ -3936,7 +3936,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     justify-content: space-between;
     padding: 0 var(--sp-3);
     gap: var(--sp-2);
-    background: rgba(9, 9, 13, 0.98);
+    background: rgba(23, 18, 13, 0.96);
     border-bottom: 1px solid var(--border-subtle);
     backdrop-filter: blur(16px);
     flex-shrink: 0;
@@ -3961,7 +3961,7 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 
   :root[data-theme="light"] .mobile-header {
-    background: rgba(246, 246, 252, 0.99);
+    background: rgba(244, 239, 227, 0.96);
     border-bottom-color: var(--border-default);
   }
 
@@ -5007,24 +5007,62 @@ body.project-dragging .project-item { cursor: grabbing; }
     border-top: none;
   }
 
-  /* ── Mobile bottom navigation ──────────────────────────── */
+  /* ── Mobile bottom navigation ───────────────────────────────
+     Pastilla flotante "liquid glass" del prototipo móvil Tierra:
+     radio 28px, fondo card translúcido + blur, borde, sombra amplia
+     y un reflejo animado (lgShine) que respeta reduced-motion. */
   .mobile-bottom-nav {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    height: calc(64px + env(safe-area-inset-bottom, 0));
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    background: rgba(9, 9, 13, 0.98);
-    border-top: 1px solid var(--border-subtle);
+    height: 64px;
+    margin: 8px 14px calc(8px + env(safe-area-inset-bottom, 0));
+    background: rgba(33, 26, 19, 0.90);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-default);
+    border-radius: 28px;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
     flex-shrink: 0;
     z-index: 200;
-    width: 100%;
     position: relative;
+    overflow: hidden;
+  }
+
+  /* reflejo del cristal líquido que recorre la barra */
+  .mobile-bottom-nav::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: 0;
+    width: 34%;
+    height: 220%;
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(255, 245, 225, 0.05) 45%,
+      rgba(255, 245, 225, 0.10) 50%,
+      rgba(255, 245, 225, 0.05) 55%,
+      transparent 100%
+    );
+    pointer-events: none;
+    animation: lgShine 7s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes lgShine {
+    from { transform: translateX(-70%) rotate(-15deg); }
+    to   { transform: translateX(320%) rotate(-15deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-bottom-nav::after { animation: none; }
   }
 
   :root[data-theme="light"] .mobile-bottom-nav {
-    background: rgba(246, 246, 252, 0.99);
-    border-top-color: var(--border-default);
+    background: rgba(255, 253, 246, 0.88);
+    border-color: var(--border-default);
+    box-shadow: 0 14px 32px -12px rgba(40, 28, 12, 0.38);
   }
 
   .mobile-bottom-btn {
@@ -5060,63 +5098,82 @@ body.project-dragging .project-item { cursor: grabbing; }
     white-space: nowrap;
   }
 
-  /* Indicador activo — dot violeta arriba del ícono */
-  .mobile-bottom-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
-    border-radius: 0 0 var(--r-pill) var(--r-pill);
-    background: transparent;
-    transition: background var(--dur-fast) var(--ease-out);
+  /* El notch SVG del diseño antiguo no existe en la pastilla */
+  .mobile-bottom-nav-bg {
+    display: none;
   }
 
+  /* Hueco central: aloja el FAB circular integrado (prototipo AddFab) */
+  .mobile-bottom-spacer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 0 8px;
+  }
+
+  .mobile-fab {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+    cursor: pointer;
+    box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.7);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .mobile-fab.visible { display: inline-flex; }
+  .mobile-fab:active { transform: scale(0.94); }
+  .mobile-fab svg { width: 22px; height: 22px; stroke-width: 2.4; }
+
+  :root[data-theme="light"] .mobile-fab {
+    box-shadow: 0 8px 18px -6px rgba(111, 122, 61, 0.55);
+  }
+
+  /* Estado activo (prototipo): icono y texto en acento, sin dot */
   .mobile-bottom-btn:active {
-    color: var(--c-primary-300);
+    color: var(--c-primary-400);
     background: transparent;
     border-color: transparent;
     transform: none;
     box-shadow: none;
   }
   .mobile-bottom-btn.active {
-    color: var(--c-primary-300);
+    color: var(--c-primary-500);
+    font-weight: var(--fw-bold);
   }
-  .mobile-bottom-btn.active::before {
-    background: var(--c-primary-500);
-    box-shadow: 0 0 8px rgba(163, 179, 102, 0.50);
-  }
+  .mobile-bottom-btn.active svg { stroke-width: 2.4; }
   :root[data-theme="light"] .mobile-bottom-btn:hover,
   :root[data-theme="light"] .mobile-bottom-btn:active,
   :root[data-theme="light"] .mobile-bottom-btn.active {
-    color: var(--c-primary-500);
-  }
-  :root[data-theme="light"] .mobile-bottom-btn.active::before {
-    background: var(--c-primary-500);
-    box-shadow: 0 0 8px rgba(111, 122, 61, 0.40);
+    color: var(--c-primary-600);
   }
 
   /* ── FAB anclado en el notch del bottom-nav ─────────────────── */
   /* Botón "Nueva" integrado en la fila (estilo Instagram/TikTok): el icono
      vive en una pastilla con gradiente de marca; la etiqueta debajo como el
      resto de opciones. */
+  /* Botón "Nueva": FAB circular en acento (prototipo AddFab) */
   .mobile-bottom-btn--create .mobile-create-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 26px;
-    border-radius: 9px;
-    background: var(--grad-primary);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(163, 179, 102, 0.35);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+    box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.55);
   }
   .mobile-bottom-btn--create .mobile-create-icon svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 2.5;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.4;
   }
   .mobile-bottom-btn--create:active .mobile-create-icon {
     transform: scale(0.92);
