@@ -42,7 +42,7 @@ export const es = {
   "profile.signin":           "Sincronizar con Google",
 
   // ── Input de tareas ───────────────────────────────────────
-  "task.input.placeholder":   "Nueva tarea (prueba: todos los lunes p1 #personal)",
+  "task.input.placeholder":   "Nueva tarea…",
   "task.input.placeholder_fab": "Nueva tarea...",
   "task.add_btn":             "Añadir",
 
@@ -135,6 +135,10 @@ export const es = {
   "hoy.reopen":               "Reabrir tarea",
   "capture.bar_hint":         "Captura rápida — pulsa para escribir…",
   "capture.open":             "Abrir captura rápida",
+  "fold.completed_one":       "{count} completada",
+  "fold.completed_other":     "{count} completadas",
+  "fold.show":                "Mostrar",
+  "fold.hide":                "Ocultar",
 
   // ── Smart lists ───────────────────────────────────────────
   "smartlist.empty_title":    "Sin resultados",

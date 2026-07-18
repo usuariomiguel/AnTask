@@ -2567,7 +2567,20 @@ function renderTasks() {
   const project = getActiveProject();
   if (!project) { taskList.innerHTML = ""; return; }
 
-  const visible = getVisibleTasks(project);
+  taskList.classList.add("task-list--project");
+
+  let visible = getVisibleTasks(project);
+
+  // Plegado de completadas (prototipo): con el filtro "Todas", las
+  // pendientes van primero y las hechas quedan tras una fila-resumen
+  // que permite ocultarlas. Solo presentación — el orden real del
+  // array de tareas no cambia.
+  let foldedDone = [];
+  if (currentFilter === "all" && currentSort === "manual") {
+    const pendingTasks = visible.filter(function(tk) { return !tk.done; });
+    foldedDone = visible.filter(function(tk) { return tk.done; });
+    visible = _doneFoldExpanded ? pendingTasks.concat(foldedDone) : pendingTasks;
+  }
 
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
   // cualquier nodo huérfano (`.today-item`, `.today-empty`, ...) que no
@@ -2610,9 +2623,51 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
+  // Fila-resumen de completadas (se recrea en cada render: la limpieza
+  // inicial la retira por no tener data-task-id).
+  if (foldedDone.length > 0) {
+    const fold = document.createElement("li");
+    fold.className = "done-fold" + (_doneFoldExpanded ? " done-fold--open" : "");
+    const preview = foldedDone.slice(0, 2).map(function(tk) { return tk.text; }).join(", ") +
+      (foldedDone.length > 2 ? "…" : "");
+    fold.innerHTML =
+      '<span class="done-fold-check"><i data-lucide="check"></i></span>' +
+      '<span class="done-fold-label"><b></b><span class="done-fold-preview"></span></span>' +
+      '<span class="done-fold-toggle">' +
+        '<span class="done-fold-toggle-text"></span><i data-lucide="chevron-down"></i>' +
+      '</span>';
+    fold.querySelector("b").textContent =
+      (foldedDone.length === 1 ? t("fold.completed_one") : t("fold.completed_other"))
+        .replace("{count}", String(foldedDone.length));
+    fold.querySelector(".done-fold-preview").textContent =
+      _doneFoldExpanded ? "" : " — " + preview;
+    fold.querySelector(".done-fold-toggle-text").textContent =
+      _doneFoldExpanded ? t("fold.hide") : t("fold.show");
+    fold.setAttribute("role", "button");
+    fold.setAttribute("tabindex", "0");
+    fold.setAttribute("aria-expanded", _doneFoldExpanded ? "true" : "false");
+    fold.addEventListener("click", function() {
+      _doneFoldExpanded = !_doneFoldExpanded;
+      renderTasks();
+    });
+    fold.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        _doneFoldExpanded = !_doneFoldExpanded;
+        renderTasks();
+      }
+    });
+    // Entre pendientes y hechas: justo antes del nodo de la primera hecha.
+    const firstDoneNode = _doneFoldExpanded && foldedDone.length
+      ? taskList.querySelector('[data-task-id="' + foldedDone[0].id + '"]')
+      : null;
+    taskList.insertBefore(fold, firstDoneNode);
+    if (window.lucide) lucide.createIcons({ nodes: [fold] });
+  }
+
   // Empty state: si el proyecto no tiene tareas visibles (o no tiene
   // ninguna), inyectamos una ilustración + CTA para captura rápida.
-  if (visible.length === 0) {
+  if (visible.length === 0 && foldedDone.length === 0) {
     const empty = document.createElement("li");
     empty.className = "today-empty empty-illustrated";
     const hasAnyTask = project.tasks.length > 0;
@@ -3061,6 +3116,7 @@ function _wireEmptyStateCTA(emptyNode) {
 
 function renderTodayView() {
   taskList.innerHTML = "";
+  taskList.classList.remove("task-list--project");
   var today = new Date().toISOString().slice(0, 10);
 
   // Agrupar como el prototipo: vencidas / para hoy (incluye las hechas hoy,
@@ -3154,6 +3210,10 @@ function renderTodayView() {
 // ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
 
 var _hoyQuickAddRefocus = false;
+
+// Plegado de completadas en vista proyecto (prototipo Inbox). Expandido
+// por defecto: completar una tarea no la hace desaparecer de golpe.
+var _doneFoldExpanded = true;
 
 function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   var li = document.createElement("li");
@@ -3275,6 +3335,7 @@ function _removeHoyHeaderExtra() {
  * el ítem visual de Hoy y aplica los filtros del smart list activo. */
 function renderSmartListView() {
   taskList.innerHTML = "";
+  taskList.classList.remove("task-list--project");
   const list = smartLists.find(function(s) { return s.id === activeSmartListId; });
   if (!list) {
     if (taskCounter) taskCounter.textContent = "";

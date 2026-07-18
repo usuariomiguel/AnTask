@@ -42,7 +42,7 @@ export const en = {
   "profile.signin":           "Sync with Google",
 
   // ── Task input ────────────────────────────────────────────
-  "task.input.placeholder":   "New task (try: next monday p1 #personal)",
+  "task.input.placeholder":   "New task…",
   "task.input.placeholder_fab": "New task...",
   "task.add_btn":             "Add",
 
@@ -135,6 +135,10 @@ export const en = {
   "hoy.reopen":               "Reopen task",
   "capture.bar_hint":         "Quick capture — press to type…",
   "capture.open":             "Open quick capture",
+  "fold.completed_one":       "{count} completed",
+  "fold.completed_other":     "{count} completed",
+  "fold.show":                "Show",
+  "fold.hide":                "Hide",
 
   // ── Smart lists ───────────────────────────────────────────
   "smartlist.empty_title":    "No results",

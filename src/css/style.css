@@ -1452,49 +1452,72 @@ h1 {
 
 /* ─── TASK FORM ──────────────────────────────────────────────── */
 .task-form {
+  position: relative;
   display: flex;
   gap: var(--sp-2);
   margin: 0 0 var(--sp-2);
   flex-shrink: 0;
 }
 
-/* Hint del atajo de captura rápida bajo el input (solo desktop). */
-.task-form-hint {
+/* "+" en acento dentro de la fila de añadir (prototipo Inbox) */
+.task-form-plus {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  color: var(--c-primary-300);
+  pointer-events: none;
+}
+:root[data-theme="light"] .task-form-plus { color: var(--c-primary-600); }
+.task-form-plus .lucide { width: 16px; height: 16px; stroke-width: 2.6; }
+
+/* Atajo de captura rápida dentro de la fila, a la derecha */
+.task-form-kbd {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin: 0 0 var(--sp-3) 2px;
-  font-size: var(--fs-xs);
+  gap: 3px;
+  font-size: 9.5px;
   color: var(--text-tertiary);
+  pointer-events: none;
 }
-.task-form-hint kbd {
+.task-form-kbd kbd {
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  padding: 1px 5px;
-  background: var(--surface-input);
+  font-size: 9.5px;
+  line-height: 1;
+  padding: 2px 5px;
+  background: var(--kbd-bg);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-xs);
+  border-radius: 4px;
   color: var(--text-secondary);
 }
-/* En móvil/táctil no hay atajo de teclado: ocultamos el hint. */
+/* En móvil no hay atajo de teclado ni sitio para el chip. */
 @media (max-width: 768px) {
-  .task-form-hint { display: none; }
+  .task-form-plus, .task-form-kbd { display: none; }
 }
 
 .task-form input {
   flex: 1;
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
+  font-size: 14.5px;
   font-weight: var(--fw-regular);
   color: var(--text-primary);
   background: var(--surface-input);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
-  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-lg);
+  padding: 13px 150px 13px 40px;
   outline: none;
   transition: border-color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out),
               box-shadow var(--dur-fast) var(--ease-out);
+}
+@media (max-width: 768px) {
+  .task-form input { padding: var(--sp-3) var(--sp-4); }
 }
 
 .task-form input::placeholder {
@@ -1552,6 +1575,12 @@ button:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   box-shadow: none;
+}
+
+/* En escritorio la fila sobria del prototipo no lleva botón: se envía
+ * con Enter (o desde la barra de captura flotante). */
+@media (min-width: 769px) {
+  .task-form button[type="submit"] { display: none; }
 }
 
 /* Primary action button (form submit) — mismo lenguaje que .new-project-btn */
@@ -3711,16 +3740,18 @@ body.project-dragging .project-item { cursor: grabbing; }
 .label-add-btn {
   font-size: 0.70rem;
   padding: 0.28rem 0.52rem;
-  color: var(--c-violet);
-  background: rgba(192, 132, 252, 0.06);
-  border-color: rgba(192, 132, 252, 0.20);
+  color: var(--c-primary-300);
+  background: rgba(163, 179, 102, 0.06);
+  border-color: rgba(163, 179, 102, 0.20);
 }
 
 .label-add-btn:hover {
-  color: var(--c-violet);
-  border-color: rgba(192, 132, 252, 0.45);
-  box-shadow: 0 0 10px rgba(192, 132, 252, 0.15);
+  color: var(--c-primary-300);
+  border-color: rgba(163, 179, 102, 0.45);
+  box-shadow: 0 0 10px rgba(163, 179, 102, 0.15);
 }
+:root[data-theme="light"] .label-add-btn,
+:root[data-theme="light"] .label-add-btn:hover { color: var(--c-primary-600); }
 
 /* ─── LABEL FILTER BAR ───────────────────────────────────────── */
 .label-filter-bar {
@@ -3734,14 +3765,14 @@ body.project-dragging .project-item { cursor: grabbing; }
 }
 
 .label-filter-btn {
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.01em;
-  padding: 0.26rem 0.62rem;
+  padding: 5px 13px;
   border-radius: var(--r-pill);
   background: transparent;
-  color: var(--t-muted);
-  border: 1px solid var(--b-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -9068,13 +9099,77 @@ button {
   .capture-bar { display: none; }
 }
 
-/* Con la barra flotante, el hint del atajo bajo el input sobra en
- * escritorio, y la lista necesita hueco para que la última fila no
- * quede tapada. */
+/* Con la barra flotante la lista necesita hueco para que la última
+ * fila no quede tapada. */
 @media (min-width: 769px) {
-  .task-form-hint { display: none; }
   .task-list { padding-bottom: 88px; }
 }
+
+/* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
+@media (min-width: 769px) {
+  .task-list--project {
+    background: rgba(255, 240, 220, 0.032);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 8px);
+    padding: 11px 11px 4px;
+    margin-bottom: 14px;
+  }
+  :root[data-theme="light"] .task-list--project { background: rgba(50, 42, 28, 0.032); }
+  /* el padding inferior para la barra de captura pasa al panel */
+  .task-list--project { margin-bottom: 88px; padding-bottom: 11px; }
+}
+
+/* Fila-resumen de completadas plegable (prototipo Inbox) */
+.done-fold {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  cursor: pointer;
+  padding: 11px 15px;
+  margin: 8px 0 6px;
+  border-radius: var(--r-lg);
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  user-select: none;
+}
+.done-fold-check {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--c-primary-500);
+  color: var(--accent-on);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.done-fold-check .lucide { width: 11px; height: 11px; stroke-width: 3; }
+.done-fold-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.done-fold-label b { color: var(--text-secondary); font-weight: 650; }
+.done-fold-toggle {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--c-primary-300);
+  flex-shrink: 0;
+}
+:root[data-theme="light"] .done-fold-toggle { color: var(--c-primary-600); }
+.done-fold-toggle .lucide {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.15s;
+}
+.done-fold--open .done-fold-toggle .lucide { transform: rotate(180deg); }
 :root[data-theme="light"] .today-date {
   background: rgba(50, 40, 24, 0.04);
 }
