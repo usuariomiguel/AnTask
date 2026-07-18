@@ -29,12 +29,15 @@ function writeReport(name, results) {
 }
 
 async function loadFresh(page) {
-  await page.goto("/");
+  // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
+  await page.goto("/app.html");
   await page.evaluate(() => {
     localStorage.clear();
     localStorage.setItem("antask_consent", "essential");
+    // El tour de onboarding taparía la pantalla auditada
+    localStorage.setItem("antask-onboarded", "1");
   });
-  await page.goto("/");
+  await page.goto("/app.html");
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
   await page.evaluate(() => {
     const b = document.getElementById("consent-banner");

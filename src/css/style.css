@@ -57,7 +57,7 @@
 
   --text-primary:   #f1e9dc;
   --text-secondary: #b6a691;
-  --text-tertiary:  #80715c;
+  --text-tertiary:  #93846d;  /* ≥4.5:1 sobre card #211a13 (AA) */
   --text-disabled:  #55492f;
   --text-inverse:   #17120d;
 
@@ -304,7 +304,7 @@
   /* Text */
   --text-primary:   #2a251d;
   --text-secondary: #6a6151;
-  --text-tertiary:  #7a7060;
+  --text-tertiary:  #746a58;  /* ≥4.5:1 sobre canvas #f4efe3 (AA) */
   --text-disabled:  #b3a892;
   --text-inverse:   #f2ece0;
 
@@ -358,7 +358,7 @@
 :root[data-theme="light"] .sidebar {
   --text-primary:   #f2ece0;
   --text-secondary: #b3a892;
-  --text-tertiary:  #7a7059;
+  --text-tertiary:  #a3967c;  /* ≥4.5:1 sobre #221d16 (AA) */
   --text-disabled:  #55492f;
   --border-subtle:  rgba(255, 245, 225, 0.06);
   --border-default: rgba(255, 245, 225, 0.08);
@@ -372,6 +372,30 @@
   --accent-on:      #241910;
   --row-hover:      rgba(255, 245, 225, 0.05);
   --kbd-bg:         rgba(255, 245, 230, 0.07);
+
+  /* Semánticos en variante oscura: los popovers de la sidebar (perfil)
+     van sobre fondo oscuro también en tema claro. */
+  --c-success: #5fb3a3;
+  --c-warning: #e0a35a;
+  --c-danger:  #e07a6a;
+  --c-info:    #73b6d2;
+
+  /* Los aliases legacy (--t-*, --b-*, --bg-*) se computan en :root con
+     los valores light globales y se heredan ya resueltos; hay que
+     re-declararlos aquí para que se re-horneen con los tokens oscuros
+     de este ámbito. */
+  --t-primary: var(--text-primary);
+  --t-soft:    var(--text-secondary);
+  --t-muted:   var(--text-tertiary);
+  --b-subtle:  var(--border-default);
+  --bg-deep:   var(--surface-deep);
+  --bg-panel:  var(--surface-card);
+  --bg-glass:  var(--surface-overlay);
+  --bg-item:   var(--surface-input);
+  --c-green:   var(--c-success);
+  --c-gold:    var(--c-warning);
+  --c-pink:    var(--c-danger);
+  --c-blue:    var(--c-info);
 }
 
 /* ─── LUCIDE ICONS ───────────────────────────────────────────── */
@@ -454,6 +478,11 @@ body {
 :root[data-theme="light"] .brand-logo--light {
   display: block;
 }
+
+/* La sidebar permanece oscura en ambos temas (rediseño Tierra):
+   dentro de ella se usa siempre la variante oscura del logo. */
+:root[data-theme="light"] .sidebar .brand-logo--dark { display: block; }
+:root[data-theme="light"] .sidebar .brand-logo--light { display: none; }
 
 /* ─── THEME TOGGLE ───────────────────────────────────────────── */
 .theme-toggle {
@@ -5766,18 +5795,13 @@ kbd {
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--t-soft);
-  background: var(--bg-deep);
+  background: var(--kbd-bg);
   border: 1px solid var(--b-subtle);
   border-bottom-width: 2px;
   border-radius: 4px;
   padding: 0.10rem 0.38rem;
   line-height: 1.5;
   white-space: nowrap;
-}
-
-:root[data-theme="light"] kbd {
-  background: #efe6d4;
-  color: var(--t-soft);
 }
 
 .shortcuts-table {

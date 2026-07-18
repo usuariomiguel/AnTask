@@ -6,9 +6,16 @@ import { test, expect } from "@playwright/test";
  * input sea usable. El task-input está oculto hasta que hay un proyecto activo.
  */
 async function freshLoad(page) {
-  await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.goto("/");
+  // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
+  await page.goto("/app.html");
+  await page.evaluate(() => {
+    localStorage.clear();
+    // Evita que el tour de onboarding y el banner de consentimiento
+    // intercepten los clicks del test en un perfil recién limpiado.
+    localStorage.setItem("antask-onboarded", "1");
+    localStorage.setItem("antask_consent", "essential");
+  });
+  await page.goto("/app.html");
 
   // Espera a que la sidebar cargue (el splash tiene un fallback de 500ms).
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
@@ -55,7 +62,7 @@ test("las tareas persisten tras recargar la página", async ({ page }) => {
   ).toBeVisible();
 
   // Recarga sin borrar localStorage — verifica persistencia real.
-  await page.goto("/");
+  await page.goto("/app.html");
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
   await page.click(".project-item-inbox");
   await expect(
