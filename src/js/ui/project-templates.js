@@ -70,7 +70,7 @@ export const PROJECT_TEMPLATES = [
   {
     id:    "new-job",
     icon:  "💼",
-    color: "#8b5cf6",
+    color: "#8a6fb0",
     tasks: [
       { dueOffset: 0,  priority: "high" },
       { dueOffset: 2  },
