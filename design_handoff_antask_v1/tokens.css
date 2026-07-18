@@ -1,0 +1,128 @@
+/* ══════════════════════════════════════════════════════════════
+   Antask v1 — Tokens del rediseño cálido "Tierra"
+   Mapeados a las variables EXISTENTES de src/css/style.css.
+   Config elegida: acento OLIVA · título Sans (Inter) · radius base 8px
+   · filas "tarjetas" · shell flotante.
+   Modo oscuro = tema "Oscuro cálido" (por defecto, como en prod).
+   Modo claro  = tema "Tierra" (usa el mismo selector que style.css
+   ya emplea para su tema claro, p. ej. [data-theme="light"]).
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Acento (sustituye a la escala violeta --c-primary-*) ──
+     En oscuro el acento se ACLARA para leer sobre fondo oscuro,
+     y el texto sobre relleno de acento pasa a ser oscuro. */
+  --c-primary-300: #c3d18a;
+  --c-primary-400: #b3c176;
+  --c-primary-500: #a3b366;   /* primary action (oliva claro) */
+  --c-primary-600: #8a9a5b;
+  --c-primary-700: #6f7a3d;
+  --accent-on: #241910;       /* NUEVO: texto sobre relleno de acento */
+  --grad-primary:       linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
+  --grad-primary-hover: linear-gradient(135deg, #97a865 0%, #66713a 100%);
+  --glow-primary: 0 4px 14px rgba(163, 179, 102, 0.30);
+  --ring-primary: 0 0 0 3px rgba(163, 179, 102, 0.22);
+  --accent-tint: rgba(163, 179, 102, 0.15);  /* NUEVO: fondos teñidos (nav activa, chips) */
+
+  /* ── Superficies (marrón cálido, antes gris-azulado) ── */
+  --surface-deep:    #100c08;   /* sidebar */
+  --surface-canvas:  #17120d;   /* canvas principal */
+  --surface-card:    #211a13;   /* tarjetas / paneles */
+  --surface-raised:  #2c241b;   /* hover, raised, segmento activo */
+  --surface-overlay: rgba(38, 30, 22, 0.96);
+  --surface-input:   rgba(255, 245, 230, 0.045);
+
+  /* ── Bordes ── */
+  --border-subtle:  rgba(255, 238, 214, 0.07);
+  --border-default: rgba(255, 238, 214, 0.09);
+  --border-strong:  rgba(255, 238, 214, 0.16);
+
+  /* ── Texto (blancos cálidos) ── */
+  --text-primary:   #f1e9dc;
+  --text-secondary: #b6a691;
+  --text-tertiary:  #80715c;
+  --text-disabled:  #55492f;
+  --text-inverse:   #17120d;
+
+  /* ── Semánticos ── */
+  --c-success: #5fb3a3;
+  --c-warning: #e0a35a;
+  --c-danger:  #e07a6a;
+  --c-info:    #73b6d2;
+
+  /* ── Tags ── */
+  --tag-green-bg:  rgba(95, 179, 163, 0.16);
+  --tag-green-fg:  #7fd0c0;
+  --tag-amber-bg:  rgba(224, 163, 90, 0.16);
+  --tag-amber-fg:  #f0bd84;
+  --tag-slate-bg:  rgba(180, 165, 140, 0.14);
+  --tag-slate-fg:  #cabba2;
+
+  /* ── Interacción ── */
+  --row-hover: rgba(255, 238, 214, 0.055);  /* NUEVO: hover de fila */
+  --kbd-bg:    rgba(255, 245, 230, 0.07);
+
+  /* ── Radios (base 8px del prototipo) ── */
+  --r-md: 8px;    /* filas de tarea */
+  --r-lg: 10px;   /* inputs (base+2) */
+  --r-xl: 14px;   /* paneles flotantes */
+}
+
+/* ── TEMA CLARO: "Tierra" (papel cálido + sidebar oscura) ──
+   Sustituir el selector por el que style.css ya use para light. */
+[data-theme="light"] {
+  --c-primary-300: #a3b366;
+  --c-primary-400: #8a9a5b;
+  --c-primary-500: #6f7a3d;   /* oliva */
+  --c-primary-600: #5a6330;
+  --c-primary-700: #4a5228;
+  --accent-on: #fffdf6;
+  --grad-primary: linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
+  --glow-primary: 0 4px 14px rgba(111, 122, 61, 0.28);
+  --ring-primary: 0 0 0 3px rgba(111, 122, 61, 0.20);
+  --accent-tint: rgba(111, 122, 61, 0.14);
+
+  --surface-deep:    #221d16;   /* la sidebar SIGUE oscura en claro (rasgo clave del diseño) */
+  --surface-canvas:  #f4efe3;
+  --surface-card:    #fffdf6;
+  --surface-raised:  #efe6d4;
+  --surface-overlay: rgba(255, 253, 246, 0.97);
+  --surface-input:   #fffdf6;
+
+  --border-subtle:  rgba(50, 40, 24, 0.08);
+  --border-default: rgba(50, 40, 24, 0.11);
+  --border-strong:  rgba(50, 40, 24, 0.18);
+
+  --text-primary:   #2a251d;
+  --text-secondary: #6a6151;
+  --text-tertiary:  #7a7060;
+  --text-disabled:  #b3a892;
+  --text-inverse:   #f2ece0;
+
+  --c-success: #3f8a7d;
+  --c-warning: #b58236;
+  --c-danger:  #b0524a;
+  --c-info:    #3d6e85;
+
+  --tag-green-bg:  rgba(63, 138, 125, 0.15);
+  --tag-green-fg:  #2f7163;
+  --tag-amber-bg:  rgba(194, 135, 58, 0.18);
+  --tag-amber-fg:  #945f1c;
+  --tag-slate-bg:  rgba(120, 108, 88, 0.14);
+  --tag-slate-fg:  #6f6555;
+
+  --row-hover: #efe6d4;
+  --kbd-bg:    #e7dfcf;
+}
+
+/* Sidebar en tema claro (tokens propios porque va sobre fondo oscuro
+   mientras el resto de la app es clara): */
+[data-theme="light"] .sidebar {
+  --text-primary:   #f2ece0;
+  --text-secondary: #b3a892;
+  --text-tertiary:  #7a7059;
+  --border-default: rgba(255, 245, 225, 0.08);
+  --surface-input:  rgba(255, 250, 240, 0.05);
+  --accent-tint:    rgba(138, 154, 91, 0.20);  /* item activo */
+  --c-primary-400:  #a3b366;                    /* acento aclarado sobre oscuro */
+}

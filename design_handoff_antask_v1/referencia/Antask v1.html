@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Antask · v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f4efe3; overflow: hidden; }
+  #root { height: 100vh; }
+  a { color: #9c4628; }
+  a:hover { color: #ad5230; }
+
+  /* ── Scrollbars cálidas y discretas ── */
+  * { scrollbar-width: thin; scrollbar-color: rgba(74,58,38,0.30) transparent; }
+  *::-webkit-scrollbar { width: 11px; height: 11px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(74,58,38,0.24);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    transition: background .15s;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: rgba(74,58,38,0.42); background-clip: padding-box; }
+  *::-webkit-scrollbar-corner { background: transparent; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#f4efe3"/>
+    <rect x="22" y="26" width="20" height="48" rx="4" fill="#ad5230"/>
+    <rect x="48" y="26" width="30" height="14" rx="3" fill="#c98a3c"/>
+    <rect x="48" y="44" width="30" height="9" rx="2" fill="#b3a892"/>
+    <rect x="48" y="57" width="22" height="9" rx="2" fill="#b3a892"/>
+  </svg>
+</template>
+
+<script src="image-slot.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="themes.jsx"></script>
+<script type="text/babel" src="v1/inbox-view.jsx"></script>
+<script type="text/babel" src="views.jsx"></script>
+<script type="text/babel" src="v1/hoy-view.jsx"></script>
+<script type="text/babel" src="v1/settings.jsx"></script>
+<script type="text/babel" src="quick-capture.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+
+const { HoyView, InboxView, Sidebar } = window;
+const { useTweaks, TweaksPanel, TweakSection, TweakSlider, TweakColor, TweakRadio, TweakSelect } = window;
+const { ANTASK_ACCENTS: ACCENTS, ANTASK_ACCENT_ORDER: ACCENT_ORDER, buildAntaskTheme } = window;
+const { QuickCapture } = window;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "appearance": "tierra",
+  "mode": "Oscuro",
+  "shell": "Flotante",
+  "accent": "oliva",
+  "titleFont": "Sans",
+  "radius": 8,
+  "rowStyle": "tarjetas"
+}/*EDITMODE-END*/;
+
+/* Estilo de fila: 'limpio' | 'lineas' | 'tarjetas' | 'compacto' */
+function applyRowStyle(t, style) {
+  const flat = { ...t, rowDivider: false, zebra: false, cardStyle: 'flat' };
+  if (!style || style === 'limpio') return flat;
+  if (style === 'lineas') return { ...flat, rowDivider: true, rowRadius: 0 };
+  if (style === 'tarjetas') return { ...flat, cardStyle: 'elevated' };
+  if (style === 'compacto') return { ...flat, cardStyle: 'stacked' };
+  return flat;
+}
+
+function buildTheme(tw) {
+  /* tema cálido "tierra" (claro/oscuro) sin packs: mono sólo en kbd, sin cebra ni bordes de tag */
+  const base = buildAntaskTheme(tw, { checkRadius: '50%', monoMeta: false, bars: false, tagBorder: false });
+  return applyRowStyle(base, tw.rowStyle);
+}
+
+/* navegación: etiqueta de la sidebar ⇄ vista activa */
+const NAV_LABEL = { hoy: 'Hoy', inbox: 'Inbox' };
+const LABEL_VIEW = { 'Hoy': 'hoy', 'Inbox': 'inbox' };
+const VIEW_KEY = 'antask_v1_view';
+
+function App() {
+  const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const theme = buildTheme(tw);
+  const [view, setView] = React.useState(() => {
+    try {return localStorage.getItem(VIEW_KEY) || 'hoy';} catch (e) {return 'hoy';}
+  });
+  const [captureOpen, setCaptureOpen] = React.useState(false);
+  const [capHover, setCapHover] = React.useState(false);
+  const layoutRef = React.useRef(null);
+  const [sbW, setSbW] = React.useState(226);
+  React.useEffect(() => {
+    const row = layoutRef.current;
+    if (!row || !row.firstElementChild) return;
+    const sb = row.firstElementChild;
+    const ro = new ResizeObserver(() => setSbW(sb.getBoundingClientRect().width));
+    ro.observe(sb);
+    setSbW(sb.getBoundingClientRect().width);
+    return () => ro.disconnect();
+  }, []);
+
+  /* Mide la columna de contenido visible para ajustar la barra de captura */
+  const [contentBox, setContentBox] = React.useState(null);
+  React.useEffect(() => {
+    const row = layoutRef.current;
+    if (!row) return;
+    const measure = () => {
+      /* alinear con el contenido real de tareas: mide el wrapper [data-antask-content] visible (rect interior, sin padding) */
+      const cands = Array.from(row.querySelectorAll('[data-antask-content]')).filter((el) => el.offsetParent !== null);
+      const el = cands[0];
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        setContentBox({
+          left: Math.round(r.left + parseFloat(cs.paddingLeft || 0)),
+          right: Math.max(0, Math.round(window.innerWidth - r.right + parseFloat(cs.paddingRight || 0)))
+        });
+        return;
+      }
+      const m = Array.from(row.children).find((c) => c.tagName === 'MAIN' && c.offsetParent !== null);
+      if (!m) { setContentBox(null); return; }
+      const r = m.getBoundingClientRect();
+      setContentBox({ left: Math.round(r.left), right: Math.max(0, Math.round(window.innerWidth - r.right)) });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    Array.from(row.children).forEach((c) => ro.observe(c));
+    window.addEventListener('resize', measure);
+    const id = setTimeout(measure, 60);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); clearTimeout(id); };
+  }, [view]);
+  React.useEffect(() => {document.body.style.background = theme.shell === 'floating' ? theme.desk : theme.canvas;}, [theme]);
+
+  /* lista activa: se actualiza cuando el usuario filtra por una lista en InboxView */
+  const [activeList, setActiveList] = React.useState(null);
+  React.useEffect(() => {
+    const onAL = (e) => setActiveList(e.detail && e.detail.list || null);
+    window.addEventListener('antask:activelist', onAL);
+    return () => window.removeEventListener('antask:activelist', onAL);
+  }, []);
+
+  /* Captura rápida global: Ctrl + ⇧ + Espacio */
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey && (e.code === 'Space' || e.key === ' ')) {
+        e.preventDefault();
+        setCaptureOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    window.openQuickCapture = () => setCaptureOpen(true);
+    return () => {window.removeEventListener('keydown', onKey);delete window.openQuickCapture;};
+  }, []);
+
+  const createTask = (task) => {
+    window.dispatchEvent(new CustomEvent('antask:newtask', { detail: task }));
+    setView('inbox');
+    try {localStorage.setItem(VIEW_KEY, 'inbox');} catch (e) {}
+  };
+
+  /* abrir una lista desde el sidebar lleva al Inbox */
+  React.useEffect(() => {
+    const onOpen = () => {
+      setView('inbox');
+      try {localStorage.setItem(VIEW_KEY, 'inbox');} catch (e) {}
+    };
+    window.addEventListener('antask:openlist', onOpen);
+    return () => window.removeEventListener('antask:openlist', onOpen);
+  }, []);
+
+  const go = (label) => {
+    const v = LABEL_VIEW[label];
+    if (!v) return;
+    setView(v);
+    try {localStorage.setItem(VIEW_KEY, v);} catch (e) {}
+  };
+
+  /* atajos: g luego h/i → Hoy / Inbox */
+  React.useEffect(() => {
+    let armed = false,timer = null;
+    const onKey = (e) => {
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (armed) {
+        if (k === 'h') go('Hoy');else
+        if (k === 'i') go('Inbox');
+        armed = false;clearTimeout(timer);
+        return;
+      }
+      if (k === 'g') {armed = true;timer = setTimeout(() => {armed = false;}, 900);}
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {window.removeEventListener('keydown', onKey);clearTimeout(timer);};
+  }, []);
+
+  const floating = theme.shell === 'floating';
+
+  return (
+    <React.Fragment>
+      <div ref={layoutRef} style={{ display: 'flex', height: '100vh', gap: '10px', padding: floating ? 10 : 0, boxSizing: 'border-box', background: floating ? theme.desk : theme.canvas, color: theme.ink, fontFamily: theme.fontUI }}>
+        <Sidebar t={theme} active={NAV_LABEL[view]} onNav={go} tw={tw} setTweak={setTweak} />
+        <HoyView theme={theme} mode="hybrid" tw={tw} setTweak={setTweak} embed hidden={view !== 'hoy'} />
+        <InboxView theme={theme} tw={tw} setTweak={setTweak} embed hidden={view !== 'inbox'} />
+      </div>
+
+      {/* Captura rápida — barra flotante centrada en el panel central */}
+      {!captureOpen &&
+      <div data-om-label="Captura Rápida" style={{ position: 'fixed',
+        left: contentBox ? contentBox.left : sbW + (floating ? 20 : 0),
+        right: contentBox ? contentBox.right : (floating ? 10 : 0),
+        bottom: 25, zIndex: 60, display: 'flex', flexDirection: 'row', justifyContent: 'center',
+        pointerEvents: 'none', paddingLeft: contentBox ? 0 : 36, paddingRight: contentBox ? 0 : 26, boxSizing: 'border-box' }}>
+        <div onClick={() => setCaptureOpen(true)} role="button" tabIndex={0} aria-label="Abrir captura rápida"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCaptureOpen(true); } }}
+          onMouseEnter={() => setCapHover(true)} onMouseLeave={() => setCapHover(false)}
+          style={{ pointerEvents: 'auto', width: '100%', maxWidth: contentBox ? 'none' : 932, height: 55,
+            display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px 11px 16px', borderRadius: 15, cursor: 'text',
+            background: theme.card, border: `1px solid ${capHover ? theme.accentInk + '66' : theme.border}`, fontFamily: theme.fontUI,
+            boxShadow: capHover ? '0 24px 56px -18px rgba(40,30,15,0.4)' : '0 20px 50px -18px rgba(40,30,15,0.34)',
+            transform: capHover ? 'translateY(-1px)' : 'none',
+            transition: 'border-color .16s, box-shadow .16s, transform .16s' }}>
+          <span style={{ width: 25, height: 25, borderRadius: 8, background: theme.grad, display: 'grid', placeItems: 'center', color: theme.accentOn, flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </span>
+          <span style={{ fontSize: 13.5, color: capHover ? theme.ink2 : theme.ink3, transition: 'color .16s' }}>Captura rápida — pulsa para escribir…</span>
+          <span style={{ marginLeft: 'auto', fontFamily: theme.fontMono, fontSize: 10.5, color: theme.ink3, padding: '3px 8px', borderRadius: 6, background: theme.kbdBg, border: `1px solid ${theme.border}`, flexShrink: 0 }}>Ctrl ⇧ Espacio</span>
+        </div>
+      </div>}
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Modo" />
+        <TweakRadio label="Tema" value={tw.mode}
+        options={['Claro', 'Oscuro']}
+        onChange={(v) => setTweak('mode', v)} />
+        <TweakSection label="Contenedor" />
+        <TweakRadio label="Estilo" value={tw.shell}
+        options={['Pegado', 'Flotante']}
+        onChange={(v) => setTweak('shell', v)} />
+        <TweakSection label="Acento" />
+        <TweakColor label="Color" value={(ACCENTS[tw.accent] || ACCENTS.arcilla).accent}
+        options={ACCENT_ORDER.map((k) => ACCENTS[k].accent)}
+        onChange={(hex) => {
+          const k = ACCENT_ORDER.find((kk) => ACCENTS[kk].accent === hex) || 'arcilla';
+          setTweak('accent', k);
+        }} />
+        <TweakSection label="Tipografía del título" />
+        <TweakRadio label="Fuente" value={tw.titleFont}
+        options={['Grotesca', 'Sans', 'Serif']}
+        onChange={(v) => setTweak('titleFont', v)} />
+        <TweakSection label="Forma" />
+        <TweakSlider label="Radio de esquinas" value={tw.radius} min={0} max={16} step={1} unit="px"
+        onChange={(v) => setTweak('radius', v)} />
+        <TweakSection label="Filas" />
+        <TweakSelect label="Estilo" value={tw.rowStyle || 'limpio'}
+        options={[
+        { value: 'limpio', label: 'Limpio' },
+        { value: 'lineas', label: 'Líneas' },
+        { value: 'tarjetas', label: 'Tarjetas' },
+        { value: 'compacto', label: 'Compacto' }]
+        }
+        onChange={(v) => setTweak('rowStyle', v)} />
+      </TweaksPanel>
+
+      {captureOpen && QuickCapture && <QuickCapture theme={theme} defaultList={activeList} onCreate={createTask} onClose={() => setCaptureOpen(false)} />}
+    </React.Fragment>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
