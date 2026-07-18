@@ -1934,7 +1934,10 @@ function renderSectionHeader(section, sectionProjects) {
  * tenga su propio dot/franja visual.
  */
 function _projectColorFromId(id) {
-  if (!id) return "hsl(265, 65%, 60%)";
+  // El Inbox (y un id ausente) usan el acento del tema, no un hue
+  // hasheado: el hash de "__inbox__" caía en violeta, fuera de la
+  // paleta Tierra.
+  if (!id || id === INBOX_ID) return "var(--c-primary-500)";
   var hash = 0;
   for (var i = 0; i < id.length; i++) {
     hash = ((hash << 5) - hash) + id.charCodeAt(i);
