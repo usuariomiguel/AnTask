@@ -2,7 +2,9 @@
 // Esto mantiene el bundle ligero en lugar de cargar los ~1500 iconos.
 import { createIcons } from "lucide";
 import {
+  AlignLeft,
   Archive,
+  ArrowRight,
   Bell,
   BellRing,
   Calendar,
@@ -19,6 +21,7 @@ import {
   Circle,
   CircleDashed,
   CircleX,
+  Clock,
   Cloud,
   CornerDownRight,
   Download,
@@ -28,6 +31,7 @@ import {
   Flag,
   FolderInput,
   GripVertical,
+  Inbox,
   Info,
   Keyboard,
   Languages,
@@ -40,6 +44,7 @@ import {
   ListTodo,
   MessageCircle,
   Palette,
+  PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
   PencilLine,
@@ -56,11 +61,14 @@ import {
   Trash2,
   TriangleAlert,
   Upload,
+  UserRound,
   X,
 } from "lucide";
 
 const icons = {
+  AlignLeft,
   Archive,
+  ArrowRight,
   Bell,
   BellRing,
   Calendar,
@@ -77,6 +85,7 @@ const icons = {
   Circle,
   CircleDashed,
   CircleX,
+  Clock,
   Cloud,
   CornerDownRight,
   Download,
@@ -86,6 +95,7 @@ const icons = {
   Flag,
   FolderInput,
   GripVertical,
+  Inbox,
   Info,
   Keyboard,
   Languages,
@@ -98,6 +108,7 @@ const icons = {
   ListTodo,
   MessageCircle,
   Palette,
+  PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
   PencilLine,
@@ -114,6 +125,7 @@ const icons = {
   Trash2,
   TriangleAlert,
   Upload,
+  UserRound,
   X,
 };
 

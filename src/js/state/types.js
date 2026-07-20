@@ -26,14 +26,6 @@
  */
 
 /**
- * Estado de progreso de una tarea.
- *  - "progress" → en curso
- *  - "waiting"  → en espera
- *  - null       → sin estado (default)
- * @typedef {("progress"|"waiting"|null)} TaskStatus
- */
-
-/**
  * Subtarea (item dentro de una Task).
  *
  * @typedef {object} Subtask
@@ -50,10 +42,9 @@
  * @property {string}        text             - Texto principal, máx 120 chars
  * @property {string}        [comment]        - Comentario opcional, máx 300 chars
  * @property {boolean}       done
- * @property {TaskStatus}    [status]
  * @property {Priority}      [priority]
- * @property {string[]}      [labels]         - Lista de etiquetas (subset de project.labels)
  * @property {string|null}   [dueDate]        - ISO YYYY-MM-DD o null si sin fecha
+ * @property {string|null}   [dueTime]        - Hora "HH:mm" opcional asociada a dueDate; null = sin hora
  * @property {number|null}   [recurDays]      - Días entre repeticiones; null = no recurrente
  * @property {string|null}   [reminderAt]     - ISO datetime "YYYY-MM-DDTHH:mm" para recordatorio puntual; null = sin recordatorio
  * @property {number}        [timeLogged]     - Milisegundos acumulados (legacy del timer eliminado)
@@ -69,7 +60,6 @@
  * @property {string}        [createdAt]      - ISO timestamp
  * @property {Task[]}        tasks
  * @property {string}        [notes]          - HTML de las notas del proyecto (legacy)
- * @property {string[]}      [labels]         - Etiquetas disponibles para tareas de este proyecto
  * @property {string|null}   [sectionId]      - ID de la sección a la que pertenece (o null)
  * @property {boolean}       [archived]
  * @property {string}        [icon]           - Emoji
@@ -103,7 +93,6 @@
  * @property {("pending"|"done"|"any")}                              status
  * @property {("any"|"high"|"medium"|"low")}                         priority
  * @property {("any"|"overdue"|"today"|"this_week"|"no_date")}       dueDate
- * @property {string|null}                                           label
  */
 
 /**
@@ -131,7 +120,6 @@
  * @property {string}        text
  * @property {string|null}   dueDate
  * @property {Priority}      priority
- * @property {string[]}      labels
  * @property {number|null}   recurDays
  */
 

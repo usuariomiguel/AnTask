@@ -140,7 +140,6 @@ function _cheatsheetHTML() {
     { icon: "calendar", label: t("quick_capture.nl_dates"),    ex: t("quick_capture.nl_dates_ex") },
     { icon: "repeat",   label: t("quick_capture.nl_recur"),    ex: t("quick_capture.nl_recur_ex") },
     { icon: "flag",     label: t("quick_capture.nl_priority"), ex: t("quick_capture.nl_priority_ex") },
-    { icon: "tag",      label: t("quick_capture.nl_label"),    ex: t("quick_capture.nl_label_ex") },
   ];
   return '<div class="quick-capture-cheats">' +
     '<span class="qc-cheat-title">' + t("quick_capture.nl_title") + '</span>' +

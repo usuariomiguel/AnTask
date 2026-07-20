@@ -53,14 +53,13 @@ describe("sanitizeTasks", () => {
   it("normaliza tarea válida", () => {
     const [t] = sanitizeTasks([{
       id: "t1", text: " Tarea ", done: false, priority: "high",
-      dueDate: "2026-06-01", labels: ["work"],
+      dueDate: "2026-06-01",
     }]);
     expect(t.id).toBe("t1");
     expect(t.text).toBe("Tarea");
     expect(t.done).toBe(false);
     expect(t.priority).toBe("high");
     expect(t.dueDate).toBe("2026-06-01");
-    expect(t.labels).toEqual(["work"]);
   });
 
   it("reemplaza prioridad inválida con null", () => {
@@ -78,28 +77,6 @@ describe("sanitizeTasks", () => {
     expect(t.dueDate).toBe("2026-12-31");
   });
 
-  it("filtra labels que no son string", () => {
-    const [t] = sanitizeTasks([{ text: "x", labels: [1, null, "ok"] }]);
-    expect(t.labels).toEqual(["ok"]);
-  });
-
-  it("limita labels a 10 máximo", () => {
-    const labels = Array.from({ length: 15 }, (_, i) => `l${i}`);
-    const [t] = sanitizeTasks([{ text: "x", labels }]);
-    expect(t.labels).toHaveLength(10);
-  });
-
-  it("status 'progress' y 'waiting' son válidos, otros → null", () => {
-    const tasks = sanitizeTasks([
-      { text: "a", status: "progress" },
-      { text: "b", status: "waiting" },
-      { text: "c", status: "activo" },
-    ]);
-    expect(tasks[0].status).toBe("progress");
-    expect(tasks[1].status).toBe("waiting");
-    expect(tasks[2].status).toBeNull();
-  });
-
   it("timeLogged negativo → 0", () => {
     const [t] = sanitizeTasks([{ text: "x", timeLogged: -5 }]);
     expect(t.timeLogged).toBe(0);
@@ -113,11 +90,10 @@ describe("sanitizeProject", () => {
   it("normaliza proyecto válido", () => {
     const p = sanitizeProject({
       id: "p1", name: " Mi proyecto ", tasks: [], notes: "<b>Nota</b>",
-      labels: ["dev"], sectionId: "sec1", archived: false,
+      sectionId: "sec1", archived: false,
     });
     expect(p.id).toBe("p1");
     expect(p.name).toBe("Mi proyecto");
-    expect(p.labels).toEqual(["dev"]);
     expect(p.sectionId).toBe("sec1");
     expect(p.archived).toBe(false);
   });
@@ -181,13 +157,12 @@ describe("sanitizeSmartList", () => {
   it("normaliza smart list válida", () => {
     const sl = sanitizeSmartList({
       id: "sl1", name: "Urgentes", icon: "🔥",
-      filters: { status: "pending", priority: "high", dueDate: "today", label: "dev" },
+      filters: { status: "pending", priority: "high", dueDate: "today" },
     });
     expect(sl).not.toBeNull();
     expect(sl?.filters.status).toBe("pending");
     expect(sl?.filters.priority).toBe("high");
     expect(sl?.filters.dueDate).toBe("today");
-    expect(sl?.filters.label).toBe("dev");
   });
 
   it("valores de filtro inválidos → defaults", () => {
@@ -197,10 +172,5 @@ describe("sanitizeSmartList", () => {
     expect(sl?.filters.status).toBe("pending");
     expect(sl?.filters.priority).toBe("any");
     expect(sl?.filters.dueDate).toBe("any");
-  });
-
-  it("label vacío → null", () => {
-    const sl = sanitizeSmartList({ filters: { label: "" } });
-    expect(sl?.filters.label).toBeNull();
   });
 });

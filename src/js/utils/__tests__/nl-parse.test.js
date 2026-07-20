@@ -16,7 +16,7 @@ afterEach(() => {
 describe("parseNaturalLanguage — texto limpio", () => {
   it("devuelve texto vacío para input nulo", () => {
     expect(parseNaturalLanguage(null)).toEqual({
-      text: "", dueDate: null, priority: null, labels: [], recurDays: null,
+      text: "", dueDate: null, priority: null, recurDays: null,
     });
   });
 
@@ -25,7 +25,6 @@ describe("parseNaturalLanguage — texto limpio", () => {
     expect(res.text).toBe("Comprar leche");
     expect(res.dueDate).toBeNull();
     expect(res.priority).toBeNull();
-    expect(res.labels).toEqual([]);
     expect(res.recurDays).toBeNull();
   });
 
@@ -39,15 +38,10 @@ describe("parseNaturalLanguage — texto limpio", () => {
     expect(res.text).toBe("Fix bug");
   });
 
-  it("elimina etiquetas del texto limpio", () => {
-    const res = parseNaturalLanguage("Leer libro #personal");
-    expect(res.text).toBe("Leer libro");
-  });
-
   it("no destruye texto que solo contiene tokens (devuelve original)", () => {
     // Un input que solo es tokens debería devolver el texto original
-    const res = parseNaturalLanguage("hoy p1 #trabajo");
-    expect(res.text).toBe("hoy p1 #trabajo");
+    const res = parseNaturalLanguage("hoy p1");
+    expect(res.text).toBe("hoy p1");
   });
 });
 
@@ -126,24 +120,6 @@ describe("parseNaturalLanguage — prioridad", () => {
   });
 });
 
-describe("parseNaturalLanguage — etiquetas", () => {
-  it("extrae una etiqueta", () => {
-    expect(parseNaturalLanguage("Leer #personal").labels).toEqual(["personal"]);
-  });
-
-  it("extrae múltiples etiquetas", () => {
-    expect(parseNaturalLanguage("Reunión #trabajo #cliente").labels).toEqual(["trabajo", "cliente"]);
-  });
-
-  it("no duplica etiquetas repetidas", () => {
-    expect(parseNaturalLanguage("Tarea #dev #dev").labels).toEqual(["dev"]);
-  });
-
-  it("ignora # sin texto válido", () => {
-    expect(parseNaturalLanguage("Tarea con # suelta").labels).toEqual([]);
-  });
-});
-
 describe("parseNaturalLanguage — recurrencia", () => {
   it('"diariamente" → recurDays=1', () => {
     expect(parseNaturalLanguage("Ejercicio diariamente").recurDays).toBe(1);
@@ -193,19 +169,17 @@ describe("parseNaturalLanguage — recurrencia", () => {
 });
 
 describe("parseNaturalLanguage — combinaciones", () => {
-  it("fecha + prioridad + etiqueta en un solo input", () => {
-    const res = parseNaturalLanguage("Informe trimestral mañana p1 #trabajo");
+  it("fecha + prioridad en un solo input", () => {
+    const res = parseNaturalLanguage("Informe trimestral mañana p1");
     expect(res.text).toBe("Informe trimestral");
     expect(res.dueDate).toBe("2026-05-25");
     expect(res.priority).toBe("high");
-    expect(res.labels).toEqual(["trabajo"]);
   });
 
   it("recurrencia + día de semana → texto sin ambos prefijos", () => {
-    const res = parseNaturalLanguage("Stand-up todos los viernes #equipo");
+    const res = parseNaturalLanguage("Stand-up todos los viernes");
     expect(res.recurDays).toBe(7);
     expect(res.dueDate).toBe("2026-05-29");
-    expect(res.labels).toEqual(["equipo"]);
     expect(res.text).toBe("Stand-up");
   });
 });

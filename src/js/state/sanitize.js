@@ -17,7 +17,6 @@ import { sanitizeRichHtml } from "../utils/sanitize-html.js";
 /** @typedef {import("./types.js").StandaloneNote}   StandaloneNote */
 /** @typedef {import("./types.js").SmartList}        SmartList */
 
-const VALID_STATUSES   = new Set(["progress", "waiting", null]);
 const VALID_PRIORITIES = ["high", "medium", "low"];
 
 /**
@@ -52,12 +51,9 @@ export function sanitizeTasks(input) {
         text:       i.text.trim().slice(0, 120),
         comment:    typeof i.comment === "string" ? i.comment.trim().slice(0, 300) : "",
         done:       Boolean(i.done),
-        status:     VALID_STATUSES.has(i.status) ? i.status : null,
         priority:   VALID_PRIORITIES.includes(i.priority) ? i.priority : null,
-        labels:     Array.isArray(i.labels)
-                      ? i.labels.filter(function (l) { return typeof l === "string" && l.length > 0; }).slice(0, 10)
-                      : [],
         dueDate:    typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
+        dueTime:    typeof i.dueTime === "string" && /^\d{2}:\d{2}$/.test(i.dueTime) ? i.dueTime : null,
         recurDays:  (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
         reminderAt: typeof i.reminderAt === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(i.reminderAt) ? i.reminderAt : null,
         timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
@@ -78,9 +74,6 @@ export function sanitizeProject(p) {
     createdAt: p.createdAt || new Date().toISOString(),
     tasks:     sanitizeTasks(p.tasks),
     notes:     sanitizeRichHtml(typeof p.notes === "string" ? p.notes : ""),
-    labels:    Array.isArray(p.labels)
-                 ? p.labels.filter(function (l) { return typeof l === "string" && l.length > 0; })
-                 : [],
     sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
     archived:  !!p.archived,
     icon:      typeof p.icon === "string" ? p.icon : "",
@@ -115,8 +108,7 @@ const VALID_SL_PRIORITY = ["any", "high", "medium", "low"];
  *     filters: {
  *       status:   "pending" | "done" | "any",
  *       priority: "any" | "high" | "medium" | "low",
- *       dueDate:  "any" | "overdue" | "today" | "this_week" | "no_date",
- *       label:    string | null
+ *       dueDate:  "any" | "overdue" | "today" | "this_week" | "no_date"
  *     }
  *   }
  */
@@ -136,7 +128,6 @@ export function sanitizeSmartList(sl) {
       status:   VALID_SL_STATUS.includes(f.status)     ? f.status   : "pending",
       priority: VALID_SL_PRIORITY.includes(f.priority) ? f.priority : "any",
       dueDate:  VALID_SL_DUEDATE.includes(f.dueDate)   ? f.dueDate  : "any",
-      label:    typeof f.label === "string" && f.label.length > 0 ? f.label : null,
     },
   };
 }

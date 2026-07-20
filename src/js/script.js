@@ -2,10 +2,10 @@
 import { t, getLang }                       from "./i18n/index.js";
 import { escHtml }                          from "./utils/html.js";
 import { capitalizeFirst }                  from "./utils/string.js";
-import { getDueDateState, formatDueDate }   from "./utils/date.js";
+import { getDueDateState, formatDueWeekday } from "./utils/date.js";
 import { generateId }                       from "./utils/id.js";
 import { parseNaturalLanguage }             from "./utils/nl-parse.js";
-import { buildNLChipsHTML }                 from "./utils/nl-chips.js";
+import { buildNLChipsHTML, formatDueLabel, formatRecurLabel } from "./utils/nl-chips.js";
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
 import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
@@ -22,9 +22,6 @@ import {
   modalPrompt,
   modalConfirm,
   modalAlert,
-  modalDate,
-  modalRecurrence,
-  modalReminder,
 } from "./ui/modal.js";
 import {
   PROJECTS_KEY,
@@ -36,6 +33,7 @@ import {
   SECTIONS_KEY,
   SMART_LISTS_KEY,
   PROFILE_KEY,
+  ROW_STYLE_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -55,23 +53,11 @@ import {
   loadProfile,
 } from "./state/persistence.js";
 import {
-  STATUS_CYCLE,
-  STATUS_CONFIG,
-  PRIORITY_CYCLE,
   PRIORITY_CONFIG,
-  applyStatusToNode,
-  updateStatusBtn,
   applyPriorityToNode,
-  updatePriorityBtn,
   renderDueBadge,
   renderRecurBadge,
-  updateRecurBtn,
 } from "./ui/task-badges.js";
-import {
-  getLabelSlot,
-  getLabelColor,
-  renderTaskLabels,
-} from "./ui/labels.js";
 import { renderSubtasks } from "./ui/subtasks.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
 import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
@@ -200,6 +186,7 @@ const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
 const taskList         = document.getElementById("task-list");
+const taskListDone     = document.getElementById("task-list-done");
 
 // ─── MOBILE FAB REFS ─────────────────────────────────────────
 const mobileFab    = document.getElementById("mobile-fab");
@@ -320,19 +307,11 @@ function showSmartListEditor(existing) {
     id:   "sl-" + Date.now(),
     name: "",
     icon: "🔍",
-    filters: { status: "pending", priority: "any", dueDate: "any", label: null },
+    filters: { status: "pending", priority: "any", dueDate: "any" },
   };
 
   const { overlay, box } = createModalBase();
   box.className = "modal-box modal-box-smart-list";
-
-  // Reunir etiquetas de todos los proyectos para el selector
-  const allLabels = [];
-  projects.forEach(function (p) {
-    if (Array.isArray(p.labels)) {
-      p.labels.forEach(function (l) { if (!allLabels.includes(l)) allLabels.push(l); });
-    }
-  });
 
   function opt(value, label, current) {
     return '<option value="' + value + '"' + (current === value ? " selected" : "") + '>' + label + '</option>';
@@ -382,14 +361,6 @@ function showSmartListEditor(existing) {
       '</select>' +
     '</div>' +
 
-    '<div class="sl-form-row">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_label") + '</label>' +
-      '<select class="modal-input sl-label">' +
-        '<option value="">' + escHtml(t("smartlist.modal.any_label")) + '</option>' +
-        allLabels.map(function (l) { return opt(l, "#" + l, data.filters.label); }).join("") +
-      '</select>' +
-    '</div>' +
-
     '<div class="modal-actions">' +
       '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
       '<button type="button" class="modal-btn modal-btn-confirm">' + (isEdit ? t("modal.save") : t("modal.create")) + '</button>' +
@@ -401,7 +372,6 @@ function showSmartListEditor(existing) {
   function doConfirm() {
     const name = nameInput.value.trim();
     if (!name) { nameInput.focus(); return; }
-    const labelVal = box.querySelector(".sl-label").value;
     const sanitized = sanitizeSmartList({
       id:        data.id,
       name:      name,
@@ -411,7 +381,6 @@ function showSmartListEditor(existing) {
         status:   box.querySelector(".sl-status").value,
         priority: box.querySelector(".sl-priority").value,
         dueDate:  box.querySelector(".sl-duedate").value,
-        label:    labelVal || null,
       },
     });
     if (isEdit) {
@@ -516,19 +485,15 @@ function _smartListMatch(task, project, filters) {
     }
   }
 
-  // label
-  if (filters.label) {
-    if (!Array.isArray(task.labels) || !task.labels.includes(filters.label)) return false;
-  }
-
   return true;
 }
 let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
-let currentLabelFilter = null;   // null = sin filtro de etiqueta
 var _sidebarPrevCounts = {};
-const expandedTaskIds  = new Set();
+// ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
+let openDetailTaskId    = null;
+let openDetailProjectId = null;
 let dragSrcId          = null;
 let dropIndicator      = null;
 let dragSrcProjectId   = null;
@@ -554,26 +519,59 @@ const bulkCount      = document.getElementById("bulk-count");
 const selectModeBtn  = document.getElementById("select-mode-btn");
 
 // ═══════════════════════════════════════════════════════════════
-// PREFERENCIAS DE BOTONES DE TAREA
-// Debe declararse antes del bloque de arranque (applyTaskPrefs lo usa).
+// ESTILO DE FILA (Limpio · Líneas · Tarjetas · Compacto) — como en v1.
+// El estilo elegido se refleja como atributo data-row-style en #task-list
+// y sólo cambia el aspecto de las filas (puro CSS). Se persiste aparte.
 // ═══════════════════════════════════════════════════════════════
-// label se accede dinámicamente a través de t() en el render, para que
-// cambie de idioma sin reiniciar.
-const TASK_BTN_DEFS = [
-  { key: "priority", labelKey: "task_btn.priority", icon: "flag"          },
-  { key: "status",   labelKey: "task_btn.status",   icon: "circle-dashed" },
-  { key: "date",     labelKey: "task_btn.date",     icon: "calendar"      },
-  { key: "recur",    labelKey: "task_btn.recur",    icon: "repeat"        },
-  { key: "comment",  labelKey: "task_btn.comment",  icon: "message-circle"},
-  { key: "labels",   labelKey: "task_btn.labels",   icon: "tag"           },
-  { key: "subtasks", labelKey: "task_btn.subtasks", icon: "list-plus"     },
-];
+const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto"];
+const DEFAULT_ROW_STYLE = "tarjetas";
+const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers" };
+let currentRowStyle = (function() {
+  try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
+  catch (e) { return DEFAULT_ROW_STYLE; }
+})();
+
+function applyRowStyle(style, persist) {
+  if (ROW_STYLES.indexOf(style) === -1) style = DEFAULT_ROW_STYLE;
+  currentRowStyle = style;
+  if (taskList) taskList.dataset.rowStyle = style;
+  if (persist !== false) { try { localStorage.setItem(ROW_STYLE_KEY, style); } catch (e) {} }
+  _syncRowStylePicker();
+}
+
+function _syncRowStylePicker() {
+  const btn = document.getElementById("row-style-btn");
+  if (btn) {
+    btn.innerHTML = '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>';
+    if (window.lucide) lucide.createIcons({ nodes: [btn] });
+  }
+  const panel = document.getElementById("row-style-panel");
+  if (panel) {
+    panel.querySelectorAll("[data-row-style]").forEach(function(b) {
+      const on = b.dataset.rowStyle === currentRowStyle;
+      b.classList.toggle("row-style-opt--active", on);
+      b.setAttribute("aria-checked", on ? "true" : "false");
+    });
+  }
+}
 
 // ─── ARRANQUE ────────────────────────────────────────────────
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
+try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
-try { activateProject(activeProjectId); } catch(e) { console.error("activateProject error:", e); }
+// Vista por defecto: "Hoy" (ya no se muestra la pantalla de estado vacío).
+// Sólo se restaura una lista/proyecto si fue abierto explícitamente (hay una
+// clave ACTIVE_KEY guardada y ese proyecto aún existe). En cualquier otro caso
+// —incluido el arranque limpio o el "modo simple"— entramos directos en Hoy.
+try {
+  var _bootActive = localStorage.getItem(ACTIVE_KEY);
+  if (_bootActive && projects.some(function(p) { return p.id === _bootActive; })) {
+    activateProject(_bootActive);
+  } else {
+    activateTodayView();
+  }
+} catch(e) { console.error("boot view error:", e); }
 try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }
 
 // Modo simple en escritorio: cursor listo en "nueva tarea" al abrir.
@@ -994,6 +992,7 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
     name: capitalizeFirst((name || "").trim()).slice(0, 60),
     icon:  (opts && opts.icon)  || "",
     color: (opts && opts.color) || "",
+    sectionId: (opts && opts.sectionId) || null,
     createdAt: new Date().toISOString(),
     tasks: (taskSpecs || []).map(function (spec) {
       return {
@@ -1001,10 +1000,9 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
         text:       (spec.text || "").slice(0, 120),
         comment:    "",
         done:       false,
-        status:     null,
         priority:   spec.priority || null,
-        labels:     [],
         dueDate:    spec.dueDate || null,
+        dueTime:    null,
         recurDays:  spec.recurDays || null,
         reminderAt: null,
         timeLogged: 0,
@@ -1065,23 +1063,6 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
 });
 
 // ─── FORMULARIO DE TAREA ─────────────────────────────────────
-/** Actualiza el aspecto visual del botón "Aviso" según si la tarea
- *  tiene recordatorio configurado o no. */
-function _updateReminderBtn(btn, task) {
-  if (!btn) return;
-  btn.classList.toggle("reminder-active", !!task.reminderAt);
-  if (task.reminderAt) {
-    const d = new Date(task.reminderAt);
-    if (!isNaN(d.getTime())) {
-      var localeR = getLang() === "en" ? "en-GB" : "es-ES";
-      btn.title = t("reminder.has") + " " + d.toLocaleString(localeR, {
-        weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
-      });
-      return;
-    }
-  }
-  btn.title = t("reminder.set");
-}
 
 // ─── PREVIEW DE LENGUAJE NATURAL (chips bajo el task-input) ───
 // Se pinta como un pequeño contenedor inyectado debajo del input
@@ -1145,31 +1126,21 @@ if (taskInput) {
 
 /**
  * Crea una tarea aplicando parseo de lenguaje natural sobre el
- * texto bruto. Asegura que las etiquetas extraídas existan en el
- * project.labels. NO persiste ni re-renderiza — eso lo decide el caller.
+ * texto bruto. NO persiste ni re-renderiza — eso lo decide el caller.
  */
 function _createTaskInProject(project, rawText) {
   const parsed = parseNaturalLanguage(rawText);
   const text = capitalizeFirst(parsed.text).slice(0, 120);
   if (!text) return null;
 
-  // Garantizar que las etiquetas detectadas existan en project.labels
-  if (parsed.labels && parsed.labels.length > 0) {
-    if (!Array.isArray(project.labels)) project.labels = [];
-    parsed.labels.forEach(function (l) {
-      if (!project.labels.includes(l)) project.labels.push(l);
-    });
-  }
-
   const task = {
     id:         generateId(),
     text:       text,
     comment:    "",
     done:       false,
-    status:     null,
     priority:   parsed.priority || null,
-    labels:     parsed.labels || [],
     dueDate:    parsed.dueDate || null,
+    dueTime:    null,
     recurDays:  parsed.recurDays || null,
     reminderAt: null,
     timeLogged: 0,
@@ -1505,13 +1476,11 @@ function activateProject(id) {
   if (selectMode) exitSelectMode();
   currentFilter = "all";
   currentSort   = "manual";
-  currentLabelFilter = null;
   _syncFilterPanel("all", "manual");
 
-  expandedTaskIds.clear();
+  closeTaskDetail();
   renderSidebar();
   renderTasks();
-  renderLabelFilterBar();
   updateSaveStatus(loadMetadata().lastSavedAt);
 }
 
@@ -1557,16 +1526,11 @@ function activateTodayView() {
   if (selectMode) exitSelectMode();
   currentFilter = "all";
   currentSort   = "manual";
-  currentLabelFilter = null;
   _syncFilterPanel("all", "manual");
 
-  expandedTaskIds.clear();
+  closeTaskDetail();
   renderSidebar();
   renderTasks();
-  if (typeof renderLabelFilterBar === "function") {
-    var bar = document.getElementById("label-filter-bar");
-    if (bar) bar.hidden = true;  // sin filtro de etiquetas en Hoy
-  }
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
@@ -1609,14 +1573,11 @@ function activateSmartList(id) {
   if (selectMode) exitSelectMode();
   currentFilter      = "all";
   currentSort        = "manual";
-  currentLabelFilter = null;
   _syncFilterPanel("all", "manual");
 
-  expandedTaskIds.clear();
+  closeTaskDetail();
   renderSidebar();
   renderTasks();
-  var lblBar = document.getElementById("label-filter-bar");
-  if (lblBar) lblBar.hidden = true;
 }
 
 /**
@@ -1638,7 +1599,7 @@ function renderPinnedItems(inboxProject) {
     (activeView === "today" ? " active" : "");
   hoy.innerHTML =
     '<div class="project-item-top">' +
-      '<span class="project-item-icon project-item-icon--system">☀️</span>' +
+      '<span class="project-item-icon project-item-icon--system"><i data-lucide="calendar"></i></span>' +
       '<span class="project-item-name">' + t("sidebar.today") + '</span>' +
       (todayCount > 0 ? '<span class="project-item-count">' + todayCount + '</span>' : "") +
     '</div>';
@@ -1664,7 +1625,7 @@ function renderPinnedItems(inboxProject) {
     inbox.dataset.projectId = INBOX_ID;
     inbox.innerHTML =
       '<div class="project-item-top">' +
-        '<span class="project-item-icon">📥</span>' +
+        '<span class="project-item-icon project-item-icon--system"><i data-lucide="inbox"></i></span>' +
         '<span class="project-item-name">' + t("sidebar.inbox") + '</span>' +
         (pending > 0 ? '<span class="project-item-count">' + pending + '</span>' : "") +
       '</div>';
@@ -1703,9 +1664,6 @@ function renderPinnedItems(inboxProject) {
 
     projectListEl.appendChild(inbox);
   }
-
-  // ── Sección "Listas" (smart lists, filtros guardados) ─────────
-  renderSmartListsSection();
 
   // ── Separador visual ───────────────────────────────────────────
   var sep = document.createElement("li");
@@ -1789,6 +1747,69 @@ function renderSmartListsSection() {
 var _sectionJustExpanded = null;
 var _sectionExpandIndex = 0;
 
+// ── Creación inline en la sidebar (grupos = secciones, listas = proyectos),
+//    al estilo del prototipo v1: un botón "+ Añadir…" que se convierte en un
+//    input en línea; Enter confirma, Escape o blur cancela. ──────────────
+var _addingListForSection = null; // id de sección con el input de lista activo
+var _addingGroup = false;         // input de "Nuevo grupo" activo
+
+/** Botón "+ Añadir lista" / "+ Nuevo grupo". */
+function _sidebarAddButton(opts) {
+  var li = document.createElement("li");
+  li.className = "sidebar-add-btn" +
+    (opts.indent ? " sidebar-add-btn--indent" : "") +
+    (opts.newGroup ? " sidebar-add-btn--group" : "");
+  li.innerHTML = '<i data-lucide="plus"></i><span></span>';
+  li.querySelector("span").textContent = opts.label;
+  li.addEventListener("click", function(e) { e.stopPropagation(); opts.onClick(); });
+  return li;
+}
+
+/** Input inline para crear un grupo o una lista. */
+function _sidebarInlineInput(opts) {
+  var li = document.createElement("li");
+  li.className = "sidebar-add-input" + (opts.indent ? " sidebar-add-input--indent" : "");
+  var input = document.createElement("input");
+  input.type = "text";
+  input.className = "sidebar-add-input-field";
+  input.placeholder = opts.placeholder || "";
+  input.maxLength = 60;
+  var done = false;
+  var commit = function() {
+    if (done) return; done = true;
+    opts.onCommit(input.value);
+  };
+  var cancel = function() {
+    if (done) return; done = true;
+    opts.onCancel();
+  };
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+    else if (e.key === "Escape") { e.preventDefault(); cancel(); }
+  });
+  input.addEventListener("blur", function() { commit(); });
+  li.appendChild(input);
+  // Autofoco tras insertarse en el DOM.
+  requestAnimationFrame(function() { input.focus(); input.select(); });
+  return li;
+}
+
+function _commitAddList(sectionId, value) {
+  var name = (value || "").trim();
+  _addingListForSection = null;
+  if (!name) { renderSidebar(); return; }
+  _createProjectWithTasks(name, [], { sectionId: sectionId });
+}
+
+function _commitAddGroup(value) {
+  var name = (value || "").trim();
+  _addingGroup = false;
+  if (!name) { renderSidebar(); return; }
+  sections.push({ id: "sec-" + Date.now(), name: capitalizeFirst(name).slice(0, 60), collapsed: false });
+  saveSections();
+  renderSidebar();
+}
+
 function renderSidebar() {
   // Capture previous counts so we can animate changes
   _sidebarPrevCounts = {};
@@ -1812,14 +1833,44 @@ function renderSidebar() {
   // Proyectos sueltos (sin sección)
   ungrouped.forEach(function(p) { renderProjectItem(p); });
 
-  // Secciones con sus proyectos dentro
+  // Secciones (grupos) con sus proyectos (listas) dentro
   sections.forEach(function(section) {
     const sectionProjects = realActive.filter(function(p) { return p.sectionId === section.id; });
     renderSectionHeader(section, sectionProjects);
     if (!section.collapsed) {
       sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
+      // Creación inline al estilo v1: "+ Añadir lista" (o input activo).
+      if (_addingListForSection === section.id) {
+        projectListEl.appendChild(_sidebarInlineInput({
+          indent: true,
+          placeholder: t("sidebar.list_name"),
+          onCommit: function(v) { _commitAddList(section.id, v); },
+          onCancel: function() { _addingListForSection = null; renderSidebar(); },
+        }));
+      } else {
+        projectListEl.appendChild(_sidebarAddButton({
+          indent: true,
+          label: sectionProjects.length ? t("sidebar.add_list") : t("sidebar.add_first_list"),
+          onClick: function() { _addingListForSection = section.id; _addingGroup = false; renderSidebar(); },
+        }));
+      }
     }
   });
+
+  // "+ Nuevo grupo" al final de la lista (o input activo), como en v1.
+  if (_addingGroup) {
+    projectListEl.appendChild(_sidebarInlineInput({
+      placeholder: t("sidebar.group_name"),
+      onCommit: function(v) { _commitAddGroup(v); },
+      onCancel: function() { _addingGroup = false; renderSidebar(); },
+    }));
+  } else {
+    projectListEl.appendChild(_sidebarAddButton({
+      newGroup: true,
+      label: t("sidebar.new_group"),
+      onClick: function() { _addingGroup = true; _addingListForSection = null; renderSidebar(); },
+    }));
+  }
 
   if (window.lucide) lucide.createIcons();
   // Archivados y Notas se renderizan SIEMPRE — la cabecera aparece
@@ -1884,10 +1935,6 @@ function renderSectionHeader(section, sectionProjects) {
   nameEl.className = "section-name";
   nameEl.textContent = section.name;
 
-  const countEl = document.createElement("span");
-  countEl.className = "section-count";
-  countEl.textContent = sectionProjects.length;
-
   const menuBtn = document.createElement("button");
   menuBtn.type = "button";
   menuBtn.className = "section-menu-btn";
@@ -1897,6 +1944,11 @@ function renderSectionHeader(section, sectionProjects) {
     e.stopPropagation();
     showSectionMenu(section, menuBtn);
   });
+  
+  const countEl = document.createElement("span");
+  countEl.className = "section-count";
+  countEl.textContent = sectionProjects.length;
+
 
   li.appendChild(chevron);
   li.appendChild(nameEl);
@@ -1961,8 +2013,10 @@ function _projectColorFromId(id) {
     hash = ((hash << 5) - hash) + id.charCodeAt(i);
     hash |= 0;
   }
-  var hue = Math.abs(hash) % 360;
-  return "hsl(" + hue + ", 62%, 58%)";
+  // Paleta cálida "Tierra" del prototipo v1 (evita hues fuera de tono como
+  // el violeta que salía del hash libre). Índice determinista por id.
+  var palette = ["#c98a3c", "#7c8a52", "#5aa06b", "#3d8fb0", "#b0473f", "#8a6fb0"];
+  return palette[Math.abs(hash) % palette.length];
 }
 
 /** Color efectivo de un proyecto: el elegido por el usuario o el hash del id. */
@@ -1986,17 +2040,23 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const done  = project.tasks.filter(function(t) { return t.done; }).length;
   const total = project.tasks.length;
 
-  const iconBtn = project.icon ? document.createElement("button") : null;
-  if (iconBtn) {
-    iconBtn.type = "button";
-    iconBtn.className = "project-item-icon";
-    iconBtn.textContent = project.icon;
-    iconBtn.title = t("project.change_icon");
-    iconBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      showIconPicker(project);
-    });
-  }
+  // Las listas ya no llevan icono propio: siempre muestran el anillo de
+  // progreso (el color de la lista sólo se ve aquí, en el anillo). Como v1.
+  const iconBtn = null;
+  const _done  = project.tasks.filter(function(t) { return t.done; }).length;
+  const _total = project.tasks.length;
+  const _pct   = _total > 0 ? _done / _total : 0;
+  const C = 2 * Math.PI * 6; // r = 6
+  const ringEl = document.createElement("span");
+  ringEl.className = "project-ring";
+  ringEl.setAttribute("aria-hidden", "true");
+  ringEl.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 16 16">' +
+      '<circle class="project-ring-track" cx="8" cy="8" r="6" fill="none" stroke-width="2"></circle>' +
+      '<circle class="project-ring-fill" cx="8" cy="8" r="6" fill="none" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - _pct)).toFixed(2) + '" ' +
+        'transform="rotate(-90 8 8)"' + (_pct > 0 ? '' : ' style="opacity:0"') + '></circle>' +
+    '</svg>';
 
   const nameSpan = document.createElement("span");
   nameSpan.className = "project-item-name";
@@ -2035,22 +2095,17 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   const topRow = document.createElement("div");
   topRow.className = "project-item-top";
   if (iconBtn) topRow.appendChild(iconBtn);
+  else if (ringEl) topRow.appendChild(ringEl);
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
   topRow.appendChild(kebabBtn);
 
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const bar = document.createElement("div");
-  bar.className = "project-progress-bar";
-  bar.innerHTML = '<div class="project-progress-fill" style="width:' + pct + '%"></div>';
-
   // Color del proyecto: explícito o fallback derivado del id (hash → hue
-   // determinista). Garantiza un dot/franja visible por proyecto.
+   // determinista). Alimenta el arco del anillo de progreso.
   li.style.setProperty("--project-color", project.color || _projectColorFromId(project.id));
 
   li.setAttribute("draggable", "false");
   li.appendChild(topRow);
-  if (total > 0) li.appendChild(bar);
   li.addEventListener("click", function() { activateProject(project.id); });
   li.addEventListener("contextmenu", function(e) {
     e.preventDefault();
@@ -2296,10 +2351,6 @@ async function showProjectMenu(project, anchor) {
         }
       ]
     : [
-        {
-          label: t("project.change_icon"),
-          action: function() { showIconPicker(project); }
-        },
         {
           label: t("project.change_color"),
           action: function() { showColorPicker(project); }
@@ -2626,9 +2677,9 @@ function renderTasks() {
     }
   }
 
-  let visible = foldDone
-    ? (_doneFoldExpanded ? pendingItems.concat(foldedDone) : pendingItems)
-    : pendingItems;
+  // Las hechas se pintan aparte, en #task-list-done — nunca dentro del
+  // contenedor de pendientes (igual que el bloque de hechas del Inbox).
+  let visible = pendingItems;
 
   // ── Inbox agrupado: cada proyecto es un BLOQUE separado (como las
   // secciones de Hoy), no filas dentro de un único contenedor. Aquí
@@ -2636,6 +2687,7 @@ function renderTasks() {
   if (inboxGroups) {
     taskList.classList.remove("task-list--project");
     taskList.innerHTML = "";
+    if (taskListDone) taskListDone.innerHTML = "";
 
     inboxGroups.forEach(function(g) {
       if (g.items.length === 0) return;
@@ -2672,8 +2724,8 @@ function renderTasks() {
       taskList.appendChild(sec);
     });
 
-    if (foldedDone.length > 0) {
-      taskList.appendChild(_buildDoneFoldRow(foldedDone));
+    if (foldedDone.length > 0 && taskListDone) {
+      taskListDone.appendChild(_buildDoneFoldRow(foldedDone));
       if (_doneFoldExpanded) {
         const doneSec = document.createElement("li");
         doneSec.className = "hoy-section inbox-group-block";
@@ -2686,7 +2738,7 @@ function renderTasks() {
           doneUl.appendChild(node);
         });
         doneSec.appendChild(doneUl);
-        taskList.appendChild(doneSec);
+        taskListDone.appendChild(doneSec);
       }
     }
 
@@ -2739,16 +2791,23 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
-  // Fila-resumen de completadas (se recrea en cada render: la limpieza
-  // inicial la retira por no tener data-task-id). Entre pendientes y
-  // hechas: justo antes del nodo de la primera hecha.
-  if (foldedDone.length > 0) {
-    const fold = _buildDoneFoldRow(foldedDone);
-    const firstDoneNode = _doneFoldExpanded && foldedDone.length
-      ? taskList.querySelector('[data-task-id="' + CSS.escape(foldedDone[0].task.id) + '"]')
-      : null;
-    taskList.insertBefore(fold, firstDoneNode);
-    if (window.lucide) lucide.createIcons({ nodes: [fold] });
+  // Completadas: bloque aparte fuera del contenedor de pendientes
+  // (#task-list-done), como en el Inbox. Se reconstruye entero en
+  // cada render — son pocas filas y no necesitan animación de reorden.
+  if (taskListDone) {
+    taskListDone.innerHTML = "";
+    if (foldedDone.length > 0) {
+      const fold = _buildDoneFoldRow(foldedDone);
+      taskListDone.appendChild(fold);
+      if (_doneFoldExpanded) {
+        foldedDone.forEach(function(it) {
+          const node = _buildTaskNode(it.task, it.project);
+          node.style.setProperty("--task-accent", _projectColor(it.project));
+          taskListDone.appendChild(node);
+        });
+      }
+      if (window.lucide) lucide.createIcons({ nodes: [taskListDone] });
+    }
   }
 
   // Empty state: si el proyecto no tiene tareas visibles (o no tiene
@@ -2788,7 +2847,7 @@ function _renderTasksFooter(project, isInbox) {
     });
   }
   const pending = poolTasks.filter(function(t) { return !t.done; }).length;
-  taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
+  if (taskCounter) taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
     .replace("{count}", String(pending));
   projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
   var mobileHeaderCount = document.getElementById("mobile-header-count");
@@ -2834,6 +2893,45 @@ function _buildDoneFoldRow(foldedDone) {
   return fold;
 }
 
+/** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
+const PRIORITY_PNUM = { high: "P1", medium: "P2", low: "P3" };
+
+function renderPriorityBadge(task, container) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (task.done || !task.priority) return;
+  const badge = document.createElement("span");
+  badge.className = "priority-badge priority-badge-" + task.priority;
+  badge.textContent = PRIORITY_PNUM[task.priority] || "";
+  badge.title = t("detail.priority") + ": " + PRIORITY_CONFIG[task.priority].label();
+  container.appendChild(badge);
+}
+
+/**
+ * Elimina una tarea con soporte de deshacer. Compartida por el atajo de
+ * teclado, el menú contextual y el pie del panel de detalle.
+ */
+function deleteTaskWithUndo(task, project) {
+  const taskIndex = project.tasks.findIndex(function(tk) { return tk.id === task.id; });
+  if (taskIndex === -1) return;
+  _undoStack = { projectId: project.id, task: JSON.parse(JSON.stringify(task)), index: taskIndex };
+  if (openDetailTaskId === task.id) closeTaskDetail();
+  project.tasks = project.tasks.filter(function(tk) { return tk.id !== task.id; });
+  saveAndRender();
+  showUndoToast();
+}
+
+/** Duplica una tarea (con sus subtareas) justo debajo del original. */
+function duplicateTask(task, project) {
+  const idx = project.tasks.findIndex(function(tk) { return tk.id === task.id; });
+  if (idx === -1) return;
+  const copy = JSON.parse(JSON.stringify(task));
+  copy.id = generateId();
+  copy.subtasks = (copy.subtasks || []).map(function(s) { return Object.assign({}, s, { id: generateId() }); });
+  project.tasks.splice(idx + 1, 0, copy);
+  saveAndRender();
+}
+
 /**
  * Actualiza el estado visible de un nodo de tarea sin tocar
  * listeners. Asume que el nodo ya fue construido por _buildTaskNode.
@@ -2841,37 +2939,19 @@ function _buildDoneFoldRow(foldedDone) {
 function _updateTaskNode(node, task) {
   const checkbox = node.querySelector(".task-toggle");
   const text     = node.querySelector(".task-text");
-  const comment  = node.querySelector(".task-comment");
 
   checkbox.checked    = task.done;
   text.textContent    = task.text;
-  comment.textContent = task.comment || t("task.no_comment");
   node.classList.toggle("done", task.done);
 
-  applyStatusToNode(node, task);
-  updateStatusBtn(node.querySelector(".status-btn"), task);
   applyPriorityToNode(node, task);
-  updatePriorityBtn(node.querySelector(".priority-btn"), task);
-
-  renderTaskLabels(task, node.querySelector(".task-labels-container"), function(labelName) {
-    currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
-    renderLabelFilterBar();
-    renderTasks();
-  });
-  renderSubtasks(task, node.querySelector(".subtask-list"), {
-    onMutation:  saveAndRender,
-    onEditStart: startSubtaskInlineEdit,
-  });
-
+  renderPriorityBadge(task, node.querySelector(".task-priority-container"));
   renderDueBadge(task, node.querySelector(".task-due-container"));
   renderRecurBadge(task, node.querySelector(".task-recur-container"));
-  updateRecurBtn(node.querySelector(".recur-btn"), task);
-  _updateReminderBtn(node.querySelector(".reminder-btn"), task);
 
-  // Expand state
-  const isExpanded = expandedTaskIds.has(task.id);
-  node.classList.toggle("expanded", isExpanded);
-  node.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+  // El panel de detalle (columna derecha) sustituye a la expansión en la
+  // fila — solo marcamos si su panel está abierto (barra de acento).
+  node.classList.toggle("detail-open", openDetailTaskId === task.id);
 
   // Select mode visual
   const selectCb = node.querySelector(".task-select-cb");
@@ -2881,7 +2961,7 @@ function _updateTaskNode(node, task) {
     node.classList.toggle("selected", isSelected);
   }
 
-  text.title = "Doble clic para renombrar";
+  text.title = t("project.dblclick_rename");
 }
 
 /**
@@ -2897,27 +2977,27 @@ function _buildTaskNode(task, project) {
     // Color del proyecto → el check de completar usa este acento.
     node.style.setProperty("--task-accent", _projectColor(project));
 
-    const checkbox   = node.querySelector(".task-toggle");
-    const text       = node.querySelector(".task-text");
-    const commentBtn = node.querySelector(".comment-btn");
-    const deleteBtn  = node.querySelector(".delete-btn");
-    const subAddBtn  = node.querySelector(".subtask-add-btn");
-    const subtaskList= node.querySelector(".subtask-list");
-    const statusBtn     = node.querySelector(".status-btn");
-    const priorityBtn   = node.querySelector(".priority-btn");
-    const recurBtn   = node.querySelector(".recur-btn");
-    const kebabBtn   = node.querySelector(".task-kebab-btn");
+    const checkbox = node.querySelector(".task-toggle");
+    const text     = node.querySelector(".task-text");
+    const kebabBtn = node.querySelector(".task-kebab-btn");
+
+    // Badge de fecha vencida: pulsable, mueve la tarea a hoy sin abrir el panel.
+    node.querySelector(".task-due-container").addEventListener("click", function(e) {
+      const btn = e.target.closest('[data-due-action="move-today"]');
+      if (!btn) return;
+      e.stopPropagation();
+      task.dueDate = _localDateISO(new Date());
+      saveAndRender();
+    });
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
     checkbox.addEventListener("change", function() {
       task.done = checkbox.checked;
-      if (task.done) task.status = null;
       if (task.done) {
         node.classList.add("task-completing");
         setTimeout(function() {
           if (task.recurDays) {
             task.done = false;
-            task.status = null;
             var next = new Date();
             if (task.dueDate) {
               next = new Date(task.dueDate + "T00:00:00");
@@ -2945,205 +3025,14 @@ function _buildTaskNode(task, project) {
     });
     text.title = t("project.dblclick_rename");
 
-    statusBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      if (task.done) return;
-      cycleStatus(task);
-    });
-
-    priorityBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      cyclePriority(task);
-    });
-
-    // ── Fecha límite ──────────────────────────────────────
-    const dueBadgeContainer = node.querySelector(".task-due-container");
-    renderDueBadge(task, dueBadgeContainer);
-
-    // ── Recurrencia ───────────────────────────────────────
-    renderRecurBadge(task, node.querySelector(".task-recur-container"));
-    updateRecurBtn(recurBtn, task);
-    recurBtn.addEventListener("click", async function(e) {
-      e.stopPropagation();
-      var result = await modalRecurrence(task.recurDays || null);
-      if (result === undefined) return;       // cancelado
-      task.recurDays = result;                // null = quitar, número = días
-      saveAndRender();
-    });
-
-    // ── Recordatorio puntual ──────────────────────────────
-    const reminderBtn = node.querySelector(".reminder-btn");
-    if (reminderBtn) {
-      _updateReminderBtn(reminderBtn, task);
-      reminderBtn.addEventListener("click", async function(e) {
-        e.stopPropagation();
-        const result = await modalReminder(task.reminderAt || null);
-        if (result === undefined) return;
-        task.reminderAt = result;  // ISO string o null
-        saveAndRender();
-        // Re-schedule timers tras el cambio
-        if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
-          window.AnsoNotif.scheduleTaskReminders(projects);
-        }
-      });
-    }
-
-    const dateBtn = node.querySelector(".date-btn");
-    dateBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      modalDate(task.dueDate || null).then(function(result) {
-        if (result === undefined) return;
-        task.dueDate = result === "clear" ? null : result;
-        saveAndRender();
-      });
-    });
-
-    commentBtn.addEventListener("click", async function(e) {
-      e.stopPropagation();
-      const next = await modalPrompt(t("task.comment_prompt"), task.comment || "", t("task.comment_placeholder"));
-      if (next === null) return;
-      task.comment = next.trim().slice(0, 300);
-      saveAndRender();
-    });
-
-    const labelAddBtn = node.querySelector(".label-add-btn");
-    labelAddBtn.addEventListener("click", async function(e) {
-      e.stopPropagation();
-      await showLabelPicker(task);
-    });
-
-    subAddBtn.addEventListener("click", async function(e) {
-      e.stopPropagation();
-      const subText = await modalPrompt(t("task.new_subtask_prompt"), "", t("task.subtask_placeholder"));
-      if (!subText || !subText.trim()) return;
-      task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
-      saveAndRender();
-    });
-
-    if (window.matchMedia("(max-width: 768px)").matches) {
-      const extraContent = node.querySelector(".task-extra-content");
-      const inlineActions = document.createElement("div");
-      inlineActions.className = "mobile-inline-actions";
-
-      const editCommentBtn = document.createElement("button");
-      editCommentBtn.type = "button";
-      editCommentBtn.className = "mobile-inline-btn";
-      editCommentBtn.textContent = task.comment ? t("task.edit_comment") : t("task.add_comment");
-      editCommentBtn.addEventListener("click", async function(e) {
-        e.stopPropagation();
-        const next = await modalPrompt(t("task.comment_prompt"), task.comment || "", t("task.comment_placeholder"));
-        if (next === null) return;
-        task.comment = next.trim().slice(0, 300);
-        saveAndRender();
-      });
-
-      const addSubtaskBtn = document.createElement("button");
-      addSubtaskBtn.type = "button";
-      addSubtaskBtn.className = "mobile-inline-btn";
-      addSubtaskBtn.textContent = t("task.add_subtask");
-      addSubtaskBtn.addEventListener("click", async function(e) {
-        e.stopPropagation();
-        const subText = await modalPrompt(t("task.new_subtask_prompt"), "", t("task.subtask_placeholder"));
-        if (!subText || !subText.trim()) return;
-        task.subtasks.unshift({ id: generateId(), text: subText.trim().slice(0, 120), done: false });
-        saveAndRender();
-      });
-
-      inlineActions.append(editCommentBtn, addSubtaskBtn);
-      extraContent.insertBefore(inlineActions, subtaskList);
-    }
-
-    deleteBtn.addEventListener("click", function() {
-      const taskIndex = project.tasks.findIndex(function(t) { return t.id === task.id; });
-      _undoStack = { projectId: project.id, task: JSON.parse(JSON.stringify(task)), index: taskIndex };
-      expandedTaskIds.delete(task.id);
-      project.tasks = project.tasks.filter(function(t) { return t.id !== task.id; });
-      saveAndRender();
-      showUndoToast();
-    });
-
-    node.addEventListener("click", function(e) {
-      if (e.target.closest("button")) return;
-      if (e.target.closest(".subtask-list")) return;
-      if (selectMode) {
-        e.preventDefault();
-        toggleTaskSelection(task.id, node);
-        return;
-      }
-      if (e.target.closest("input")) return;
-      toggleExpansion(node, task.id);
-    });
-    node.addEventListener("keydown", function(e) {
-      if (e.target.closest("button, input")) return;
-
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        if (selectMode) { toggleTaskSelection(task.id, node); return; }
-        toggleExpansion(node, task.id);
-        return;
-      }
-
-      if (e.key === "e" || e.key === "E") {
-        e.preventDefault();
-        const textSpan = node.querySelector(".task-text");
-        if (textSpan) startInlineEdit(textSpan, task);
-        return;
-      }
-
-      if (e.key === "d" || e.key === "D") {
-        e.preventDefault();
-        const cb = node.querySelector(".task-toggle");
-        if (cb) cb.click();
-        return;
-      }
-
-      if (e.key === "Delete") {
-        e.preventDefault();
-        const delBtn = node.querySelector(".delete-btn");
-        if (delBtn) delBtn.click();
-        return;
-      }
-
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        const items = Array.from(taskList.querySelectorAll(".task-item"));
-        const idx = items.indexOf(node);
-        if (idx > 0) items[idx - 1].focus();
-        return;
-      }
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        const items = Array.from(taskList.querySelectorAll(".task-item"));
-        const idx = items.indexOf(node);
-        if (idx < items.length - 1) items[idx + 1].focus();
-        return;
-      }
-    });
-
     function openTaskActionsMenu(anchorOrPoint) {
       if (selectMode) return;
       closeCtxMenu();
 
-      var clickAction = function(selector) {
-        return function() {
-          var btn = node.querySelector(selector);
-          if (btn) btn.click();
-        };
-      };
-
       var items = [
-        { label: t("action.rename"), action: function() { startInlineEdit(text, task); } },
-        null,
-        { label: t("task_btn.priority"),  action: clickAction(".priority-btn") },
-        { label: t("task_btn.status"),    action: clickAction(".status-btn") },
-        { label: t("task_btn.date"),      action: clickAction(".date-btn") },
-        { label: t("task_btn.recur"),     action: clickAction(".recur-btn") },
-        { label: t("task_btn.reminder"),  action: clickAction(".reminder-btn") },
-        { label: task.comment ? t("task.edit_comment") : t("task.add_comment"), action: clickAction(".comment-btn") },
-        { label: t("task_btn.labels"),    action: clickAction(".label-add-btn") },
-        { label: t("task_btn.subtasks"),  action: clickAction(".subtask-add-btn") },
+        { label: t("action.rename"),   action: function() { startInlineEdit(text, task); } },
+        { label: t("detail.open"),     action: function() { openTaskDetail(task.id, project.id); } },
+        { label: t("action.duplicate"), action: function() { duplicateTask(task, project); } },
         null,
         {
           label: t("task.move_to_project"),
@@ -3152,15 +3041,15 @@ function _buildTaskNode(task, project) {
             if (!targetId) return;
             var target = projects.find(function(p) { return p.id === targetId; });
             if (!target) return;
-            var idx = project.tasks.findIndex(function(t) { return t.id === task.id; });
+            var idx = project.tasks.findIndex(function(tk) { return tk.id === task.id; });
             if (idx === -1) return;
             var moved = project.tasks.splice(idx, 1)[0];
-            expandedTaskIds.delete(moved.id);
+            if (openDetailTaskId === moved.id) openDetailProjectId = target.id;
             target.tasks.unshift(moved);
             saveAndRender();
           }
         },
-        { label: t("action.delete"), danger: true, action: clickAction(".delete-btn") },
+        { label: t("action.delete"), danger: true, action: function() { deleteTaskWithUndo(task, project); } },
       ];
 
       var menu = _buildCtxMenu(items);
@@ -3180,9 +3069,6 @@ function _buildTaskNode(task, project) {
 
     if (kebabBtn) {
       kebabBtn.addEventListener("click", function(e) {
-        // En móvil, el script inline abre el action sheet nativo. En desktop,
-        // el ⋯ sustituye al grupo completo de botones secundarios.
-        if (window.matchMedia("(max-width: 768px)").matches) return;
         e.preventDefault();
         e.stopPropagation();
         openTaskActionsMenu(kebabBtn);
@@ -3194,6 +3080,62 @@ function _buildTaskNode(task, project) {
       if (e.target.closest("button, input")) return;
       e.preventDefault();
       openTaskActionsMenu({ x: e.clientX, y: e.clientY });
+    });
+
+    // ── Pulsar la fila abre el panel de detalle (columna derecha) ──
+    node.addEventListener("click", function(e) {
+      if (e.target.closest("button")) return;
+      if (selectMode) {
+        e.preventDefault();
+        toggleTaskSelection(task.id, node);
+        return;
+      }
+      if (e.target.closest("input")) return;
+      openTaskDetail(task.id, project.id);
+    });
+    node.addEventListener("keydown", function(e) {
+      if (e.target.closest("button, input")) return;
+
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (selectMode) { toggleTaskSelection(task.id, node); return; }
+        openTaskDetail(task.id, project.id);
+        return;
+      }
+
+      if (e.key === "e" || e.key === "E") {
+        e.preventDefault();
+        startInlineEdit(text, task);
+        return;
+      }
+
+      if (e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        checkbox.click();
+        return;
+      }
+
+      if (e.key === "Delete") {
+        e.preventDefault();
+        deleteTaskWithUndo(task, project);
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const items = Array.from(taskList.querySelectorAll(".task-item"));
+        const idx = items.indexOf(node);
+        if (idx > 0) items[idx - 1].focus();
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const items = Array.from(taskList.querySelectorAll(".task-item"));
+        const idx = items.indexOf(node);
+        if (idx < items.length - 1) items[idx + 1].focus();
+        return;
+      }
     });
 
     // ── Checkbox de selección ─────────────────────────────────
@@ -3219,6 +3161,583 @@ function _buildTaskNode(task, project) {
     _updateTaskNode(node, task);
     return node;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL DE DETALLE DE TAREA (columna derecha, prototipo v1)
+//
+// Las características de la tarea (prioridad, estado, fecha,
+// repetición, aviso, nota, subtareas, mover de lista) ya no se editan
+// en la fila — se editan aquí, en un panel fijo a la derecha, con el
+// mismo mecanismo de "empuje" (ancho animado) que el sidebar.
+// ═══════════════════════════════════════════════════════════════
+
+const _detailPanelEls = {
+  wrap:         document.getElementById("task-detail-wrap"),
+  back:         document.getElementById("task-detail-back"),
+  backLabel:    document.getElementById("task-detail-back-label"),
+  menuBtn:      document.getElementById("task-detail-menu-btn"),
+  close:        document.getElementById("task-detail-close"),
+  toggle:       document.getElementById("task-detail-toggle"),
+  title:        document.getElementById("task-detail-title"),
+  comment:      document.getElementById("task-detail-comment"),
+  priority:     document.getElementById("task-detail-priority"),
+  dateField:    document.getElementById("task-detail-date-field"),
+  dateBtn:      document.getElementById("task-detail-date-btn"),
+  dateText:     document.getElementById("task-detail-date-text"),
+  timeBtn:      document.getElementById("task-detail-time-btn"),
+  timeText:     document.getElementById("task-detail-time-text"),
+  recurField:   document.getElementById("task-detail-recur-field"),
+  recurBtn:     document.getElementById("task-detail-recur-btn"),
+  recurText:    document.getElementById("task-detail-recur-text"),
+  reminderField:document.getElementById("task-detail-reminder-field"),
+  reminderBtn:  document.getElementById("task-detail-reminder-btn"),
+  reminderText: document.getElementById("task-detail-reminder-text"),
+  subtasks:     document.getElementById("task-detail-subtasks"),
+  subtaskForm:  document.getElementById("task-detail-subtask-form"),
+  subtaskInput: document.getElementById("task-detail-subtask-input"),
+  projectField: document.getElementById("task-detail-project-field"),
+  projectBtn:   document.getElementById("task-detail-project-btn"),
+  projectText:  document.getElementById("task-detail-project-text"),
+  projectChevron: document.getElementById("task-detail-project-chevron"),
+  deleteBtn:    document.getElementById("task-detail-delete-btn"),
+};
+
+/** Busca la tarea/proyecto abiertos en el panel. Null si ya no existen
+ *  (borrados, movidos por sync…) — el caller debe cerrar el panel. */
+function _getOpenDetailTask() {
+  if (!openDetailTaskId || !openDetailProjectId) return null;
+  const project = projects.find(function(p) { return p.id === openDetailProjectId; });
+  if (!project) return null;
+  const task = project.tasks.find(function(tk) { return tk.id === openDetailTaskId; });
+  if (!task) return null;
+  return { task: task, project: project };
+}
+
+function openTaskDetail(taskId, projectId) {
+  if (selectMode) return;
+  openDetailTaskId    = taskId;
+  openDetailProjectId = projectId;
+  if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
+  document.body.classList.add("task-detail-active");
+  _renderTaskDetail();
+  renderTasks(); // refresca la barra de acento en la fila abierta
+}
+
+function closeTaskDetail() {
+  if (!openDetailTaskId) return;
+  openDetailTaskId    = null;
+  openDetailProjectId = null;
+  if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.remove("task-detail-wrap--open");
+  document.body.classList.remove("task-detail-active");
+  renderTasks(); // quita la barra de acento de la fila que tenía el panel abierto
+}
+
+// ═══════════════════════════════════════════════════════════════
+// POPOVERS DE CAMPO (fecha, hora, repetir, aviso, lista)
+//
+// Sustituyen a los modal-box del prototipo anterior: se anclan al
+// campo del panel (como en el prototipo v1), no tapan la pantalla.
+// Solo uno puede estar abierto a la vez; clic fuera o Escape cierra.
+// ═══════════════════════════════════════════════════════════════
+let _openPopover = null; // { el, anchorBtn, onDoc, onEsc }
+
+function _closeFieldPopover() {
+  if (!_openPopover) return;
+  const p = _openPopover;
+  _openPopover = null;
+  document.removeEventListener("mousedown", p.onDoc, true);
+  document.removeEventListener("keydown", p.onEsc, true);
+  if (p.anchorBtn) p.anchorBtn.classList.remove("field-btn-open");
+  p.el.remove();
+}
+
+/**
+ * Abre un popover anclado a `fieldEl` (el wrapper `.task-detail-field`,
+ * para que ocupe todo el ancho del campo como en el prototipo).
+ * Si ya había uno abierto para el mismo botón, simplemente lo cierra
+ * (toggle). `buildFn(pop, close)` rellena el contenido.
+ */
+function _openFieldPopover(fieldEl, anchorBtn, placement, buildFn) {
+  const wasOpenForSameBtn = _openPopover && _openPopover.anchorBtn === anchorBtn;
+  _closeFieldPopover();
+  if (wasOpenForSameBtn) return;
+
+  const pop = document.createElement("div");
+  pop.className = "field-popover" + (placement === "up" ? " field-popover--up" : "");
+  fieldEl.appendChild(pop);
+  if (anchorBtn) anchorBtn.classList.add("field-btn-open");
+
+  function close() { _closeFieldPopover(); }
+  buildFn(pop, close);
+  if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+
+  const onDoc = function(e) { if (!fieldEl.contains(e.target)) close(); };
+  const onEsc = function(e) { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+  setTimeout(function() {
+    document.addEventListener("mousedown", onDoc, true);
+    document.addEventListener("keydown", onEsc, true);
+  }, 0);
+  _openPopover = { el: pop, anchorBtn: anchorBtn, onDoc: onDoc, onEsc: onEsc };
+}
+
+/** ISO YYYY-MM-DD en hora LOCAL (no UTC como Date#toISOString). */
+function _localDateISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function _openDatePopover(fieldEl, anchorBtn) {
+  const openTask = _getOpenDetailTask();
+  if (!openTask) return;
+  const task = openTask.task;
+  const init = task.dueDate ? new Date(task.dueDate + "T00:00") : new Date();
+  let vy = init.getFullYear();
+  let vm = init.getMonth();
+
+  _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
+    function render() {
+      const localeD = getLang() === "en" ? "en-GB" : "es-ES";
+      const todayISO = _localDateISO(new Date());
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowISO = _localDateISO(tomorrow);
+      const first = new Date(vy, vm, 1);
+      const monthTitle = first.toLocaleDateString(localeD, { month: "long", year: "numeric" });
+      const offset = (first.getDay() + 6) % 7; // lunes = 0
+      const nDays = new Date(vy, vm + 1, 0).getDate();
+      const mondayRef = new Date(2024, 0, 1); // un lunes
+      const dowNames = Array.from({ length: 7 }, function(_, i) {
+        const d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
+        return d.toLocaleDateString(localeD, { weekday: "narrow" }).toUpperCase();
+      });
+
+      let cellsHtml = "";
+      for (let i = 0; i < offset; i++) cellsHtml += '<span class="field-popover-cal-empty">·</span>';
+      for (let day = 1; day <= nDays; day++) {
+        const iso = vy + "-" + String(vm + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        const cls = ["field-popover-cal-day"];
+        if (iso === task.dueDate) cls.push("field-popover-cal-day--selected");
+        else if (iso === todayISO) cls.push("field-popover-cal-day--today");
+        cellsHtml += '<span class="' + cls.join(" ") + '" data-day-iso="' + iso + '">' + day + '</span>';
+      }
+
+      pop.innerHTML =
+        '<div class="field-popover-chips">' +
+          '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
+          '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
+          (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
+        '</div>' +
+        '<div class="field-popover-cal-head">' +
+          '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
+          '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
+          '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
+        '</div>' +
+        '<div class="field-popover-cal-grid">' +
+          dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
+          cellsHtml +
+        '</div>';
+
+      pop.querySelector('[data-cal-nav="-1"]').addEventListener("click", function() {
+        vm--; if (vm < 0) { vm = 11; vy--; }
+        render();
+      });
+      pop.querySelector('[data-cal-nav="1"]').addEventListener("click", function() {
+        vm++; if (vm > 11) { vm = 0; vy++; }
+        render();
+      });
+      pop.querySelectorAll("[data-quick]").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          const q = btn.dataset.quick;
+          task.dueDate = q === "today" ? todayISO : q === "tomorrow" ? tomorrowISO : null;
+          saveAndRender();
+          close();
+        });
+      });
+      pop.querySelectorAll("[data-day-iso]").forEach(function(el) {
+        el.addEventListener("click", function() {
+          task.dueDate = el.dataset.dayIso;
+          saveAndRender();
+          close();
+        });
+      });
+    }
+    render();
+  });
+}
+
+function _openTimePopover(fieldEl, anchorBtn) {
+  const openTask = _getOpenDetailTask();
+  if (!openTask) return;
+  const task = openTask.task;
+
+  _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
+    pop.classList.add("field-popover--narrow");
+    pop.innerHTML =
+      '<div class="field-popover-input-row">' +
+        '<input type="time" value="' + (task.dueTime || "") + '" />' +
+        (task.dueTime ? '<button type="button" class="field-popover-chip field-popover-chip--clear">' + t("modal.clear") + '</button>' : "") +
+      '</div>';
+    const input = pop.querySelector('input[type="time"]');
+    input.addEventListener("change", function() {
+      task.dueTime = input.value || null;
+      saveAndRender();
+      close();
+    });
+    const clearBtn = pop.querySelector(".field-popover-chip--clear");
+    if (clearBtn) clearBtn.addEventListener("click", function() {
+      task.dueTime = null;
+      saveAndRender();
+      close();
+    });
+    setTimeout(function() { input.focus(); }, 10);
+  });
+}
+
+function _openRecurPopover(fieldEl, anchorBtn) {
+  const openTask = _getOpenDetailTask();
+  if (!openTask) return;
+  const task = openTask.task;
+  const presets = [
+    { label: t("recur.daily"),        days: 1  },
+    { label: t("recur.every_2_days"), days: 2  },
+    { label: t("recur.weekly"),       days: 7  },
+    { label: t("recur.biweekly"),     days: 14 },
+    { label: t("recur.monthly"),      days: 30 },
+  ];
+
+  _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
+    const rowsHtml = presets.map(function(p) {
+      const active = task.recurDays === p.days;
+      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-days="' + p.days + '">' +
+        '<span class="field-popover-row-label">' + p.label + '</span>' +
+        (active ? '<i data-lucide="check"></i>' : "") +
+      '</button>';
+    }).join("");
+    const isPreset = task.recurDays != null && presets.some(function(p) { return p.days === task.recurDays; });
+
+    pop.innerHTML =
+      '<div class="field-popover-list">' + rowsHtml + '</div>' +
+      '<div class="field-popover-sep"></div>' +
+      '<div class="field-popover-input-row">' +
+        '<input type="number" min="1" max="3650" placeholder="' + t("modal_recur.custom_placeholder") + '" value="' +
+          (task.recurDays && !isPreset ? task.recurDays : "") + '" />' +
+        (task.recurDays ? '<button type="button" class="field-popover-chip field-popover-chip--clear">' + t("modal.clear") + '</button>' : "") +
+      '</div>';
+
+    pop.querySelectorAll("[data-days]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        task.recurDays = parseInt(btn.dataset.days, 10);
+        saveAndRender();
+        close();
+      });
+    });
+    const input = pop.querySelector('input[type="number"]');
+    input.addEventListener("keydown", function(e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const v = parseInt(input.value, 10);
+      task.recurDays = (isNaN(v) || v <= 0) ? null : Math.min(v, 3650);
+      saveAndRender();
+      close();
+    });
+    const clearBtn = pop.querySelector(".field-popover-chip--clear");
+    if (clearBtn) clearBtn.addEventListener("click", function() {
+      task.recurDays = null;
+      saveAndRender();
+      close();
+    });
+  });
+}
+
+function _openReminderPopover(fieldEl, anchorBtn) {
+  const openTask = _getOpenDetailTask();
+  if (!openTask) return;
+  const task = openTask.task;
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function toLocalISO(d) {
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+           "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  const now = new Date();
+  const presets = [];
+  presets.push({ label: t("reminder.preset.in_1h"), iso: toLocalISO(new Date(now.getTime() + 60 * 60 * 1000)) });
+  presets.push({ label: t("reminder.preset.in_4h"), iso: toLocalISO(new Date(now.getTime() + 4 * 60 * 60 * 1000)) });
+  const eveningToday = new Date(now); eveningToday.setHours(18, 0, 0, 0);
+  if (eveningToday.getTime() > now.getTime()) {
+    presets.push({ label: t("reminder.preset.this_evening"), iso: toLocalISO(eveningToday) });
+  }
+  const tomMorning = new Date(now); tomMorning.setDate(tomMorning.getDate() + 1); tomMorning.setHours(9, 0, 0, 0);
+  presets.push({ label: t("reminder.preset.tomorrow_9am"), iso: toLocalISO(tomMorning) });
+  const in2 = new Date(now); in2.setDate(in2.getDate() + 2); in2.setHours(9, 0, 0, 0);
+  presets.push({ label: t("reminder.preset.in_2_days"), iso: toLocalISO(in2) });
+
+  _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
+    const currentVal = (task.reminderAt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(task.reminderAt))
+      ? task.reminderAt.slice(0, 16)
+      : "";
+
+    pop.innerHTML =
+      '<div class="field-popover-list">' +
+        presets.map(function(p) {
+          return '<button type="button" class="field-popover-row" data-iso="' + p.iso + '"><span class="field-popover-row-label">' + p.label + '</span></button>';
+        }).join("") +
+      '</div>' +
+      '<div class="field-popover-sep"></div>' +
+      '<div class="field-popover-input-row">' +
+        '<input type="datetime-local" value="' + currentVal + '" />' +
+        (task.reminderAt ? '<button type="button" class="field-popover-chip field-popover-chip--clear">' + t("modal.clear") + '</button>' : "") +
+      '</div>';
+
+    function afterChange() {
+      saveAndRender();
+      if (window.AnsoNotif && window.AnsoNotif.scheduleTaskReminders) {
+        window.AnsoNotif.scheduleTaskReminders(projects);
+      }
+    }
+
+    pop.querySelectorAll("[data-iso]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        task.reminderAt = btn.dataset.iso;
+        afterChange();
+        close();
+      });
+    });
+    const input = pop.querySelector('input[type="datetime-local"]');
+    input.addEventListener("change", function() {
+      if (!input.value) return;
+      task.reminderAt = input.value;
+      afterChange();
+      close();
+    });
+    const clearBtn = pop.querySelector(".field-popover-chip--clear");
+    if (clearBtn) clearBtn.addEventListener("click", function() {
+      task.reminderAt = null;
+      afterChange();
+      close();
+    });
+  });
+}
+
+function _openProjectPopover(fieldEl, anchorBtn) {
+  const openTask = _getOpenDetailTask();
+  if (!openTask) return;
+  const currentProjectId = openTask.project.id;
+
+  _openFieldPopover(fieldEl, anchorBtn, "up", function(pop, close) {
+    const rowsHtml = projects.filter(function(p) { return !p.archived; }).map(function(p) {
+      const active = p.id === currentProjectId;
+      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-project-id="' + p.id + '">' +
+        '<span class="field-popover-row-label">' + escHtml((p.icon ? p.icon + " " : "") + p.name) + '</span>' +
+        (active ? '<i data-lucide="check"></i>' : "") +
+      '</button>';
+    }).join("");
+    pop.innerHTML = '<div class="field-popover-list">' + rowsHtml + '</div>';
+
+    pop.querySelectorAll("[data-project-id]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        const targetId = btn.dataset.projectId;
+        close();
+        if (targetId === currentProjectId) return;
+        const stillOpen = _getOpenDetailTask();
+        if (!stillOpen) return;
+        const target = projects.find(function(p) { return p.id === targetId; });
+        if (!target) return;
+        const idx = stillOpen.project.tasks.findIndex(function(tk) { return tk.id === stillOpen.task.id; });
+        if (idx === -1) return;
+        const moved = stillOpen.project.tasks.splice(idx, 1)[0];
+        target.tasks.unshift(moved);
+        openDetailProjectId = target.id;
+        saveAndRender();
+      });
+    });
+  });
+}
+
+function _formatReminderLabel(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return t("detail.no_reminder");
+  const localeR = getLang() === "en" ? "en-GB" : "es-ES";
+  return d.toLocaleString(localeR, { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+/** Pinta el panel con el estado actual de la tarea abierta (si hay alguna). */
+function _renderTaskDetail() {
+  const open = _getOpenDetailTask();
+  if (!open) { closeTaskDetail(); return; }
+  const task = open.task, project = open.project;
+  const els  = _detailPanelEls;
+
+  els.toggle.checked = task.done;
+  if (document.activeElement !== els.title)   els.title.value   = task.text;
+  if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
+  els.title.classList.toggle("done", task.done);
+
+  els.priority.querySelectorAll("button").forEach(function(btn) {
+    btn.classList.toggle("active", (task.priority || "") === btn.dataset.value);
+  });
+
+  els.dateText.textContent     = task.dueDate    ? formatDueLabel(task.dueDate)     : t("detail.no_date");
+  els.timeText.textContent     = task.dueTime    || t("detail.no_time");
+  els.recurText.textContent    = task.recurDays  ? formatRecurLabel(task.recurDays) : t("detail.no_recur");
+  els.reminderText.textContent = task.reminderAt ? _formatReminderLabel(task.reminderAt) : t("detail.no_reminder");
+  els.projectText.textContent  = (project.icon ? project.icon + " " : "") + project.name;
+  if (els.backLabel) els.backLabel.textContent = project.name;
+
+  renderSubtasks(task, els.subtasks, {
+    onMutation:  saveAndRender,
+    onEditStart: startSubtaskInlineEdit,
+  });
+
+  if (window.lucide) window.lucide.createIcons({ nodes: [els.priority, els.subtasks] });
+}
+
+/** Ata los listeners del panel una sola vez (elementos estáticos del DOM,
+ *  no plantillas por tarea) — cada handler resuelve la tarea abierta al
+ *  vuelo vía _getOpenDetailTask() para no depender de closures viejas. */
+function _initTaskDetailPanel() {
+  const els = _detailPanelEls;
+  if (!els.wrap) return;
+
+  if (els.close) els.close.addEventListener("click", closeTaskDetail);
+  if (els.back)  els.back.addEventListener("click", closeTaskDetail);
+
+  if (els.menuBtn) {
+    els.menuBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      closeCtxMenu();
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      const items = [
+        { label: t("action.rename"), action: function() { els.title.focus(); els.title.select(); } },
+        { label: t("action.duplicate"), action: function() {
+            const cur = _getOpenDetailTask();
+            if (cur) duplicateTask(cur.task, cur.project);
+          } },
+        { label: t("action.delete"), danger: true, action: function() {
+            const cur = _getOpenDetailTask();
+            if (cur) deleteTaskWithUndo(cur.task, cur.project);
+          } },
+      ];
+      const menu = _buildCtxMenu(items);
+      positionCtxMenu(menu, els.menuBtn);
+      _ctxMenu = menu;
+      requestAnimationFrame(function() {
+        _ctxCloseHandler = function(ev) {
+          if (!menu.contains(ev.target)) closeCtxMenu();
+        };
+        document.addEventListener("mousedown", _ctxCloseHandler);
+      });
+    });
+  }
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key !== "Escape" || !openDetailTaskId) return;
+    if (document.querySelector(".modal-overlay")) return; // deja que el modal se cierre primero
+    closeTaskDetail();
+  });
+
+  if (els.toggle) {
+    els.toggle.addEventListener("change", function() {
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      open.task.done = els.toggle.checked;
+      saveAndRender();
+    });
+  }
+
+  if (els.title) {
+    els.title.addEventListener("input", function() {
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      open.task.text = els.title.value.slice(0, 120);
+      saveProjects();
+      renderTasks();
+    });
+    els.title.addEventListener("blur", function() {
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      const clean = capitalizeFirst(els.title.value.trim()).slice(0, 120);
+      open.task.text = clean || open.task.text;
+      saveAndRender();
+    });
+  }
+
+  if (els.comment) {
+    let commentTimer = null;
+    els.comment.addEventListener("input", function() {
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      open.task.comment = els.comment.value.slice(0, 300);
+      clearTimeout(commentTimer);
+      commentTimer = setTimeout(function() { saveProjects(); }, 400);
+    });
+  }
+
+  if (els.priority) {
+    els.priority.addEventListener("click", function(e) {
+      const btn = e.target.closest("button[data-value]");
+      const open = _getOpenDetailTask();
+      if (!btn || !open) return;
+      open.task.priority = btn.dataset.value || null;
+      saveAndRender();
+    });
+  }
+
+  if (els.dateBtn) {
+    els.dateBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      _openDatePopover(els.dateField, els.dateBtn);
+    });
+  }
+
+  if (els.timeBtn) {
+    els.timeBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      _openTimePopover(els.dateField, els.timeBtn);
+    });
+  }
+
+  if (els.recurBtn) {
+    els.recurBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      _openRecurPopover(els.recurField, els.recurBtn);
+    });
+  }
+
+  if (els.reminderBtn) {
+    els.reminderBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      _openReminderPopover(els.reminderField, els.reminderBtn);
+    });
+  }
+
+  if (els.subtaskForm) {
+    els.subtaskForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const open = _getOpenDetailTask();
+      if (!open) return;
+      const val = els.subtaskInput.value.trim().slice(0, 120);
+      if (!val) return;
+      open.task.subtasks.unshift({ id: generateId(), text: val, done: false });
+      els.subtaskInput.value = "";
+      saveAndRender();
+    });
+  }
+
+  if (els.projectBtn) {
+    els.projectBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      _openProjectPopover(els.projectField, els.projectBtn);
+    });
+  }
+
+  if (els.deleteBtn) {
+    els.deleteBtn.addEventListener("click", function() {
+      const open = _getOpenDetailTask();
+      if (open) deleteTaskWithUndo(open.task, open.project);
+    });
+  }
+}
+_initTaskDetailPanel();
 
 /**
  * Wirea el CTA "Añadir tarea" de un empty state. En móvil dispara
@@ -3331,7 +3850,7 @@ function renderTodayView() {
     taskList.appendChild(secN.li);
   }
 
-  if (window.lucide) lucide.createIcons({ nodes: [taskList] });
+  if (window.lucide) lucide.createIcons();
 
   if (_hoyQuickAddRefocus) {
     _hoyQuickAddRefocus = false;
@@ -3525,7 +4044,7 @@ function renderSmartListView() {
     taskList.appendChild(renderTodayItem(it.task, it.project, today));
   });
 
-  if (window.lucide) lucide.createIcons({ nodes: [taskList] });
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderTodayItem(task, project, todayStr, tone) {
@@ -3534,13 +4053,13 @@ function renderTodayItem(task, project, todayStr, tone) {
   var hasDate   = !!task.dueDate;
   var due       = hasDate ? new Date(task.dueDate + "T00:00:00") : null;
   var diff      = hasDate ? Math.floor((due - new Date(todayStr + "T00:00:00")) / 86400000) : 0;
-  var localeD = getLang() === "en" ? "en-GB" : "es-ES";
+  // Como el resto de la app: relativo solo para ayer/hoy/mañana, el resto
+  // (incluidas las vencidas) muestra "vie 20 jul", no "hace Nd".
   var dateLabel = !hasDate ? ""
     : diff === 0 ? t("date.today")
     : diff === 1 ? t("date.tomorrow")
     : diff === -1 ? t("date.yesterday")
-    : diff < 0  ? t("date.n_days_ago").replace("{n}", String(-diff))
-    : due.toLocaleDateString(localeD, { day: "2-digit", month: "short" });
+    : formatDueWeekday(task.dueDate);
   var overdue = hasDate && diff < 0;
   var done = !!task.done;
 
@@ -3570,12 +4089,10 @@ function renderTodayItem(task, project, todayStr, tone) {
       return;
     }
     task.done = true;
-    task.status = null;
     li.classList.add("today-completing");
     setTimeout(function() {
       if (task.recurDays) {
         task.done = false;
-        task.status = null;
         var next = new Date(task.dueDate + "T00:00:00");
         next.setDate(next.getDate() + task.recurDays);
         task.dueDate = next.toISOString().slice(0, 10);
@@ -3600,9 +4117,10 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.appendChild(meta);
 
   if (task.priority && !done) {
+    var prioMark = { high: "▲", medium: "◆", low: "▽" };
     var pEl = document.createElement("span");
     pEl.className = "today-prio today-prio-" + task.priority;
-    pEl.textContent = t("priority." + task.priority);
+    pEl.textContent = prioMark[task.priority] + " " + t("priority." + task.priority);
     meta.appendChild(pEl);
   }
 
@@ -3644,7 +4162,21 @@ function renderTodayItem(task, project, todayStr, tone) {
     dEl.className = "today-date-pill" +
       (tone === "today" ? " today-date-pill--today" : "") +
       (overdue ? " today-date-pill--overdue" : "");
-    dEl.textContent = dateLabel;
+    if (overdue && !done) {
+      // Como el prototipo v1: la propia píldora de fecha mueve la
+      // tarea a hoy, sin necesidad de hover (útil en móvil).
+      dEl.innerHTML = dateLabel + ' <i data-lucide="arrow-right"></i>';
+      dEl.title = t("hoy.move_one");
+      dEl.addEventListener("click", function(e) {
+        e.stopPropagation();
+        task.dueDate = todayStr;
+        saveProjects();
+        renderTasks();
+        renderSidebar();
+      });
+    } else {
+      dEl.textContent = dateLabel;
+    }
     meta.appendChild(dEl);
   }
 
@@ -3671,9 +4203,6 @@ function getVisibleTasks(project) {
   let tasks = project.tasks.slice();
   if (currentFilter === "pending") tasks = tasks.filter(function(t) { return !t.done; });
   else if (currentFilter === "done") tasks = tasks.filter(function(t) { return t.done; });
-  if (currentLabelFilter) tasks = tasks.filter(function(t) {
-    return Array.isArray(t.labels) && t.labels.includes(currentLabelFilter);
-  });
 
   if (currentSort === "priority") {
     var order = { high: 0, medium: 1, low: 2 };
@@ -3700,194 +4229,6 @@ function getVisibleTasks(project) {
 
   return tasks;
 }
-
-function toggleExpansion(node, taskId) {
-  const isExpanded = node.classList.toggle("expanded");
-  node.setAttribute("aria-expanded", String(isExpanded));
-  if (isExpanded) expandedTaskIds.add(taskId);
-  else expandedTaskIds.delete(taskId);
-}
-
-function cycleStatus(task) {
-  const idx = STATUS_CYCLE.indexOf(task.status);
-  task.status = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
-  saveAndRender();
-}
-
-window.setTaskStatus = function(taskId, status) {
-  for (var i = 0; i < projects.length; i++) {
-    var tasks = projects[i].tasks;
-    if (!tasks) continue;
-    for (var j = 0; j < tasks.length; j++) {
-      if (tasks[j].id === taskId) {
-        tasks[j].status = (status === "none") ? null : status;
-        saveAndRender();
-        return;
-      }
-    }
-  }
-};
-
-// ─── PRIORIDAD ────────────────────────────────────────────────
-function cyclePriority(task) {
-  const idx = PRIORITY_CYCLE.indexOf(task.priority || null);
-  task.priority = PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
-  saveAndRender();
-}
-
-// ─── ETIQUETAS ─────────────────────────────────────────────────
-function getProjectLabels() {
-  const project = getActiveProject();
-  if (!project) return [];
-  return Array.isArray(project.labels) ? project.labels : [];
-}
-
-function saveProjectLabels(labels) {
-  const project = getActiveProject();
-  if (!project) return;
-  project.labels = labels;
-  saveProjects();
-}
-
-// renderTaskLabels() vive en ./ui/labels.js
-
-function renderLabelFilterBar() {
-  const project = getActiveProject();
-  const bar = document.getElementById("label-filter-bar");
-  if (!bar) return;
-  bar.innerHTML = "";
-  const labels = project ? (project.labels || []) : [];
-  if (labels.length === 0) { bar.hidden = true; return; }
-  bar.hidden = false;
-
-  const allBtn = document.createElement("button");
-  allBtn.type = "button";
-  allBtn.className = "label-filter-btn" + (currentLabelFilter === null ? " active" : "");
-  allBtn.textContent = t("label.all");
-  allBtn.addEventListener("click", function() {
-    currentLabelFilter = null;
-    renderLabelFilterBar();
-    renderTasks();
-  });
-  bar.appendChild(allBtn);
-
-  labels.forEach(function(labelName) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "label-filter-btn" + (currentLabelFilter === labelName ? " active" : "");
-    btn.textContent = labelName;
-    var _slot2 = getLabelSlot(labelName);
-    btn.style.setProperty("--tag-bg", "var(--tag-" + _slot2 + "-bg)");
-    btn.style.setProperty("--tag-fg", "var(--tag-" + _slot2 + "-fg)");
-    btn.addEventListener("click", function() {
-      currentLabelFilter = currentLabelFilter === labelName ? null : labelName;
-      renderLabelFilterBar();
-      renderTasks();
-    });
-    bar.appendChild(btn);
-  });
-}
-
-async function showLabelPicker(task) {
-  const project = getActiveProject();
-  if (!project) return;
-  if (!Array.isArray(project.labels)) project.labels = [];
-  if (!Array.isArray(task.labels))    task.labels    = [];
-
-  return new Promise(function(resolve) {
-    const { overlay, box } = createModalBase();
-
-    function buildHTML() {
-      const labels = project.labels;
-      const taskLabels = task.labels;
-      let checkboxes = labels.length === 0
-        ? '<p class="modal-label" style="color:var(--t-muted);font-size:0.78rem">Sin etiquetas. Crea una abajo.</p>'
-        : labels.map(function(l) {
-            const checked = taskLabels.includes(l) ? "checked" : "";
-            const color   = getLabelColor(l);
-            return '<label class="label-picker-row">' +
-              '<input type="checkbox" value="' + escHtml(l) + '" ' + checked + ' />' +
-              '<span class="label-picker-dot" style="background:' + color + '"></span>' +
-              '<span class="label-picker-name">' + escHtml(l) + '</span>' +
-              '<button type="button" class="label-delete-btn" data-label="' + escHtml(l) + '" title="' + t("label.delete_title") + '"><i data-lucide="x"></i></button>' +
-              '</label>';
-          }).join("");
-
-      box.innerHTML =
-        '<p class="modal-label">Etiquetas</p>' +
-        '<div class="label-picker-list">' + checkboxes + '</div>' +
-        '<div class="label-picker-new">' +
-          '<input class="modal-input" type="text" maxlength="30" placeholder="nueva etiqueta..." style="margin-bottom:0;flex:1" />' +
-          '<button type="button" class="modal-btn modal-btn-confirm label-create-btn">+ Crear</button>' +
-        '</div>' +
-        '<div class="modal-actions" style="margin-top:0.75rem">' +
-          '<button class="modal-btn modal-btn-cancel">Cerrar</button>' +
-          '<button class="modal-btn modal-btn-confirm">Guardar</button>' +
-        '</div>';
-      if (window.lucide) lucide.createIcons({ nodes: [box] });
-
-      // delete label buttons
-      box.querySelectorAll(".label-delete-btn").forEach(function(btn) {
-        btn.addEventListener("click", function(e) {
-          e.preventDefault(); e.stopPropagation();
-          const lname = btn.dataset.label;
-          project.labels = project.labels.filter(function(l) { return l !== lname; });
-          // remove from all tasks in project
-          project.tasks.forEach(function(t) {
-            if (Array.isArray(t.labels)) t.labels = t.labels.filter(function(l) { return l !== lname; });
-          });
-          if (currentLabelFilter === lname) currentLabelFilter = null;
-          buildHTML();
-        });
-      });
-
-      // create button
-      const newInput = box.querySelector(".label-picker-new .modal-input");
-      box.querySelector(".label-create-btn").addEventListener("click", function() {
-        const val = newInput.value.trim().slice(0, 30);
-        if (!val || project.labels.includes(val)) { newInput.focus(); return; }
-        project.labels.push(val);
-        newInput.value = "";
-        buildHTML();
-      });
-      newInput.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); box.querySelector(".label-create-btn").click(); }
-        e.stopPropagation();
-      });
-
-      // save button (el del bloque .modal-actions, no el de crear)
-      box.querySelector(".modal-actions .modal-btn-confirm").addEventListener("click", function() {
-        const checked = Array.from(box.querySelectorAll(".label-picker-list input[type=checkbox]:checked"))
-          .map(function(cb) { return cb.value; });
-        task.labels = checked;
-        saveProjects();
-        renderTasks();
-        renderLabelFilterBar();
-        closeModal(overlay);
-        resolve();
-      });
-
-      // cancel
-      box.querySelector(".modal-btn-cancel").addEventListener("click", function() {
-        saveProjects(); // save any label creations/deletions
-        renderLabelFilterBar();
-        closeModal(overlay);
-        resolve();
-      });
-      overlay._cancel = function() {
-        saveProjects();
-        renderLabelFilterBar();
-        closeModal(overlay);
-        resolve();
-      };
-    }
-
-    buildHTML();
-  });
-}
-
-// getLabelSlot() / getLabelColor() viven en ./ui/labels.js
-
 
 function startInlineEdit(textSpan, task) {
   if (textSpan.querySelector("input.inline-edit")) return;
@@ -3979,20 +4320,26 @@ function initSwipeGesture(node, task, project) {
   var startX = 0, startY = 0, currentX = 0;
   var tracking = false, axisLocked = false, isHorizontal = false;
 
+  // Como en el prototipo v1: swipe derecha → eliminar, swipe izquierda →
+  // mover a hoy (deshabilitado si ya está hecha o ya vence hoy).
+  var canMoveToday = !task.done && task.dueDate !== _localDateISO(new Date());
+
   var content = document.createElement("div");
   content.className = "task-swipe-content";
   while (node.firstChild) content.appendChild(node.firstChild);
   node.appendChild(content);
 
   var hintRight = document.createElement("div");
-  hintRight.className = "task-swipe-hint task-swipe-hint-right";
-  hintRight.textContent = "✓";
+  hintRight.className = "task-swipe-hint task-swipe-hint-right task-swipe-hint-delete";
+  hintRight.innerHTML = '<i data-lucide="trash-2"></i>';
   node.appendChild(hintRight);
 
   var hintLeft = document.createElement("div");
-  hintLeft.className = "task-swipe-hint task-swipe-hint-left";
-  hintLeft.textContent = "✕";
+  hintLeft.className = "task-swipe-hint task-swipe-hint-left task-swipe-hint-today" + (canMoveToday ? "" : " task-swipe-hint-disabled");
+  hintLeft.innerHTML = '<i data-lucide="sun"></i>';
   node.appendChild(hintLeft);
+
+  if (window.lucide) window.lucide.createIcons({ nodes: [hintRight, hintLeft] });
 
   node.addEventListener("touchstart", function(e) {
     if (e.touches.length !== 1) return;
@@ -4021,6 +4368,10 @@ function initSwipeGesture(node, task, project) {
 
     if (!isHorizontal) return;
     e.preventDefault();
+
+    // Sin acción configurada en ese lado (izquierda deshabilitada) → goma
+    // blanda, como en el prototipo v1, en vez del recorrido completo.
+    if (dx < 0 && !canMoveToday) dx *= 0.35;
 
     // Resist past threshold
     if (Math.abs(dx) > THRESHOLD) {
@@ -4057,22 +4408,17 @@ function initSwipeGesture(node, task, project) {
     hintLeft.style.transition  = "opacity 0.18s";
 
     if (dx >= THRESHOLD) {
-      // Swipe right → toggle complete
+      // Swipe derecha → eliminar
       content.style.transform = "translateX(110%)";
       setTimeout(function() {
-        task.done = !task.done;
-        saveAndRender();
+        deleteTaskWithUndo(task, project);
       }, 200);
-    } else if (dx <= -THRESHOLD) {
-      // Swipe left → delete
+    } else if (dx <= -THRESHOLD && canMoveToday) {
+      // Swipe izquierda → mover a hoy
       content.style.transform = "translateX(-110%)";
       setTimeout(function() {
-        var taskIndex = project.tasks.findIndex(function(t) { return t.id === task.id; });
-        _undoStack = { projectId: project.id, task: JSON.parse(JSON.stringify(task)), index: taskIndex };
-        expandedTaskIds.delete(task.id);
-        project.tasks = project.tasks.filter(function(t) { return t.id !== task.id; });
+        task.dueDate = _localDateISO(new Date());
         saveAndRender();
-        showUndoToast();
       }, 200);
     } else {
       // Snap back
@@ -4100,14 +4446,19 @@ function initDragDrop(node, taskId) {
   // Solo activo en filtro "all" y sin ordenación activa
   if (currentFilter !== "all" || currentSort !== "manual") return;
 
-  const handle = node.querySelector(".drag-handle");
-  if (!handle) return;
-
-  // Hacer draggable solo al agarrar el handle
-  handle.addEventListener("mousedown", function() {
+  // Sin icono de "agarre": se arrastra la fila entera, siempre que el
+  // gesto no empiece sobre un control interactivo (botón, checkbox,
+  // input o texto en edición). Las tareas de otros proyectos (Inbox
+  // agrupado) no se reordenan desde ahí.
+  function isInteractiveTarget(target) {
+    return !!target.closest("button, input, a, [contenteditable]");
+  }
+  node.addEventListener("mousedown", function(e) {
+    if (node.classList.contains("task-item--foreign") || isInteractiveTarget(e.target)) return;
     node.setAttribute("draggable", "true");
   });
-  handle.addEventListener("touchstart", function() {
+  node.addEventListener("touchstart", function(e) {
+    if (node.classList.contains("task-item--foreign") || isInteractiveTarget(e.target)) return;
     node.setAttribute("draggable", "true");
   }, { passive: true });
 
@@ -4493,7 +4844,7 @@ function bulkMarkDone() {
   var project = getActiveProject();
   if (!project || selectedTaskIds.size === 0) return;
   project.tasks.forEach(function(t) {
-    if (selectedTaskIds.has(t.id)) { t.done = true; t.status = null; }
+    if (selectedTaskIds.has(t.id)) t.done = true;
   });
   exitSelectMode();
   saveAndRender();
@@ -4520,7 +4871,7 @@ function bulkDelete() {
     tasks:   toDelete.map(function(x) { return JSON.parse(JSON.stringify(x.task)); }),
     indices: toDelete.map(function(x) { return x.index; }),
   };
-  toDelete.forEach(function(x) { expandedTaskIds.delete(x.task.id); });
+  if (toDelete.some(function(x) { return x.task.id === openDetailTaskId; })) closeTaskDetail();
   project.tasks = project.tasks.filter(function(t) { return !selectedTaskIds.has(t.id); });
   exitSelectMode();
   saveAndRender();
@@ -4594,11 +4945,31 @@ async function bulkMoveToProject() {
     });
   }
 
+  // ── Row-style panel (estilo de fila: Limpio · Líneas · Tarjetas · Compacto) ──
+  var rowStyleBtn   = document.getElementById("row-style-btn");
+  var rowStylePanel = document.getElementById("row-style-panel");
+  if (rowStyleBtn && rowStylePanel) {
+    rowStyleBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var opening = rowStylePanel.hidden;
+      rowStylePanel.hidden = !opening;
+      rowStyleBtn.setAttribute("aria-expanded", opening ? "true" : "false");
+    });
+    rowStylePanel.addEventListener("click", function(e) {
+      var opt = e.target.closest("[data-row-style]");
+      if (!opt) return;
+      applyRowStyle(opt.dataset.rowStyle);
+      rowStylePanel.hidden = true;
+      rowStyleBtn.setAttribute("aria-expanded", "false");
+    });
+  }
+
   // ── Close dropdowns on outside click ─────────────────────────
   document.addEventListener("click", function() {
     if (filterPanel)      filterPanel.hidden = true;
     if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
     if (moreActionsPanel) moreActionsPanel.hidden = true;
+    if (rowStylePanel)    { rowStylePanel.hidden = true; if (rowStyleBtn) rowStyleBtn.setAttribute("aria-expanded", "false"); }
   });
 })();
 
@@ -4706,15 +5077,18 @@ function _setActiveViewTab(view) {
   document.querySelectorAll(".view-tab").forEach(function(t) {
     t.classList.toggle("view-tab--active", t.dataset.view === view);
   });
-  var filterWrap     = document.getElementById("filter-wrap");
-  var selectModeBtn  = document.getElementById("select-mode-btn");
-  var moreActionsWrap = document.getElementById("more-actions-wrap");
   var isTasksView    = (view === "tasks");
-  var taskPrefsBtnEl  = document.getElementById("task-prefs-btn");
-  if (filterWrap)      filterWrap.style.display      = isTasksView ? "" : "none";
-  if (selectModeBtn)   selectModeBtn.style.display    = isTasksView ? "" : "none";
-  if (moreActionsWrap) moreActionsWrap.style.display   = isTasksView ? "" : "none";
-  if (taskPrefsBtnEl)  taskPrefsBtnEl.style.display   = isTasksView ? "" : "none";
+  // Como en el prototipo v1, el filtro vive en el cuerpo de la lista y sólo
+  // aparece en las listas normales: la vista "Hoy" y las vistas alternativas
+  // (agenda/mes) llevan un header y un cuerpo sobrios, sin fila de filtro.
+  var isHoy          = (activeView === "today");
+  var listActions    = isTasksView && !isHoy;
+  var listFilterRow  = document.getElementById("list-filter-row");
+  if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
+  // El selector de estilo de fila acompaña a Hoy y a las listas normales
+  // (como en el prototipo v1); se oculta sólo en agenda/mes.
+  var rowStyleWrap   = document.getElementById("row-style-wrap");
+  if (rowStyleWrap) rowStyleWrap.style.display = isTasksView ? "" : "none";
   // Ocultar task-form en vistas alternativas
   var taskFormEl = document.getElementById("task-form");
   if (taskFormEl) taskFormEl.style.display = isTasksView ? "" : "none";
@@ -4836,7 +5210,7 @@ function saveAndRender() {
   saveProjects();
   renderTasks();
   renderSidebar();
-  renderLabelFilterBar();
+  if (openDetailTaskId) _renderTaskDetail();
 }
 
 // ─── PERSISTENCIA ────────────────────────────────────────────
@@ -5220,26 +5594,11 @@ function saveTaskPrefs() {
 }
 
 function applyTaskPrefs() {
-  TASK_BTN_DEFS.forEach(function(def) {
-    document.body.classList.toggle("hide-task-" + def.key, taskPrefs[def.key] === false);
-  });
   document.body.classList.toggle("tasks-compact", taskPrefs.compactView === true);
-  document.body.classList.toggle("tasks-actions-fixed", taskPrefs.actionsFixed === true);
 }
 
 function showTaskPrefsModal() {
   var { overlay, box } = createModalBase();
-
-  var rowsHtml = TASK_BTN_DEFS.map(function(def) {
-    var on = taskPrefs[def.key] !== false;
-    return '<label class="task-pref-row">' +
-      '<span class="task-pref-icon"><i data-lucide="' + def.icon + '"></i></span>' +
-      '<span class="task-pref-label">' + t(def.labelKey) + '</span>' +
-      '<span class="task-pref-toggle' + (on ? " task-pref-on" : "") + '" data-key="' + def.key + '">' +
-        '<span class="task-pref-thumb"></span>' +
-      '</span>' +
-    '</label>';
-  }).join("");
 
   var compactOn = taskPrefs.compactView === true;
   box.innerHTML =
@@ -5252,16 +5611,7 @@ function showTaskPrefsModal() {
           '<span class="task-pref-thumb"></span>' +
         '</span>' +
       '</label>' +
-      '<label class="task-pref-row">' +
-        '<span class="task-pref-icon"><i data-lucide="ellipsis"></i></span>' +
-        '<span class="task-pref-label">' + t("task_prefs.actions_fixed") + '</span>' +
-        '<span class="task-pref-toggle' + (taskPrefs.actionsFixed === true ? " task-pref-on" : "") + '" data-key="actionsFixed" data-type="view">' +
-          '<span class="task-pref-thumb"></span>' +
-        '</span>' +
-      '</label>' +
     '</div>' +
-    '<p class="modal-label" style="margin-top:1rem">' + t("task_prefs.buttons_section") + '</p>' +
-    '<div class="task-pref-list">' + rowsHtml + '</div>' +
     '<div class="modal-actions">' +
       '<button class="modal-btn modal-btn-confirm">' + t("modal.done") + '</button>' +
     '</div>';
@@ -5304,6 +5654,7 @@ function saveSections() {
 }
 
 function updateSaveStatus(lastSavedAt) {
+  if (!saveStatus) return; // el footer de estado se retiró de la UI
   if (!lastSavedAt) { saveStatus.textContent = "–"; return; }
   const date = new Date(lastSavedAt);
   const locale = getLang() === "en" ? "en-GB" : "es-ES";
@@ -5484,7 +5835,6 @@ function _clearLocalData() {
 
   // Reset visual completo (panel vacío + sidebar repintada).
   activateProject(null);
-  renderLabelFilterBar();
 }
 
 function _updateProfileMenu(user) {
@@ -5767,7 +6117,6 @@ async function _syncApplyRemote(remoteProjects, remoteSections, remoteStandalone
     var proj = getActiveProject();
     if (proj) {
       renderTasks();
-      renderLabelFilterBar();
     }
     updateSaveStatus(new Date().toISOString());
     _checkStorageWarning();

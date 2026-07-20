@@ -149,13 +149,6 @@ function buildAgendaTaskItem(task, project, today, onActivateProject) {
     badges.appendChild(pb);
   }
 
-  if (task.status) {
-    const sb = document.createElement("span");
-    sb.className = "agenda-badge agenda-badge-status agenda-badge-" + task.status;
-    sb.textContent = task.status === "progress" ? t("status.progress") : t("status.waiting");
-    badges.appendChild(sb);
-  }
-
   const projBadge = document.createElement("span");
   projBadge.className = "agenda-badge agenda-badge-project";
   projBadge.textContent = project.name;

@@ -100,11 +100,13 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-header-top">
-            <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
-            <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
+            <div class="sidebar-brand" aria-label="antask">
+              <span class="sidebar-brand-mark" aria-hidden="true">A</span>
+              <span class="sidebar-brand-name">antask</span>
+            </div>
             <div class="sidebar-header-actions">
               <button type="button" id="new-section-btn" class="sidebar-icon-btn" aria-label="Nueva sección de proyectos" title="Nueva sección de proyectos" data-i18n-aria="sidebar.new_section" data-i18n-title="sidebar.new_section"><i data-lucide="layers"></i></button>
-              <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn sidebar-icon-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos" data-i18n-aria="sidebar.hide_sidebar" data-i18n-title="sidebar.hide_sidebar"><i data-lucide="panel-left-close"></i></button>
+              <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn sidebar-icon-btn" aria-label="Ocultar barra de proyectos" title="Ocultar barra de proyectos" data-i18n-aria="sidebar.hide_sidebar" data-i18n-title="sidebar.hide_sidebar"><i data-lucide="panel-left"></i></button>
               <!-- Cerrar drawer (solo móvil) -->
               <button type="button" id="sidebar-close-btn" class="sidebar-icon-btn sidebar-close-btn" aria-label="Cerrar" title="Cerrar"><i data-lucide="x"></i></button>
             </div>
@@ -136,9 +138,13 @@
         </details>
 
         <div class="sidebar-footer">
-          <div class="new-item-row">
-            <button type="button" id="new-project-btn" class="new-project-btn"><i data-lucide="plus"></i> <span data-i18n="sidebar.new_project">Proyecto</span></button>
-            <button type="button" id="new-note-btn" class="new-note-btn"><i data-lucide="file-plus"></i> <span data-i18n="sidebar.new_note">Nota</span></button>
+          <!-- En esta versión, la creación se hace inline en la lista, al estilo
+               del prototipo v1 (+ Añadir lista dentro de cada grupo, + Nuevo grupo
+               al final). Los botones de crear proyecto/nota se conservan ocultos
+               para no romper referencias del script ni el estado vacío. -->
+          <div class="new-item-row" hidden aria-hidden="true">
+            <button type="button" id="new-project-btn" class="new-project-btn"></button>
+            <button type="button" id="new-note-btn" class="new-note-btn"></button>
           </div>
           <!-- Profile menu -->
           <div class="profile-wrap" id="profile-wrap">
@@ -148,7 +154,7 @@
                 <span class="profile-name" id="profile-name">antask</span>
                 <span class="profile-sub" id="profile-sub" data-i18n="profile.local">Local</span>
               </div>
-              <span class="profile-dots">···</span>
+              <span class="profile-chevron"><i data-lucide="chevron-down"></i></span>
             </button>
             <div class="profile-dropdown" id="profile-dropdown" hidden>
               <div class="profile-dropdown-user">
@@ -158,6 +164,13 @@
                   <div class="profile-dropdown-sub" id="profile-sub-top" data-i18n="profile.local_storage">Almacenamiento local</div>
                 </div>
               </div>
+              <div class="profile-sep profile-mobile-only"></div>
+              <!-- Agenda/Calendario/Buscar: en escritorio viven en la sidebar,
+                   en móvil se acceden desde aquí (la barra inferior solo
+                   tiene Hoy/Inbox/Perfil, como el prototipo v1). -->
+              <button type="button" class="profile-item profile-mobile-only" id="pf-agenda-btn"><span class="profile-item-ico"><i data-lucide="calendar-range"></i></span> <span data-i18n="nav.agenda">Agenda</span></button>
+              <button type="button" class="profile-item profile-mobile-only" id="pf-calendar-btn"><span class="profile-item-ico"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendario</span></button>
+              <button type="button" class="profile-item profile-mobile-only" id="pf-search-btn"><span class="profile-item-ico"><i data-lucide="search"></i></span> <span data-i18n="nav.search">Buscar</span></button>
               <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-edit-btn"><span class="profile-item-ico"><i data-lucide="pencil-line"></i></span> <span data-i18n="profile.edit">Editar perfil</span></button>
               <div class="profile-sep"></div>
@@ -211,7 +224,7 @@
 
         <!-- Estado vacío: ningún proyecto seleccionado -->
         <div class="empty-state" id="empty-state">
-          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
+          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left"></i></button>
           <div class="empty-state-visual">
             <div class="empty-orb empty-orb--1"></div>
             <div class="empty-orb empty-orb--2"></div>
@@ -245,7 +258,7 @@
 
           <div class="tasks-header">
             <div class="tasks-header-left">
-              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left-open"></i></button>
+              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left"></i></button>
               <div class="tasks-header-titleblock">
                 <span class="view-eyebrow" id="view-eyebrow" hidden>Lista</span>
                 <div class="title-row">
@@ -256,7 +269,7 @@
             </div>
             <div class="header-actions">
               <!-- Tabs de vista -->
-              <div class="view-nav-tabs" id="view-nav-tabs">
+              <!-- <div class="view-nav-tabs" id="view-nav-tabs">
                 <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
                   <i data-lucide="list-todo"></i><span data-i18n="nav.tasks">Lista</span>
                 </button>
@@ -266,53 +279,41 @@
                 <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
                   <i data-lucide="calendar-days"></i><span data-i18n="nav.calendar_short">Mes</span>
                 </button>
-              </div>
+              </div> -->
               <div class="view-nav-right">
-                <!-- Filtrar unificado (sólo en vista Lista) -->
-                <div class="filter-wrap" id="filter-wrap" style="position:relative">
-                  <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
-                    <i data-lucide="sliders-horizontal"></i>
-                    <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
-                    <i data-lucide="chevron-down" class="filter-caret"></i>
+                <!-- Estilo de fila (como el prototipo v1): Limpio · Líneas · Tarjetas · Compacto -->
+                <div class="row-style-wrap" id="row-style-wrap" style="position:relative">
+                  <button type="button" class="row-style-btn" id="row-style-btn" title="Estilo de filas" data-i18n-title="rowstyle.trigger" aria-haspopup="true" aria-expanded="false">
+                    <i data-lucide="list"></i>
                   </button>
-                  <div class="filter-panel" id="filter-panel" hidden>
-                    <div class="filter-panel-section">
-                      <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
-                      <div class="filter-panel-opts">
-                        <button type="button" class="filter-opt filter-opt--active" data-filter="all" data-i18n="filter.all">Todas</button>
-                        <button type="button" class="filter-opt" data-filter="pending" data-i18n="filter.pending">Pendientes</button>
-                        <button type="button" class="filter-opt" data-filter="done" data-i18n="filter.done">✓ Hechas</button>
-                      </div>
-                    </div>
-                    <div class="filter-panel-sep"></div>
-                    <div class="filter-panel-section">
-                      <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
-                      <div class="filter-panel-opts">
-                        <button type="button" class="filter-opt filter-opt--active" data-sort="manual" data-i18n="sort.manual">↕ Manual</button>
-                        <button type="button" class="filter-opt" data-sort="priority" data-i18n="sort.priority_arrow">↑ Prioridad</button>
-                        <button type="button" class="filter-opt" data-sort="due" data-i18n="sort.due_short">Fecha límite</button>
-                        <button type="button" class="filter-opt" data-sort="az" data-i18n="sort.az">A–Z</button>
-                      </div>
-                    </div>
+                  <div class="row-style-panel" id="row-style-panel" hidden role="menu">
+                    <button type="button" data-row-style="limpio" role="menuitemradio">
+                      <i data-lucide="list"></i><span data-i18n="rowstyle.limpio">Limpio</span><i data-lucide="check" class="row-style-check"></i>
+                    </button>
+                    <button type="button" data-row-style="lineas" role="menuitemradio">
+                      <i data-lucide="menu"></i><span data-i18n="rowstyle.lineas">Líneas</span><i data-lucide="check" class="row-style-check"></i>
+                    </button>
+                    <button type="button" data-row-style="tarjetas" role="menuitemradio">
+                      <i data-lucide="rows-3"></i><span data-i18n="rowstyle.tarjetas">Tarjetas</span><i data-lucide="check" class="row-style-check"></i>
+                    </button>
+                    <button type="button" data-row-style="compacto" role="menuitemradio">
+                      <i data-lucide="layers"></i><span data-i18n="rowstyle.compacto">Compacto</span><i data-lucide="check" class="row-style-check"></i>
+                    </button>
                   </div>
                 </div>
-                <!-- Seleccionar (sólo en vista Lista) -->
-                <button type="button" id="select-mode-btn" class="select-mode-btn" title="Seleccionar tareas" data-i18n-title="action.select_tasks"><i data-lucide="square-check-big"></i></button>
-                <!-- Personalizar acciones de tareas -->
-                <button type="button" id="task-prefs-btn" class="select-mode-btn" title="Personalizar acciones" data-i18n-title="action.customize"><i data-lucide="settings-2"></i></button>
-                <!-- Más acciones (sólo en vista Lista) -->
-                <div style="position:relative" id="more-actions-wrap">
-                  <button type="button" class="more-actions-btn" id="more-actions-btn" title="Más acciones" data-i18n-title="action.more"><i data-lucide="ellipsis"></i></button>
-                  <div class="more-actions-panel" id="more-actions-panel" hidden>
-                    <button type="button" id="clear-done"><i data-lucide="check-check"></i> <span data-i18n="action.clear_done">Limpiar hechas</span></button>
-                    <button type="button" class="danger" id="delete-project-btn"><i data-lucide="trash-2"></i> <span data-i18n="project.delete">Eliminar proyecto</span></button>
-                  </div>
+                <!-- Refs ocultas que el JS necesita. Como en el prototipo v1, el
+                     header de una lista es sólo título + contador: el filtro vive
+                     ahora en el cuerpo (#list-filter-row) y la gestión del
+                     proyecto (limpiar/eliminar) vive en el menú contextual de la
+                     lista en la barra lateral. Estos botones se conservan ocultos
+                     para no romper las referencias del script. -->
+                <div id="more-actions-wrap" hidden aria-hidden="true">
+                  <button type="button" id="clear-done"></button>
+                  <button type="button" class="danger" id="delete-project-btn"></button>
                 </div>
-                <!-- Refs ocultos que el JS necesita -->
                 <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
                 <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
               </div>
-              <button type="button" id="close-panel-btn" class="close-panel-btn" title="Cerrar proyecto" data-i18n-title="action.close_project"><i data-lucide="x"></i></button>
             </div>
           </div>
 
@@ -327,7 +328,36 @@
 
         <!-- Vista Lista (tareas) -->
         <div class="tasks-panel" id="tasks-panel" hidden>
-          <div id="label-filter-bar" class="label-filter-bar" hidden></div>
+          <!-- Fila de filtro dentro del cuerpo, como en el prototipo v1 -->
+          <div class="list-filter-row" id="list-filter-row">
+            <div class="filter-wrap" id="filter-wrap" style="position:relative">
+              <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
+                <i data-lucide="sliders-horizontal"></i>
+                <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
+                <i data-lucide="chevron-down" class="filter-caret"></i>
+              </button>
+              <div class="filter-panel" id="filter-panel" hidden>
+                <div class="filter-panel-section">
+                  <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
+                  <div class="filter-panel-opts">
+                    <button type="button" class="filter-opt filter-opt--active" data-filter="all" data-i18n="filter.all">Todas</button>
+                    <button type="button" class="filter-opt" data-filter="pending" data-i18n="filter.pending">Pendientes</button>
+                    <button type="button" class="filter-opt" data-filter="done" data-i18n="filter.done">✓ Hechas</button>
+                  </div>
+                </div>
+                <div class="filter-panel-sep"></div>
+                <div class="filter-panel-section">
+                  <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
+                  <div class="filter-panel-opts">
+                    <button type="button" class="filter-opt filter-opt--active" data-sort="manual" data-i18n="sort.manual">↕ Manual</button>
+                    <button type="button" class="filter-opt" data-sort="priority" data-i18n="sort.priority_arrow">↑ Prioridad</button>
+                    <button type="button" class="filter-opt" data-sort="due" data-i18n="sort.due_short">Fecha límite</button>
+                    <button type="button" class="filter-opt" data-sort="az" data-i18n="sort.az">A–Z</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="bulk-action-bar" id="bulk-action-bar" hidden>
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
             <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> <span data-i18n="bulk.mark_done">Marcar hechas</span></button>
@@ -336,11 +366,12 @@
             <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="bulk.delete">Eliminar</span></button>
             <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn" data-i18n="bulk.cancel">Cancelar</button>
           </div>
-          <ul id="task-list" class="task-list" aria-live="polite"></ul>
-          <footer class="stats">
-            <span id="task-counter">0 pendientes</span>
-            <span id="save-status" class="save-status" data-i18n="save.no_recent">Sin cambios recientes</span>
-          </footer>
+          <!-- El scroll vive en el contenedor a todo el ancho (scrollbar al
+               borde del panel, como v1); la lista va centrada a 932px dentro. -->
+          <div class="task-list-scroll">
+            <ul id="task-list" class="task-list" aria-live="polite"></ul>
+            <ul id="task-list-done" class="task-list-done" aria-live="polite"></ul>
+          </div>
         </div>
 
         <!-- Vista Agenda -->
@@ -414,6 +445,97 @@
 
       </main>
 
+      <!-- ── PANEL DE DETALLE DE TAREA (columna derecha, prototipo v1) ── -->
+      <div class="task-detail-wrap" id="task-detail-wrap">
+        <aside class="task-detail-panel" id="task-detail-panel" role="complementary" aria-label="Detalle de tarea">
+          <div class="task-detail-header">
+            <button type="button" class="task-detail-back" id="task-detail-back" aria-label="Volver">
+              <i data-lucide="chevron-left"></i>
+              <span id="task-detail-back-label"></span>
+            </button>
+            <span class="task-detail-eyebrow" data-i18n="detail.title">Detalle de tarea</span>
+            <button type="button" class="task-detail-close" id="task-detail-close" aria-label="Cerrar panel de detalles" data-i18n-aria="detail.close"><i data-lucide="x"></i></button>
+            <button type="button" class="task-detail-menu" id="task-detail-menu-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
+          </div>
+
+          <div class="task-detail-body" id="task-detail-body">
+            <div class="task-detail-title-row">
+              <span class="task-toggle-wrap task-detail-toggle-wrap">
+                <input type="checkbox" class="task-toggle" id="task-detail-toggle" aria-label="Marcar tarea como completada" />
+                <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+              </span>
+              <textarea class="task-detail-title" id="task-detail-title" rows="2" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
+            </div>
+
+            <div class="task-detail-field">
+              <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
+              <textarea class="task-detail-textarea" id="task-detail-comment" rows="4" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
+            </div>
+
+            <div class="task-detail-field">
+              <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
+              <div class="task-detail-segmented" id="task-detail-priority">
+                <button type="button" data-value="" data-i18n="detail.priority_none">Ninguna</button>
+                <button type="button" data-value="low" data-i18n="priority.low">Baja</button>
+                <button type="button" data-value="medium" data-i18n="priority.medium">Media</button>
+                <button type="button" data-value="high" data-i18n="priority.high">Alta</button>
+              </div>
+            </div>
+
+            <div class="task-detail-field" id="task-detail-date-field">
+              <span class="task-detail-label"><i data-lucide="calendar"></i> <span data-i18n="detail.due_date">Fecha y hora</span></span>
+              <div class="task-detail-date-row">
+                <button type="button" class="task-detail-field-btn" id="task-detail-date-btn">
+                  <i data-lucide="calendar" class="field-btn-ico"></i>
+                  <span id="task-detail-date-text" data-i18n="detail.no_date">Sin fecha</span>
+                </button>
+                <button type="button" class="task-detail-field-btn task-detail-time-btn" id="task-detail-time-btn">
+                  <i data-lucide="clock" class="field-btn-ico"></i>
+                  <span id="task-detail-time-text" data-i18n="detail.no_time">Hora</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="task-detail-field" id="task-detail-recur-field">
+              <span class="task-detail-label"><i data-lucide="repeat"></i> <span data-i18n="detail.recur">Repetir</span></span>
+              <button type="button" class="task-detail-field-btn" id="task-detail-recur-btn">
+                <span id="task-detail-recur-text" data-i18n="detail.no_recur">No se repite</span>
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+
+            <div class="task-detail-field" id="task-detail-reminder-field">
+              <span class="task-detail-label"><i data-lucide="bell"></i> <span data-i18n="detail.reminder">Recordatorio</span></span>
+              <button type="button" class="task-detail-field-btn" id="task-detail-reminder-btn">
+                <span id="task-detail-reminder-text" data-i18n="detail.no_reminder">Sin recordatorio</span>
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+
+            <div class="task-detail-field">
+              <span class="task-detail-label"><i data-lucide="list-plus"></i> <span data-i18n="detail.subtasks">Subtareas</span></span>
+              <ul class="subtask-list task-detail-subtasks" id="task-detail-subtasks" aria-label="Subtareas"></ul>
+              <form class="task-detail-subtask-form" id="task-detail-subtask-form">
+                <input type="text" id="task-detail-subtask-input" maxlength="120" placeholder="Añadir subtarea…" data-i18n-ph="detail.subtask_placeholder" autocomplete="off" />
+                <button type="submit" aria-label="Añadir subtarea"><i data-lucide="plus"></i></button>
+              </form>
+            </div>
+
+            <div class="task-detail-field" id="task-detail-project-field">
+              <span class="task-detail-label"><i data-lucide="inbox"></i> <span data-i18n="detail.list">Lista</span></span>
+              <button type="button" class="task-detail-field-btn" id="task-detail-project-btn">
+                <span id="task-detail-project-text"></span>
+                <i data-lucide="chevron-right" id="task-detail-project-chevron"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="task-detail-footer">
+            <button type="button" class="task-detail-delete" id="task-detail-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="action.delete">Eliminar</span></button>
+          </div>
+        </aside>
+      </div>
+
       <!-- ── FAB CREATION SHEET ─────────────────────────────── -->
       <div class="fab-backdrop" id="fab-backdrop"></div>
       <div class="fab-sheet" id="fab-sheet" aria-hidden="true">
@@ -427,99 +549,52 @@
       </div><!-- /.mobile-body -->
 
       <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
+      <!-- Pastilla flotante con 3 destinos (Hoy · Inbox · Perfil), como
+           el prototipo móvil v1. Agenda/Calendario/Buscar viven dentro
+           de Perfil. El + de captura flota aparte, a la derecha. -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
-        <!-- SVG mask con notch para que el FAB encaje visualmente -->
-        <svg class="mobile-bottom-nav-bg" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0,0 L160,0 C168,0 172,4 175,12 C180,30 200,42 220,30 C232,22 232,8 240,0 L400,0 L400,64 L0,64 Z"/>
-        </svg>
-        <!-- Solo visible en modo simple: acceso directo al Inbox -->
-        <button type="button" class="mobile-bottom-btn" id="bnav-inbox-btn">
-          <i data-lucide="inbox"></i>
-          <span data-i18n="sidebar.inbox">Inbox</span>
-        </button>
         <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
           <i data-lucide="calendar-check"></i>
           <span data-i18n="nav.today">Hoy</span>
         </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-agenda-btn">
-          <i data-lucide="calendar-range"></i>
-          <span data-i18n="nav.agenda">Agenda</span>
+        <button type="button" class="mobile-bottom-btn" id="bnav-inbox-btn">
+          <i data-lucide="inbox"></i>
+          <span data-i18n="sidebar.inbox">Inbox</span>
         </button>
-        <!-- Hueco central donde flota el FAB con notch -->
-        <div class="mobile-bottom-spacer" aria-hidden="true">
-          <!-- FAB anclado al centro real del nav vía position:absolute -->
-          <button type="button" class="mobile-fab" id="mobile-fab" aria-label="Nueva tarea">
-            <i data-lucide="plus" class="fab-icon-plus"></i>
-            <i data-lucide="x"    class="fab-icon-close"></i>
-          </button>
-        </div>
-        <button type="button" class="mobile-bottom-btn" id="bnav-calendar-btn">
-          <i data-lucide="calendar-days"></i>
-          <span data-i18n="nav.calendar">Calendario</span>
-        </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
-          <i data-lucide="search"></i>
-          <span data-i18n="nav.search">Buscar</span>
+        <button type="button" class="mobile-bottom-btn" id="bnav-profile-btn">
+          <i data-lucide="user-round"></i>
+          <span data-i18n="nav.profile">Perfil</span>
         </button>
       </nav>
+
+      <!-- FAB de captura rápida, separado de la pastilla -->
+      <button type="button" class="mobile-fab mobile-fab--separado" id="mobile-fab" aria-label="Nueva tarea">
+        <i data-lucide="plus" class="fab-icon-plus"></i>
+        <i data-lucide="x"    class="fab-icon-close"></i>
+      </button>
 
     </div>
 
     <template id="task-item-template">
-      <li class="task-item" tabindex="0" aria-expanded="false">
+      <li class="task-item" tabindex="0">
         <div class="task-main-row">
           <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
-          <span class="drag-handle" title="Arrastrar para reordenar" aria-hidden="true"><i data-lucide="grip-vertical"></i></span>
           <div class="task-summary">
             <span class="task-toggle-wrap">
               <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
               <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
             </span>
             <span class="task-text"></span>
-            <span class="task-labels-container"></span>
           </div>
-          <div class="task-actions">
+          <div class="task-meta">
+            <span class="task-priority-container"></span>
             <span class="task-due-container"></span>
             <span class="task-recur-container"></span>
-            <button type="button" class="priority-btn" title="Cambiar prioridad"><i data-lucide="flag"></i> Prior.</button>
-            <button type="button" class="status-btn"><i data-lucide="circle-dashed"></i> Estado</button>
-            <button type="button" class="date-btn" aria-label="Establecer fecha límite"><i data-lucide="calendar"></i> Fecha</button>
-            <button type="button" class="recur-btn" title="Tarea recurrente"><i data-lucide="repeat"></i> Repetir</button>
-            <button type="button" class="reminder-btn" title="Recordatorio"><i data-lucide="bell"></i> Aviso</button>
-            <button type="button" class="comment-btn"><i data-lucide="message-circle"></i> Nota</button>
-            <button type="button" class="label-add-btn" title="Gestionar etiquetas"><i data-lucide="tag"></i> Etiq.</button>
-            <button type="button" class="subtask-add-btn"><i data-lucide="list-plus"></i> Sub.</button>
-            <button type="button" class="delete-btn" aria-label="Eliminar tarea"><i data-lucide="x"></i></button>
-            <span class="expand-indicator" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
             <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
           </div>
         </div>
-        <div class="task-extra-content">
-          <p class="task-comment"></p>
-          <ul class="subtask-list" aria-label="Subtareas"></ul>
-        </div>
       </li>
     </template>
-
-    <!-- ── SHEET BACKDROP (body-level for correct fixed positioning) ── -->
-    <div class="sheet-backdrop" id="sheet-backdrop"></div>
-
-    <!-- ── TASK ACTION SHEET (body-level for correct fixed positioning) ── -->
-    <div class="task-action-sheet" id="task-action-sheet" aria-modal="true" role="dialog" aria-label="Opciones de tarea">
-      <div class="task-action-sheet-handle"></div>
-      <p class="task-action-sheet-title" id="sheet-task-title">Opciones</p>
-      <div class="task-action-sheet-body">
-        <button type="button" class="sheet-action-btn" data-sheet-action="priority"><i data-lucide="flag"></i> Prioridad</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="status"><i data-lucide="circle-dashed"></i> Estado</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="date"><i data-lucide="calendar"></i> Fecha</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="comment"><i data-lucide="message-circle"></i> Comentario</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="labels"><i data-lucide="tag"></i> Etiquetas</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="subtask"><i data-lucide="list-plus"></i> Subtarea</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="recur"><i data-lucide="repeat"></i> Repetición</button>
-        <button type="button" class="sheet-action-btn" data-sheet-action="reminder"><i data-lucide="bell"></i> Recordatorio</button>
-        <button type="button" class="sheet-action-btn full-width danger" data-sheet-action="delete"><i data-lucide="trash-2"></i> Eliminar tarea</button>
-      </div>
-    </div>
 
     <!-- Paste options toast -->
     <div class="paste-toast" id="paste-toast" role="status" aria-live="polite">
@@ -564,148 +639,11 @@
       }
 
 
-      // ── Task action sheet ─────────────────────────────────────
-      var actionSheet   = document.getElementById("task-action-sheet");
-      var sheetBackdrop = document.getElementById("sheet-backdrop");
-      var sheetTitle    = document.getElementById("sheet-task-title");
-      var currentTaskNode = null;
-
-      function openSheet(taskNode) {
-        if (!actionSheet || !isMobile()) return;
-        currentTaskNode = taskNode;
-        var textEl = taskNode.querySelector(".task-text");
-        if (sheetTitle && textEl) sheetTitle.textContent = textEl.textContent.trim().slice(0, 50);
-        actionSheet.classList.add("open");
-        sheetBackdrop.classList.add("active");
-        document.body.style.overflow = "hidden";
-      }
-
-      function closeSheet() {
-        if (!actionSheet) return;
-        actionSheet.classList.remove("open");
-        sheetBackdrop.classList.remove("active");
-        document.body.style.overflow = "";
-        currentTaskNode = null;
-        // Remove any inline sub-options
-        var sub = actionSheet.querySelector(".sheet-sub-panel");
-        if (sub) sub.remove();
-      }
-
-      if (sheetBackdrop) sheetBackdrop.addEventListener("click", closeSheet);
-
-      // ── Kebab de tarea → action sheet ────────────────────────
-      var taskListEl = document.getElementById("task-list");
-      if (taskListEl) {
-        taskListEl.addEventListener("click", function(e) {
-          if (!isMobile()) return;
-          var kebab = e.target.closest(".task-kebab-btn");
-          if (!kebab) return;
-          e.stopPropagation();
-          var taskNode = kebab.closest(".task-item");
-          if (taskNode) openSheet(taskNode);
-        });
-      }
-
-
-      if (actionSheet) {
-        actionSheet.addEventListener("click", function(e) {
-          var btn = e.target.closest("[data-sheet-action]");
-          if (!btn || !currentTaskNode) return;
-          var action = btn.dataset.sheetAction;
-
-          // Priority and Status: show sub-options inline, then close after pick
-          if (action === "priority" || action === "status") {
-            showSubOptions(action, btn);
-            return;
-          }
-
-          var sel = action === "date"     ? ".date-btn" :
-                    action === "comment"  ? ".comment-btn" :
-                    action === "labels"   ? ".label-add-btn" :
-                    action === "subtask"  ? ".subtask-add-btn" :
-                    action === "recur"    ? ".recur-btn" :
-                    action === "reminder" ? ".reminder-btn" :
-                    action === "delete"   ? ".delete-btn" : null;
-          var target = sel && currentTaskNode.querySelector(sel);
-          closeSheet();
-          if (target) setTimeout(function() { target.click(); }, 80);
-        });
-      }
-
-      function showSubOptions(action, sourceBtn) {
-        // Remove any existing sub-panel
-        var existing = actionSheet.querySelector(".sheet-sub-panel");
-        if (existing) existing.remove();
-
-        var options = action === "priority"
-          ? [
-              { label: "▲ Alta",    value: "high",   cls: "sub-high" },
-              { label: "◆ Media",   value: "medium", cls: "sub-medium" },
-              { label: "▽ Baja",    value: "low",    cls: "sub-low" },
-              { label: "✕ Quitar",  value: "none",   cls: "sub-none" },
-            ]
-          : [
-              { label: "▶ En progreso", value: "progress", cls: "sub-progress" },
-              { label: "⏸ En espera",  value: "waiting",  cls: "sub-waiting" },
-              { label: "✕ Quitar",      value: "none",     cls: "sub-none" },
-            ];
-
-        var sub = document.createElement("div");
-        sub.className = "sheet-sub-panel";
-        sub.innerHTML = '<p class="sheet-sub-title">' +
-          (action === "priority" ? "// Prioridad" : "// Estado") + '</p>';
-
-        var grid = document.createElement("div");
-        grid.className = "sheet-sub-grid";
-
-        options.forEach(function(opt) {
-          var b = document.createElement("button");
-          b.type = "button";
-          b.className = "sheet-sub-btn " + opt.cls;
-          b.textContent = opt.label;
-          b.addEventListener("click", function(e) {
-            e.stopPropagation();
-            var taskNode = currentTaskNode;
-            var taskId = taskNode && taskNode.dataset.taskId;
-            if (action === "status") {
-              if (taskId && window.setTaskStatus) window.setTaskStatus(taskId, opt.value);
-            } else {
-              // Priority: cycle the desktop button to the target value
-              var desktopBtn = taskNode && taskNode.querySelector(".priority-btn");
-              if (desktopBtn) {
-                var cycles = 0;
-                function cycleToValue() {
-                  if (cycles++ > 5) return;
-                  desktopBtn.click();
-                  var reached = false;
-                  if (opt.value === "none") reached = !taskNode.classList.contains("priority-high") && !taskNode.classList.contains("priority-medium") && !taskNode.classList.contains("priority-low");
-                  else                     reached = taskNode.classList.contains("priority-" + opt.value);
-                  if (!reached) setTimeout(cycleToValue, 30);
-                }
-                cycleToValue();
-              }
-            }
-            closeSheet();
-          });
-          grid.appendChild(b);
-        });
-
-        sub.appendChild(grid);
-
-        // Insert after action body
-        var body = actionSheet.querySelector(".task-action-sheet-body");
-        body.after(sub);
-        // Scroll sheet into view
-        sub.scrollIntoView({ behavior: "smooth", block: "end" });
-      }
-
       // ── Bottom navigation ─────────────────────────────────────
       var bnavInbox    = document.getElementById("bnav-inbox-btn");
       var bnavToday    = document.getElementById("bnav-today-btn");
-      var bnavAgenda   = document.getElementById("bnav-agenda-btn");
-      var bnavCalendar = document.getElementById("bnav-calendar-btn");
-      var bnavSearch   = document.getElementById("bnav-search-btn");
-      var allBnavBtns  = [bnavInbox, bnavToday, bnavAgenda, bnavCalendar, bnavSearch];
+      var bnavProfile  = document.getElementById("bnav-profile-btn");
+      var allBnavBtns  = [bnavInbox, bnavToday, bnavProfile];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -723,10 +661,6 @@
               window.getActiveProjectId && window.getActiveProjectId() === "__inbox__") {
             setActiveBnavBtn(bnavInbox); return;
           }
-          var calPanel    = document.getElementById("cal-panel");
-          var agendaPanel = document.getElementById("agenda-panel");
-          if (agendaPanel && !agendaPanel.hidden) { setActiveBnavBtn(bnavAgenda); return; }
-          if (calPanel    && !calPanel.hidden)    { setActiveBnavBtn(bnavCalendar); return; }
           setActiveBnavBtn(null);
         } catch (e) {
           setActiveBnavBtn(null);
@@ -752,28 +686,14 @@
         });
       }
 
-      if (bnavAgenda) {
-        bnavAgenda.addEventListener("click", function() {
-          setActiveBnavBtn(bnavAgenda);
-          if (typeof window.showAgendaPanel === "function") {
-            window.showAgendaPanel();
-          }
-        });
-      }
-
-      if (bnavCalendar) {
-        bnavCalendar.addEventListener("click", function() {
-          setActiveBnavBtn(bnavCalendar);
-          if (typeof window.showCalendarPanel === "function") {
-            window.showCalendarPanel();
-          }
-        });
-      }
-
-      if (bnavSearch) {
-        bnavSearch.addEventListener("click", function() {
-          setActiveBnavBtn(null);
-          if (typeof showGlobalSearch === "function") showGlobalSearch();
+      if (bnavProfile) {
+        bnavProfile.addEventListener("click", function() {
+          setActiveBnavBtn(bnavProfile);
+          openSidebar();
+          setTimeout(function() {
+            var pb = document.getElementById("profile-btn");
+            if (pb) pb.click();
+          }, 300);
         });
       }
 
@@ -782,6 +702,30 @@
       if (mobileProjectsBtn) {
         mobileProjectsBtn.addEventListener("click", function() {
           openSidebar();
+        });
+      }
+
+      // Agenda/Calendario/Buscar dentro del dropdown de perfil (solo móvil):
+      // ejecutan la acción y cierran el drawer para que se vea la vista.
+      var pfAgendaBtn   = document.getElementById("pf-agenda-btn");
+      var pfCalendarBtn = document.getElementById("pf-calendar-btn");
+      var pfSearchBtn   = document.getElementById("pf-search-btn");
+      if (pfAgendaBtn) {
+        pfAgendaBtn.addEventListener("click", function() {
+          closeSidebar();
+          if (typeof window.showAgendaPanel === "function") window.showAgendaPanel();
+        });
+      }
+      if (pfCalendarBtn) {
+        pfCalendarBtn.addEventListener("click", function() {
+          closeSidebar();
+          if (typeof window.showCalendarPanel === "function") window.showCalendarPanel();
+        });
+      }
+      if (pfSearchBtn) {
+        pfSearchBtn.addEventListener("click", function() {
+          closeSidebar();
+          if (typeof showGlobalSearch === "function") showGlobalSearch();
         });
       }
 

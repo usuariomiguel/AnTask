@@ -66,24 +66,6 @@
   --c-danger:  #e07a6a;
   --c-info:    #73b6d2;
 
-  /* ─── 4. TAG PASTELS (paired bg + fg) ───────────────────────── */
-  --tag-violet-bg: rgba(163, 179, 102, 0.16);
-  --tag-violet-fg: #c3d18a;
-  --tag-pink-bg:   rgba(224, 122, 106, 0.16);
-  --tag-pink-fg:   #f0a396;
-  --tag-amber-bg:  rgba(224, 163, 90, 0.16);
-  --tag-amber-fg:  #f0bd84;
-  --tag-green-bg:  rgba(95, 179, 163, 0.16);
-  --tag-green-fg:  #7fd0c0;
-  --tag-blue-bg:   rgba(115, 182, 210, 0.14);
-  --tag-blue-fg:   #9dcde0;
-  --tag-rose-bg:   rgba(224, 122, 106, 0.14);
-  --tag-rose-fg:   #f2b3a8;
-  --tag-cyan-bg:   rgba(95, 179, 163, 0.14);
-  --tag-cyan-fg:   #8fd8c9;
-  --tag-slate-bg:  rgba(180, 165, 140, 0.14);
-  --tag-slate-fg:  #cabba2;
-
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --row-hover: rgba(255, 238, 214, 0.055);  /* hover de fila */
   --kbd-bg:    rgba(255, 245, 230, 0.07);
@@ -314,24 +296,6 @@
   --c-danger:  #b0524a;
   --c-info:    #3d6e85;
 
-  /* Tag pastels — más saturados sobre papel */
-  --tag-violet-bg: rgba(111, 122, 61, 0.12);
-  --tag-violet-fg: #5a6330;
-  --tag-pink-bg:   rgba(176, 82, 74, 0.12);
-  --tag-pink-fg:   #9a453e;
-  --tag-amber-bg:  rgba(194, 135, 58, 0.18);
-  --tag-amber-fg:  #945f1c;
-  --tag-green-bg:  rgba(63, 138, 125, 0.15);
-  --tag-green-fg:  #2f7163;
-  --tag-blue-bg:   rgba(61, 110, 133, 0.12);
-  --tag-blue-fg:   #35617a;
-  --tag-rose-bg:   rgba(176, 82, 74, 0.10);
-  --tag-rose-fg:   #8f3f38;
-  --tag-cyan-bg:   rgba(63, 138, 125, 0.10);
-  --tag-cyan-fg:   #2f7163;
-  --tag-slate-bg:  rgba(120, 108, 88, 0.14);
-  --tag-slate-fg:  #6f6555;
-
   /* Interacción */
   --row-hover: #efe6d4;
   --kbd-bg:    #e7dfcf;
@@ -409,15 +373,11 @@
   stroke-width: 1.75;
 }
 
-.task-actions > button .lucide       { width: 13px; height: 13px; stroke-width: 2; }
-.drag-handle .lucide                  { width: 13px; height: 13px; stroke-width: 2; color: var(--t-muted); }
-.expand-indicator .lucide             { width: 12px; height: 12px; stroke-width: 2; }
 .task-kebab-btn .lucide               { width: 14px; height: 14px; }
 .sidebar-expand-btn .lucide           { width: 13px; height: 13px; stroke-width: 2; }
 .mobile-icon-btn .lucide              { width: 18px; height: 18px; stroke-width: 2; }
 .global-search-btn .lucide            { width: 13px; height: 13px; stroke-width: 2; }
 .agenda-nav-btn .lucide               { width: 15px; height: 15px; stroke-width: 2; }
-.sheet-action-btn .lucide             { width: 16px; height: 16px; stroke-width: 1.75; }
 .empty-state-icon .lucide             { width: 48px; height: 48px; stroke-width: 1.25; }
 .profile-item-ico .lucide             { width: 13px; height: 13px; stroke-width: 2; }
 
@@ -451,6 +411,37 @@ body {
 
 :root[data-theme="light"] body {
   background-color: #e3d8c2;
+}
+
+/* ─── BRAND (sidebar) — "A" olivo + wordmark, como el prototipo v1 ─── */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.sidebar-brand-mark {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, #a3b366 0%, #8a9a5b 50%, #566030 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+}
+.sidebar-brand-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 
 /* ─── BRAND LOGO ─────────────────────────────────────────────── */
@@ -576,8 +567,6 @@ body {
 
 .mobile-header,
 .mobile-toolbar,
-.task-action-sheet,
-.sheet-backdrop,
 .sidebar-backdrop,
 .mobile-fab,
 .fab-sheet,
@@ -670,7 +659,7 @@ body {
 
 /* ─── SIDEBAR ────────────────────────────────────────────────── */
 .sidebar {
-  width: 240px;
+  width: 226px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -689,8 +678,11 @@ body {
   width: 0;
 }
 
+/* En esta versión Notas y Archivados no están disponibles (como en v1). */
+#sidebar-more-group { display: none !important; }
+
 .sidebar-header {
-  padding: var(--sp-5) var(--sp-4) var(--sp-4);
+  padding: 15px 14px 14px;
 }
 
 .sidebar-header-top {
@@ -710,7 +702,7 @@ body {
   list-style: none;
   flex: 1;
   overflow-y: auto;
-  padding: var(--sp-2) var(--sp-2) var(--sp-3);
+  padding: 2px var(--sp-2) var(--sp-3);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -730,7 +722,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: var(--sp-2) var(--sp-3);
+  padding: 6px 10px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   cursor: pointer;
@@ -754,44 +746,35 @@ body {
   opacity: 0;
 }
 
+/* Hover neutro y activo con acento olivo, como en el prototipo v1 (sin
+   shimmer ni glow, y sin barra lateral en hover: solo en el activo). */
 .project-item:hover {
-  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 8%, transparent);
-}
-
-.project-item:hover::before {
-  height: 16px;
-  opacity: 0.4;
+  background: rgba(255, 238, 214, 0.05);
 }
 
 .project-item.active {
-  background:
-    linear-gradient(100deg, transparent 20%, rgba(255, 238, 214, 0.08) 50%, transparent 80%)
-      -100% 0 / 200% 100% no-repeat,
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--project-color, var(--c-primary-500)) 22%, transparent) 0%,
-      color-mix(in srgb, var(--project-color, var(--c-primary-500)) 6%, transparent) 100%
-    );
-  animation: project-shimmer 3.5s ease-in-out infinite;
+  background: rgba(163, 179, 102, 0.17);
 }
 
-@keyframes project-shimmer {
-  0%   { background-position: -100% 0, 0 0; }
-  60%  { background-position: 250% 0,  0 0; }
-  100% { background-position: 250% 0,  0 0; }
-}
-
+/* Barra de acento del activo idéntica a v1: pegada al borde de la barra
+   lateral (left:-8), casi de la altura de la fila (5px arriba/abajo). */
 .project-item.active::before {
-  height: 65%;
+  left: -9px;
+  top: 3px;
+  bottom: 5px;
+  height: 24px;
+  transform: none;
   opacity: 1;
-  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--project-color, var(--c-primary-500)) 70%, transparent);
+  background: var(--c-primary-500);
+  border-radius: 0 3px 3px 0;
+  box-shadow: none;
 }
 
 /* (Sin overrides light para .project-item: la sidebar es oscura en ambos
    temas en el rediseño Tierra, así que aplican las reglas base.) */
 
 .project-item-name {
-  font-size: var(--fs-base);
+  font-size: 13px;
   font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-tight);
   color: var(--text-secondary);
@@ -804,22 +787,22 @@ body {
   cursor: pointer;
 }
 
-/* Color dot — ancla visual delante del nombre del proyecto. Solo en
-   proyectos del usuario (no Hoy/Inbox pinned) y solo si no tienen su
-   propio emoji icon. Usa --project-color (asignado siempre desde JS,
-   ya sea project.color explícito o hash determinista del id). */
-.project-item:not(.project-item-pinned):not(:has(.project-item-icon)) .project-item-name::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--project-color, var(--c-primary-500));
-  margin-right: 9px;
-  vertical-align: middle;
+/* Anillo de progreso — ancla visual delante del nombre del proyecto,
+   como en el prototipo v1: círculo de fondo + arco de avance con el
+   color del proyecto (--project-color, asignado siempre desde JS). */
+.project-ring {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
-  position: relative;
-  top: -1px;
+  display: grid;
+  place-items: center;
+  margin-right: 9px;
+}
+.project-ring svg { display: block; }
+.project-ring-track { stroke: rgba(255, 238, 214, 0.13); }
+.project-ring-fill {
+  stroke: var(--project-color, var(--c-primary-500));
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.34, 1.2, 0.5, 1);
 }
 
 .project-item:hover .project-item-name {
@@ -834,13 +817,26 @@ body {
 .project-item-count {
   font-size: var(--fs-xs);
   font-weight: var(--fw-medium);
-  color: color-mix(in srgb, var(--project-color, var(--c-primary-400)) 65%, var(--text-tertiary));
+  /* Neutro: el color de la lista sólo se ve en el anillo de progreso. */
+  color: var(--text-tertiary);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .project-item.active .project-item-count {
-  color: var(--project-color, var(--c-primary-400));
+  color: var(--text-secondary);
+}
+
+/* Contador de "Hoy" — píldora de atención rellena (olivo), como en v1. */
+.project-item-today .project-item-count {
+  background: var(--c-primary-500);
+  color: var(--accent-on);
+  font-weight: var(--fw-bold);
+  padding: 1px 7px;
+  min-width: 18px;
+  text-align: center;
+  border-radius: 999px;
+  line-height: 1.5;
 }
 
 
@@ -997,6 +993,541 @@ body {
 
 /* Bottom nav — hidden on desktop, shown via mobile media query */
 .mobile-bottom-nav { display: none; }
+
+/* ─── PANEL DE DETALLE DE TAREA (columna derecha, prototipo v1) ──
+   Las características de la tarea ya no se editan en la fila: se
+   editan aquí, en una tercera columna que empuja (no se superpone)
+   junto al sidebar y al panel principal — mismo mecanismo de ancho
+   animado que el colapso del sidebar. */
+.task-detail-wrap {
+  width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.32s cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+
+.task-detail-wrap.task-detail-wrap--open {
+  width: 340px;
+}
+
+.task-detail-panel {
+  width: 340px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-canvas);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+:root[data-theme="light"] .task-detail-panel {
+  background: var(--surface-card);
+}
+
+@media (min-width: 769px) {
+  .task-detail-panel {
+    border-radius: var(--r-xl);
+    box-shadow: var(--shell-shadow);
+  }
+}
+
+.task-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.task-detail-eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.task-detail-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.task-detail-close:hover {
+  background: var(--row-hover);
+  color: var(--text-primary);
+}
+
+/* Cabecera tipo "atrás" + menú ⋯ — solo móvil (ver media query abajo).
+   En escritorio se queda "DETALLE DE TAREA" + X, como hasta ahora. */
+.task-detail-back {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px 6px 4px;
+  margin-left: -4px;
+  border: none;
+  background: transparent;
+  color: var(--c-primary-400);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  max-width: 70%;
+}
+.task-detail-back .lucide { width: 20px; height: 20px; flex-shrink: 0; }
+.task-detail-back span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-detail-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.task-detail-menu:hover { background: var(--row-hover); color: var(--text-primary); }
+
+.task-detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.task-detail-title-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.task-detail-toggle-wrap {
+  margin-top: 2px;
+}
+
+.task-detail-title {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 650;
+  font-size: 1.18rem;
+  line-height: 1.32;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  padding: 0;
+}
+.task-detail-title.done {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+}
+.task-detail-title::placeholder { color: var(--text-tertiary); }
+
+.task-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.task-detail-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.task-detail-label .lucide { width: 13px; height: 13px; }
+
+.task-detail-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  outline: none;
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.5;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.task-detail-textarea:hover,
+.task-detail-textarea:focus {
+  border-color: var(--c-primary-500);
+}
+.task-detail-textarea::placeholder { color: var(--text-tertiary); }
+
+.task-detail-segmented {
+  display: flex;
+  gap: 6px;
+}
+.task-detail-segmented button {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  padding: 8px 0;
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.task-detail-segmented button:hover {
+  background: var(--row-hover);
+}
+#task-detail-priority button[data-value="high"].active {
+  border-color: var(--c-pink); background: rgba(224, 122, 106, 0.16); color: var(--c-pink);
+}
+#task-detail-priority button[data-value="medium"].active {
+  border-color: var(--c-gold); background: rgba(224, 163, 90, 0.16); color: var(--c-gold);
+}
+#task-detail-priority button[data-value="low"].active {
+  border-color: var(--c-blue); background: rgba(115, 182, 210, 0.16); color: var(--c-blue);
+}
+.task-detail-segmented button[data-value=""].active {
+  border-color: var(--border-strong); background: var(--row-hover); color: var(--text-primary);
+}
+
+.task-detail-field-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.task-detail-field-btn:hover,
+.task-detail-field-btn.field-btn-open {
+  border-color: var(--c-primary-500);
+}
+.task-detail-field-btn .lucide { width: 15px; height: 15px; color: var(--text-tertiary); }
+.field-btn-ico { flex-shrink: 0; }
+.task-detail-field-btn svg.lucide-chevron-right {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.task-detail-field-btn.field-btn-open svg.lucide-chevron-right {
+  transform: rotate(-90deg);
+}
+
+.task-detail-date-row {
+  display: flex;
+  gap: 8px;
+}
+.task-detail-date-row .task-detail-field-btn { justify-content: flex-start; gap: 8px; }
+.task-detail-time-btn { flex: 0 0 108px; }
+
+/* ─── POPOVER DE CAMPO (fecha, hora, repetir, aviso, lista) ─────
+   Mismo patrón que el prototipo v1: se ancla al campo, no es un
+   modal — clic fuera o Escape lo cierra. */
+.task-detail-field { position: relative; }
+
+@keyframes fieldPopoverIn {
+  from { opacity: 0; transform: translateY(-5px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.field-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: var(--surface-canvas);
+  border: 1px solid var(--border-default);
+  border-radius: calc(var(--r-md) + 3px);
+  box-shadow: 0 18px 44px -10px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  padding: 12px;
+  animation: fieldPopoverIn 0.14s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+:root[data-theme="light"] .field-popover {
+  background: var(--surface-card);
+}
+.field-popover--up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.field-popover--narrow {
+  left: auto;
+  right: 0;
+  width: 200px;
+}
+
+.field-popover-chips {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 11px;
+}
+.field-popover-chip {
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.field-popover-chip:hover { border-color: var(--c-primary-500); color: var(--text-primary); }
+.field-popover-chip.active {
+  border-color: var(--c-primary-500);
+  background: rgba(163, 179, 102, 0.14);
+  color: var(--c-primary-300);
+}
+.field-popover-chip--clear { margin-left: auto; }
+
+.field-popover-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.field-popover-cal-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+.field-popover-cal-nav {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+}
+.field-popover-cal-nav:hover { background: var(--row-hover); color: var(--text-primary); }
+
+.field-popover-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+.field-popover-cal-dow {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  padding: 3px 0;
+}
+.field-popover-cal-day {
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 450;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+.field-popover-cal-day:hover { background: var(--row-hover); }
+.field-popover-cal-day--today {
+  font-weight: 700;
+  color: var(--c-primary-300);
+  border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+}
+.field-popover-cal-day--selected {
+  font-weight: 700;
+  background: var(--c-primary-500);
+  color: var(--accent-on);
+  border-color: transparent;
+}
+.field-popover-cal-day--selected:hover { background: var(--c-primary-500); }
+.field-popover-cal-empty { visibility: hidden; }
+
+.field-popover-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-popover-input-row input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  outline: none;
+}
+.field-popover-input-row input:focus { border-color: var(--c-primary-500); }
+
+.field-popover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 238px;
+  overflow-y: auto;
+}
+.field-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 450;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+}
+.field-popover-row:hover { background: var(--row-hover); }
+.field-popover-row.active {
+  font-weight: 700;
+  color: var(--c-primary-300);
+  background: rgba(163, 179, 102, 0.14);
+}
+.field-popover-row .field-popover-row-label { flex: 1; }
+.field-popover-row .lucide { width: 12px; height: 12px; flex-shrink: 0; }
+.field-popover-sep {
+  height: 1px;
+  background: var(--border-default);
+  margin: 6px 2px;
+}
+
+.task-detail-subtasks {
+  margin-bottom: 8px;
+}
+
+.task-detail-subtask-form {
+  display: flex;
+  gap: 8px;
+}
+.task-detail-subtask-form input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  outline: none;
+}
+.task-detail-subtask-form input:focus { border-color: var(--c-primary-500); }
+.task-detail-subtask-form button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.task-detail-subtask-form button:hover {
+  border-color: var(--c-primary-500);
+  color: var(--c-primary-500);
+}
+
+.task-detail-footer {
+  padding: 13px 18px;
+  border-top: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.task-detail-delete {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--c-danger);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.task-detail-delete:hover { opacity: 0.8; }
+
+/* Móvil: el panel se convierte en pantalla completa, con cabecera
+   "atrás + nombre de lista" y menú ⋯ (Renombrar/Duplicar/Eliminar),
+   como el prototipo v1 — en vez de "DETALLE DE TAREA" + X. */
+@media (max-width: 768px) {
+  .task-detail-wrap {
+    width: 0 !important;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    transition: none;
+  }
+  .task-detail-wrap.task-detail-wrap--open {
+    width: 100% !important;
+  }
+  .task-detail-panel {
+    width: 100%;
+    border-radius: 0;
+    border: none;
+  }
+
+  .task-detail-eyebrow,
+  .task-detail-close {
+    display: none;
+  }
+  .task-detail-back,
+  .task-detail-menu {
+    display: flex;
+  }
+
+  /* Los popovers de campo (fecha, repetir, aviso, lista) pasan de
+     flotar sobre el contenido a expandirse en línea, empujando el
+     resto del panel hacia abajo — como el acordeón de MTaskDetail. */
+  .field-popover {
+    position: static;
+    margin-top: 8px;
+    width: auto;
+  }
+  .field-popover--narrow {
+    width: auto;
+  }
+}
 
 /* ─── EMPTY STATE ────────────────────────────────────────────── */
 .empty-state {
@@ -1249,13 +1780,14 @@ body {
 /* ─── TASKS PANEL ────────────────────────────────────────────── */
 /* ── Control bar (header + form + view-nav, siempre visible con proyecto) */
 .ctrl-bar {
-  padding: var(--sp-6) var(--sp-6) 0;
+  padding: var(--sp-3) var(--sp-6);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   animation: panelIn 0.3s var(--ease-out) both;
   position: relative;
   z-index: 10;
+  border-bottom: 1px solid var(--border-default)
 }
 
 /* ── Tasks panel — ahora sólo la lista de tareas */
@@ -1264,7 +1796,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0 var(--sp-6) var(--sp-4);
+  padding: 0 var(--sp-6) var(--sp-3);
 }
 
 @keyframes panelIn {
@@ -1284,9 +1816,12 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-4);
-  margin-bottom: var(--sp-5);
   flex-wrap: wrap;
   flex-shrink: 0;
+  /* Contenido centrado a 932px como en v1. */
+  width: 100%;
+  max-width: 932px;
+  margin-inline: auto;
 }
 
 .tasks-header-left {
@@ -1365,25 +1900,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Separadores verticales sutiles entre grupos de la toolbar.
-   El tabs-block ya tiene su propio fondo, así que separamos:
-   tabs │ view-nav-right │ close-panel-btn */
-.header-actions > .view-nav-right { position: relative; padding-left: var(--sp-3); }
-.header-actions > .view-nav-right::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 18%; bottom: 18%;
-  width: 1px;
-  background: var(--border-subtle);
-}
-.header-actions > .close-panel-btn { position: relative; margin-left: 2px; padding-left: var(--sp-3); }
-.header-actions > .close-panel-btn::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 18%; bottom: 18%;
-  width: 1px;
-  background: var(--border-subtle);
-}
 
 .delete-project-btn {
   min-height: 2.2rem;
@@ -1455,8 +1971,11 @@ h1 {
   position: relative;
   display: flex;
   gap: var(--sp-2);
-  margin: 0 0 var(--sp-2);
+  margin: 0 auto var(--sp-2);
   flex-shrink: 0;
+  /* Centrado a 932px como en v1. */
+  width: 100%;
+  max-width: 932px;
 }
 
 /* "+" en acento dentro de la fila de añadir (prototipo Inbox) */
@@ -1560,7 +2079,6 @@ button,
 button:hover,
 .import-label:hover {
   border-color: rgba(255, 238, 214, 0.15);
-  background: rgba(255, 238, 214, 0.04);
   color: var(--t-primary);
   transform: none;
   box-shadow: none;
@@ -1766,6 +2284,25 @@ button:focus-visible {
   border-color: rgba(111, 122, 61,0.25);
 }
 
+/* ── Fila de filtro dentro del cuerpo de la lista (estilo prototipo v1) ──
+   El filtro ya no vive en el header: aparece como una píldora encima de la
+   lista, alineada con las tarjetas de tarea. */
+.list-filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+  padding: var(--sp-3) 0 var(--sp-3);
+  /* Alineado con la lista, centrado a 932px como en v1. */
+  width: 100%;
+  max-width: 932px;
+  margin-inline: auto;
+}
+.list-filter-row .filter-wrap { position: relative; }
+.list-filter-row .filter-trigger-btn { border-radius: var(--r-pill); }
+/* El desplegable abre hacia la derecha desde la píldora (esquina izquierda). */
+.list-filter-row .filter-panel { left: 0; right: auto; }
+
 /* ── Filter dropdown panel ────────────────────────────────────── */
 .filter-panel {
   position: absolute;
@@ -1906,8 +2443,8 @@ button:focus-visible {
 .more-actions-panel button.danger { color: var(--c-pink); }
 .more-actions-panel button.danger:hover { background: rgba(224, 122, 106,0.08); }
 
-/* ── Select mode button (compact icon) ───────────────────────── */
-.select-mode-btn {
+/* ── Selector de estilo de fila (header) — Limpio·Líneas·Tarjetas·Compacto ── */
+.row-style-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1921,28 +2458,62 @@ button:focus-visible {
   transition: color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out);
-  font-size: 0;
-  padding: 0;
 }
-.select-mode-btn svg { width: 14px; height: 14px; stroke-width: 2; }
-.select-mode-btn:hover {
+.row-style-btn svg { width: 14px; height: 14px; stroke-width: 2; }
+.row-style-btn:hover,
+.row-style-btn[aria-expanded="true"] {
   color: var(--text-primary);
   background: rgba(255, 238, 214, 0.04);
   border-color: var(--border-strong);
 }
-.select-mode-btn.active {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102,0.10);
-  border-color: rgba(163, 179, 102,0.30);
+:root[data-theme="light"] .row-style-btn:hover,
+:root[data-theme="light"] .row-style-btn[aria-expanded="true"] {
+  background: rgba(50, 40, 24, 0.03);
 }
-:root[data-theme="light"] .select-mode-btn:hover {
-  background: rgba(50, 40, 24,0.03);
+
+.row-style-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 182px;
+  background: #261e15;
+  border: 1px solid rgba(255, 238, 214, 0.10);
+  border-top: 2px solid rgba(163, 179, 102,0.40);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  z-index: 200;
+  overflow: hidden;
+  padding: 4px;
 }
-:root[data-theme="light"] .select-mode-btn.active {
-  color: var(--c-primary-500);
-  background: rgba(111, 122, 61,0.08);
-  border-color: rgba(111, 122, 61,0.25);
+:root[data-theme="light"] .row-style-panel {
+  background: #fffdf6;
+  border-color: rgba(50, 40, 24,0.09);
+  border-top-color: rgba(79,70,229,0.35);
+  box-shadow: 0 8px 24px rgba(50, 40, 24,0.12);
 }
+.row-style-panel button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--t-soft);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+}
+.row-style-panel button > span { flex: 1; }
+.row-style-panel button svg { width: 14px; height: 14px; flex-shrink: 0; }
+.row-style-panel button:hover { background: rgba(255, 238, 214, 0.05); color: var(--t-primary); }
+:root[data-theme="light"] .row-style-panel button:hover { background: rgba(50, 40, 24,0.04); }
+.row-style-check { opacity: 0; color: var(--c-primary-300); }
+.row-style-opt--active { color: var(--t-primary); }
+.row-style-opt--active .row-style-check { opacity: 1; }
+:root[data-theme="light"] .row-style-check { color: var(--c-primary-500); }
 
 /* ── Cal month-nav row ────────────────────────────────────────── */
 .cal-month-nav {
@@ -2081,18 +2652,50 @@ button:focus-visible {
 }
 
 /* ─── TASK LIST ──────────────────────────────────────────────── */
-.task-list {
-  list-style: none;
+/* Contenedor de scroll a todo el ancho: la barra de scroll queda pegada al
+   borde derecho del panel (como en v1), no al borde del contenido. */
+.task-list-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 0.2rem;
-  padding-bottom: 2rem;
+  /* Rompe el padding lateral del panel para que la barra de scroll quede
+     pegada al borde derecho total (como v1) y reañade el gutter dentro,
+     de modo que la lista siga centrada y alineada con header/filtro. */
+  margin-inline: calc(var(--sp-6) * -1);
+  padding-inline: var(--sp-6);
+  /* Reserva el hueco del scrollbar de forma simétrica: la lista queda
+     centrada aunque aparezca el scrollbar, y así coincide con la barra de
+     captura flotante (que se centra respecto al panel). */
+  scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: rgba(163, 179, 102, 0.18) transparent;
 }
+.task-list-scroll::-webkit-scrollbar { width: 4px; }
+.task-list-scroll::-webkit-scrollbar-track { background: transparent; }
 
-.task-list::-webkit-scrollbar { width: 4px; }
-.task-list::-webkit-scrollbar-track { background: transparent; }
+.task-list {
+  list-style: none;
+  overflow-x: hidden;
+  padding-bottom: 2rem;
+  /* Contenido centrado a 932px como en v1 (el scroll vive en el wrapper). */
+  width: 100%;
+  max-width: 932px;
+  margin-inline: auto;
+}
+
+/* Bloque de completadas: siempre fuera del contenedor de pendientes
+   (igual que en el Inbox) — sin fondo ni borde propios de "tarjetas". */
+.task-list-done {
+  list-style: none;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 932px;
+  margin-inline: auto;
+}
+.task-list-done:not(:empty) {
+  padding-bottom: 2rem;
+}
 
 /* ─── TASK ITEM ──────────────────────────────────────────────── */
 /* Estilo "tarjetas" del rediseño Tierra: cada fila es una tarjeta
@@ -2119,8 +2722,8 @@ button:focus-visible {
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
-/* Left accent bar — always on, priority-aware. Centrada verticalmente,
- * crece en hover/active al estilo de la sidebar de fase 2. */
+/* Left accent bar — solo visible cuando la fila está seleccionada
+ * (multi-selección). Centrada verticalmente. */
 .task-item::before {
   content: '';
   position: absolute;
@@ -2128,37 +2731,18 @@ button:focus-visible {
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 18px;
-  background: color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 60%, transparent);
+  height: 60%;
+  background: var(--task-accent, var(--c-primary-500));
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
-  transition: height var(--dur-base) var(--ease-out),
-              background var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
-
-/* Priority-aware accent bar — paleta cálida (views.jsx PRIO) */
-.task-item:has(.priority-high-btn)::before   { background: rgba(224, 122, 106, 0.55); height: 50%; }
-.task-item:has(.priority-medium-btn)::before { background: rgba(224, 163, 90, 0.55);  height: 50%; }
-.task-item:has(.priority-low-btn)::before    { background: rgba(163, 179, 102, 0.55); height: 50%; }
 
 .task-item:hover {
   background: var(--row-hover);
   border-color: var(--border-strong);
   box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
 }
-
-.task-item:hover::before {
-  height: 60%;
-  background: var(--task-accent, var(--c-primary-500));
-  box-shadow: none;
-}
-.task-item:has(.priority-high-btn):hover::before   { background: var(--c-danger);  box-shadow: none; }
-.task-item:has(.priority-medium-btn):hover::before { background: var(--c-warning); box-shadow: none; }
-.task-item:has(.priority-low-btn):hover::before    { background: var(--c-primary-500); box-shadow: none; }
-
-/* Status background tint */
-.task-item:has(.status-progress-btn) { background: rgba(95, 179, 163, 0.040); }
-.task-item:has(.status-waiting-btn)  { background: rgba(224, 163, 90, 0.040); }
 
 .task-item:focus-visible {
   outline: none;
@@ -2170,22 +2754,113 @@ button:focus-visible {
   box-shadow: var(--shadow-sm);
 }
 
-:root[data-theme="light"] .task-item::before {
-  background: color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 55%, transparent);
-}
-
-:root[data-theme="light"] .task-item:has(.priority-high-btn)::before   { background: rgba(176, 71, 63, 0.55);  }
-:root[data-theme="light"] .task-item:has(.priority-medium-btn)::before { background: rgba(191, 134, 54, 0.55); }
-:root[data-theme="light"] .task-item:has(.priority-low-btn)::before    { background: rgba(111, 122, 61, 0.55); }
-
 :root[data-theme="light"] .task-item:hover {
   background: var(--row-hover);
   border-color: var(--border-strong);
   box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
 }
 
-:root[data-theme="light"] .task-item:hover::before {
-  background: var(--task-accent, var(--c-primary-500));
+/* ─── ESTILOS DE FILA (como el prototipo v1) ───────────────────
+   El estilo por defecto de .task-item es "Tarjetas". Estas variantes
+   se activan con data-row-style en #task-list y ganan por orden de
+   cascada tanto en tema claro como oscuro. */
+
+/* Limpio — filas planas sin tarjeta, sólo realce en hover. */
+.task-list[data-row-style="limpio"] .task-item {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  margin-bottom: 2px;
+}
+.task-list[data-row-style="limpio"] .task-item:hover {
+  background: var(--row-hover);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Líneas — separador inferior, sin tarjeta ni esquinas redondeadas. */
+.task-list[data-row-style="lineas"] .task-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.task-list[data-row-style="lineas"] .task-item:hover {
+  background: var(--row-hover);
+  border-bottom-color: var(--border-strong);
+  box-shadow: none;
+}
+.task-list[data-row-style="lineas"] .task-item:last-child { border-bottom-color: transparent; }
+
+/* Compacto — tarjetas pegadas que comparten bordes (stacked). */
+.task-list[data-row-style="compacto"] .task-item {
+  margin-top: -1px;
+  margin-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.task-list[data-row-style="compacto"] .task-item:first-child {
+  margin-top: 0;
+  border-top-left-radius: var(--r-md);
+  border-top-right-radius: var(--r-md);
+}
+.task-list[data-row-style="compacto"] .task-item:last-child {
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: var(--r-md);
+}
+.task-list[data-row-style="compacto"] .task-item:hover {
+  box-shadow: none;
+  z-index: 1;
+}
+
+/* Las mismas variantes en la vista Hoy (.today-item dentro de #task-list),
+   para que el selector funcione igual que en las listas (como en v1). */
+.task-list[data-row-style="limpio"] .today-item {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.task-list[data-row-style="limpio"] .today-item:hover {
+  background: var(--row-hover);
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.task-list[data-row-style="lineas"] .today-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  box-shadow: none;
+}
+.task-list[data-row-style="lineas"] .hoy-section-list .today-item + .today-item { margin-top: 0; }
+.task-list[data-row-style="lineas"] .today-item:hover {
+  background: var(--row-hover);
+  border-bottom-color: var(--border-strong);
+  box-shadow: none;
+  transform: none;
+}
+
+.task-list[data-row-style="compacto"] .today-item {
+  border-radius: 0;
+  box-shadow: none;
+}
+.task-list[data-row-style="compacto"] .hoy-section-list .today-item + .today-item { margin-top: -1px; }
+.task-list[data-row-style="compacto"] .hoy-section-list .today-item:first-child {
+  border-top-left-radius: var(--r-md);
+  border-top-right-radius: var(--r-md);
+}
+.task-list[data-row-style="compacto"] .hoy-section-list .today-item:last-child {
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: var(--r-md);
+}
+.task-list[data-row-style="compacto"] .today-item:hover {
+  box-shadow: none;
+  transform: none;
+  z-index: 1;
 }
 
 @keyframes itemIn {
@@ -2364,16 +3039,10 @@ button:focus-visible {
               text-decoration-color var(--dur-base) ease;
 }
 
-.task-item:not(.expanded) .task-text {
+.task-item .task-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.task-item.expanded .task-text {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: var(--lh-base);
 }
 
 .task-item.done {
@@ -2390,164 +3059,45 @@ button:focus-visible {
   color: var(--text-tertiary);
 }
 
-/* ─── EXPAND INDICATOR ───────────────────────────────────────── */
-.expand-indicator {
-  font-size: 0.70rem;
-  color: var(--text-tertiary);
-  opacity: 0.5;
-  transition: transform var(--dur-base) var(--ease-out),
-              color var(--dur-fast) var(--ease-out),
-              opacity var(--dur-fast) var(--ease-out);
-  flex-shrink: 0;
-}
-
-.task-item:hover .expand-indicator {
-  opacity: 1;
-}
-
-.task-item.expanded .expand-indicator {
-  transform: rotate(180deg);
-  color: var(--c-primary-400);
-  opacity: 1;
-}
-
-/* ─── TASK ACTIONS ───────────────────────────────────────────── */
-.task-actions {
+/* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
+.task-meta {
   display: flex;
   align-items: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   flex-shrink: 0;
   flex-wrap: nowrap;
 }
 
-.task-actions > button {
+.task-kebab-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 26px;
-  min-width: 26px;
-  padding: 0 var(--sp-2);
+  width: 26px;
+  padding: 0;
   border-radius: var(--r-sm);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  font-family: var(--font-sans);
-  letter-spacing: var(--tracking-tight);
-  text-transform: none;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: color        var(--dur-fast) var(--ease-out),
-              background   var(--dur-fast) var(--ease-out),
+  opacity: 0.55;
+  transition: color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out),
-              opacity      var(--dur-fast) var(--ease-out),
-              transform    var(--dur-fast) var(--ease-out);
+              opacity var(--dur-fast) var(--ease-out);
 }
 
-/* Progressive disclosure: la tarjeta limpia muestra solo metadata activa
-   (fecha/repetición/prioridad/estado/aviso) y el menú ⋯. Las acciones
-   de edición aparecen al pasar el mouse, al enfocar por teclado o al
-   expandir la tarea. */
-@media (min-width: 769px) {
-  .task-actions > .priority-btn:not(.priority-high-btn):not(.priority-medium-btn):not(.priority-low-btn),
-  .task-actions > .status-btn:not(.status-progress-btn):not(.status-waiting-btn),
-  .task-actions > .date-btn,
-  .task-actions > .recur-btn:not(.recur-active),
-  .task-actions > .reminder-btn:not(.reminder-active),
-  .task-actions > .comment-btn,
-  .task-actions > .label-add-btn,
-  .task-actions > .subtask-add-btn,
-  .task-actions > .delete-btn {
-    display: none;
-  }
-
-  .task-item:hover .task-actions > .priority-btn,
-  .task-item:hover .task-actions > .status-btn,
-  .task-item:hover .task-actions > .date-btn,
-  .task-item:hover .task-actions > .recur-btn,
-  .task-item:hover .task-actions > .reminder-btn,
-  .task-item:hover .task-actions > .comment-btn,
-  .task-item:hover .task-actions > .label-add-btn,
-  .task-item:hover .task-actions > .subtask-add-btn,
-  .task-item:hover .task-actions > .delete-btn,
-  .task-item:focus-within .task-actions > .priority-btn,
-  .task-item:focus-within .task-actions > .status-btn,
-  .task-item:focus-within .task-actions > .date-btn,
-  .task-item:focus-within .task-actions > .recur-btn,
-  .task-item:focus-within .task-actions > .reminder-btn,
-  .task-item:focus-within .task-actions > .comment-btn,
-  .task-item:focus-within .task-actions > .label-add-btn,
-  .task-item:focus-within .task-actions > .subtask-add-btn,
-  .task-item:focus-within .task-actions > .delete-btn,
-  .task-item.expanded .task-actions > .priority-btn,
-  .task-item.expanded .task-actions > .status-btn,
-  .task-item.expanded .task-actions > .date-btn,
-  .task-item.expanded .task-actions > .recur-btn,
-  .task-item.expanded .task-actions > .reminder-btn,
-  .task-item.expanded .task-actions > .comment-btn,
-  .task-item.expanded .task-actions > .label-add-btn,
-  .task-item.expanded .task-actions > .subtask-add-btn,
-  .task-item.expanded .task-actions > .delete-btn {
-    display: inline-flex;
-  }
-
-  /* Modo "acciones siempre visibles" (preferencia del usuario): anula el
-     ocultado por defecto y muestra todas las acciones sin hover. */
-  body.tasks-actions-fixed .task-actions > button {
-    display: inline-flex !important;
-  }
-
-  .task-actions > .task-kebab-btn {
-    width: 28px;
-    min-width: 28px;
-    padding: 0;
-    opacity: 0.62;
-  }
-
-  .task-actions > .task-kebab-btn:hover,
-  .task-actions > .task-kebab-btn:focus-visible {
-    opacity: 1;
-    color: var(--text-primary);
-    background: rgba(163, 179, 102, 0.08);
-    border-color: rgba(163, 179, 102, 0.22);
-  }
-}
-
-/* Badges activos: siempre visibles */
-.task-actions > .priority-btn.priority-high-btn,
-.task-actions > .priority-btn.priority-medium-btn,
-.task-actions > .priority-btn.priority-low-btn,
-.task-actions > .status-btn.status-progress-btn,
-.task-actions > .status-btn.status-waiting-btn,
-.task-actions > .recur-btn.recur-active,
-.task-actions > .reminder-btn.reminder-active {
+.task-item:hover .task-kebab-btn,
+.task-kebab-btn:focus-visible {
   opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
 }
 
-.comment-btn:hover {
-  color: var(--c-primary-400);
+.task-kebab-btn:hover,
+.task-kebab-btn:focus-visible {
+  color: var(--text-primary);
   background: rgba(163, 179, 102, 0.08);
   border-color: rgba(163, 179, 102, 0.22);
 }
-
-.subtask-add-btn:hover {
-  color: var(--c-info);
-  background: rgba(115, 182, 210, 0.08);
-  border-color: rgba(115, 182, 210, 0.22);
-}
-
-/* ── Task preferences: hide classes ──────────────────────────── */
-body.hide-task-priority .task-actions > .priority-btn:not(.priority-high-btn):not(.priority-medium-btn):not(.priority-low-btn) { display: none !important; }
-body.hide-task-status   .task-actions > .status-btn:not(.status-progress-btn):not(.status-waiting-btn)                         { display: none !important; }
-body.hide-task-date     .task-actions > .date-btn      { display: none !important; }
-body.hide-task-recur    .task-actions > .recur-btn     { display: none !important; }
-body.hide-task-comment  .task-actions > .comment-btn   { display: none !important; }
-body.hide-task-labels   .task-actions > .label-add-btn { display: none !important; }
-body.hide-task-subtasks .task-actions > .subtask-add-btn { display: none !important; }
 
 /* ── Vista compacta ──────────────────────────────────────────── */
 body.tasks-compact .task-item {
@@ -2562,13 +3112,6 @@ body.tasks-compact .task-main-row {
 }
 body.tasks-compact .task-text {
   font-size: var(--fs-sm);
-}
-body.tasks-compact .task-labels-container {
-  gap: 2px;
-}
-body.tasks-compact .task-labels-container .task-label-chip {
-  font-size: 0.68rem;
-  padding: 1px 6px;
 }
 
 /* ── Task preferences modal ───────────────────────────────────── */
@@ -2636,67 +3179,6 @@ body.tasks-compact .task-labels-container .task-label-chip {
   box-shadow: 0 1px 3px rgba(0,0,0,0.30);
 }
 .task-pref-toggle.task-pref-on .task-pref-thumb { left: 19px; }
-
-/* Delete-btn — siempre presente pero subdued */
-.delete-btn {
-  color: rgba(224, 122, 106, 0.45);
-  margin-left: var(--sp-2);
-  border-left: 1px solid var(--border-subtle);
-  padding-left: var(--sp-2);
-  opacity: 0.5;
-}
-
-.task-item:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  color: var(--c-danger);
-  background: rgba(224, 122, 106, 0.08);
-  border-color: rgba(224, 122, 106, 0.22);
-  box-shadow: none;
-  transform: scale(1);
-}
-
-/* ─── EXPANDED CONTENT ───────────────────────────────────────── */
-.task-extra-content {
-  display: grid;
-  gap: 0.55rem;
-  min-width: 0;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.28s ease, opacity 0.20s ease, padding 0.28s ease;
-}
-
-.task-item.expanded .task-extra-content {
-  max-height: 400px;
-  opacity: 1;
-  padding-top: 0.65rem;
-  border-top: 1px solid var(--b-subtle);
-  margin-top: 0.55rem;
-}
-
-.task-comment {
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  background: rgba(163, 179, 102, 0.05);
-  border: 1px solid rgba(163, 179, 102, 0.14);
-  border-left: 2px solid rgba(163, 179, 102, 0.45);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  color: var(--c-primary-300);
-  font-size: 0.80rem;
-  line-height: 1.5;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-:root[data-theme="light"] .task-comment {
-  background: rgba(111, 122, 61, 0.04);
-  border-color: rgba(111, 122, 61, 0.14);
-  border-left-color: rgba(111, 122, 61, 0.45);
-  color: var(--c-cyan);
-}
 
 /* ─── SUBTASKS ───────────────────────────────────────────────── */
 .subtask-list {
@@ -2781,22 +3263,6 @@ body.tasks-compact .task-labels-container .task-label-chip {
   font-style: italic;
 }
 
-/* ─── STATS / FOOTER ─────────────────────────────────────────── */
-.stats {
-  background-color: var(--surface-canvas);
-  position: absolute;
-  margin-top: 0.7rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--b-subtle);
-  flex-shrink: 0;
-  bottom: 15px;
-  width: calc(100% - 50px);
-}
 
 #task-counter {
   font-size: 0.72rem;
@@ -2950,110 +3416,6 @@ input.inline-edit {
   border-color: var(--b-active);
   box-shadow: var(--glow-blue);
   caret-color: var(--c-cyan);
-}
-
-/* ─── STATUS BUTTON ──────────────────────────────────────────── */
-.status-btn {
-  font-size: 0.70rem;
-  font-weight: 500;
-  padding: 0.28rem 0.52rem;
-  color: var(--t-muted);
-  background: transparent;
-  border-color: transparent;
-  letter-spacing: 0;
-  text-transform: none;
-  transition: all 0.18s ease;
-}
-
-.status-btn:hover {
-  color: var(--t-soft);
-  border-color: rgba(255, 238, 214, 0.14);
-  box-shadow: none;
-}
-
-.status-btn.status-progress-btn {
-  color: var(--c-green);
-  background: rgba(95, 179, 163, 0.08);
-  border-color: rgba(95, 179, 163, 0.28);
-  border-radius: var(--r-pill);
-}
-
-.status-btn.status-progress-btn:hover {
-  border-color: rgba(95, 179, 163, 0.55);
-  box-shadow: 0 0 12px rgba(95, 179, 163, 0.18);
-}
-
-.status-btn.status-waiting-btn {
-  color: var(--c-gold);
-  background: rgba(224, 163, 90, 0.08);
-  border-color: rgba(224, 163, 90, 0.28);
-  border-radius: var(--r-pill);
-}
-
-.status-btn.status-waiting-btn:hover {
-  border-color: rgba(224, 163, 90, 0.55);
-  box-shadow: 0 0 12px rgba(224, 163, 90, 0.18);
-}
-
-/* ─── TASK ITEM — STATUS STATES ──────────────────────────────── */
-.task-item.status-progress {
-  border-color: var(--border-subtle);
-  background: rgba(95, 179, 163, 0.10);
-}
-
-.task-item.status-progress::before {
-  background: linear-gradient(180deg, var(--c-green), rgba(95, 179, 163, 0.4));
-  opacity: 1;
-}
-
-.task-item.status-waiting {
-  border-color: var(--border-subtle);
-  background: rgba(224, 163, 90, 0.10);
-}
-
-.task-item.status-waiting::before {
-  background: linear-gradient(180deg, var(--c-gold), rgba(194, 135, 58, 0.4));
-  opacity: 1;
-}
-
-:root[data-theme="light"] .task-item.status-progress {
-  background: rgba(95, 179, 163, 0.10);
-  border-color: var(--border-default);
-}
-
-:root[data-theme="light"] .task-item.status-waiting {
-  background: rgba(194, 135, 58, 0.10);
-  border-color: var(--border-default);
-}
-
-:root[data-theme="light"] .status-btn.status-progress-btn {
-  color: #3f8a7d;
-  background: rgba(95, 179, 163, 0.10);
-  border-color: rgba(95, 179, 163, 0.35);
-}
-
-:root[data-theme="light"] .status-btn.status-waiting-btn {
-  color: #b58236;
-  background: rgba(194, 135, 58, 0.10);
-  border-color: rgba(194, 135, 58, 0.35);
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
-
-@media (max-width: 520px) {
-  .task-actions {
-    gap: 0.30rem;
-  }
-
-  .comment-btn,
-  .subtask-add-btn {
-    display: none;
-  }
-
-  .task-item.expanded .comment-btn,
-  .task-item.expanded .subtask-add-btn {
-    display: inline-flex;
-  }
 }
 
 /* ─── MODALS ─────────────────────────────────────────────────── */
@@ -3348,6 +3710,19 @@ input.inline-edit {
   animation: pulseDue 1.5s ease-in-out infinite;
 }
 
+.due-badge--action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.due-badge--action .lucide { width: 10px; height: 10px; }
+.due-badge--action:hover {
+  animation-play-state: paused;
+  background: rgba(224, 122, 106, 0.18);
+  border-color: rgba(224, 122, 106, 0.60);
+}
+
 @keyframes pulseDue {
 
   0%,
@@ -3401,28 +3776,6 @@ input.inline-edit {
 }
 .recur-badge .lucide { width: 9px; height: 9px; stroke-width: 2.5; }
 
-.recur-btn {
-  font-size: 0.70rem;
-  padding: 0.28rem 0.52rem;
-  color: var(--t-muted);
-  background: transparent;
-  border-color: transparent;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.recur-btn:hover {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.07);
-  border-color: rgba(163, 179, 102, 0.22);
-  box-shadow: none;
-  transform: none;
-}
-.recur-btn.recur-active {
-  color: var(--c-primary-300);
-  border-color: rgba(163, 179, 102, 0.28);
-  background: rgba(163, 179, 102, 0.08);
-}
-
 /* ─── RECUR TOAST ────────────────────────────────────────────── */
 .recur-toast {
   position: fixed;
@@ -3449,130 +3802,7 @@ input.inline-edit {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ─── DATE BUTTON ────────────────────────────────────────────── */
-.date-btn {
-  font-size: 0.70rem;
-  padding: 0.28rem 0.52rem;
-  color: var(--t-muted);
-  background: transparent;
-  border-color: transparent;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.date-btn:hover {
-  color: var(--c-cyan);
-  background: rgba(163, 179, 102, 0.07);
-  border-color: rgba(163, 179, 102, 0.18);
-  box-shadow: none;
-  transform: none;
-}
-
-/* ─── DATE QUICK PICKS ───────────────────────────────────────── */
-.date-quick-picks {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-
-.date-quick-btn {
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  padding: 0.52rem 0.6rem;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 238, 214, 0.04);
-  border: 1px solid var(--b-subtle);
-  color: var(--t-soft);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.date-quick-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  border-color: rgba(163, 179, 102, 0.30);
-  color: var(--c-cyan);
-  transform: none;
-  box-shadow: none;
-}
-
-.date-quick-btn.active {
-  background: rgba(163, 179, 102, 0.14);
-  border-color: var(--b-active);
-  color: var(--c-cyan);
-  font-weight: 600;
-}
-
-:root[data-theme="light"] .date-quick-btn {
-  background: rgba(50, 40, 24, 0.03);
-  border-color: rgba(50, 40, 24, 0.09);
-  color: var(--t-soft);
-}
-
-:root[data-theme="light"] .date-quick-btn:hover,
-:root[data-theme="light"] .date-quick-btn.active {
-  background: rgba(111, 122, 61, 0.08);
-  border-color: rgba(111, 122, 61, 0.30);
-  color: var(--c-cyan);
-}
-
-.modal-input-date {
-  cursor: pointer;
-  color-scheme: dark;
-}
-
-:root[data-theme="light"] .modal-input-date {
-  color-scheme: light;
-}
-
-.modal-actions-date {
-  justify-content: space-between;
-}
-
-.modal-btn-clear {
-  color: var(--c-pink);
-  background: transparent;
-  border-color: rgba(224, 122, 106, 0.22);
-  margin-right: auto;
-}
-
-.modal-btn-clear:hover {
-  background: rgba(224, 122, 106, 0.08);
-  border-color: rgba(224, 122, 106, 0.45);
-  color: var(--c-pink);
-  box-shadow: none;
-  transform: none;
-}
-
 /* ─── DRAG & DROP ────────────────────────────────────────────── */
-.drag-handle {
-  font-size: 0.95rem;
-  color: var(--t-muted);
-  cursor: grab;
-  flex-shrink: 0;
-  padding: 0 0.25rem 0 0;
-  line-height: 1;
-  opacity: 0.35;
-  transition: color 0.15s, opacity 0.15s;
-  user-select: none;
-  touch-action: none;
-}
-
-.drag-handle:hover {
-  color: var(--c-cyan);
-  opacity: 1;
-  cursor: grab;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
 .task-item.drag-ghost {
   opacity: 0.30;
   border-color: var(--c-cyan) !important;
@@ -3610,283 +3840,38 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 }
 
-/* ─── PRIORITY BUTTON ────────────────────────────────────────── */
-.priority-btn {
-  font-size: 0.63rem;
-  font-weight: 500;
-  padding: 0.20rem 0.42rem;
-  color: var(--t-muted);
-  background: transparent;
-  border-color: transparent;
-  letter-spacing: 0;
-  text-transform: none;
-  transition: all 0.18s ease;
-}
-
-.priority-btn svg { width: 12px; height: 12px; }
-
-.priority-btn:hover {
-  color: var(--t-soft);
-  border-color: rgba(255, 238, 214, 0.14);
-  box-shadow: none;
-  transform: none;
-}
-
-/* Selector encadenado .priority-btn.priority-X-btn sube la especificidad
- * a (0,0,2,0) — la misma que `.task-actions > .priority-btn` que define
- * los defaults. Gana por orden de cascada sin necesidad de !important. */
-.priority-btn.priority-high-btn {
-  font-size: 0.62rem;
+/* ─── PRIORITY BADGE (solo lectura, en la fila) — "P1/P2/P3" ──
+   Como PrioP en el prototipo v1: etiqueta mono compacta con anillo
+   interior del mismo tono, no texto largo + icono de bandera. */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  padding: 0.09rem 0.42rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.priority-badge-high {
   color: var(--c-pink);
   background: rgba(224, 122, 106, 0.08);
-  border-color: rgba(224, 122, 106, 0.22);
-  border-radius: var(--r-pill);
-  padding: 0.10rem 0.40rem;
+  box-shadow: inset 0 0 0 1px rgba(224, 122, 106, 0.30);
 }
 
-.priority-btn.priority-high-btn:hover {
-  background: rgba(224, 122, 106, 0.13);
-  border-color: rgba(224, 122, 106, 0.45);
-  box-shadow: none;
-}
-
-.priority-btn.priority-medium-btn {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+.priority-badge-medium {
   color: var(--c-gold);
   background: rgba(224, 163, 90, 0.07);
-  border-color: rgba(224, 163, 90, 0.22);
-  border-radius: var(--r-pill);
-  padding: 0.10rem 0.40rem;
+  box-shadow: inset 0 0 0 1px rgba(224, 163, 90, 0.30);
 }
 
-.priority-btn.priority-medium-btn:hover {
-  background: rgba(224, 163, 90, 0.12);
-  border-color: rgba(224, 163, 90, 0.45);
-  box-shadow: none;
-}
-
-.priority-btn.priority-low-btn {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+.priority-badge-low {
   color: var(--c-blue);
   background: rgba(115, 182, 210, 0.07);
-  border-color: rgba(115, 182, 210, 0.22);
-  border-radius: var(--r-pill);
-  padding: 0.10rem 0.40rem;
-}
-
-.priority-btn.priority-low-btn:hover {
-  background: rgba(115, 182, 210, 0.12);
-  border-color: rgba(115, 182, 210, 0.45);
-  box-shadow: none;
-}
-
-/* ─── PRIORITY TASK ITEM ─────────────────────────────────────── */
-.task-item.priority-high::before {
-  background: var(--c-pink);
-  box-shadow: 3px 0 12px rgba(224, 122, 106, 0.40);
-}
-
-.task-item.priority-medium::before {
-  background: var(--c-gold);
-  box-shadow: 3px 0 12px rgba(224, 163, 90, 0.30);
-}
-
-.task-item.priority-low::before {
-  background: var(--c-blue);
-  box-shadow: 3px 0 12px rgba(115, 182, 210, 0.30);
-}
-
-/* ─── LABELS — BADGE ─────────────────────────────────────────── */
-.task-labels-container {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.22rem;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.label-badge {
-  font-size: 0.70rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  padding: 0.12rem 0.48rem;
-  border-radius: var(--r-pill);
-  background: var(--tag-bg, rgba(163, 179, 102, 0.12));
-  color: var(--tag-fg, var(--c-primary-300));
-  border: 1px solid color-mix(in srgb, var(--tag-fg, var(--c-primary-300)) 30%, transparent);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: opacity var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
-  user-select: none;
-}
-
-.label-badge:hover {
-  opacity: 0.75;
-  transform: scale(1.05);
-}
-
-.label-add-btn {
-  font-size: 0.70rem;
-  padding: 0.28rem 0.52rem;
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.06);
-  border-color: rgba(163, 179, 102, 0.20);
-}
-
-.label-add-btn:hover {
-  color: var(--c-primary-300);
-  border-color: rgba(163, 179, 102, 0.45);
-  box-shadow: 0 0 10px rgba(163, 179, 102, 0.15);
-}
-:root[data-theme="light"] .label-add-btn,
-:root[data-theme="light"] .label-add-btn:hover { color: var(--c-primary-600); }
-
-/* ─── LABEL FILTER BAR ───────────────────────────────────────── */
-.label-filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  padding: 0.4rem 0;
-  margin-bottom: 0.3rem;
-  flex-shrink: 0;
-  align-items: center;
-}
-
-.label-filter-btn {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  padding: 5px 13px;
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.label-filter-btn:hover {
-  color: var(--t-soft);
-  border-color: rgba(255, 238, 214, 0.18);
-  transform: none;
-  box-shadow: none;
-}
-
-.label-filter-btn.active {
-  background: var(--tag-bg, rgba(163, 179, 102, 0.12));
-  color: var(--tag-fg, var(--c-primary-300));
-  border-color: color-mix(in srgb, var(--tag-fg, var(--c-primary-400)) 45%, transparent);
-}
-
-.label-filter-btn.active:first-child {
-  background: rgba(163, 179, 102, 0.12);
-  border-color: rgba(163, 179, 102, 0.40);
-  color: var(--c-primary-300);
-}
-
-/* ─── LABEL PICKER MODAL ─────────────────────────────────────── */
-.label-picker-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  max-height: 180px;
-  overflow-y: auto;
-  margin-bottom: 0.7rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.15) transparent;
-}
-
-.label-picker-row {
-  display: flex;
-  align-items: center;
-  gap: 0.52rem;
-  padding: 0.32rem 0.52rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--b-subtle);
-  background: rgba(255, 238, 214, 0.03);
-  cursor: pointer;
-  transition: background 0.14s;
-}
-
-.label-picker-row:hover {
-  background: rgba(163, 179, 102, 0.06);
-}
-
-.label-picker-row input[type="checkbox"] {
-  accent-color: var(--c-cyan);
-  width: 0.88rem;
-  height: 0.88rem;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.label-picker-dot {
-  width: 0.60rem;
-  height: 0.60rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.label-picker-name {
-  flex: 1;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--t-primary);
-}
-
-.label-delete-btn {
-  font-size: 0.72rem;
-  padding: 0.08rem 0.32rem;
-  color: rgba(224, 122, 106, 0.45);
-  background: transparent;
-  border-color: transparent;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.label-delete-btn:hover {
-  color: var(--c-pink);
-  background: rgba(224, 122, 106, 0.08);
-  transform: none;
-  box-shadow: none;
-}
-
-.label-picker-new {
-  display: flex;
-  gap: 0.45rem;
-  align-items: center;
-  margin-bottom: 0.45rem;
-}
-
-.label-create-btn {
-  flex-shrink: 0;
-  padding: 0.52rem 0.75rem;
-  font-size: 0.74rem;
-}
-
-:root[data-theme="light"] .label-picker-row {
-  background: rgba(50, 40, 24, 0.02);
-}
-
-:root[data-theme="light"] .label-picker-row:hover {
-  background: rgba(111, 122, 61, 0.05);
-}
-
-:root[data-theme="light"] .label-add-btn {
-  color: var(--c-violet);
-  border-color: rgba(111, 122, 61, 0.22);
-  background: rgba(111, 122, 61, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(115, 182, 210, 0.30);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3923,11 +3908,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     flex-direction: row;
     overflow: hidden;
     position: relative;
-  }
-
-  .task-action-sheet,
-  .sheet-backdrop {
-    position: fixed !important;
   }
 
   /* Sidebar: drawer fullscreen-height fixed para cubrir bottom nav
@@ -4382,10 +4362,10 @@ body.project-dragging .project-item { cursor: grabbing; }
     padding: 0.4rem 0.85rem 0;
   }
 
-  .task-list {
-    flex: 1;
-    overflow-y: auto;
+  .task-list-scroll {
     -webkit-overflow-scrolling: touch;
+  }
+  .task-list {
     padding: 0.5rem 0.72rem;
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
   }
@@ -4407,16 +4387,18 @@ body.project-dragging .project-item { cursor: grabbing; }
     align-items: center;
   }
 
-  .task-item.expanded .task-text {
+  /* Título a 2 líneas con clamp (como el prototipo v1) en vez de una
+     sola línea truncada — hay más ancho vertical de sobra en móvil. */
+  .task-item .task-text {
     white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    font-weight: var(--fw-semibold);
+    overflow: hidden;
+    text-overflow: unset;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
-  .drag-handle {
-    display: none;
-  }
 
   .task-summary {
     flex: 0 0 100%;
@@ -4439,108 +4421,28 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 
   /* Meta-row — siempre la segunda fila, alineada con el título */
-  .task-actions {
+  .task-meta {
     flex: 0 0 100%;
     padding-left: calc(20px + var(--sp-3));
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 10px;
   }
 
   /* Si la meta-row está vacía (solo kebab), no reservar espacio */
-  .task-main-row:not(:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn)) .task-actions {
+  .task-main-row:not(:has(.due-badge, .priority-badge)) .task-meta {
     flex: 0 0 auto;
     padding-left: 0;
     margin-left: auto;
   }
 
-  .task-main-row:not(:has(.due-badge, .priority-high-btn, .priority-medium-btn, .priority-low-btn, .status-progress-btn, .status-waiting-btn)) .task-summary {
+  .task-main-row:not(:has(.due-badge, .priority-badge)) .task-summary {
     flex: 1;
   }
 
-  .task-actions .task-kebab-btn {
+  .task-meta .task-kebab-btn {
     margin-left: auto;
-  }
-
-  .task-actions .priority-btn,
-  .task-actions .status-btn,
-  .task-actions .date-btn,
-  .task-actions .recur-btn,
-  .task-actions .comment-btn,
-  .task-actions .label-add-btn,
-  .task-actions .subtask-add-btn,
-  .task-actions .delete-btn {
-    display: none;
-  }
-
-  /* Mobile: metadata plana (sin pills decorativas) — el color codifica
-     el significado, no necesita fondo/borde. Inspirado en Todoist/Linear. */
-  .task-actions .due-badge {
-    margin-right: 0;
-    font-size: 11.5px;
-    letter-spacing: 0;
-    text-transform: none;
-    padding: 0;
-    border: 0;
-    background: transparent !important;
-    border-radius: 0;
-    animation: none !important;
-    line-height: 1.2;
-  }
-  /* Por defecto medium; las urgentes (today/overdue) ya suben a 700 por
-     la clase semántica original. */
-  .task-actions .due-future,
-  .task-actions .due-soon {
-    font-weight: var(--fw-medium);
-  }
-
-  .task-actions .priority-high-btn,
-  .task-actions .priority-medium-btn,
-  .task-actions .priority-low-btn,
-  .task-actions .status-progress-btn,
-  .task-actions .status-waiting-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 11.5px;
-    font-weight: var(--fw-medium);
-    letter-spacing: 0;
-    text-transform: none;
-    padding: 0;
-    border: 0;
-    background: transparent !important;
-    border-radius: 0;
-    line-height: 1.2;
-    height: auto;
-    min-width: 0;
-  }
-
-  /* Iconos de metadata: pequeños y al mismo color que el texto.
-     Sustituyen al fondo decorativo de las pills. */
-  .task-actions .priority-high-btn .lucide,
-  .task-actions .priority-medium-btn .lucide,
-  .task-actions .priority-low-btn .lucide,
-  .task-actions .status-progress-btn .lucide,
-  .task-actions .status-waiting-btn .lucide {
-    width: 11px;
-    height: 11px;
-    stroke-width: 2.25;
-  }
-
-  /* Aumentamos el gap entre items de la meta-row para compensar
-     la pérdida del fondo de las pills. */
-  .task-actions {
-    gap: 10px;
-  }
-
-  .task-item.expanded .task-actions .comment-btn,
-  .task-item.expanded .task-actions .subtask-add-btn {
-    display: none !important;
-  }
-
-  .task-actions .expand-indicator {
-    display: none;
   }
 
   /* Botón kebab — touch target 44×44 (HIG mínimo) */
@@ -4575,215 +4477,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     color: var(--c-primary-500);
   }
 
-  /* Task action sheet */
-  .task-action-sheet {
-    display: block;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 400;
-    background: #2c241b;
-    border-top: 1px solid rgba(163, 179, 102, 0.28);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    backdrop-filter: blur(24px);
-    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.70);
-    padding: 0 0 env(safe-area-inset-bottom, 0);
-    transform: translateY(100%);
-    transition: transform 0.30s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  :root[data-theme="light"] .task-action-sheet {
-    background: #fffdf6;
-    border-top-color: rgba(111, 122, 61, 0.22);
-    box-shadow: 0 -8px 40px rgba(50, 40, 24, 0.12);
-  }
-
-  .task-action-sheet.open {
-    transform: translateY(0);
-  }
-
-  .task-action-sheet-handle {
-    width: 38px;
-    height: 4px;
-    background: rgba(255, 238, 214, 0.18);
-    border-radius: 999px;
-    margin: 0.70rem auto 0.50rem;
-  }
-
-  :root[data-theme="light"] .task-action-sheet-handle {
-    background: rgba(50, 40, 24, 0.15);
-  }
-
-  .task-action-sheet-title {
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: var(--t-primary);
-    padding: 0 1.1rem 0.65rem;
-    border-bottom: 1px solid rgba(255, 238, 214, 0.10);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .task-action-sheet-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    padding: 0.75rem 0.95rem 1.2rem;
-  }
-
-  .sheet-action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    padding: 0.78rem 0.90rem;
-    font-family: var(--font-body);
-    font-size: 0.80rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: none;
-    background: rgba(255, 238, 214, 0.055);
-    border: 1px solid rgba(255, 238, 214, 0.10);
-    border-radius: var(--radius-md);
-    color: var(--t-soft);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    width: 100%;
-    white-space: nowrap;
-    min-height: 48px;
-  }
-
-  .sheet-action-btn:hover,
-  .sheet-action-btn:active {
-    border-color: rgba(163, 179, 102, 0.40);
-    color: var(--c-cyan);
-    background: rgba(163, 179, 102, 0.10);
-    box-shadow: none;
-    transform: none;
-  }
-
-  .sheet-action-btn.danger {
-    color: var(--c-pink);
-    border-color: rgba(224, 122, 106, 0.22);
-    background: rgba(224, 122, 106, 0.05);
-  }
-
-  .sheet-action-btn.danger:hover,
-  .sheet-action-btn.danger:active {
-    background: rgba(224, 122, 106, 0.12);
-    border-color: rgba(224, 122, 106, 0.50);
-    color: var(--c-pink);
-    box-shadow: none;
-  }
-
-  .sheet-action-btn.full-width {
-    grid-column: 1 / -1;
-  }
-
-  .sheet-sub-panel {
-    padding: 0.55rem 0.9rem 0.9rem;
-    border-top: 1px solid var(--b-subtle);
-    animation: dropdownIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .sheet-sub-title {
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--t-muted);
-    margin-bottom: 0.45rem;
-  }
-
-  .sheet-sub-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.35rem;
-  }
-
-  .sheet-sub-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.55rem 0.7rem;
-    font-family: var(--font-body);
-    font-size: 0.76rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: none;
-    background: rgba(255, 238, 214, 0.04);
-    border: 1px solid var(--b-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--t-soft);
-    cursor: pointer;
-    transition: all 0.13s ease;
-    width: 100%;
-  }
-
-  .sheet-sub-btn:hover,
-  .sheet-sub-btn:active {
-    background: rgba(163, 179, 102, 0.08);
-    border-color: var(--b-active);
-    color: var(--c-cyan);
-    transform: none;
-    box-shadow: none;
-  }
-
-  /* .sheet-sub-btn.sub-X — sube especificidad para no pelear con
-   * el `.sheet-sub-btn` base ni con su :hover sin !important. */
-  .sheet-sub-btn.sub-high {
-    color: var(--c-pink);
-    border-color: rgba(224, 122, 106, 0.25);
-    background: rgba(224, 122, 106, 0.05);
-  }
-
-  .sheet-sub-btn.sub-medium {
-    color: var(--c-gold);
-    border-color: rgba(224, 163, 90, 0.25);
-    background: rgba(224, 163, 90, 0.05);
-  }
-
-  .sheet-sub-btn.sub-low {
-    color: var(--c-blue);
-    border-color: rgba(115, 182, 210, 0.22);
-    background: rgba(115, 182, 210, 0.04);
-  }
-
-  .sheet-sub-btn.sub-progress {
-    color: var(--c-green);
-    border-color: rgba(95, 179, 163, 0.25);
-    background: rgba(95, 179, 163, 0.05);
-  }
-
-  .sheet-sub-btn.sub-waiting {
-    color: var(--c-gold);
-    border-color: rgba(224, 163, 90, 0.25);
-    background: rgba(224, 163, 90, 0.05);
-  }
-
-  .sheet-sub-btn.sub-none {
-    color: var(--c-pink);
-    border-color: rgba(224, 122, 106, 0.18);
-    background: transparent;
-    grid-column: 1/-1;
-  }
-
-  .sheet-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 399;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
-  }
-
-  .sheet-backdrop.active {
-    display: block;
-  }
-
   .subtask-item {
     padding: 0.36rem 0.48rem;
   }
@@ -4794,30 +4487,6 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   .subtask-inline-edit {
     font-size: 1rem;
-  }
-
-  .mobile-inline-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.35rem;
-    margin-top: 0.3rem;
-  }
-
-  .mobile-inline-btn {
-    justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 500;
-    padding: 0.42rem 0.55rem;
-    color: var(--t-soft);
-    background: rgba(163, 179, 102, 0.04);
-    border: 1px solid var(--b-subtle);
-  }
-
-  .mobile-inline-btn:hover {
-    color: var(--c-cyan);
-    border-color: rgba(163, 179, 102, 0.28);
-    box-shadow: none;
-    transform: none;
   }
 
   /* Task form oculto en móvil — sustituido por el FAB */
@@ -4831,22 +4500,6 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   .modal-input {
     font-size: 1rem;
-  }
-
-  .stats {
-    display: none;
-  }
-
-  .label-filter-bar {
-    padding: 0.35rem 0.72rem;
-    gap: 0.28rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
-  }
-
-  .label-filter-bar::-webkit-scrollbar {
-    display: none;
   }
 
   .empty-state {
@@ -5066,65 +4719,34 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 
   /* ── Mobile bottom navigation ───────────────────────────────
-     Pastilla flotante "liquid glass" del prototipo móvil Tierra:
-     radio 28px, fondo card translúcido + blur, borde, sombra amplia
-     y un reflejo animado (lgShine) que respeta reduced-motion. */
+     Pastilla flotante sólida (sin blur/transparencia) con 3 destinos
+     (Hoy · Inbox · Perfil), radio 28px, borde y sombra amplia. El +
+     de captura flota aparte, a la derecha (variante "Separado" del
+     prototipo v1). */
   .mobile-bottom-nav {
     display: flex;
     flex-direction: row;
     align-items: stretch;
     height: 64px;
-    margin: 8px 14px calc(8px + env(safe-area-inset-bottom, 0));
-    background: rgba(33, 26, 19, 0.90);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    width: fit-content;
+    position: fixed;
+    left: 14px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0));
+    background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: 28px;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
-    flex-shrink: 0;
     z-index: 200;
-    position: relative;
     overflow: hidden;
   }
 
-  /* reflejo del cristal líquido que recorre la barra */
-  .mobile-bottom-nav::after {
-    content: '';
-    position: absolute;
-    top: -60%;
-    left: 0;
-    width: 34%;
-    height: 220%;
-    background: linear-gradient(
-      100deg,
-      transparent 0%,
-      rgba(255, 245, 225, 0.05) 45%,
-      rgba(255, 245, 225, 0.10) 50%,
-      rgba(255, 245, 225, 0.05) 55%,
-      transparent 100%
-    );
-    pointer-events: none;
-    animation: lgShine 7s ease-in-out infinite alternate;
-    will-change: transform;
-  }
-
-  @keyframes lgShine {
-    from { transform: translateX(-70%) rotate(-15deg); }
-    to   { transform: translateX(320%) rotate(-15deg); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .mobile-bottom-nav::after { animation: none; }
-  }
-
   :root[data-theme="light"] .mobile-bottom-nav {
-    background: rgba(255, 253, 246, 0.88);
-    border-color: var(--border-default);
     box-shadow: 0 14px 32px -12px rgba(40, 28, 12, 0.38);
   }
 
   .mobile-bottom-btn {
-    flex: 1;
+    flex: 0 0 auto;
+    width: 64px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -5156,26 +4778,14 @@ body.project-dragging .project-item { cursor: grabbing; }
     white-space: nowrap;
   }
 
-  /* El notch SVG del diseño antiguo no existe en la pastilla */
-  .mobile-bottom-nav-bg {
-    display: none;
-  }
-
-  /* Hueco central: aloja el FAB circular integrado (prototipo AddFab) */
-  .mobile-bottom-spacer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    padding: 0 8px;
-  }
-
+  /* FAB de captura, flotando aparte de la pastilla (variante "Separado"
+     del prototipo v1) — mismo suelo/margen que la barra de navegación. */
   .mobile-fab {
     display: none;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 54px;
+    height: 54px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -5185,9 +4795,15 @@ body.project-dragging .project-item { cursor: grabbing; }
     box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.7);
     transition: transform var(--dur-fast) var(--ease-out);
   }
-  .mobile-fab.visible { display: inline-flex; }
+  .mobile-fab.visible {
+    display: inline-flex;
+    position: fixed;
+    right: 14px;
+    bottom: calc(13px + env(safe-area-inset-bottom, 0));
+    z-index: 200;
+  }
   .mobile-fab:active { transform: scale(0.94); }
-  .mobile-fab svg { width: 22px; height: 22px; stroke-width: 2.4; }
+  .mobile-fab svg { width: 24px; height: 24px; stroke-width: 2.4; }
 
   :root[data-theme="light"] .mobile-fab {
     box-shadow: 0 8px 18px -6px rgba(111, 122, 61, 0.55);
@@ -5335,10 +4951,6 @@ body.project-dragging .project-item { cursor: grabbing; }
 }
 
 @media (min-width: 769px) {
-  .sheet-backdrop {
-    display: none !important;
-  }
-
   .sidebar-backdrop {
     display: none !important;
   }
@@ -5660,23 +5272,29 @@ mark.search-hl {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1.3rem;
-  font-weight: 700;
+  display: flex;
   opacity: 0;
   pointer-events: none;
   z-index: 2;
   transition: opacity 0.14s ease;
   line-height: 1;
 }
+.task-swipe-hint .lucide { width: 18px; height: 18px; }
 
-.task-swipe-hint-right {
+/* Swipe derecha → revela el hint a la izquierda: eliminar. */
+.task-swipe-hint-right.task-swipe-hint-delete {
   left: 0.85rem;
-  color: var(--c-green);
+  color: var(--c-pink);
 }
 
-.task-swipe-hint-left {
+/* Swipe izquierda → revela el hint a la derecha: mover a hoy. */
+.task-swipe-hint-left.task-swipe-hint-today {
   right: 0.85rem;
-  color: var(--c-pink);
+  color: var(--c-primary-400);
+}
+.task-swipe-hint-left.task-swipe-hint-disabled {
+  color: var(--text-tertiary);
+  opacity: 0 !important;
 }
 
 /* ─── MULTI-SELECT ───────────────────────────────────────────── */
@@ -5693,10 +5311,6 @@ mark.search-hl {
   display: block;
 }
 
-.task-list.select-mode .drag-handle {
-  display: none;
-}
-
 .task-list.select-mode .task-item {
   cursor: pointer;
 }
@@ -5706,8 +5320,14 @@ mark.search-hl {
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
-.task-item.selected::before {
+.task-item.selected::before,
+.task-item.detail-open::before {
   opacity: 1 !important;
+}
+
+/* Fila con el panel de detalle abierto — mismo acento que "seleccionada". */
+.task-item.detail-open {
+  border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
 /* Estilos legacy de .select-mode-btn eliminados: viven en el bloque
@@ -6258,8 +5878,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  margin-top: var(--sp-2);
+  padding: 7px 10px;
+  margin-top: 2px;
   cursor: pointer;
   border-radius: var(--r-xs);
   user-select: none;
@@ -6388,7 +6008,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 .section-menu-btn {
-  display: flex;
+  /* Oculto por defecto: en hover reemplaza al contador del grupo. */
+  display: none;
   align-items: center;
   background: transparent;
   border: none;
@@ -6397,8 +6018,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: 0.1rem 0.3rem;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  opacity: 0;
-  transition: opacity 0.14s, background 0.13s;
+  transition: background 0.13s;
   flex-shrink: 0;
 }
 .section-menu-btn .lucide {
@@ -6407,13 +6027,62 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   stroke-width: 2;
 }
 
-.section-header:hover .section-menu-btn { opacity: 1; }
+/* Hover: el contador del grupo se sustituye por el menú «…» en su sitio. */
+.section-header:hover .section-count { display: none; }
+.section-header:hover .section-menu-btn { display: flex; }
 .section-menu-btn:hover { background: rgba(163, 179, 102, 0.10); color: var(--t-soft); }
 
-/* Indented projects inside a section */
+/* Listas dentro de un grupo — sangría 24px como en v1. */
 .project-item-indented {
-  padding-left: var(--sp-5);
+  padding-left: 24px;
 }
+
+/* ─── Creación inline (v1): + Añadir lista / + Nuevo grupo ────── */
+.sidebar-add-btn {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 24px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 550;
+  /* Color de letra tenue del prototipo v1 (sb.ink3). */
+  color: #7a7059;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.sidebar-add-btn .lucide { width: 13px; height: 13px; stroke-width: 2; flex-shrink: 0; }
+.sidebar-add-btn:hover { background: rgba(163, 179, 102, 0.06); color: var(--text-secondary); }
+.sidebar-add-btn--group {
+  margin: 6px 0 2px;
+  padding: 7px 10px;
+  gap: 9px;
+  font-size: 13px;
+}
+.sidebar-add-btn--group .lucide { width: 15px; height: 15px; }
+.sidebar-add-btn--group:hover { color: var(--text-primary); }
+
+.sidebar-add-input { list-style: none; padding: 2px 8px; }
+.sidebar-add-input--indent { padding-left: 24px; }
+.sidebar-add-input-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--c-primary-500);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.sidebar-add-input-field::placeholder { color: var(--text-tertiary); }
+
+/* El botón de crear grupo del header no se usa (creación inline como v1). */
+#new-section-btn { display: none !important; }
 
 /* Project icon button */
 .project-item-icon {
@@ -6882,7 +6551,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 /* Project kebab button */
 .project-kebab-btn {
-  display: flex;
+  /* Oculto por defecto (sin ocupar sitio): en hover reemplaza al contador. */
+  display: none;
   align-items: center;
   background: transparent;
   border: none;
@@ -6891,8 +6561,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: 0.08rem 0.28rem;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  opacity: 0;
-  transition: opacity 0.14s, background 0.13s;
+  transition: background 0.13s;
   flex-shrink: 0;
 }
 .project-kebab-btn .lucide {
@@ -6901,7 +6570,9 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   stroke-width: 2;
 }
 
-.project-item:hover .project-kebab-btn { opacity: 1; }
+/* Hover: el contador de tareas se sustituye por el menú «…» en su sitio. */
+.project-item:hover .project-item-count { display: none; }
+.project-item:hover .project-kebab-btn { display: flex; }
 .project-kebab-btn:hover { background: rgba(163, 179, 102, 0.10); color: var(--t-soft); }
 
 /* (legacy) .new-section-btn retirado — el botón ahora vive en
@@ -7048,13 +6719,17 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   letter-spacing: var(--tracking-normal);
 }
 
-.profile-dots {
-  color: var(--text-tertiary);
-  font-size: 1rem;
-  letter-spacing: -0.08em;
+/* Indicador del perfil: chevron que apunta arriba (cerrado) y abajo (abierto),
+   como en el prototipo v1 (en vez de los «···»). */
+.profile-chevron {
+  display: flex;
   flex-shrink: 0;
-  line-height: 1;
+  color: var(--text-tertiary);
+  transform: rotate(180deg);
+  transition: transform 0.18s var(--ease-out);
 }
+.profile-chevron .lucide { width: 15px; height: 15px; stroke-width: 2; }
+.profile-btn[aria-expanded="true"] .profile-chevron { transform: rotate(0deg); }
 
 /* Dropdown */
 .profile-dropdown {
@@ -7109,6 +6784,17 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   height: 1px;
   background: var(--b-subtle);
   margin: 0.28rem 0;
+}
+
+/* Agenda/Calendario/Buscar del dropdown de perfil: solo en móvil, ya
+   que en escritorio viven en la sidebar (ver barra inferior). */
+.profile-mobile-only,
+.profile-sep.profile-mobile-only {
+  display: none;
+}
+@media (max-width: 768px) {
+  .profile-item.profile-mobile-only { display: flex; }
+  .profile-sep.profile-mobile-only { display: block; }
 }
 
 .profile-item {
@@ -7503,9 +7189,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .agenda-badge-priority.agenda-badge-high   { color: var(--c-danger);  background: rgba(224, 122, 106, 0.10); border-color: rgba(224, 122, 106, 0.25); }
 .agenda-badge-priority.agenda-badge-medium { color: var(--c-warning); background: rgba(224, 163, 90,  0.10); border-color: rgba(224, 163, 90,  0.25); }
 .agenda-badge-priority.agenda-badge-low    { color: var(--c-info);    background: rgba(115, 182, 210, 0.10); border-color: rgba(115, 182, 210, 0.25); }
-
-.agenda-badge-status.agenda-badge-progress { color: var(--c-success); background: rgba(95, 179, 163, 0.10); border-color: rgba(95, 179, 163, 0.25); }
-.agenda-badge-status.agenda-badge-waiting  { color: var(--c-warning); background: rgba(224, 163, 90, 0.10); border-color: rgba(224, 163, 90, 0.25); }
 
 .agenda-badge-project {
   color: var(--c-primary-300);
@@ -8157,17 +7840,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   }
   .cal-nav-btn .lucide { width: 18px; height: 18px; }
 
-  /* Chips de filtro por etiqueta: padding vertical mayor */
-  .label-filter-btn {
-    padding: 9px 14px;
-    font-size: 12.5px;
-    min-height: 36px;
-  }
-  .label-filter-bar {
-    gap: 6px;
-    padding: 6px 0;
-  }
-
   /* Opciones de filtro/orden dentro del panel de filtros: 44px alto */
   .filter-opt {
     min-height: 44px;
@@ -8406,7 +8078,7 @@ button {
 .new-note-btn,
 .view-tab,
 .filter-trigger-btn,
-.task-actions > button,
+.task-kebab-btn,
 .sidebar-footer button,
 .fmt-btn {
   position: relative;
@@ -8464,13 +8136,25 @@ button {
 /* ── Items fijados al tope ──────────────────────────────────── */
 .project-item-pinned {
   font-weight: var(--fw-semibold);
+  padding: 7px 10px;
 }
-.project-item-pinned .project-item-icon--system {
-  font-size: 1.05em;
+/* Iconos de Hoy/Inbox como en v1: líneas lucide a 17px, color secundario
+   en reposo y acento olivo cuando la vista está activa. */
+.project-item-pinned .project-item-icon {
+  color: var(--text-secondary);
+  cursor: inherit;
 }
-.project-item-today.active .project-item-icon--system,
-.project-item-inbox.active .project-item-icon {
-  filter: drop-shadow(0 0 4px rgba(163, 179, 102, 0.4));
+.project-item-pinned .project-item-icon:hover {
+  background: transparent;
+  transform: none;
+}
+.project-item-pinned .project-item-icon .lucide {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.7;
+}
+.project-item-pinned.active .project-item-icon {
+  color: var(--c-primary-300);
 }
 
 /* Separador entre pinned y resto */
@@ -8631,6 +8315,7 @@ button {
   margin-bottom: 6px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
+  border-left: 4px solid var(--border-default);
   border-radius: var(--r-md);
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
   cursor: pointer;
@@ -8639,6 +8324,14 @@ button {
               box-shadow 150ms var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
 }
+
+/* Barra izquierda: siempre visible, como en el prototipo v1 — vencida
+   manda (rojo) sobre la prioridad; si no hay ninguna, queda neutra. */
+.today-item.today-priority-high   { border-left-color: var(--c-pink); }
+.today-item.today-priority-medium { border-left-color: var(--c-gold); }
+.today-item.today-priority-low    { border-left-color: var(--c-blue); }
+.today-item.today-overdue         { border-left-color: #b0473f; }
+:root[data-theme="light"] .today-item.today-overdue { border-left-color: #b0473f; }
 .today-item:hover {
   border-color: var(--border-strong);
   background: var(--row-hover);
@@ -8809,7 +8502,14 @@ button {
 .today-date-pill--overdue {
   background: rgba(176, 71, 63, 0.13);
   color: #e89a90;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background var(--dur-fast) var(--ease-out);
 }
+.today-date-pill--overdue:hover { background: rgba(176, 71, 63, 0.22); }
+.today-date-pill--overdue .lucide { width: 11px; height: 11px; stroke-width: 2.4; }
 :root[data-theme="light"] .today-date-pill--overdue { color: #b0473f; }
 
 /* Animación al marcar hecha */
@@ -9059,7 +8759,7 @@ button {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 25px;
+  bottom: var(--sp-3);
   z-index: 30;
   width: min(932px, calc(100% - 52px));
   height: 55px;
@@ -9118,7 +8818,7 @@ button {
 /* Con la barra flotante la lista necesita hueco para que la última
  * fila no quede tapada. */
 @media (min-width: 769px) {
-  .task-list { padding-bottom: 88px; }
+  .task-list { padding-bottom: 55px; padding-top: var(--sp-3); }
 }
 
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
@@ -9131,15 +8831,16 @@ button {
     margin-bottom: 14px;
   }
   :root[data-theme="light"] .task-list--project { background: rgba(50, 42, 28, 0.032); }
-  /* el padding inferior para la barra de captura pasa al panel */
-  .task-list--project { margin-bottom: 88px; padding-bottom: 11px; }
+  /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
+     sobra, así que el bloque queda casi a ras del contenedor. */
+  .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
+
+  /* El bloque de completadas, cuando existe, es el último elemento antes
+     de la barra de captura flotante — el hueco le corresponde a él, no
+     al contenedor de pendientes (que solo necesita un margen pequeño). */
+  .task-list-done:not(:empty) { padding-bottom: 55px; }
 }
 
-/* Las tareas de otros proyectos no se reordenan desde el Inbox. */
-.task-item--foreign .drag-handle {
-  visibility: hidden;
-  pointer-events: none;
-}
 
 /* Lista anidada dentro de cada bloque de grupo del Inbox */
 .inbox-group-list {
@@ -9586,35 +9287,6 @@ button {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   BOTÓN "AVISO" (recordatorio por tarea)
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Cuando la tarea tiene un recordatorio configurado, el botón se
- * resalta con un amarillo/ámbar sutil — visible aunque la fila no
- * tenga hover (igual que el badge de prioridad). */
-.task-actions > .reminder-btn.reminder-active {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-  background: rgba(224, 163, 90, 0.10);
-  border-color: rgba(224, 163, 90, 0.30);
-  color: var(--c-warning);
-}
-.task-actions > .reminder-btn.reminder-active:hover {
-  background: rgba(224, 163, 90, 0.16);
-  border-color: rgba(224, 163, 90, 0.50);
-}
-
-/* Toggle visibility de la columna "Aviso" en task-prefs (futuro) */
-body.hide-task-reminder .task-actions > .reminder-btn { display: none !important; }
-
-:root[data-theme="light"] .task-actions > .reminder-btn.reminder-active {
-  color: #945f1c;
-  background: rgba(224, 163, 90, 0.14);
-  border-color: rgba(224, 163, 90, 0.35);
-}
-
-/* ═══════════════════════════════════════════════════════════════
    PLANTILLAS DE PROYECTO — galería + preview
    ═══════════════════════════════════════════════════════════════ */
 
@@ -9869,12 +9541,6 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 .nl-chip-prio-medium { background: rgba(224, 163, 90,0.14);  border-color: rgba(224, 163, 90,0.28);  color: #f0bd84; }
 .nl-chip-prio-low    { background: rgba(115, 182, 210,0.14);  border-color: rgba(115, 182, 210,0.28);  color: #9dcde0; }
 
-.nl-chip-label {
-  background: rgba(95, 179, 163, 0.10);
-  border-color: rgba(95, 179, 163, 0.22);
-  color: #8fd8c9;
-}
-
 .nl-preview-rest {
   font-size: var(--fs-xs);
   color: var(--text-tertiary);
@@ -9890,7 +9556,6 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 :root[data-theme="light"] .nl-chip-prio-high   { color: #9a3a33; }
 :root[data-theme="light"] .nl-chip-prio-medium { color: #8a5e1a; }
 :root[data-theme="light"] .nl-chip-prio-low    { color: #35617a; }
-:root[data-theme="light"] .nl-chip-label   { color: #2f7163; }
 
 /* ═══════════════════════════════════════════════════════════════
    ONBOARDING (primera ejecución)
@@ -10033,7 +9698,6 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 }
 .onb-chip-date  { background: rgba(163, 179, 102, 0.16); border-color: rgba(163, 179, 102, 0.28); color: var(--c-primary-300); }
 .onb-chip-prio  { background: rgba(224, 122, 106, 0.16); border-color: rgba(224, 122, 106, 0.28); color: #f2b3a8; }
-.onb-chip-label { background: rgba(95, 179, 163, 0.16); border-color: rgba(95, 179, 163, 0.28); color: #8fd8c9; }
 
 /* ── Tabla de atajos paso 3 ─────────────────────────────────── */
 .onb-shortcuts {
@@ -10160,7 +9824,6 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 }
 :root[data-theme="light"] .onb-chip-date  { color: var(--c-primary-600); }
 :root[data-theme="light"] .onb-chip-prio  { color: #9a3a33; }
-:root[data-theme="light"] .onb-chip-label { color: #2f7163; }
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -10269,12 +9932,8 @@ body.hide-task-reminder .task-actions > .reminder-btn { display: none !important
 /* — Estado vacío: fuera "crear nota" — */
 .simple-mode #empty-new-note { display: none !important; }
 
-/* — Bottom-nav móvil en modo simple: solo Inbox + FAB (Nueva) + Buscar — */
-#bnav-inbox-btn { display: none; }            /* oculto fuera de modo simple */
-.simple-mode #bnav-inbox-btn { display: flex; }
-.simple-mode #bnav-today-btn,
-.simple-mode #bnav-projects-btn,
-.simple-mode #bnav-calendar-btn { display: none !important; }
+/* La barra inferior móvil (Hoy · Inbox · Perfil) es la misma en modo
+   simple o completo — ya es mínima por diseño (prototipo v1). */
 
 /* — Menú de perfil: fuera tour y atajos (ruido) — */
 .simple-mode #tour-btn,

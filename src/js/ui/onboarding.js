@@ -34,15 +34,14 @@ const STEPS = [
       '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd> + <kbd>⇧</kbd> + <kbd>Espacio</kbd> desde cualquier sitio.</p>' +
       '<p class="onb-muted" style="margin-top:0">Y al escribir, usa <strong>sintaxis natural</strong>:</p>' +
       '<div class="onb-syntax-demo">' +
-        '<code class="onb-syntax-input">Llamar al banco mañana p1 #personal</code>' +
+        '<code class="onb-syntax-input">Llamar al banco mañana p1</code>' +
         '<div class="onb-syntax-arrow">↳</div>' +
         '<div class="onb-syntax-chips">' +
           '<span class="onb-chip onb-chip-date">📅 Mañana</span>' +
           '<span class="onb-chip onb-chip-prio">🚩 Alta</span>' +
-          '<span class="onb-chip onb-chip-label">#personal</span>' +
         '</div>' +
       '</div>' +
-      '<p class="onb-muted">Detecta fechas, prioridad y etiquetas. Tú solo escribes.</p>',
+      '<p class="onb-muted">Detecta fechas y prioridad. Tú solo escribes.</p>',
   },
   {
     eyebrow: "Paso 3 de 3",

@@ -10,8 +10,6 @@
 // array de strings HTML — cada uno un chip.
 // ═══════════════════════════════════════════════════════════════
 
-import { escHtml } from "./html.js";
-
 /** @typedef {import("../state/types.js").ParsedNL} ParsedNL */
 
 /** @type {{ high: string, medium: string, low: string }} */
@@ -31,10 +29,10 @@ export function formatDueLabel(iso) {
   if (diff === 0)  return "Hoy";
   if (diff === 1)  return "Mañana";
   if (diff === -1) return "Ayer";
-  if (diff > 1 && diff <= 7) {
-    return due.toLocaleDateString("es-ES", { weekday: "long" });
-  }
-  return due.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+  // Resto de fechas (pasadas o futuras): "vie 20 jul", como en el prototipo v1.
+  const weekday  = due.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "");
+  const dayMonth = due.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+  return weekday + " " + dayMonth;
 }
 
 /**
@@ -78,8 +76,5 @@ export function buildNLChipsHTML(parsed) {
       '<i data-lucide="flag"></i> ' + PRIO_LABELS[parsed.priority] +
     '</span>');
   }
-  (parsed.labels || []).forEach(function (l) {
-    chips.push('<span class="nl-chip nl-chip-label">#' + escHtml(l) + '</span>');
-  });
   return chips;
 }

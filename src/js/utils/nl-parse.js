@@ -7,7 +7,6 @@
 //                  "próximo lunes", "en 3 días", "en 2 semanas",
 //                  "15/3", "15-03-2026")
 //   - Prioridad   ("p1", "p2", "p3")
-//   - Etiquetas   ("#personal", "#trabajo")
 //   - Recurrencia ("todos los lunes", "cada 2 días", "mensualmente"…)
 //
 // Devuelve el texto limpio de esos tokens más la metadata extraída.
@@ -191,23 +190,6 @@ function parsePriority(text) {
 }
 
 /**
- * @param {string} text
- * @returns {{ labels: string[], ranges: Array<[number, number]> }}
- */
-function parseLabels(text) {
-  const labels = [];
-  const ranges = [];
-  const re = /#([\p{L}\p{N}_-]{1,30})/gu;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    const name = m[1];
-    if (!labels.includes(name)) labels.push(name);
-    ranges.push([m.index, m.index + m[0].length]);
-  }
-  return { labels, ranges };
-}
-
-/**
  * Parsea el input del usuario y devuelve la tarea descompuesta.
  *
  * @param {string} rawInput
@@ -215,7 +197,7 @@ function parseLabels(text) {
  */
 export function parseNaturalLanguage(rawInput) {
   if (!rawInput || typeof rawInput !== "string") {
-    return { text: "", dueDate: null, priority: null, labels: [], recurDays: null };
+    return { text: "", dueDate: null, priority: null, recurDays: null };
   }
 
   const text = rawInput;
@@ -223,7 +205,6 @@ export function parseNaturalLanguage(rawInput) {
 
   let dueDate   = null;
   let priority  = null;
-  let labels    = [];
   let recurDays = null;
 
   // Recurrencia ANTES que fecha — para que "todos los lunes" consuma
@@ -246,10 +227,6 @@ export function parseNaturalLanguage(rawInput) {
     rangesToRemove.push([prioRes.index, prioRes.index + prioRes.removed.length]);
   }
 
-  const labelsRes = parseLabels(text);
-  labels = labelsRes.labels;
-  for (let i = 0; i < labelsRes.ranges.length; i++) rangesToRemove.push(labelsRes.ranges[i]);
-
   // Quitar rangos solapados sin perder índices: ordenar descendente
   rangesToRemove.sort(function (a, b) { return b[0] - a[0]; });
   let cleaned = text;
@@ -266,9 +243,8 @@ export function parseNaturalLanguage(rawInput) {
     cleaned   = text.trim();
     dueDate   = null;
     priority  = null;
-    labels    = [];
     recurDays = null;
   }
 
-  return { text: cleaned, dueDate, priority, labels, recurDays };
+  return { text: cleaned, dueDate, priority, recurDays };
 }
