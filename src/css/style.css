@@ -838,6 +838,12 @@ body {
   border-radius: 999px;
   line-height: 1.5;
 }
+/* Activo: la regla genérica .project-item.active .project-item-count baja el
+   color a secondary y sobre el pill olivo el número queda ilegible. Lo forzamos
+   de vuelta a accent-on para que el "N" del pill se lea siempre. */
+.project-item-today.active .project-item-count {
+  color: var(--accent-on);
+}
 
 
 /* ─── PROJECT PROGRESS BAR ───────────────────────────────────── */
@@ -2814,6 +2820,11 @@ button:focus-visible {
   box-shadow: none;
   z-index: 1;
 }
+/* Inbox agrupado: cada grupo apila sus tareas con flex `gap: 6px`, que el
+   margin negativo de compacto no colapsa → quedaban huecos tipo "tarjetas".
+   En compacto anulamos el gap para que se peguen igual que en Hoy (que usa
+   margin, no gap). Las esquinas y el solape ya los aporta la regla general. */
+.task-list[data-row-style="compacto"] .inbox-group-list { gap: 0; }
 
 /* Las mismas variantes en la vista Hoy (.today-item dentro de #task-list),
    para que el selector funcione igual que en las listas (como en v1). */
@@ -6561,6 +6572,9 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .project-item:hover .project-item-count { display: none; }
 .project-item:hover .project-kebab-btn { display: flex; }
 .project-kebab-btn:hover { background: rgba(163, 179, 102, 0.10); color: var(--t-soft); }
+/* Hoy/Inbox fijados no tienen kebab: mantener el contador visible en hover
+   (si no, el número desaparecía dejando un hueco). */
+.project-item-pinned:hover .project-item-count { display: inline-block; }
 
 /* (legacy) .new-section-btn retirado — el botón ahora vive en
  * .sidebar-header-actions con clase .sidebar-icon-btn. */
