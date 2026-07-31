@@ -9,7 +9,6 @@ export const NOTES_KEY        = "antask-notes";
 export const TASK_PREFS_KEY   = "antask-task-prefs";
 export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";
-export const SMART_LISTS_KEY  = "antask-smart-lists";
 export const PROFILE_KEY      = "antask-profile";
 export const ROW_STYLE_KEY    = "antask-row-style";
 

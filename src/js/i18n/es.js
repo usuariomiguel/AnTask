@@ -16,8 +16,6 @@ export const es = {
   "sidebar.new_group":        "Nuevo grupo",
   "sidebar.list_name":        "Nombre de la lista",
   "sidebar.group_name":       "Nombre del grupo",
-  "sidebar.lists":            "Listas",
-  "sidebar.lists_empty":      "Sin listas todavía",
   "sidebar.archived":         "Archivados",
   "sidebar.archived_empty":   "Sin archivados",
   "sidebar.notes":            "Notas",
@@ -95,7 +93,6 @@ export const es = {
   // ── Vistas ────────────────────────────────────────────────
   "view.today_title":         "Hoy",
   "view.today_subtitle":      "Vencidas y de hoy, en todos los proyectos",
-  "view.saved_filter":        "Filtro guardado",
   "view.list":                "Lista",
   "view.agenda":              "Agenda",
   "view.calendar":            "Mes",
@@ -147,25 +144,6 @@ export const es = {
   "fold.hide":                "Ocultar",
   "inbox.group_none":         "Sin lista",
 
-  // ── Smart lists ───────────────────────────────────────────
-  "smartlist.empty_title":    "Sin resultados",
-  "smartlist.empty_subtitle": "Ninguna tarea cumple este filtro ahora mismo.",
-  "smartlist.counter_one":    "{count} tarea",
-  "smartlist.counter_other":  "{count} tareas",
-  "smartlist.preset.overdue": "Vencidas",
-  "smartlist.preset.this_week": "Esta semana",
-  "smartlist.preset.high_priority": "Prioridad alta",
-  "smartlist.modal.new_title":   "Nueva lista guardada",
-  "smartlist.modal.edit_title":  "Editar lista",
-  "smartlist.modal.label_name":  "Nombre",
-  "smartlist.modal.name_placeholder": "Ej: Urgentes de hoy",
-  "smartlist.modal.label_icon":  "Icono",
-  "smartlist.modal.label_status":"Estado",
-  "smartlist.modal.label_priority": "Prioridad",
-  "smartlist.modal.label_duedate":"Fecha límite",
-  "smartlist.confirm_delete":    "¿Eliminar la lista {name}? Las tareas que filtra no se borran.",
-  "smartlist.task_count_one":    "tarea",
-  "smartlist.task_count_other":  "tareas",
 
   // ── Filtros ───────────────────────────────────────────────
   "filter.trigger_label":     "Filtrar",
@@ -182,9 +160,9 @@ export const es = {
   "sort.az":                  "A–Z",
 
   // ── Prioridad ─────────────────────────────────────────────
-  "priority.high":            "Alta",
-  "priority.medium":          "Media",
-  "priority.low":             "Baja",
+  "priority.high":            "P1",
+  "priority.medium":          "P2",
+  "priority.low":             "P3",
 
   // ── Proyecto ──────────────────────────────────────────────
   "project.new_prompt":       "Nombre de la lista",
@@ -457,7 +435,6 @@ export const es = {
   "task.counter_one":         "{count} pendiente",
   "task.counter_other":       "{count} pendientes",
   "empty.cta.add_task":       "Añadir tarea",
-  "empty.smartlist.title":    "Sin resultados",
 
   // ── Today badges (sidebar) ────────────────────────────────
   "today.due.label":          "Mañana",
@@ -468,7 +445,6 @@ export const es = {
   // ── Sync / profile ────────────────────────────────────────
   "profile.cloud_icon_fallback": "☁",
   "profile.user_default":     "Usuario",
-  "sidebar.new_smartlist":    "Nueva lista guardada",
   "project.kebab_title":      "Opciones",
   "project.dblclick_rename":  "Doble clic para renombrar",
   "date.in_n_days":           "En {n}d",

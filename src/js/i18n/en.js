@@ -16,8 +16,6 @@ export const en = {
   "sidebar.new_group":        "New group",
   "sidebar.list_name":        "List name",
   "sidebar.group_name":       "Group name",
-  "sidebar.lists":            "Lists",
-  "sidebar.lists_empty":      "No lists yet",
   "sidebar.archived":         "Archived",
   "sidebar.archived_empty":   "Nothing archived",
   "sidebar.notes":            "Notes",
@@ -95,7 +93,6 @@ export const en = {
   // ── Views ─────────────────────────────────────────────────
   "view.today_title":         "Today",
   "view.today_subtitle":      "Overdue and today, across all projects",
-  "view.saved_filter":        "Saved filter",
   "view.list":                "List",
   "view.agenda":              "Agenda",
   "view.calendar":            "Month",
@@ -147,25 +144,6 @@ export const en = {
   "fold.hide":                "Hide",
   "inbox.group_none":         "No list",
 
-  // ── Smart lists ───────────────────────────────────────────
-  "smartlist.empty_title":    "No results",
-  "smartlist.empty_subtitle": "No tasks match this filter right now.",
-  "smartlist.counter_one":    "{count} task",
-  "smartlist.counter_other":  "{count} tasks",
-  "smartlist.preset.overdue": "Overdue",
-  "smartlist.preset.this_week": "This week",
-  "smartlist.preset.high_priority": "High priority",
-  "smartlist.modal.new_title":   "New saved list",
-  "smartlist.modal.edit_title":  "Edit list",
-  "smartlist.modal.label_name":  "Name",
-  "smartlist.modal.name_placeholder": "E.g.: Today's urgent",
-  "smartlist.modal.label_icon":  "Icon",
-  "smartlist.modal.label_status":"Status",
-  "smartlist.modal.label_priority": "Priority",
-  "smartlist.modal.label_duedate":"Due date",
-  "smartlist.confirm_delete":    "Delete list {name}? The tasks it filters won't be removed.",
-  "smartlist.task_count_one":    "task",
-  "smartlist.task_count_other":  "tasks",
 
   // ── Filters ───────────────────────────────────────────────
   "filter.trigger_label":     "Filter",
@@ -182,9 +160,9 @@ export const en = {
   "sort.az":                  "A–Z",
 
   // ── Priority ──────────────────────────────────────────────
-  "priority.high":            "High",
-  "priority.medium":          "Medium",
-  "priority.low":             "Low",
+  "priority.high":            "P1",
+  "priority.medium":          "P2",
+  "priority.low":             "P3",
 
   // ── Project ───────────────────────────────────────────────
   "project.new_prompt":       "List name",
@@ -457,7 +435,6 @@ export const en = {
   "task.counter_one":         "{count} pending",
   "task.counter_other":       "{count} pending",
   "empty.cta.add_task":       "Add task",
-  "empty.smartlist.title":    "No results",
 
   // ── Today badges (sidebar) ────────────────────────────────
   "today.due.label":          "Tomorrow",
@@ -468,7 +445,6 @@ export const en = {
   // ── Sync / profile ────────────────────────────────────────
   "profile.cloud_icon_fallback": "☁",
   "profile.user_default":     "User",
-  "sidebar.new_smartlist":    "New saved list",
   "project.kebab_title":      "Options",
   "project.dblclick_rename":  "Double-click to rename",
   "date.in_n_days":           "In {n}d",

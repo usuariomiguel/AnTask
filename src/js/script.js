@@ -31,7 +31,6 @@ import {
   TASK_PREFS_KEY,
   THEME_KEY,
   SECTIONS_KEY,
-  SMART_LISTS_KEY,
   PROFILE_KEY,
   ROW_STYLE_KEY,
   migrateStorageIfNeeded,
@@ -41,7 +40,6 @@ import {
   sanitizeTasks,
   sanitizeSubtasks,
   sanitizeStandaloneNote,
-  sanitizeSmartList,
 } from "./state/sanitize.js";
 import {
   loadProjects,
@@ -49,7 +47,6 @@ import {
   loadStandaloneNotes,
   loadMetadata,
   loadTaskPrefs,
-  loadSmartLists,
   loadProfile,
 } from "./state/persistence.js";
 import {
@@ -230,8 +227,6 @@ applySimpleMode();
 let projects        = loadProjects();
 let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
-let smartLists      = loadSmartLists();
-ensureDefaultSmartLists();
 
 // Migrate any base64 images from localStorage to IndexedDB.
 // Runs async at startup — frees storage space without blocking render.
@@ -240,9 +235,6 @@ _imgPreloadAll().then(function () {
 }).then(function () {
   _checkStorageWarning();
 });
-
-// Activador de listas guardadas (smart lists).
-let activeSmartListId = null;
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
@@ -270,223 +262,6 @@ function ensureInbox() {
   try { localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)); } catch (_) {}
 }
 
-/**
- * En la primera carga, si el usuario no tiene smart lists definidas,
- * sembramos 3 presets útiles. Si después las borra, no las recreamos.
- */
-function ensureDefaultSmartLists() {
-  if (smartLists.length > 0) return;
-  try {
-    if (localStorage.getItem("antask-smart-lists-seeded") === "1") return;
-  } catch (_) {}
-  smartLists = [
-    sanitizeSmartList({ id: "sl-overdue",  name: "Vencidas",      icon: "⏰", filters: { status: "pending", dueDate: "overdue" } }),
-    sanitizeSmartList({ id: "sl-week",     name: "Esta semana",   icon: "📅", filters: { status: "pending", dueDate: "this_week" } }),
-    sanitizeSmartList({ id: "sl-priority", name: "Prioridad alta", icon: "🔥", filters: { status: "pending", priority: "high" } }),
-  ];
-  try {
-    localStorage.setItem(SMART_LISTS_KEY, JSON.stringify(smartLists));
-    localStorage.setItem("antask-smart-lists-seeded", "1");
-  } catch (_) {}
-}
-
-/** Persistencia de smart lists. */
-function saveSmartLists() {
-  try { localStorage.setItem(SMART_LISTS_KEY, JSON.stringify(smartLists)); } catch (_) {}
-  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
-}
-
-/**
- * Modal para crear o editar un smart list.
- *
- * @param {object|null} existing — null si crea nuevo, objeto smart list si edita
- */
-function showSmartListEditor(existing) {
-  const isEdit = !!existing;
-  const data = existing || {
-    id:   "sl-" + Date.now(),
-    name: "",
-    icon: "🔍",
-    filters: { status: "pending", priority: "any", dueDate: "any" },
-  };
-
-  const { overlay, box } = createModalBase();
-  box.className = "modal-box modal-box-smart-list";
-
-  function opt(value, label, current) {
-    return '<option value="' + value + '"' + (current === value ? " selected" : "") + '>' + label + '</option>';
-  }
-
-  box.innerHTML =
-    '<div class="modal-icon"><i data-lucide="list-filter"></i></div>' +
-    '<p class="modal-label">' + (isEdit ? t("smartlist.modal.edit_title") : t("smartlist.modal.new_title")) + '</p>' +
-
-    '<div class="sl-form-row">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_name") + '</label>' +
-      '<input class="modal-input sl-name" type="text" maxlength="50" placeholder="' + escHtml(t("smartlist.modal.name_placeholder")) + '" value="' + escHtml(data.name) + '">' +
-    '</div>' +
-
-    '<div class="sl-form-row sl-form-row-icon">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_icon") + '</label>' +
-      '<input class="modal-input sl-icon" type="text" maxlength="3" placeholder="🔍" value="' + escHtml(data.icon || "") + '">' +
-    '</div>' +
-
-    '<div class="sl-form-row">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_status") + '</label>' +
-      '<select class="modal-input sl-status">' +
-        opt("pending", t("filter.pending"), data.filters.status) +
-        opt("done",    t("filter.done"),    data.filters.status) +
-        opt("any",     t("filter.all"),     data.filters.status) +
-      '</select>' +
-    '</div>' +
-
-    '<div class="sl-form-row">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_priority") + '</label>' +
-      '<select class="modal-input sl-priority">' +
-        opt("any",    t("filter.any"),     data.filters.priority) +
-        opt("high",   t("priority.high"),  data.filters.priority) +
-        opt("medium", t("priority.medium"), data.filters.priority) +
-        opt("low",    t("priority.low"),   data.filters.priority) +
-      '</select>' +
-    '</div>' +
-
-    '<div class="sl-form-row">' +
-      '<label class="sl-form-label">' + t("smartlist.modal.label_duedate") + '</label>' +
-      '<select class="modal-input sl-duedate">' +
-        opt("any",       t("filter.any"),       data.filters.dueDate) +
-        opt("overdue",   t("filter.overdue"),   data.filters.dueDate) +
-        opt("today",     t("filter.today"),     data.filters.dueDate) +
-        opt("this_week", t("filter.this_week"), data.filters.dueDate) +
-        opt("no_date",   t("filter.no_date"),   data.filters.dueDate) +
-      '</select>' +
-    '</div>' +
-
-    '<div class="modal-actions">' +
-      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
-      '<button type="button" class="modal-btn modal-btn-confirm">' + (isEdit ? t("modal.save") : t("modal.create")) + '</button>' +
-    '</div>';
-
-  if (window.lucide) window.lucide.createIcons({ nodes: [box] });
-
-  const nameInput = box.querySelector(".sl-name");
-  function doConfirm() {
-    const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
-    const sanitized = sanitizeSmartList({
-      id:        data.id,
-      name:      name,
-      icon:      box.querySelector(".sl-icon").value.trim() || "🔍",
-      createdAt: data.createdAt || new Date().toISOString(),
-      filters: {
-        status:   box.querySelector(".sl-status").value,
-        priority: box.querySelector(".sl-priority").value,
-        dueDate:  box.querySelector(".sl-duedate").value,
-      },
-    });
-    if (isEdit) {
-      const idx = smartLists.findIndex(function (s) { return s.id === sanitized.id; });
-      if (idx !== -1) smartLists[idx] = sanitized;
-    } else {
-      smartLists.push(sanitized);
-    }
-    saveSmartLists();
-    closeModal(overlay);
-    renderSidebar();
-    activateSmartList(sanitized.id);
-  }
-  function doCancel() { closeModal(overlay); }
-
-  overlay._cancel = doCancel;
-  box.querySelector(".modal-btn-confirm").addEventListener("click", doConfirm);
-  box.querySelector(".modal-btn-cancel").addEventListener("click",  doCancel);
-  nameInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter")  { e.preventDefault(); doConfirm(); }
-    if (e.key === "Escape") doCancel();
-  });
-
-  setTimeout(function () { nameInput.focus(); }, 50);
-}
-
-/** Menú contextual de un smart list (editar / eliminar).
- *  El segundo argumento puede ser un Element (anchor) o {x, y} (coords).
- */
-function showSmartListMenu(sl, anchorOrPoint) {
-  closeCtxMenu();
-  const items = [
-    { label: t("action.edit"), action: function () { showSmartListEditor(sl); } },
-    null,
-    {
-      label: t("action.delete"),
-      danger: true,
-      action: async function () {
-        const msg = t("smartlist.confirm_delete").replace("{name}", "<strong>" + escHtml(sl.name) + "</strong>");
-        const ok = await modalConfirm(msg, t("modal.delete"));
-        if (!ok) return;
-        smartLists = smartLists.filter(function (s) { return s.id !== sl.id; });
-        saveSmartLists();
-        if (activeSmartListId === sl.id) {
-          activeSmartListId = null;
-          activateProject(null);
-        } else {
-          renderSidebar();
-        }
-      },
-    },
-  ];
-  const menu = _buildCtxMenu(items);
-  if (anchorOrPoint && typeof anchorOrPoint.x === "number" && typeof anchorOrPoint.y === "number") {
-    positionCtxMenuAt(menu, anchorOrPoint.x, anchorOrPoint.y);
-  } else {
-    positionCtxMenu(menu, anchorOrPoint);
-  }
-  _ctxMenu = menu;
-  requestAnimationFrame(function () {
-    _ctxCloseHandler = function (e) {
-      if (!menu.contains(e.target)) closeCtxMenu();
-    };
-    document.addEventListener("mousedown", _ctxCloseHandler);
-  });
-}
-
-/**
- * Evalúa si una tarea pasa los filtros de un smart list.
- *
- * @param {object} task
- * @param {object} project — proyecto al que pertenece (necesario para excluir archivados)
- * @param {object} filters
- * @returns {boolean}
- */
-function _smartListMatch(task, project, filters) {
-  if (!task || !filters) return false;
-  if (project && project.archived) return false;
-
-  // status
-  if (filters.status === "pending" && task.done) return false;
-  if (filters.status === "done"    && !task.done) return false;
-
-  // priority
-  if (filters.priority && filters.priority !== "any" && task.priority !== filters.priority) return false;
-
-  // dueDate
-  if (filters.dueDate && filters.dueDate !== "any") {
-    const today = new Date().toISOString().slice(0, 10);
-    if (filters.dueDate === "overdue") {
-      if (!task.dueDate || task.dueDate >= today) return false;
-    } else if (filters.dueDate === "today") {
-      if (task.dueDate !== today) return false;
-    } else if (filters.dueDate === "this_week") {
-      if (!task.dueDate) return false;
-      const t = new Date(today + "T00:00:00");
-      const d = new Date(task.dueDate + "T00:00:00");
-      const diff = Math.floor((d - t) / 86400000);
-      if (diff < 0 || diff > 7) return false;
-    } else if (filters.dueDate === "no_date") {
-      if (task.dueDate) return false;
-    }
-  }
-
-  return true;
-}
 let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
@@ -507,7 +282,6 @@ let _undoTimer = null;
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded  = false;
 let _notesExpanded     = false;
-let _smartListsExpanded = false;
 let taskPrefs         = loadTaskPrefs();
 let userProfile       = loadProfile();
 
@@ -1426,7 +1200,6 @@ window.activateProject = function(id) { return activateProject(id); };
 function activateProject(id) {
   activeView = "project";
   activeProjectId = id;
-  activeSmartListId = null;
   activeNoteId = null;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
@@ -1491,7 +1264,6 @@ function activateProject(id) {
 function activateTodayView() {
   activeView = "today";
   activeProjectId = null;
-  activeSmartListId = null;
   activeNoteId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
@@ -1534,51 +1306,6 @@ function activateTodayView() {
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
-/**
- * Activa una smart list (filtro guardado). Como la vista Hoy, es virtual.
- */
-function activateSmartList(id) {
-  const list = smartLists.find(function (s) { return s.id === id; });
-  if (!list) return;
-
-  activeView         = "smart-list";
-  activeSmartListId  = id;
-  activeProjectId    = null;
-  activeNoteId       = null;
-  localStorage.removeItem(ACTIVE_KEY);
-
-  _closeAllAltPanels();
-
-  emptyState.hidden = true;
-  if (ctrlBar)   { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  if (mobileFab) mobileFab.classList.remove("visible");
-  tasksPanel.hidden = false;
-  _setActiveViewTab("tasks");
-
-  // El task-form no aplica en una smart list — ocultar.
-  if (taskForm) taskForm.style.display = "none";
-
-  const headerTitle = (list.icon ? list.icon + " " : "") + list.name;
-  var mobileHeader  = document.getElementById("mobile-header");
-  var mobileHeaderTitle = document.getElementById("mobile-header-title");
-  var mobileHeaderCount = document.getElementById("mobile-header-count");
-  if (mobileHeader)      mobileHeader.classList.add("mobile-header--project");
-  if (mobileHeaderTitle) mobileHeaderTitle.textContent = headerTitle;
-  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
-
-  document.title = list.name + " — antask";
-  if (projectTitleEl)  projectTitleEl.textContent  = headerTitle;
-  if (projectSubtitle) projectSubtitle.textContent = t("view.saved_filter");
-
-  if (selectMode) exitSelectMode();
-  currentFilter      = "all";
-  currentSort        = "manual";
-  _syncFilterPanel("all", "manual");
-
-  closeTaskDetail();
-  renderSidebar();
-  renderTasks();
-}
 
 /**
  * Pinta los items fijos al tope de la sidebar: vista "Hoy" + proyecto Inbox.
@@ -1672,77 +1399,6 @@ function renderPinnedItems(inboxProject) {
   projectListEl.appendChild(sep);
 }
 
-/** Sección colapsable "Listas" en la sidebar con todos los smart lists del usuario. */
-function renderSmartListsSection() {
-  var headerLi = document.createElement("li");
-  headerLi.className = "smart-lists-header";
-
-  var toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "smart-lists-toggle" + (smartLists.length === 0 ? " smart-lists-toggle--empty" : "");
-  toggle.innerHTML =
-    '<i data-lucide="' + (_smartListsExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
-    '<i data-lucide="list-filter"></i>' +
-    '<span>' + t("sidebar.lists") + '</span>' +
-    (smartLists.length > 0 ? '<span class="archived-section-count">' + smartLists.length + '</span>' : '');
-  toggle.addEventListener("click", function () {
-    _smartListsExpanded = !_smartListsExpanded;
-    renderSidebar();
-  });
-
-  var addBtn = document.createElement("button");
-  addBtn.type = "button";
-  addBtn.className = "smart-lists-add-btn";
-  addBtn.title = t("sidebar.new_smartlist");
-  addBtn.setAttribute("aria-label", "Nueva lista guardada");
-  addBtn.innerHTML = '<i data-lucide="plus"></i>';
-  addBtn.addEventListener("click", function (e) {
-    e.stopPropagation();
-    showSmartListEditor(null);
-  });
-
-  headerLi.appendChild(toggle);
-  headerLi.appendChild(addBtn);
-  projectListEl.appendChild(headerLi);
-
-  if (!_smartListsExpanded) return;
-
-  if (smartLists.length === 0) {
-    var empty = document.createElement("li");
-    empty.className = "sidebar-section-empty";
-    empty.textContent = t("sidebar.lists_empty");
-    projectListEl.appendChild(empty);
-    return;
-  }
-
-  smartLists.forEach(function (sl) {
-    var li = document.createElement("li");
-    li.className = "smart-list-item" +
-      (activeView === "smart-list" && activeSmartListId === sl.id ? " active" : "");
-    li.dataset.smartListId = sl.id;
-    li.innerHTML =
-      '<div class="project-item-top">' +
-        '<span class="project-item-icon">' + escHtml(sl.icon || "🔍") + '</span>' +
-        '<span class="project-item-name">' + escHtml(sl.name) + '</span>' +
-        '<button type="button" class="project-kebab-btn smart-list-kebab" title="' + t("action.options") + '"><i data-lucide="ellipsis"></i></button>' +
-      '</div>';
-    li.addEventListener("click", function (e) {
-      if (e.target.closest(".smart-list-kebab")) return;
-      activateSmartList(sl.id);
-    });
-    li.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      showSmartListMenu(sl, { x: e.clientX, y: e.clientY });
-    });
-    var kebab = li.querySelector(".smart-list-kebab");
-    kebab.addEventListener("click", function (e) {
-      e.stopPropagation();
-      showSmartListMenu(sl, kebab);
-    });
-    projectListEl.appendChild(li);
-  });
-}
 
 var _sectionJustExpanded = null;
 var _sectionExpandIndex = 0;
@@ -2502,25 +2158,7 @@ async function showInboxMenu(inboxProject, x, y) {
   var pending = (inboxProject.tasks || []).filter(function(t) { return !t.done; });
   var completed = (inboxProject.tasks || []).filter(function(t) { return t.done; });
 
-  var items = [
-    {
-      label: inboxProject.icon ? t("inbox.menu.change_icon") : t("inbox.menu.assign_icon"),
-      action: function() { showIconPicker(inboxProject); }
-    }
-  ];
-
-  if (inboxProject.icon) {
-    items.push({
-      label: t("inbox.menu.remove_icon"),
-      action: function() {
-        inboxProject.icon = null;
-        saveProjects();
-        renderSidebar();
-      }
-    });
-  }
-
-  items.push(null);
+  var items = [];
 
   items.push({
     label: completed.length > 0
@@ -2614,11 +2252,6 @@ function renderTasks() {
     renderTodayView();
     return;
   }
-  if (activeView === "smart-list") {
-    _removeHoyHeaderExtra();
-    renderSmartListView();
-    return;
-  }
   _removeHoyHeaderExtra();
   const project = getActiveProject();
   if (!project) { taskList.innerHTML = ""; return; }
@@ -2703,7 +2336,7 @@ function renderTasks() {
         '<span class="inbox-group-rule"></span>';
       head.querySelector(".inbox-group-name").textContent = isNone
         ? t("inbox.group_none")
-        : (g.project.icon ? g.project.icon + " " : "") + g.project.name;
+        : g.project.name;
       head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
       if (!isNone) {
         head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
@@ -3526,7 +3159,7 @@ function _openProjectPopover(fieldEl, anchorBtn) {
     const rowsHtml = projects.filter(function(p) { return !p.archived; }).map(function(p) {
       const active = p.id === currentProjectId;
       return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-project-id="' + p.id + '">' +
-        '<span class="field-popover-row-label">' + escHtml((p.icon ? p.icon + " " : "") + p.name) + '</span>' +
+        '<span class="field-popover-row-label">' + escHtml(p.name) + '</span>' +
         (active ? '<i data-lucide="check"></i>' : "") +
       '</button>';
     }).join("");
@@ -3579,7 +3212,7 @@ function _renderTaskDetail() {
   els.timeText.textContent     = task.dueTime    || t("detail.no_time");
   els.recurText.textContent    = task.recurDays  ? formatRecurLabel(task.recurDays) : t("detail.no_recur");
   els.reminderText.textContent = task.reminderAt ? _formatReminderLabel(task.reminderAt) : t("detail.no_reminder");
-  els.projectText.textContent  = (project.icon ? project.icon + " " : "") + project.name;
+  els.projectText.textContent  = project.name;
   if (els.backLabel) els.backLabel.textContent = project.name;
 
   renderSubtasks(task, els.subtasks, {
@@ -3768,6 +3401,10 @@ function _wireEmptyStateCTA(emptyNode) {
 
 function renderTodayView() {
   taskList.innerHTML = "";
+  // El Hoy muestra las completadas de hoy inline en "Para hoy"; el fold
+  // "N completadas" es de la vista proyecto/Inbox y no aplica aquí. Sin
+  // esta limpieza quedaba colgado de la vista anterior (hueco + expandir roto).
+  if (taskListDone) taskListDone.innerHTML = "";
   taskList.classList.remove("task-list--project");
   var today = new Date().toISOString().slice(0, 10);
 
@@ -3983,69 +3620,6 @@ function _removeHoyHeaderExtra() {
   if (el) el.remove();
 }
 
-/** Render para vistas tipo smart-list (filtros guardados). Reusa
- * el ítem visual de Hoy y aplica los filtros del smart list activo. */
-function renderSmartListView() {
-  taskList.innerHTML = "";
-  taskList.classList.remove("task-list--project");
-  const list = smartLists.find(function(s) { return s.id === activeSmartListId; });
-  if (!list) {
-    if (taskCounter) taskCounter.textContent = "";
-    return;
-  }
-  const today = new Date().toISOString().slice(0, 10);
-
-  // Recopilar tareas que pasan los filtros
-  const items = [];
-  projects.forEach(function(p) {
-    if (p.archived) return;
-    (p.tasks || []).forEach(function(t) {
-      if (_smartListMatch(t, p, list.filters)) {
-        items.push({ task: t, project: p });
-      }
-    });
-  });
-
-  // Ordenar: con fecha primero (más urgente arriba), luego sin fecha por prioridad
-  const prioRank = { high: 0, medium: 1, low: 2 };
-  items.sort(function(a, b) {
-    if (a.task.dueDate && !b.task.dueDate) return -1;
-    if (!a.task.dueDate && b.task.dueDate) return 1;
-    if (a.task.dueDate && b.task.dueDate && a.task.dueDate !== b.task.dueDate) {
-      return a.task.dueDate < b.task.dueDate ? -1 : 1;
-    }
-    var pa = prioRank[a.task.priority] != null ? prioRank[a.task.priority] : 3;
-    var pb = prioRank[b.task.priority] != null ? prioRank[b.task.priority] : 3;
-    return pa - pb;
-  });
-
-  if (taskCounter) {
-    taskCounter.textContent = (items.length === 1 ? t("smartlist.counter_one") : t("smartlist.counter_other"))
-      .replace("{count}", String(items.length));
-  }
-
-  if (items.length === 0) {
-    var empty = document.createElement("li");
-    empty.className = "today-empty empty-illustrated";
-    empty.innerHTML =
-      '<div class="empty-illustrated-visual">' +
-        '<div class="empty-illustrated-halo"></div>' +
-        '<div class="empty-illustrated-icon">' + (list.icon || "🔍") + '</div>' +
-      '</div>' +
-      '<p class="empty-illustrated-title">' + t("smartlist.empty_title") + '</p>' +
-      '<p class="empty-illustrated-sub">' + t("smartlist.empty_subtitle") + '</p>';
-    taskList.appendChild(empty);
-    return;
-  }
-
-  items.forEach(function(it) {
-    // renderTodayItem espera un dueDate "hoy" como referencia para el badge "Hoy/Ayer/Hace Nd".
-    // Pasamos el today actual; las tareas sin dueDate no muestran badge de fecha.
-    taskList.appendChild(renderTodayItem(it.task, it.project, today));
-  });
-
-  if (window.lucide) lucide.createIcons();
-}
 
 function renderTodayItem(task, project, todayStr, tone) {
   // Cuando la tarea NO tiene fecha (caso smart list "Sin fecha" o sección
@@ -4117,17 +3691,17 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.appendChild(meta);
 
   if (task.priority && !done) {
-    var prioMark = { high: "▲", medium: "◆", low: "▽" };
     var pEl = document.createElement("span");
     pEl.className = "today-prio today-prio-" + task.priority;
-    pEl.textContent = prioMark[task.priority] + " " + t("priority." + task.priority);
+    pEl.textContent = PRIORITY_PNUM[task.priority] || "";
+    pEl.title = t("detail.priority") + ": " + PRIORITY_CONFIG[task.priority].label();
     meta.appendChild(pEl);
   }
 
   var projBadge = document.createElement("button");
   projBadge.type = "button";
   projBadge.className = "today-project-badge";
-  projBadge.textContent = (project.icon ? project.icon + " " : "") + project.name;
+  projBadge.textContent = project.name;
   if (project.color) projBadge.style.setProperty("--proj-color", project.color);
   projBadge.title = "Ir al proyecto " + project.name;
   projBadge.addEventListener("click", function(e) {
@@ -5063,7 +4637,7 @@ function showCalendarPanel() {
 
 function _restoreMainPanel() {
   var project = getActiveProject();
-  var isVirtualView = (activeView === "today" || activeView === "smart-list");
+  var isVirtualView = (activeView === "today");
   var hasContent = Boolean(project) || isVirtualView;
   emptyState.hidden = hasContent;
   if (ctrlBar) { ctrlBar.hidden = !hasContent; ctrlBar.classList.remove("ctrl-bar--alt"); }
@@ -5815,10 +5389,8 @@ function _clearLocalData() {
   projects          = [];
   sections          = [];
   standaloneNotes   = [];
-  smartLists        = [];
   activeProjectId   = null;
   activeNoteId      = null;
-  activeSmartListId = null;
   activeView        = "project";
 
   // localStorage del espacio anónimo
@@ -5827,11 +5399,9 @@ function _clearLocalData() {
   localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
   localStorage.removeItem(NOTES_KEY);
-  localStorage.removeItem(SMART_LISTS_KEY);
 
   // El Inbox es estructural — siempre debe existir. Recrearlo tras el clear.
   ensureInbox();
-  ensureDefaultSmartLists();
 
   // Reset visual completo (panel vacío + sidebar repintada).
   activateProject(null);

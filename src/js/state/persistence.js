@@ -13,15 +13,13 @@ import {
   NOTES_KEY,
   METADATA_KEY,
   TASK_PREFS_KEY,
-  SMART_LISTS_KEY,
   PROFILE_KEY,
 } from "./keys.js";
-import { sanitizeProject, sanitizeStandaloneNote, sanitizeSmartList } from "./sanitize.js";
+import { sanitizeProject, sanitizeStandaloneNote } from "./sanitize.js";
 
 /** @typedef {import("./types.js").Project}           Project */
 /** @typedef {import("./types.js").Section}           Section */
 /** @typedef {import("./types.js").StandaloneNote}    StandaloneNote */
-/** @typedef {import("./types.js").SmartList}         SmartList */
 /** @typedef {import("./types.js").WorkspaceMetadata} WorkspaceMetadata */
 
 /** @returns {Project[]} */
@@ -83,18 +81,5 @@ export function loadProfile() {
     return p && typeof p === "object" ? p : {};
   } catch (_) {
     return {};
-  }
-}
-
-/** @returns {SmartList[]} */
-export function loadSmartLists() {
-  try {
-    const raw = localStorage.getItem(SMART_LISTS_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    if (!Array.isArray(arr)) return [];
-    return arr.map(sanitizeSmartList).filter(Boolean);
-  } catch (_) {
-    return [];
   }
 }

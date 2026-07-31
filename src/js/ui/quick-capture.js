@@ -53,7 +53,7 @@ export function showQuickCapture(deps) {
   const { overlay, box } = createModalBase();
   box.className = "modal-box modal-box-quick";
 
-  const projLabel = (project.icon ? project.icon + " " : "") + project.name;
+  const projLabel = project.name;
 
   box.innerHTML =
     '<div class="quick-capture-header">' +

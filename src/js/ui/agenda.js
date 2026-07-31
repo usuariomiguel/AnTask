@@ -145,7 +145,7 @@ function buildAgendaTaskItem(task, project, today, onActivateProject) {
   if (task.priority) {
     const pb = document.createElement("span");
     pb.className = "agenda-badge agenda-badge-priority agenda-badge-" + task.priority;
-    pb.textContent = t("priority." + task.priority);
+    pb.textContent = { high: "P1", medium: "P2", low: "P3" }[task.priority] || "";
     badges.appendChild(pb);
   }
 

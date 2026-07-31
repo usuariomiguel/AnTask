@@ -87,26 +87,6 @@
  */
 
 /**
- * Filtros de un Smart List.
- *
- * @typedef {object} SmartListFilters
- * @property {("pending"|"done"|"any")}                              status
- * @property {("any"|"high"|"medium"|"low")}                         priority
- * @property {("any"|"overdue"|"today"|"this_week"|"no_date")}       dueDate
- */
-
-/**
- * Smart List — vista virtual basada en un conjunto de filtros guardados.
- *
- * @typedef {object} SmartList
- * @property {string}            id
- * @property {string}            name
- * @property {string}            icon       - Emoji
- * @property {string}            createdAt
- * @property {SmartListFilters}  filters
- */
-
-/**
  * Metadatos persistidos junto al workspace (timestamp del último guardado).
  *
  * @typedef {object} WorkspaceMetadata

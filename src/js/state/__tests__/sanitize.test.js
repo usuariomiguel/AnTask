@@ -5,7 +5,6 @@ import {
   sanitizeTasks,
   sanitizeProject,
   sanitizeStandaloneNote,
-  sanitizeSmartList,
 } from "../sanitize.js";
 
 // ────────────────────────────────────────────────────────────────
@@ -142,35 +141,5 @@ describe("sanitizeStandaloneNote", () => {
   it("nombre por defecto si falta", () => {
     const n = sanitizeStandaloneNote({});
     expect(n.name).toBe("Sin título");
-  });
-});
-
-// ────────────────────────────────────────────────────────────────
-// sanitizeSmartList
-// ────────────────────────────────────────────────────────────────
-describe("sanitizeSmartList", () => {
-  it("devuelve null para input no-objeto", () => {
-    expect(sanitizeSmartList(null)).toBeNull();
-    expect(sanitizeSmartList("string")).toBeNull();
-  });
-
-  it("normaliza smart list válida", () => {
-    const sl = sanitizeSmartList({
-      id: "sl1", name: "Urgentes", icon: "🔥",
-      filters: { status: "pending", priority: "high", dueDate: "today" },
-    });
-    expect(sl).not.toBeNull();
-    expect(sl?.filters.status).toBe("pending");
-    expect(sl?.filters.priority).toBe("high");
-    expect(sl?.filters.dueDate).toBe("today");
-  });
-
-  it("valores de filtro inválidos → defaults", () => {
-    const sl = sanitizeSmartList({
-      filters: { status: "xD", priority: "ultra", dueDate: "ayer" },
-    });
-    expect(sl?.filters.status).toBe("pending");
-    expect(sl?.filters.priority).toBe("any");
-    expect(sl?.filters.dueDate).toBe("any");
   });
 });

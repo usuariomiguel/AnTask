@@ -15,7 +15,6 @@ import { sanitizeRichHtml } from "../utils/sanitize-html.js";
 /** @typedef {import("./types.js").Task}             Task */
 /** @typedef {import("./types.js").Project}          Project */
 /** @typedef {import("./types.js").StandaloneNote}   StandaloneNote */
-/** @typedef {import("./types.js").SmartList}        SmartList */
 
 const VALID_PRIORITIES = ["high", "medium", "low"];
 
@@ -92,42 +91,5 @@ export function sanitizeStandaloneNote(n) {
     content:   sanitizeRichHtml(typeof n.content === "string" ? n.content : ""),
     createdAt: n.createdAt || new Date().toISOString(),
     color:     typeof n.color === "string" ? n.color : "",
-  };
-}
-
-const VALID_SL_STATUS   = ["pending", "done", "any"];
-const VALID_SL_DUEDATE  = ["any", "overdue", "today", "this_week", "no_date"];
-const VALID_SL_PRIORITY = ["any", "high", "medium", "low"];
-
-/**
- * Sanitiza un Smart List (filtro guardado).
- *
- * Shape:
- *   {
- *     id, name, icon, createdAt,
- *     filters: {
- *       status:   "pending" | "done" | "any",
- *       priority: "any" | "high" | "medium" | "low",
- *       dueDate:  "any" | "overdue" | "today" | "this_week" | "no_date"
- *     }
- *   }
- */
-/**
- * @param {any} sl
- * @returns {SmartList|null}
- */
-export function sanitizeSmartList(sl) {
-  if (!sl || typeof sl !== "object") return null;
-  const f = sl.filters || {};
-  return {
-    id:        typeof sl.id === "string" ? sl.id : "sl-" + Date.now() + "-" + Math.random().toString(16).slice(2),
-    name:      typeof sl.name === "string" ? sl.name.trim().slice(0, 50) : "Sin nombre",
-    icon:      typeof sl.icon === "string" ? sl.icon : "🔍",
-    createdAt: sl.createdAt || new Date().toISOString(),
-    filters: {
-      status:   VALID_SL_STATUS.includes(f.status)     ? f.status   : "pending",
-      priority: VALID_SL_PRIORITY.includes(f.priority) ? f.priority : "any",
-      dueDate:  VALID_SL_DUEDATE.includes(f.dueDate)   ? f.dueDate  : "any",
-    },
   };
 }
