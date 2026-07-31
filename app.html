@@ -202,11 +202,6 @@
               <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> <span data-i18n="profile.theme">Cambiar tema</span></button>
               <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> <span data-i18n="profile.shortcuts">Atajos de teclado</span></button>
               <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> <span data-i18n="profile.tour">Ver tour de bienvenida</span></button>
-              <button type="button" class="profile-item profile-item-toggle" id="pf-simple-btn">
-                <span class="profile-item-ico"><i data-lucide="sparkles"></i></span>
-                <span class="profile-item-label" data-i18n="profile.simple_mode">Modo simple</span>
-                <span class="profile-toggle-pill" id="pf-simple-pill">ON</span>
-              </button>
               <button type="button" class="profile-item" id="pf-lang-btn"><span class="profile-item-ico"><i data-lucide="languages"></i></span> <span data-i18n="profile.lang_switch">Switch to English</span></button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
@@ -336,23 +331,37 @@
                 <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
                 <i data-lucide="chevron-down" class="filter-caret"></i>
               </button>
-              <div class="filter-panel" id="filter-panel" hidden>
+              <div class="filter-panel" id="filter-panel" hidden role="menu">
                 <div class="filter-panel-section">
                   <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
                   <div class="filter-panel-opts">
-                    <button type="button" class="filter-opt filter-opt--active" data-filter="all" data-i18n="filter.all">Todas</button>
-                    <button type="button" class="filter-opt" data-filter="pending" data-i18n="filter.pending">Pendientes</button>
-                    <button type="button" class="filter-opt" data-filter="done" data-i18n="filter.done">✓ Hechas</button>
+                    <button type="button" class="filter-opt filter-opt--active" data-filter="all" role="menuitemradio">
+                      <i data-lucide="list"></i><span data-i18n="filter.all">Todas</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-filter="pending" role="menuitemradio">
+                      <i data-lucide="circle-dashed"></i><span data-i18n="filter.pending">Pendientes</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-filter="done" role="menuitemradio">
+                      <i data-lucide="check-circle-2"></i><span data-i18n="filter.done">Hechas</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
                   </div>
                 </div>
                 <div class="filter-panel-sep"></div>
                 <div class="filter-panel-section">
                   <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
                   <div class="filter-panel-opts">
-                    <button type="button" class="filter-opt filter-opt--active" data-sort="manual" data-i18n="sort.manual">↕ Manual</button>
-                    <button type="button" class="filter-opt" data-sort="priority" data-i18n="sort.priority_arrow">↑ Prioridad</button>
-                    <button type="button" class="filter-opt" data-sort="due" data-i18n="sort.due_short">Fecha límite</button>
-                    <button type="button" class="filter-opt" data-sort="az" data-i18n="sort.az">A–Z</button>
+                    <button type="button" class="filter-opt filter-opt--active" data-sort="manual" role="menuitemradio">
+                      <i data-lucide="grip-vertical"></i><span data-i18n="sort.manual">Manual</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-sort="priority" role="menuitemradio">
+                      <i data-lucide="flag"></i><span data-i18n="sort.priority">Prioridad</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-sort="due" role="menuitemradio">
+                      <i data-lucide="calendar"></i><span data-i18n="sort.due_short">Fecha límite</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-sort="az" role="menuitemradio">
+                      <i data-lucide="align-left"></i><span data-i18n="sort.az">A–Z</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -657,8 +666,7 @@
         try {
           var av = (typeof window.getActiveView === "function") ? window.getActiveView() : null;
           if (av === "today") { setActiveBnavBtn(bnavToday); return; }
-          if (document.documentElement.classList.contains("simple-mode") &&
-              window.getActiveProjectId && window.getActiveProjectId() === "__inbox__") {
+          if (window.getActiveProjectId && window.getActiveProjectId() === "__inbox__") {
             setActiveBnavBtn(bnavInbox); return;
           }
           setActiveBnavBtn(null);

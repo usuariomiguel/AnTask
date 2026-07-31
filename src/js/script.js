@@ -205,25 +205,6 @@ migrateStorageIfNeeded();
 // Proyecto especial "Inbox" — siempre existe, fijo al tope de la sidebar.
 const INBOX_ID = "__inbox__";
 
-// ─── MODO SIMPLE ─────────────────────────────────────────────
-// Reduce la app a su esencia: llegar, abrir el Inbox y crear tareas con
-// recordatorios. No borra nada — sólo oculta el resto de la UI vía la clase
-// `simple-mode` en <html> y se puede desactivar ("Modo avanzado").
-const SIMPLE_MODE_KEY = "antask_simple_mode";
-function isSimpleMode() {
-  return localStorage.getItem(SIMPLE_MODE_KEY) !== "0"; // ON por defecto
-}
-function applySimpleMode() {
-  document.documentElement.classList.toggle("simple-mode", isSimpleMode());
-}
-function setSimpleMode(on) {
-  localStorage.setItem(SIMPLE_MODE_KEY, on ? "1" : "0");
-  applySimpleMode();
-}
-window.isSimpleMode = isSimpleMode;
-window.setSimpleMode = setSimpleMode;
-applySimpleMode();
-
 let projects        = loadProjects();
 let sections        = loadSections();
 let standaloneNotes = loadStandaloneNotes();
@@ -239,9 +220,9 @@ _imgPreloadAll().then(function () {
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
 
-// En modo simple, si no hay nada activo arrancamos directos en el Inbox
-// (sin pantalla de bienvenida) para que el usuario escriba ya.
-let activeProjectId = localStorage.getItem(ACTIVE_KEY) || (isSimpleMode() ? INBOX_ID : null);
+// Si no hay nada activo arrancamos directos en el Inbox (sin pantalla de
+// bienvenida) para que el usuario escriba ya.
+let activeProjectId = localStorage.getItem(ACTIVE_KEY) || INBOX_ID;
 let activeNoteId    = null;
 // Vista activa: "project" (default) | "today" (vista Hoy virtual).
 let activeView      = "project";
@@ -348,8 +329,8 @@ try {
 } catch(e) { console.error("boot view error:", e); }
 try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }
 
-// Modo simple en escritorio: cursor listo en "nueva tarea" al abrir.
-if (isSimpleMode() && taskInput && !matchMedia("(hover: none)").matches) {
+// En escritorio: cursor listo en "nueva tarea" al abrir.
+if (taskInput && !matchMedia("(hover: none)").matches) {
   setTimeout(function () { try { taskInput.focus(); } catch (e) {} }, 650);
 }
 

@@ -2312,74 +2312,72 @@ button:focus-visible {
 /* ── Filter dropdown panel ────────────────────────────────────── */
 .filter-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 7px);
   right: 0;
-  min-width: 190px;
+  min-width: 208px;
   background: #261e15;
   border: 1px solid rgba(255, 238, 214, 0.10);
-  border-top: 2px solid rgba(163, 179, 102,0.45);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.4);
-  padding: 0.65rem 0.7rem;
+  border-radius: var(--r-lg);
+  box-shadow: 0 18px 44px -12px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.38);
+  padding: 6px;
   z-index: 200;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 4px;
 }
 :root[data-theme="light"] .filter-panel {
   background: #fffdf6;
-  border-color: rgba(50, 40, 24,0.09);
-  border-top-color: rgba(79,70,229,0.40);
-  box-shadow: 0 8px 24px rgba(50, 40, 24,0.12);
+  border-color: rgba(50, 40, 24,0.10);
+  box-shadow: 0 12px 34px -10px rgba(50, 40, 24,0.24), 0 2px 8px rgba(50, 40, 24,0.10);
 }
 
-.filter-panel-section { display: flex; flex-direction: column; gap: 0.35rem; }
+.filter-panel-section { display: flex; flex-direction: column; gap: 1px; }
 .filter-panel-label {
   font-size: 0.60rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider);
   color: var(--text-tertiary);
-  padding: 0 0.25rem;
+  padding: 6px 10px 4px;
 }
-.filter-panel-opts { display: flex; flex-wrap: wrap; gap: 4px; }
+.filter-panel-opts { display: flex; flex-direction: column; gap: 1px; }
 .filter-panel-sep {
   height: 1px;
   background: var(--b-subtle);
-  margin: 0.1rem 0;
+  margin: 4px 0;
 }
 
+/* Filas del menú (estilo v1 DropMenu): icono + label + check del activo. */
 .filter-opt {
-  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  font-size: 0.8rem;
   font-weight: 500;
-  letter-spacing: 0;
-  color: var(--t-muted);
-  background: rgba(255, 238, 214, 0.04);
-  border: 1px solid var(--b-subtle);
-  border-radius: 3px;
-  padding: 0.25rem 0.55rem;
-  cursor: pointer;
-  transition: color 0.13s, background 0.13s, border-color 0.13s;
-  white-space: nowrap;
-}
-.filter-opt:hover {
+  letter-spacing: -0.006em;
   color: var(--t-soft);
-  background: rgba(255, 238, 214, 0.07);
-  border-color: rgba(255, 238, 214, 0.14);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.12s, background 0.12s;
 }
-.filter-opt--active {
-  color: var(--c-cyan);
-  background: rgba(163, 179, 102,0.12);
-  border-color: rgba(163, 179, 102,0.30);
+.filter-opt > span { flex: 1; }
+.filter-opt > svg { width: 15px; height: 15px; flex-shrink: 0; }
+.filter-opt > svg:first-child { color: var(--text-tertiary); transition: color 0.12s; }
+.filter-opt-check { opacity: 0; color: var(--c-primary-300); }
+.filter-opt:hover {
+  color: var(--t-primary);
+  background: rgba(255, 238, 214, 0.05);
 }
-.filter-opt--active:hover {
-  background: rgba(163, 179, 102,0.18);
-}
-:root[data-theme="light"] .filter-opt--active {
-  color: var(--c-primary-500);
-  background: rgba(111, 122, 61,0.08);
-  border-color: rgba(111, 122, 61,0.25);
-}
+.filter-opt:hover > svg:first-child { color: var(--c-primary-300); }
+:root[data-theme="light"] .filter-opt:hover { background: rgba(50, 40, 24,0.04); }
+:root[data-theme="light"] .filter-opt-check { color: var(--c-primary-500); }
+.filter-opt--active { color: var(--t-primary); }
+.filter-opt--active .filter-opt-check { opacity: 1; }
 
 /* ── More-actions dropdown ────────────────────────────────────── */
 .more-actions-btn {
@@ -2409,22 +2407,21 @@ button:focus-visible {
 
 .more-actions-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 7px);
   right: 0;
   min-width: 175px;
   background: #261e15;
   border: 1px solid rgba(255, 238, 214, 0.10);
-  border-top: 2px solid rgba(163, 179, 102,0.40);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  border-radius: var(--r-lg);
+  box-shadow: 0 18px 44px -12px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.38);
   z-index: 200;
   overflow: hidden;
+  padding: 6px;
 }
 :root[data-theme="light"] .more-actions-panel {
   background: #fffdf6;
-  border-color: rgba(50, 40, 24,0.09);
-  border-top-color: rgba(79,70,229,0.35);
-  box-shadow: 0 8px 24px rgba(50, 40, 24,0.12);
+  border-color: rgba(50, 40, 24,0.10);
+  box-shadow: 0 12px 34px -10px rgba(50, 40, 24,0.24), 0 2px 8px rgba(50, 40, 24,0.10);
 }
 
 .more-actions-panel button {
@@ -2479,23 +2476,21 @@ button:focus-visible {
 
 .row-style-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 7px);
   right: 0;
   min-width: 182px;
   background: #261e15;
   border: 1px solid rgba(255, 238, 214, 0.10);
-  border-top: 2px solid rgba(163, 179, 102,0.40);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  border-radius: var(--r-lg);
+  box-shadow: 0 18px 44px -12px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.38);
   z-index: 200;
   overflow: hidden;
-  padding: 4px;
+  padding: 6px;
 }
 :root[data-theme="light"] .row-style-panel {
   background: #fffdf6;
-  border-color: rgba(50, 40, 24,0.09);
-  border-top-color: rgba(79,70,229,0.35);
-  box-shadow: 0 8px 24px rgba(50, 40, 24,0.12);
+  border-color: rgba(50, 40, 24,0.10);
+  box-shadow: 0 12px 34px -10px rgba(50, 40, 24,0.24), 0 2px 8px rgba(50, 40, 24,0.10);
 }
 .row-style-panel button {
   display: flex;
@@ -9767,29 +9762,26 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MODO SIMPLE  (clase .simple-mode en <html>)
-   Oculta — sin eliminar — todo lo accesorio para dejar el flujo
-   esencial: abrir el Inbox, crear tareas y ponerles recordatorios.
-   Se desactiva desde el menú de perfil → "Modo simple" (vuelve todo).
+   UI ACCESORIA OCULTA (v1)
+   El rediseño v1 deja fija la experiencia esencial: abrir el Inbox,
+   crear tareas y ponerles recordatorios. Se oculta — sin eliminar — el
+   resto de la UI que no forma parte de v1 (antes tras "modo simple").
    ═══════════════════════════════════════════════════════════════ */
 
-/* — Sidebar: fuera secciones, smart lists, archivados y notas — */
-.simple-mode #new-section-btn,
-.simple-mode .sidebar-section-empty,
-.simple-mode #sidebar-more-group,
-.simple-mode #new-note-btn { display: none !important; }
+/* — Sidebar: fuera secciones, archivados y notas — */
+#new-section-btn,
+.sidebar-section-empty,
+#sidebar-more-group,
+#new-note-btn { display: none !important; }
 
 /* — Cabecera de vista: solo "Lista" (sin Agenda ni Mes) — */
-.simple-mode #view-tab-agenda,
-.simple-mode #view-tab-cal,
-.simple-mode #task-prefs-btn { display: none !important; }
+#view-tab-agenda,
+#view-tab-cal,
+#task-prefs-btn { display: none !important; }
 
 /* — Estado vacío: fuera "crear nota" — */
-.simple-mode #empty-new-note { display: none !important; }
-
-/* La barra inferior móvil (Hoy · Inbox · Perfil) es la misma en modo
-   simple o completo — ya es mínima por diseño (prototipo v1). */
+#empty-new-note { display: none !important; }
 
 /* — Menú de perfil: fuera tour y atajos (ruido) — */
-.simple-mode #tour-btn,
-.simple-mode #shortcuts-btn { display: none !important; }
+#tour-btn,
+#shortcuts-btn { display: none !important; }

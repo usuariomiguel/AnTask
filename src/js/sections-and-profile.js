@@ -119,25 +119,6 @@ import { t } from "./i18n/index.js";
     });
   }
 
-  // ─── Toggle Modo simple ──────────────────────────────────────
-  var pfSimpleBtn  = document.getElementById("pf-simple-btn");
-  var pfSimplePill = document.getElementById("pf-simple-pill");
-  function _syncSimplePill() {
-    var on = !!(window.isSimpleMode && window.isSimpleMode());
-    if (pfSimplePill) {
-      pfSimplePill.textContent = on ? "ON" : "OFF";
-      pfSimplePill.classList.toggle("on", on);
-    }
-  }
-  _syncSimplePill();
-  if (pfSimpleBtn) {
-    pfSimpleBtn.addEventListener("click", function() {
-      if (window.setSimpleMode) window.setSimpleMode(!(window.isSimpleMode && window.isSimpleMode()));
-      _syncSimplePill();
-      profileDropdown.hidden = true;
-    });
-  }
-
   if (pfSigninBtn) {
     pfSigninBtn.addEventListener("click", function() {
       profileDropdown.hidden = true;
