@@ -175,20 +175,29 @@ function renderSearchResults(container, q, deps, closeCallback) {
 export function showGlobalSearch(deps) {
   const { overlay, box } = createModalBase();
 
+  // Paleta tipo "spotlight" (prototipo v1): overlay superior + fila con
+  // icono de lupa + input sin borde + píldora ESC, resultados y pie.
+  overlay.classList.add("modal-overlay--top");
   box.className = "modal-box modal-box-search";
   box.innerHTML =
-    '<p class="modal-label">' + t("search.modal_title") + '</p>' +
-    '<input class="modal-input" type="text" maxlength="100" autocomplete="off" placeholder="' + t("search.placeholder") + '" />' +
+    '<div class="search-head">' +
+      '<i data-lucide="search" class="search-head-ico"></i>' +
+      '<input class="search-input" type="text" maxlength="100" autocomplete="off" placeholder="' + t("search.placeholder") + '" />' +
+      '<button type="button" class="search-esc" aria-label="' + t("modal.close") + '">esc</button>' +
+    '</div>' +
     '<div id="search-results" class="search-results"></div>' +
-    '<div class="modal-actions"><button class="modal-btn modal-btn-cancel">' + t("modal.close") + '</button></div>';
+    '<div class="search-foot"><span class="search-foot-count" id="search-foot-count"></span></div>';
 
-  const input   = box.querySelector(".modal-input");
+  if (window.lucide) window.lucide.createIcons({ nodes: [box] });
+
+  const input   = box.querySelector(".search-input");
   const results = box.querySelector("#search-results");
-  const cancel  = box.querySelector(".modal-btn-cancel");
+  const esc     = box.querySelector(".search-esc");
+  const countEl = box.querySelector("#search-foot-count");
 
   function doClose() { closeModal(overlay); }
   overlay._cancel = doClose;
-  cancel.addEventListener("click", doClose);
+  esc.addEventListener("click", doClose);
 
   input.addEventListener("keydown", function (e) {
     if (e.key === "Escape") doClose();
@@ -198,6 +207,9 @@ export function showGlobalSearch(deps) {
   input.addEventListener("input", function () {
     const q = input.value.trim().toLowerCase();
     renderSearchResults(results, q, deps, doClose);
+    const n = results.querySelectorAll(".search-result-item").length;
+    countEl.textContent = q.length < 2 ? "" :
+      (n === 1 ? t("search.count_one") : t("search.count_other").replace("{n}", String(n)));
   });
 
   setTimeout(function () { input.focus(); }, 50);

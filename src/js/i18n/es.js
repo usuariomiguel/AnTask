@@ -319,14 +319,17 @@ export const es = {
 
   // ── Búsqueda ──────────────────────────────────────────────
   "search.modal_title":       "Buscar en proyectos y notas",
-  "search.placeholder":       "escribe para buscar...",
+  "search.placeholder":       "Buscar tareas y notas…",
   "search.hint_min_chars":    "Escribe al menos 2 caracteres…",
   "search.no_results":        "Sin resultados para",
+  "search.count_one":         "1 resultado",
+  "search.count_other":       "{n} resultados",
   "search.section.tasks":     "Tareas",
   "search.section.notes":     "Notas",
 
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.eyebrow":    "Nueva tarea",
+  "quick_capture.title":      "Captura rápida",
   "quick_capture.placeholder":"Escribe la tarea y pulsa Enter...",
   "quick_capture.hint":       "<kbd>Enter</kbd> para crear · <kbd>Esc</kbd> para cancelar",
   "quick_capture.added_to":   "Añadida a",

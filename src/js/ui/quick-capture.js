@@ -57,11 +57,14 @@ export function showQuickCapture(deps) {
 
   box.innerHTML =
     '<div class="quick-capture-header">' +
-      '<span class="quick-capture-eyebrow">' + t("quick_capture.eyebrow") + '</span>' +
+      '<span class="quick-capture-badge"><i data-lucide="sparkles"></i></span>' +
+      '<span class="quick-capture-title">' + t("quick_capture.title") + '</span>' +
+      '<span class="quick-capture-spacer"></span>' +
       '<span class="quick-capture-target' + (isFallback ? " quick-capture-target--inbox" : "") + '">' +
         '<i data-lucide="corner-down-right"></i> ' +
         escHtml(projLabel) +
       '</span>' +
+      '<button type="button" class="quick-capture-close" aria-label="' + t("modal.close") + '"><i data-lucide="x"></i></button>' +
     '</div>' +
     '<input class="modal-input quick-capture-input" type="text" maxlength="120" autocomplete="off"' +
       ' placeholder="' + t("quick_capture.placeholder") + '" />' +
@@ -118,6 +121,8 @@ export function showQuickCapture(deps) {
   }
 
   overlay._cancel = close;
+  const closeBtn = box.querySelector(".quick-capture-close");
+  if (closeBtn) closeBtn.addEventListener("click", close);
 
   input.addEventListener("keydown", function (e) {
     e.stopPropagation();  // Evita que atajos globales (n, s, a, c) actúen

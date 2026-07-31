@@ -3440,6 +3440,12 @@ input.inline-edit {
   padding: 1rem;
 }
 
+/* Variante "spotlight" (buscador ⌘K): la caja se ancla arriba, no centrada. */
+.modal-overlay--top {
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+
 .modal-overlay.modal-visible {
   opacity: 1;
 }
@@ -5005,20 +5011,78 @@ body.project-dragging .project-item { cursor: grabbing; }
 
 /* ─── Search modal ─────────────────────────────────────────── */
 .modal-box-search {
-  width: min(540px, 92vw);
-  max-height: 82vh;
+  width: min(560px, 92vw);
+  max-height: 76vh;
   display: flex;
   flex-direction: column;
+  padding: 0;
+  overflow: hidden;
 }
+/* El spotlight v1 no lleva la línea de acento superior del modal genérico. */
+.modal-box-search::before { display: none; }
+
+/* ── Fila de entrada: lupa + input sin borde + píldora ESC ── */
+.search-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--b-subtle);
+}
+.search-head-ico { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-tertiary); }
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 0;
+}
+.search-input::placeholder { color: var(--text-tertiary); }
+.search-esc {
+  flex-shrink: 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px solid var(--b-subtle);
+  border-radius: 5px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.search-esc:hover { color: var(--t-soft); background: var(--row-hover); }
 
 .search-results {
   flex: 1;
   overflow-y: auto;
-  max-height: 54vh;
-  margin-top: 0.5rem;
+  max-height: 46vh;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+/* ── Pie: contador de resultados ── */
+.search-foot {
+  display: flex;
+  align-items: center;
+  padding: 9px 16px;
+  border-top: 1px solid var(--b-subtle);
+  min-height: 20px;
+}
+.search-foot-count {
+  margin-left: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
 .search-hint {
@@ -8948,15 +9012,51 @@ button {
 .quick-capture-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-3);
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--b-subtle);
 }
 .quick-capture-eyebrow {
   font-size: var(--fs-xs);
   color: var(--text-tertiary);
   letter-spacing: var(--tracking-wide);
 }
+/* Distintivo (chip con destello) + título, estilo captura v1. */
+.quick-capture-badge {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(163, 179, 102, 0.14);
+  color: var(--c-primary-300);
+}
+.quick-capture-badge .lucide { width: 15px; height: 15px; stroke-width: 2; }
+:root[data-theme="light"] .quick-capture-badge { color: var(--c-primary-500); }
+.quick-capture-title {
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+}
+.quick-capture-spacer { flex: 1; }
+.quick-capture-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--b-subtle);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.quick-capture-close:hover { color: var(--text-primary); background: var(--row-hover); }
+.quick-capture-close .lucide { width: 16px; height: 16px; stroke-width: 2.2; }
 .quick-capture-target {
   display: inline-flex;
   align-items: center;
@@ -8985,7 +9085,10 @@ button {
 }
 
 .quick-capture-input {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-align: center;
   padding: var(--sp-3) var(--sp-4);
   margin-bottom: var(--sp-3);
   background: var(--surface-input);

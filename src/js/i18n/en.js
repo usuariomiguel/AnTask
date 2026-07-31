@@ -319,14 +319,17 @@ export const en = {
 
   // ── Search ────────────────────────────────────────────────
   "search.modal_title":       "Search projects and notes",
-  "search.placeholder":       "type to search...",
+  "search.placeholder":       "Search tasks and notes…",
   "search.hint_min_chars":    "Type at least 2 characters…",
   "search.no_results":        "No results for",
+  "search.count_one":         "1 result",
+  "search.count_other":       "{n} results",
   "search.section.tasks":     "Tasks",
   "search.section.notes":     "Notes",
 
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.eyebrow":    "New task",
+  "quick_capture.title":      "Quick capture",
   "quick_capture.placeholder":"Type the task and press Enter...",
   "quick_capture.hint":       "<kbd>Enter</kbd> to create · <kbd>Esc</kbd> to cancel",
   "quick_capture.added_to":   "Added to",
