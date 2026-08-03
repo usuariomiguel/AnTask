@@ -73,18 +73,29 @@
   --task-hover:        rgba(163, 179, 102, 0.10);
   --task-hover-border: rgba(163, 179, 102, 0.34);
 
-  /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────── */
-  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', monospace;
+  /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────────
+     Las tres familias del tema "tierra" del prototipo v1:
+       fontUI      → Inter                 (interfaz, texto de tarea)
+       fontMono    → JetBrains Mono        (metadatos: `monoMeta: true`)
+       fontDisplay → Bricolage Grotesque   (títulos, marca)               */
+  --font-sans:    'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque',
+                  'Inter Variable', 'Inter', system-ui, sans-serif;
 
-  --fs-xs:   11px;   /* labels small caps, captions */
-  --fs-sm:   12px;   /* metadata, chips */
-  --fs-base: 14px;   /* body */
-  --fs-md:   15px;
-  --fs-lg:   17px;   /* section titles */
-  --fs-xl:   20px;   /* panel titles */
-  --fs-2xl:  24px;
-  --fs-3xl:  30px;
+  /* Escala alineada con el prototipo v1 (tema tierra). */
+  --fs-xs:   11px;    /* labels small caps, captions */
+  --fs-sm:   12px;    /* metadata, chips */
+  --fs-base: 13px;    /* filas de sidebar, botones, menús (v1: 13) */
+  --fs-task: 14.5px;  /* texto de tarea (v1: 14.5) */
+  --fs-md:   14px;    /* párrafos y descripciones */
+  --fs-lg:   16px;    /* títulos de modal (v1: 16 / 700) */
+  --fs-xl:   19px;    /* título del panel de detalle (v1: 19 / 600) */
+  --fs-2xl:  21px;    /* h2 de modales grandes (v1: 21) */
+  --fs-3xl:  29px;    /* título de vista (v1: titleSize 29) */
+
+  /* Títulos display — v1 tierra: titleWeight 700, titleTrack -0.035em. */
+  --title-track: -0.035em;
 
   --fw-regular:  400;
   --fw-medium:   500;
@@ -146,7 +157,6 @@
   /* Mientras migramos componentes a los tokens nuevos, los nombres
    * antiguos resuelven a los nuevos vía cascada. NO añadir consumidores
    * nuevos a estos aliases — se retirarán cuando todo esté migrado.   */
-  --font-display: var(--font-sans);
   --font-body:    var(--font-sans);
 
   --bg-void:  var(--surface-canvas);
@@ -323,8 +333,13 @@
    Rasgo distintivo del rediseño "Tierra": la sidebar permanece oscura
    (#221d16) mientras el resto de la app es clara. Tokens propios
    re-declarados en el ámbito de .sidebar para que todo su contenido
-   (texto, bordes, inputs, item activo) cascadee correctamente. */
-:root[data-theme="light"] .sidebar {
+   (texto, bordes, inputs, item activo) cascadee correctamente.
+
+   El panel de detalle de tarea comparte el mismo lenguaje de color que
+   la sidebar (en v1 su `DetailPanel` se pinta con los tokens `sb.*`),
+   por eso entra en el mismo ámbito. */
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .task-detail-panel {
   --text-primary:   #f2ece0;
   --text-secondary: #b3a892;
   --text-tertiary:  #a3967c;  /* ≥4.5:1 sobre #221d16 (AA) */
@@ -335,6 +350,10 @@
   --surface-input:  rgba(255, 250, 240, 0.05);
   --surface-overlay: rgba(38, 30, 22, 0.96);   /* dropdowns internos (perfil) */
   --surface-raised:  #332b20;
+  /* Popovers internos (calendario, repetición…) — un punto por encima del
+     fondo del panel, no la superficie clara del tema. */
+  --surface-canvas:  #2b241b;
+  --surface-card:    #2b241b;
   --accent-tint:    rgba(138, 154, 91, 0.20);  /* item activo */
   --c-primary-400:  #a3b366;                    /* acento aclarado sobre oscuro */
   --c-primary-500:  #a3b366;
@@ -441,8 +460,9 @@ body {
   user-select: none;
 }
 .sidebar-brand-name {
+  /* v1 tierra: fontDisplay, brandWeight 700, 19px, -0.02em. */
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   font-size: 19px;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -1021,18 +1041,17 @@ body {
   width: 340px;
 }
 
+/* Mismo color que la sidebar en ambos temas (como el DetailPanel de v1,
+   que se pinta con los tokens `sb.*`): fondo profundo y contenido claro. */
 .task-detail-panel {
   width: 340px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--surface-canvas);
+  background: var(--surface-deep);
+  color: var(--text-primary);
   border: 1px solid var(--border-default);
   overflow: hidden;
-}
-
-:root[data-theme="light"] .task-detail-panel {
-  background: var(--surface-card);
 }
 
 @media (min-width: 769px) {
@@ -1143,9 +1162,10 @@ body {
   border: none;
   outline: none;
   background: transparent;
-  font-family: var(--font-display, var(--font-sans));
-  font-weight: 650;
-  font-size: 1.18rem;
+  /* v1 DetailPanel: fontDisplay 19px / 600 / lh 1.32 / -0.01em. */
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xl);
   line-height: 1.32;
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -1863,15 +1883,15 @@ body {
   gap: var(--sp-3);
   min-width: 0;
 }
-/* Título de vista (prototipo Tierra): 30px / 700 / -0.02em, Inter */
+/* Título de vista — v1 tierra: 29px / 700 / -0.035em, Bricolage Grotesque */
 .project-title {
-  font-family: var(--font-sans);
-  font-size: clamp(1.4rem, 2.6vw, 1.875rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.6vw, var(--fs-3xl));
   font-weight: var(--fw-bold);
   color: var(--text-primary);
   line-height: 1.15;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--title-track);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3036,9 +3056,10 @@ button:focus-visible {
 
 .task-text {
   font-family: var(--font-sans);
-  font-size: var(--fs-md);
-  font-weight: var(--fw-regular);
-  letter-spacing: var(--tracking-tight);
+  /* v1: 14.5px / 450 / -0.006em — igual que .today-text. */
+  font-size: var(--fs-task);
+  font-weight: 450;
+  letter-spacing: -0.006em;
   color: var(--text-primary);
   flex: 1;
   min-width: 0;
@@ -3536,8 +3557,10 @@ input.inline-edit {
 }
 
 .modal-label {
-  font-size: 1rem;
-  font-weight: 600;
+  /* v1: título de modal fontDisplay 16 / 700. */
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
   color: var(--text-primary);
   margin-bottom: 1.1rem;
   line-height: 1.4;
@@ -4427,8 +4450,8 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 
   .task-text {
-    font-size: var(--fs-base);
-    font-weight: var(--fw-regular);
+    font-size: var(--fs-task);
+    font-weight: 450;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -7233,8 +7256,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 .agenda-task-text {
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  font-weight: var(--fw-regular);
+  font-size: var(--fs-task);
+  font-weight: 450;
   color: var(--text-primary);
   line-height: var(--lh-base);
   word-break: break-word;
@@ -8250,7 +8273,9 @@ button {
   margin-bottom: var(--sp-3);
 }
 .today-empty-title {
-  font-size: var(--fs-lg);
+  /* v1 estado vacío: fontDisplay 20 / 600. */
+  font-family: var(--font-display);
+  font-size: 20px;
   font-weight: var(--fw-semibold);
   color: var(--text-secondary);
   margin: 0 0 var(--sp-1) 0;
@@ -8609,6 +8634,8 @@ button {
   flex-shrink: 0;
 }
 .hoy-section-title {
+  /* v1: fontDisplay 15 / 700 / -0.01em. */
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
@@ -9551,9 +9578,10 @@ button {
 }
 
 .onb-title {
+  font-family: var(--font-display);
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--title-track);
   color: var(--text-primary);
   margin: 0 0 var(--sp-4) 0;
   background: linear-gradient(135deg, #fff 0%, #c3d18a 100%);

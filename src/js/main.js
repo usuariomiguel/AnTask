@@ -13,9 +13,12 @@
 // para evitar el FOUC (flash of unstyled content) en dev.
 
 // Fuentes self-hosted (sin requests a Google Fonts).
+// Inter = UI, JetBrains Mono = metadatos, Bricolage Grotesque = display
+// (títulos y marca), tal como define el tema "tierra" del prototipo v1.
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/jetbrains-mono/wght-italic.css";
+import "@fontsource-variable/bricolage-grotesque/wght.css";
 
 import { applyDomTranslations, getLang, setLang, t } from "./i18n/index.js";
 import "./setup-lucide.js";
