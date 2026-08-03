@@ -5936,6 +5936,9 @@ kbd {
   align-items: center;
   gap: var(--sp-2);
   padding: 7px 10px;
+  /* Altura fija: en hover el contador se sustituye por el botón «…», que
+     es más alto. Sin esto la fila del grupo crecería ~1px al pasar el ratón. */
+  min-height: 30px;
   margin-top: 2px;
   cursor: pointer;
   border-radius: var(--r-xs);
@@ -6068,11 +6071,16 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   /* Oculto por defecto: en hover reemplaza al contador del grupo. */
   display: none;
   align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--t-muted);
   cursor: pointer;
-  padding: 0.1rem 0.3rem;
+  /* Caja fija que cabe en el alto de la fila: evita que aparecer en hover
+     empuje la altura del grupo. */
+  width: 20px;
+  height: 16px;
+  padding: 0;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
   transition: background 0.13s;
