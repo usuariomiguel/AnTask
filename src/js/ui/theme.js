@@ -11,6 +11,10 @@
 
 import { THEME_KEY } from "../state/keys.js";
 
+export const ACCENT_KEY     = "antask-accent";
+export const ACCENT_DEFAULT = "oliva";
+export const ACCENTS = ["oliva", "terracota", "miel", "marea", "vino"];
+
 /**
  * Aplica un tema sin persistirlo (solo modifica el DOM).
  *
@@ -38,6 +42,31 @@ export function initializeTheme() {
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   const theme       = saved === "light" || saved === "dark" ? saved : prefersDark ? "dark" : "light";
   applyTheme(theme);
+}
+
+/**
+ * Aplica el color de acento (oliva = por defecto, sin atributo).
+ * @param {string} accent
+ */
+export function applyAccent(accent) {
+  if (!accent || accent === ACCENT_DEFAULT || ACCENTS.indexOf(accent) === -1) {
+    delete document.documentElement.dataset.accent;
+  } else {
+    document.documentElement.dataset.accent = accent;
+  }
+}
+
+/** Aplica + guarda en localStorage. */
+export function setAccent(accent) {
+  applyAccent(accent);
+  localStorage.setItem(ACCENT_KEY, accent);
+}
+
+/** Lee la preferencia guardada y la aplica. Devuelve el acento activo. */
+export function initializeAccent() {
+  const saved = localStorage.getItem(ACCENT_KEY) || ACCENT_DEFAULT;
+  applyAccent(saved);
+  return saved;
 }
 
 /**

@@ -178,55 +178,258 @@
                   <div class="profile-dropdown-sub" id="profile-sub-top" data-i18n="profile.local_storage">Almacenamiento local</div>
                 </div>
               </div>
-              <div class="profile-sep profile-mobile-only"></div>
-              <!-- Agenda/Calendario/Buscar: en escritorio viven en la sidebar,
-                   en móvil se acceden desde aquí (la barra inferior solo
-                   tiene Hoy/Inbox/Perfil, como el prototipo v1). -->
-              <button type="button" class="profile-item profile-mobile-only" id="pf-agenda-btn"><span class="profile-item-ico"><i data-lucide="calendar-range"></i></span> <span data-i18n="nav.agenda">Agenda</span></button>
-              <button type="button" class="profile-item profile-mobile-only" id="pf-calendar-btn"><span class="profile-item-ico"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendario</span></button>
-              <button type="button" class="profile-item profile-mobile-only" id="pf-search-btn"><span class="profile-item-ico"><i data-lucide="search"></i></span> <span data-i18n="nav.search">Buscar</span></button>
+              <!-- Agenda y Calendario no forman parte de v1 (sin atajos ni entrada
+                   en el menú); se dejan ocultas en vez de borrar el panel. -->
+              <button type="button" class="profile-item profile-mobile-only" id="pf-agenda-btn" hidden><span class="profile-item-ico"><i data-lucide="calendar-range"></i></span> <span data-i18n="nav.agenda">Agenda</span></button>
+              <button type="button" class="profile-item profile-mobile-only" id="pf-calendar-btn" hidden><span class="profile-item-ico"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendario</span></button>
               <div class="profile-sep"></div>
-              <button type="button" class="profile-item" id="pf-edit-btn"><span class="profile-item-ico"><i data-lucide="pencil-line"></i></span> <span data-i18n="profile.edit">Editar perfil</span></button>
-              <div class="profile-sep"></div>
-              <button type="button" class="profile-item" id="pf-export-btn"><span class="profile-item-ico"><i data-lucide="upload"></i></span> <span data-i18n="profile.export">Exportar workspace</span></button>
-              <label class="profile-item" for="pf-import-input"><span class="profile-item-ico"><i data-lucide="download"></i></span> <span data-i18n="profile.import">Importar workspace</span></label>
-              <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
-              <div class="profile-sep"></div>
-              <button type="button" class="profile-item profile-item-toggle" id="pf-notif-btn">
-                <span class="profile-item-ico" id="pf-notif-ico"><i data-lucide="bell"></i></span>
-                <span class="profile-item-label" id="pf-notif-label" data-i18n="profile.notifications">Activar avisos</span>
-                <span class="profile-toggle-pill" id="pf-notif-pill">OFF</span>
+              <button type="button" class="profile-item" id="pf-settings-btn">
+                <span class="profile-item-ico"><i data-lucide="settings"></i></span>
+                <span class="profile-item-label" data-i18n="profile.settings">Ajustes</span>
+                <span class="profile-item-kbd">Ctrl+,</span>
               </button>
-              <div class="profile-notif-options" id="pf-notif-options" hidden>
-                <div class="profile-notif-times-block">
-                  <span class="profile-notif-times-label">Horas de aviso</span>
-                  <div class="profile-notif-times-list" id="pf-notif-times-list"></div>
-                  <div class="profile-notif-times-add">
-                    <input type="time" id="pf-notif-new-time" value="12:00">
-                    <button type="button" class="profile-notif-add-btn" id="pf-notif-add">
-                      <i data-lucide="plus"></i> Añadir
-                    </button>
-                  </div>
-                </div>
-                <button type="button" class="profile-notif-test-btn" id="pf-notif-test">
-                  <i data-lucide="bell-ring"></i> Probar aviso
-                </button>
-              </div>
               <div class="profile-sep"></div>
-              <button type="button" class="profile-item" id="pf-theme-btn"><span id="pf-theme-ico"><i data-lucide="sun-moon"></i></span> <span data-i18n="profile.theme">Cambiar tema</span></button>
-              <button type="button" class="profile-item" id="shortcuts-btn"><span class="profile-item-ico"><i data-lucide="keyboard"></i></span> <span data-i18n="profile.shortcuts">Atajos de teclado</span></button>
-              <button type="button" class="profile-item" id="tour-btn"><span class="profile-item-ico"><i data-lucide="sparkles"></i></span> <span data-i18n="profile.tour">Ver tour de bienvenida</span></button>
-              <button type="button" class="profile-item" id="pf-lang-btn"><span class="profile-item-ico"><i data-lucide="languages"></i></span> <span data-i18n="profile.lang_switch">Switch to English</span></button>
+              <div class="profile-section-label" data-i18n="profile.workspace_section">Espacio de trabajo</div>
+              <button type="button" class="profile-item" id="shortcuts-btn">
+                <span class="profile-item-ico"><i data-lucide="keyboard"></i></span>
+                <span class="profile-item-label" data-i18n="profile.shortcuts">Atajos de teclado</span>
+                <span class="profile-item-kbd">?</span>
+              </button>
               <div class="profile-sep" id="pf-sync-sep" hidden></div>
               <button type="button" class="profile-item" id="pf-signin-btn" hidden><span class="profile-item-ico"><i data-lucide="cloud"></i></span> Sincronizar con Google</button>
               <div id="pf-sync-user" hidden>
                 <div class="profile-sync-row"><span class="profile-item-ico"><i data-lucide="cloud"></i></span><span id="pf-sync-name"></span></div>
-                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn" data-i18n="profile.signout">Desconectar</button>
+                <button type="button" class="profile-item profile-item-danger" id="pf-signout-btn"><span class="profile-item-ico"><i data-lucide="log-out"></i></span> <span data-i18n="profile.signout">Cerrar sesión</span></button>
               </div>
             </div>
           </div>
         </div>
       </aside>
+
+      <!-- Ajustes: réplica del diálogo de dos paneles de v1 (nav + contenido). -->
+      <div class="modal-overlay" id="settings-overlay" hidden>
+        <div class="modal-box modal-box-settings-v1">
+          <nav class="settings-nav">
+            <div class="settings-nav-title" data-i18n="profile.settings">Ajustes</div>
+            <button type="button" class="settings-nav-item active" id="settings-nav-cuenta" data-settings-panel="cuenta">
+              <i data-lucide="user-round"></i><span data-i18n="settings.nav.account">Cuenta</span>
+            </button>
+            <button type="button" class="settings-nav-item" id="settings-nav-apariencia" data-settings-panel="apariencia">
+              <i data-lucide="sun"></i><span data-i18n="settings.nav.appearance">Apariencia</span>
+            </button>
+            <button type="button" class="settings-nav-item" id="settings-nav-notif" data-settings-panel="notif">
+              <i data-lucide="bell"></i><span data-i18n="settings.nav.notifications">Notificaciones</span>
+            </button>
+            <button type="button" class="settings-nav-item" id="settings-nav-tareas" data-settings-panel="tareas">
+              <i data-lucide="check-circle-2"></i><span data-i18n="settings.nav.tasks">Tareas</span>
+            </button>
+            <button type="button" class="settings-nav-item" id="settings-nav-datos" data-settings-panel="datos">
+              <i data-lucide="archive"></i><span data-i18n="settings.nav.data">Datos</span>
+            </button>
+            <button type="button" class="settings-nav-item" id="settings-nav-acerca" data-settings-panel="acerca">
+              <i data-lucide="info"></i><span data-i18n="settings.nav.about">Acerca de</span>
+            </button>
+          </nav>
+
+          <div class="settings-content-wrap">
+            <div class="settings-content-header">
+              <button type="button" class="quick-capture-close" id="settings-close-btn" aria-label="Cerrar" data-i18n-aria="modal.close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="settings-content-body">
+
+              <!-- ── Cuenta ── -->
+              <section class="settings-section-panel" id="settings-panel-cuenta" data-settings-panel="cuenta">
+                <h3 class="settings-section-title" data-i18n="settings.nav.account">Cuenta</h3>
+                <div class="settings-account-row">
+                  <span class="profile-avatar" id="settings-avatar" style="width:60px;height:60px;font-size:22px;border-radius:17px;">A</span>
+                  <div class="settings-account-meta">
+                    <div class="settings-account-name" id="settings-name">antask</div>
+                    <div class="settings-account-sub" id="settings-sub" data-i18n="profile.local_storage">Almacenamiento local</div>
+                  </div>
+                  <button type="button" class="settings-btn" id="settings-edit-profile-btn">
+                    <i data-lucide="user-round"></i><span data-i18n="profile.edit">Editar perfil</span>
+                  </button>
+                </div>
+                <div class="profile-sep"></div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.account.sync">Sincronización con Google</div>
+                    <div class="settings-row-desc" data-i18n="settings.account.sync_desc">Tus tareas y notas se guardan en la nube.</div>
+                  </div>
+                  <div class="settings-row-control" id="settings-sync-control">
+                    <button type="button" class="settings-btn" id="settings-signin-btn" hidden><i data-lucide="cloud"></i> <span data-i18n="profile.signin">Sincronizar con Google</span></button>
+                    <div id="settings-sync-user" class="settings-sync-connected" hidden>
+                      <span class="settings-sync-status" data-i18n="settings.account.connected">Conectado</span>
+                      <button type="button" class="settings-btn settings-btn--danger" id="settings-signout-btn"><span data-i18n="profile.signout">Cerrar sesión</span></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.account.language">Idioma</div>
+                    <div class="settings-row-desc" data-i18n="settings.account.language_desc">Idioma de la interfaz.</div>
+                  </div>
+                  <button type="button" class="settings-btn" id="pf-lang-btn"><i data-lucide="languages"></i> <span data-i18n="profile.lang_switch">Switch to English</span></button>
+                </div>
+              </section>
+
+              <!-- ── Apariencia ── -->
+              <section class="settings-section-panel" id="settings-panel-apariencia" data-settings-panel="apariencia" hidden>
+                <h3 class="settings-section-title" data-i18n="settings.nav.appearance">Apariencia</h3>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.appearance.theme">Tema</div>
+                    <div class="settings-row-desc" data-i18n="settings.appearance.theme_desc">Claro para el día, oscuro para la noche.</div>
+                  </div>
+                  <div class="settings-seg" id="settings-theme-seg" role="radiogroup">
+                    <button type="button" class="settings-seg-opt" data-theme-value="light" data-i18n="settings.appearance.light">Claro</button>
+                    <button type="button" class="settings-seg-opt" data-theme-value="dark" data-i18n="settings.appearance.dark">Oscuro</button>
+                  </div>
+                </div>
+                <div class="settings-row settings-row--top">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.appearance.accent">Color de acento</div>
+                    <div class="settings-row-desc" data-i18n="settings.appearance.accent_desc">Define el carácter de la interfaz.</div>
+                  </div>
+                  <div class="settings-accent-row" id="settings-accent-row">
+                    <button type="button" class="settings-accent-dot active" data-accent="oliva" style="background:#6f7a3d;color:#6f7a3d" title="Oliva"><i data-lucide="check"></i></button>
+                    <button type="button" class="settings-accent-dot" data-accent="terracota" style="background:#c0673a;color:#c0673a" title="Terracota"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="miel" style="background:#e0a35a;color:#e0a35a" title="Miel"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="marea" style="background:#3d6e85;color:#3d6e85" title="Marea"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="vino" style="background:#9c4628;color:#9c4628" title="Vino"></button>
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.appearance.container">Contenedor</div>
+                    <div class="settings-row-desc" data-i18n="settings.appearance.container_desc">Paneles pegados o flotando sobre el lienzo.</div>
+                  </div>
+                  <div class="settings-seg" id="settings-shell-seg">
+                    <button type="button" class="settings-seg-opt" data-shell="pegado" data-i18n="settings.appearance.shell_attached">Pegado</button>
+                    <button type="button" class="settings-seg-opt active" data-shell="flotante" data-i18n="settings.appearance.shell_floating">Flotante</button>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── Notificaciones ── -->
+              <section class="settings-section-panel" id="settings-panel-notif" data-settings-panel="notif" hidden>
+                <h3 class="settings-section-title" data-i18n="settings.nav.notifications">Notificaciones</h3>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.notifications.tasks">Avisos de tareas</div>
+                    <div class="settings-row-desc" id="pf-notif-label" data-i18n="settings.notifications.tasks_desc">Recordatorios cuando una tarea vence.</div>
+                  </div>
+                  <button type="button" class="settings-switch" id="pf-notif-btn" aria-pressed="false">
+                    <span class="settings-switch-knob"></span>
+                  </button>
+                </div>
+                <div class="profile-notif-options" id="pf-notif-options" hidden>
+                  <div class="profile-notif-times-block">
+                    <span class="profile-notif-times-label" data-i18n="settings.notifications.times">Horas de aviso</span>
+                    <div class="profile-notif-times-list" id="pf-notif-times-list"></div>
+                    <div class="profile-notif-times-add">
+                      <input type="time" id="pf-notif-new-time" value="12:00">
+                      <button type="button" class="profile-notif-add-btn" id="pf-notif-add">
+                        <i data-lucide="plus"></i> <span data-i18n="settings.notifications.add">Añadir</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button type="button" class="profile-notif-test-btn" id="pf-notif-test">
+                    <i data-lucide="bell-ring"></i> <span data-i18n="settings.notifications.test">Probar aviso</span>
+                  </button>
+                </div>
+                <span class="profile-toggle-pill" id="pf-notif-pill" hidden>OFF</span>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.notifications.digest">Resumen diario</div>
+                    <div class="settings-row-desc" data-i18n="settings.notifications.digest_desc">Un correo cada mañana con el plan del día.</div>
+                  </div>
+                  <button type="button" class="settings-switch" id="settings-digest-toggle" aria-pressed="false">
+                    <span class="settings-switch-knob"></span>
+                  </button>
+                </div>
+              </section>
+
+              <!-- ── Tareas ── -->
+              <section class="settings-section-panel" id="settings-panel-tareas" data-settings-panel="tareas" hidden>
+                <h3 class="settings-section-title" data-i18n="settings.nav.tasks">Tareas</h3>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.tasks.monday">La semana empieza el lunes</div>
+                    <div class="settings-row-desc" data-i18n="settings.tasks.monday_desc">Afecta al orden de los días en las fechas.</div>
+                  </div>
+                  <button type="button" class="settings-switch on" id="settings-monday-toggle" aria-pressed="true">
+                    <span class="settings-switch-knob"></span>
+                  </button>
+                </div>
+                <div class="settings-row settings-row--top">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.tasks.default_priority">Prioridad por defecto</div>
+                    <div class="settings-row-desc" data-i18n="settings.tasks.default_priority_desc">Se aplica a las tareas nuevas sin prioridad.</div>
+                  </div>
+                  <div class="settings-seg" id="settings-priority-seg">
+                    <button type="button" class="settings-seg-opt active" data-priority="none" data-i18n="settings.tasks.priority_none">Ninguna</button>
+                    <button type="button" class="settings-seg-opt" data-priority="low" data-i18n="priority.low">P3</button>
+                    <button type="button" class="settings-seg-opt" data-priority="medium" data-i18n="priority.medium">P2</button>
+                    <button type="button" class="settings-seg-opt" data-priority="high" data-i18n="priority.high">P1</button>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── Datos ── -->
+              <section class="settings-section-panel" id="settings-panel-datos" data-settings-panel="datos" hidden>
+                <h3 class="settings-section-title" data-i18n="settings.nav.data">Datos</h3>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="profile.export">Exportar workspace</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.export_desc">Descarga todas tus tareas y notas en un archivo.</div>
+                  </div>
+                  <button type="button" class="settings-btn" id="pf-export-btn"><i data-lucide="upload"></i> <span data-i18n="settings.data.export">Exportar</span></button>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="profile.import">Importar workspace</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.import_desc">Restaura desde un archivo exportado previamente.</div>
+                  </div>
+                  <label class="settings-btn" for="pf-import-input"><i data-lucide="download"></i> <span data-i18n="settings.data.import">Importar</span></label>
+                  <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.data.clear_completed">Limpiar tareas completadas</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.clear_completed_desc">Elimina de forma permanente las tareas ya hechas.</div>
+                  </div>
+                  <button type="button" class="settings-btn settings-btn--danger" id="settings-clear-completed-btn"><i data-lucide="trash-2"></i> <span data-i18n="settings.data.clear">Limpiar</span></button>
+                </div>
+              </section>
+
+              <!-- ── Acerca de ── -->
+              <section class="settings-section-panel" id="settings-panel-acerca" data-settings-panel="acerca" hidden>
+                <h3 class="settings-section-title" data-i18n="settings.nav.about">Acerca de</h3>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.about.version">Versión</div>
+                    <div class="settings-row-desc" data-i18n="settings.about.version_desc">Antask para escritorio.</div>
+                  </div>
+                  <span class="settings-mono-value">1.0</span>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-label" data-i18n="profile.shortcuts">Atajos de teclado</div>
+                  <button type="button" class="settings-mono-value settings-mono-value--btn" id="settings-shortcuts-link">?</button>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.about.session">Sesión</div>
+                    <div class="settings-row-desc" data-i18n="settings.about.session_desc">Cierra la sesión en este dispositivo.</div>
+                  </div>
+                  <button type="button" class="settings-btn settings-btn--danger" id="settings-signout-about-btn"><i data-lucide="log-out"></i> <span data-i18n="profile.signout">Cerrar sesión</span></button>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ── MAIN PANEL ──────────────────────────────────── -->
       <main class="main-panel" id="main-panel">
@@ -746,11 +949,11 @@
         });
       }
 
-      // Agenda/Calendario/Buscar dentro del dropdown de perfil (solo móvil):
-      // ejecutan la acción y cierran el drawer para que se vea la vista.
+      // Agenda/Calendario dentro del dropdown de perfil (solo móvil, y
+      // ocultos: no forman parte de v1): ejecutan la acción y cierran
+      // el drawer para que se vea la vista.
       var pfAgendaBtn   = document.getElementById("pf-agenda-btn");
       var pfCalendarBtn = document.getElementById("pf-calendar-btn");
-      var pfSearchBtn   = document.getElementById("pf-search-btn");
       if (pfAgendaBtn) {
         pfAgendaBtn.addEventListener("click", function() {
           closeSidebar();
@@ -761,12 +964,6 @@
         pfCalendarBtn.addEventListener("click", function() {
           closeSidebar();
           if (typeof window.showCalendarPanel === "function") window.showCalendarPanel();
-        });
-      }
-      if (pfSearchBtn) {
-        pfSearchBtn.addEventListener("click", function() {
-          closeSidebar();
-          if (typeof showGlobalSearch === "function") showGlobalSearch();
         });
       }
 

@@ -15,8 +15,6 @@ import { t } from "./i18n/index.js";
   var profileDropdown = document.getElementById("profile-dropdown");
   var pfExportBtn     = document.getElementById("pf-export-btn");
   var pfImportInput   = document.getElementById("pf-import-input");
-  var pfThemeBtn      = document.getElementById("pf-theme-btn");
-  var pfThemeIco      = document.getElementById("pf-theme-ico");
   var pfSigninBtn     = document.getElementById("pf-signin-btn");
   var pfSyncSep       = document.getElementById("pf-sync-sep");
 
@@ -25,22 +23,11 @@ import { t } from "./i18n/index.js";
   // La visibilidad del botón sync la gestiona _updateSyncUI() en script.js
   // cuando Firebase dispara onAuthStateChanged (carga diferida).
 
-  function syncThemeIcon() {
-    if (!pfThemeIco) return;
-    var isDark = document.documentElement.dataset.theme === "dark";
-    var ico = pfThemeIco.querySelector("i[data-lucide]");
-    if (ico) {
-      ico.setAttribute("data-lucide", isDark ? "moon" : "sun");
-      if (window.lucide) lucide.createIcons({ nodes: [pfThemeIco] });
-    }
-  }
-
   profileBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     var open = !profileDropdown.hidden;
     profileDropdown.hidden = open;
     profileBtn.setAttribute("aria-expanded", String(!open));
-    if (!open) syncThemeIcon();
   });
 
   document.addEventListener("click", function(e) {
@@ -79,14 +66,64 @@ import { t } from "./i18n/index.js";
     });
   }
 
-  var pfEditBtn = document.getElementById("pf-edit-btn");
-  if (pfEditBtn) {
-    pfEditBtn.addEventListener("click", function() {
-      profileDropdown.hidden = true;
-      profileBtn.setAttribute("aria-expanded", "false");
-      if (typeof window.showProfileModal === "function") window.showProfileModal();
+  // ─── Modal de Ajustes ──────────────────────────────────────────
+  var settingsOverlay  = document.getElementById("settings-overlay");
+  var settingsCloseBtn = document.getElementById("settings-close-btn");
+  var pfSettingsBtn    = document.getElementById("pf-settings-btn");
+
+  function syncThemeSeg() {
+    var seg = document.getElementById("settings-theme-seg");
+    if (!seg) return;
+    var cur = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    seg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.classList.toggle("active", btn.dataset.themeValue === cur);
     });
   }
+
+  function openSettingsModal() {
+    if (!settingsOverlay) return;
+    syncThemeSeg();
+    syncAccentDots();
+    settingsOverlay.hidden = false;
+    requestAnimationFrame(function() { settingsOverlay.classList.add("modal-visible"); });
+  }
+  function closeSettingsModal() {
+    if (!settingsOverlay || settingsOverlay.hidden) return;
+    settingsOverlay.classList.remove("modal-visible");
+    settingsOverlay.addEventListener("transitionend", function handler() {
+      settingsOverlay.removeEventListener("transitionend", handler);
+      if (!settingsOverlay.classList.contains("modal-visible")) settingsOverlay.hidden = true;
+    }, { once: true });
+  }
+  window.openSettingsModal = openSettingsModal;
+
+  if (pfSettingsBtn) {
+    pfSettingsBtn.addEventListener("click", function() {
+      profileDropdown.hidden = true;
+      profileBtn.setAttribute("aria-expanded", "false");
+      openSettingsModal();
+    });
+  }
+  if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", closeSettingsModal);
+  if (settingsOverlay) {
+    settingsOverlay.addEventListener("mousedown", function(e) {
+      if (e.target === settingsOverlay) closeSettingsModal();
+    });
+  }
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && settingsOverlay && !settingsOverlay.hidden) closeSettingsModal();
+  });
+
+  // ─── Navegación entre secciones del modal de Ajustes ──────────
+  var settingsNavBtns = document.querySelectorAll(".settings-nav-item");
+  var settingsPanels  = document.querySelectorAll(".settings-section-panel");
+  settingsNavBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var target = btn.dataset.settingsPanel;
+      settingsNavBtns.forEach(function(b) { b.classList.toggle("active", b === btn); });
+      settingsPanels.forEach(function(p) { p.hidden = (p.dataset.settingsPanel !== target); });
+    });
+  });
 
   var shortcutsItem = document.getElementById("shortcuts-btn");
   if (shortcutsItem) {
@@ -96,62 +133,127 @@ import { t } from "./i18n/index.js";
     });
   }
 
-  var tourBtn = document.getElementById("tour-btn");
-  if (tourBtn) {
-    tourBtn.addEventListener("click", function() {
-      profileDropdown.hidden = true;
-      profileBtn.setAttribute("aria-expanded", "false");
-      if (typeof window.showOnboardingAgain === "function") window.showOnboardingAgain();
+  var settingsShortcutsLink = document.getElementById("settings-shortcuts-link");
+  if (settingsShortcutsLink) {
+    settingsShortcutsLink.addEventListener("click", function() {
+      if (typeof window.showShortcutsHelp === "function") window.showShortcutsHelp();
     });
   }
 
-  if (pfThemeBtn) {
-    pfThemeBtn.addEventListener("click", function() {
-      profileDropdown.hidden = true;
-      if (window.toggleThemeWithTransition) {
-        toggleThemeWithTransition(pfThemeBtn);
-      } else {
-        var cur  = document.documentElement.dataset.theme;
-        var next = cur === "dark" ? "light" : "dark";
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem(THEME_KEY, next);
-      }
+  var settingsEditProfileBtn = document.getElementById("settings-edit-profile-btn");
+  if (settingsEditProfileBtn) {
+    settingsEditProfileBtn.addEventListener("click", function() {
+      if (typeof window.showProfileModal === "function") window.showProfileModal();
     });
   }
 
-  if (pfSigninBtn) {
-    pfSigninBtn.addEventListener("click", function() {
-      profileDropdown.hidden = true;
-      if (!window.AnsoSync) {
-        if (window.modalAlert) modalAlert("La sincronización aún se está cargando. Espera un momento e inténtalo de nuevo.", "info");
-        return;
-      }
-      AnsoSync.signIn().catch(function(e) {
-        if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
-        var msg = e.code === "auth/popup-blocked"
-          ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
-          : e.code === "auth/unauthorized-domain"
-          ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
-          : "Error al iniciar sesión: " + (e.message || e.code);
-        console.error("AnsoSync signIn error:", e);
-        if (window.modalAlert) modalAlert(msg, "error");
+  // ─── Tema (segmentado real: Claro/Oscuro) ─────────────────────
+  var themeSeg = document.getElementById("settings-theme-seg");
+  if (themeSeg) {
+    themeSeg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var next = btn.dataset.themeValue;
+        if (document.documentElement.dataset.theme === next) return;
+        if (window.toggleThemeWithTransition) {
+          toggleThemeWithTransition(btn);
+        } else {
+          document.documentElement.dataset.theme = next;
+          localStorage.setItem(THEME_KEY, next);
+        }
+        syncThemeSeg();
+      });
+    });
+    syncThemeSeg();
+  }
+
+  // ─── Controles de Apariencia/Tareas/Notificaciones que aún no
+  // tienen función real (acento, tipografía, contenedor, prioridad
+  // por defecto, resumen diario, semana en lunes): solo reflejan la
+  // selección en la sesión actual, igual que hace el propio prototipo
+  // v1 cuando no está conectado a un ajuste real. ───────────────
+  function wireInertSeg(containerId) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        el.querySelectorAll(".settings-seg-opt").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
       });
     });
   }
+  wireInertSeg("settings-shell-seg");
+  wireInertSeg("settings-priority-seg");
 
-  var pfSignoutBtn = document.getElementById("pf-signout-btn");
-  if (pfSignoutBtn) {
-    pfSignoutBtn.addEventListener("click", function() {
-      profileDropdown.hidden = true;
-      if (window.AnsoSync) AnsoSync.signOut();
+  function wireInertToggle(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("click", function() {
+      var on = el.classList.toggle("on");
+      el.setAttribute("aria-pressed", String(on));
     });
   }
+  wireInertToggle("settings-digest-toggle");
+  wireInertToggle("settings-monday-toggle");
+
+  // ─── Color de acento (real: se aplica y persiste) ─────────────
+  var accentRow = document.getElementById("settings-accent-row");
+  function syncAccentDots() {
+    if (!accentRow) return;
+    var current = document.documentElement.dataset.accent || "oliva";
+    accentRow.querySelectorAll(".settings-accent-dot").forEach(function(b) {
+      var on = b.dataset.accent === current;
+      b.classList.toggle("active", on);
+      b.innerHTML = on ? '<i data-lucide="check"></i>' : "";
+    });
+    if (window.lucide) lucide.createIcons({ nodes: [accentRow] });
+  }
+  if (accentRow) {
+    accentRow.querySelectorAll(".settings-accent-dot").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        if (typeof window.setAccent === "function") window.setAccent(btn.dataset.accent);
+        syncAccentDots();
+      });
+    });
+    syncAccentDots();
+  }
+
+  // ─── Cuenta / sincronización con Google ───────────────────────
+  function doSignIn() {
+    profileDropdown.hidden = true;
+    if (!window.AnsoSync) {
+      if (window.modalAlert) modalAlert("La sincronización aún se está cargando. Espera un momento e inténtalo de nuevo.", "info");
+      return;
+    }
+    AnsoSync.signIn().catch(function(e) {
+      if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+      var msg = e.code === "auth/popup-blocked"
+        ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
+        : e.code === "auth/unauthorized-domain"
+        ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+        : "Error al iniciar sesión: " + (e.message || e.code);
+      console.error("AnsoSync signIn error:", e);
+      if (window.modalAlert) modalAlert(msg, "error");
+    });
+  }
+  function doSignOut() {
+    profileDropdown.hidden = true;
+    if (window.AnsoSync) AnsoSync.signOut();
+  }
+  [pfSigninBtn, document.getElementById("settings-signin-btn")].forEach(function(btn) {
+    if (btn) btn.addEventListener("click", doSignIn);
+  });
+  [
+    document.getElementById("pf-signout-btn"),
+    document.getElementById("settings-signout-btn"),
+    document.getElementById("settings-signout-about-btn"),
+  ].forEach(function(btn) {
+    if (btn) btn.addEventListener("click", doSignOut);
+  });
 
   // ─── Notificaciones ──────────────────────────────────────────
   var pfNotifBtn       = document.getElementById("pf-notif-btn");
   var pfNotifLabel     = document.getElementById("pf-notif-label");
   var pfNotifPill      = document.getElementById("pf-notif-pill");
-  var pfNotifIco       = document.getElementById("pf-notif-ico");
   var pfNotifOptions   = document.getElementById("pf-notif-options");
   var pfNotifTimesList = document.getElementById("pf-notif-times-list");
   var pfNotifNewTime   = document.getElementById("pf-notif-new-time");
@@ -195,24 +297,17 @@ import { t } from "./i18n/index.js";
     var enabled = AnsoNotif.isEnabled();
     var perm    = AnsoNotif.permission();
 
+    pfNotifBtn.classList.toggle("on", enabled);
+    pfNotifBtn.setAttribute("aria-pressed", String(enabled));
+
     if (enabled) {
       pfNotifLabel.textContent = t("notif.enabled");
-      pfNotifPill.textContent  = "ON";
-      pfNotifPill.classList.add("on");
-      if (pfNotifIco) {
-        pfNotifIco.innerHTML = '<i data-lucide="bell-ring"></i>';
-        if (window.lucide) lucide.createIcons({ nodes: [pfNotifIco] });
-      }
+      if (pfNotifPill) { pfNotifPill.textContent = "ON"; pfNotifPill.classList.add("on"); }
       if (pfNotifOptions) pfNotifOptions.hidden = false;
       renderNotifTimes();
     } else {
       pfNotifLabel.textContent = perm === "denied" ? t("notif.blocked") : t("notif.enable");
-      pfNotifPill.textContent  = "OFF";
-      pfNotifPill.classList.remove("on");
-      if (pfNotifIco) {
-        pfNotifIco.innerHTML = '<i data-lucide="bell"></i>';
-        if (window.lucide) lucide.createIcons({ nodes: [pfNotifIco] });
-      }
+      if (pfNotifPill) { pfNotifPill.textContent = "OFF"; pfNotifPill.classList.remove("on"); }
       if (pfNotifOptions) pfNotifOptions.hidden = true;
     }
   }

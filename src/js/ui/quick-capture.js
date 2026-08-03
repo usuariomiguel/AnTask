@@ -5,7 +5,8 @@
 // la app (típicamente vía atajo Ctrl/Cmd+Shift+Espacio).
 //
 // El módulo es agnóstico del estado: recibe via `deps` el destino
-// actual (proyecto al que ir) y el callback para crear la tarea.
+// actual (proyecto al que ir), la lista de proyectos elegibles y
+// el callback para crear la tarea.
 // ═══════════════════════════════════════════════════════════════
 
 import { createModalBase, closeModal } from "./modal.js";
@@ -21,8 +22,15 @@ let _isOpen = false;
  * @property {() => {project: any, isFallback: boolean}} getTarget
  *   Devuelve el proyecto donde irá la tarea. `isFallback` es true
  *   cuando no había proyecto activo y se usa Inbox por defecto.
- * @property {(project: any, text: string) => void} onCreate
- *   Callback para crear la tarea en el proyecto indicado.
+ * @property {() => any[]} [getLists]
+ *   Devuelve todos los proyectos elegibles desde el selector de
+ *   lista (Inbox primero, luego el resto sin archivar).
+ * @property {string} [inboxId]
+ *   Id del proyecto Inbox — solo para el matiz de color del chip.
+ * @property {(project: any, text: string, overrides: {priority?: string, dueDate?: string}) => void} onCreate
+ *   Callback para crear la tarea en el proyecto indicado. `overrides`
+ *   lleva prioridad/fecha elegidas a mano en los chips (pisan lo
+ *   detectado en el texto).
  * @property {(message: string) => void} [onToast]
  *   Mensaje de confirmación tras crear (opcional).
  */
@@ -35,6 +43,33 @@ export function isQuickCaptureOpen() {
   return _isOpen;
 }
 
+/** ISO YYYY-MM-DD en hora local para "hoy" / "mañana". */
+function _dueKeyToISO(key) {
+  if (!key) return null;
+  const d = new Date();
+  if (key === "manana") d.setDate(d.getDate() + 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+/**
+ * Busca un `#lista` en el texto bruto y lo empareja con un proyecto
+ * existente (por nombre exacto, sin distinguir mayúsculas). No usa
+ * el parser compartido de lenguaje natural — es un atajo local solo
+ * para enrutar la tarea, igual que hace el prototipo.
+ */
+function _detectHashList(raw, lists) {
+  const m = raw.match(/(?:^|\s)#([^\s#]+)/);
+  if (!m || m.index == null) return null;
+  const needle = m[1].toLowerCase();
+  const found = (lists || []).find(function (p) { return p.name && p.name.toLowerCase() === needle; });
+  if (!found) return null;
+  return { project: found, start: m.index, end: m.index + m[0].length };
+}
+
+function _stripRange(text, start, end) {
+  return (text.slice(0, start) + text.slice(end)).replace(/\s+/g, " ").trim();
+}
+
 /**
  * Abre el modal de captura rápida.
  *
@@ -44,78 +79,198 @@ export function showQuickCapture(deps) {
   if (_isOpen) return;
   _isOpen = true;
 
-  const { project, isFallback } = deps.getTarget() || {};
+  const { project } = deps.getTarget() || {};
   if (!project) {
     _isOpen = false;
     return;
   }
 
+  const lists = (typeof deps.getLists === "function" ? deps.getLists() : []) || [];
+
   const { overlay, box } = createModalBase();
+  overlay.classList.add("modal-overlay--top");
   box.className = "modal-box modal-box-quick";
 
-  const projLabel = project.name;
+  // Overrides manuales: los chips pisan lo detectado en el texto.
+  let dueOverride  = null;    // "hoy" | "manana" | null
+  let prioOverride = null;    // "high" | "medium" | "low" | null
+  let selectedId   = project.id;
+  let manualPick   = false;   // true en cuanto se elige una lista a mano
 
   box.innerHTML =
     '<div class="quick-capture-header">' +
       '<span class="quick-capture-badge"><i data-lucide="sparkles"></i></span>' +
       '<span class="quick-capture-title">' + t("quick_capture.title") + '</span>' +
       '<span class="quick-capture-spacer"></span>' +
-      '<span class="quick-capture-target' + (isFallback ? " quick-capture-target--inbox" : "") + '">' +
-        '<i data-lucide="corner-down-right"></i> ' +
-        escHtml(projLabel) +
+      '<span class="quick-capture-kbd-hint">' +
+        '<span class="qc-kbd">Ctrl</span><span class="qc-kbd-plus">+</span>' +
+        '<span class="qc-kbd">⇧</span><span class="qc-kbd-plus">+</span>' +
+        '<span class="qc-kbd qc-kbd--wide">' + t("quick_capture.key_space") + '</span>' +
       '</span>' +
       '<button type="button" class="quick-capture-close" aria-label="' + t("modal.close") + '"><i data-lucide="x"></i></button>' +
     '</div>' +
-    '<input class="modal-input quick-capture-input" type="text" maxlength="120" autocomplete="off"' +
+    '<input class="quick-capture-input" type="text" maxlength="120" autocomplete="off"' +
       ' placeholder="' + t("quick_capture.placeholder") + '" />' +
     '<div class="quick-capture-preview nl-preview" hidden></div>' +
-    _cheatsheetHTML() +
-    '<div class="quick-capture-hint">' + t("quick_capture.hint") + '</div>';
+    '<div class="quick-capture-chips">' +
+      '<button type="button" class="qc-chip" data-due="hoy"><i data-lucide="sun"></i>' + t("date.today") + '</button>' +
+      '<button type="button" class="qc-chip" data-due="manana"><i data-lucide="calendar"></i>' + t("date.tomorrow") + '</button>' +
+      '<span class="qc-chip-sep"></span>' +
+      '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><span class="qc-chip-dot"></span>' + t("priority.high") + '</button>' +
+      '<button type="button" class="qc-chip qc-chip--medium" data-prio="medium"><span class="qc-chip-dot"></span>' + t("priority.medium") + '</button>' +
+      '<button type="button" class="qc-chip qc-chip--low" data-prio="low"><span class="qc-chip-dot"></span>' + t("priority.low") + '</button>' +
+      '<span class="qc-chip-sep"></span>' +
+      '<div class="qc-list-picker">' +
+        '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +
+          '<i data-lucide="inbox"></i><span class="qc-list-label"></span><i data-lucide="chevron-down" class="qc-list-caret"></i>' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="quick-capture-footer">' +
+      '<span class="quick-capture-hint">' +
+        '<span class="qc-hint-word">' + t("quick_capture.hint_type") + '</span>' +
+        '<code>hoy</code><code>#lista</code><code>p1</code>' +
+        '<span class="qc-hint-word">' + t("quick_capture.hint_autocomplete") + '</span>' +
+      '</span>' +
+      '<span class="quick-capture-spacer"></span>' +
+      '<button type="button" class="quick-capture-submit" disabled>' +
+        '<span>' + t("quick_capture.submit") + '</span>' +
+        '<span class="qc-kbd qc-kbd--accent">↵</span>' +
+      '</button>' +
+    '</div>';
 
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
-  const input   = box.querySelector(".quick-capture-input");
-  const preview = box.querySelector(".quick-capture-preview");
+  const input        = box.querySelector(".quick-capture-input");
+  const preview      = box.querySelector(".quick-capture-preview");
+  const dueBtns      = box.querySelectorAll("[data-due]");
+  const prioBtns     = box.querySelectorAll("[data-prio]");
+  const listPicker   = box.querySelector(".qc-list-picker");
+  const listTrigger  = box.querySelector(".qc-list-trigger");
+  const listLabel    = box.querySelector(".qc-list-label");
+  const submitBtn    = box.querySelector(".quick-capture-submit");
+  let   listPopoverEl = null;
 
-  function renderPreview(raw) {
-    if (!raw || !raw.trim()) {
-      preview.hidden = true;
-      preview.innerHTML = "";
-      return;
-    }
-    const parsed = parseNaturalLanguage(raw);
-    const chips  = buildNLChipsHTML(parsed);
-    if (chips.length === 0) {
-      preview.hidden = true;
-      preview.innerHTML = "";
-      return;
-    }
-    preview.hidden = false;
-    preview.innerHTML =
-      '<span class="nl-preview-arrow">↳</span>' +
-      chips.join("") +
-      (parsed.text ? '<span class="nl-preview-rest">' + escHtml(parsed.text) + '</span>' : "");
-    if (window.lucide) window.lucide.createIcons({ nodes: [preview] });
+  function findList(id) {
+    return lists.find(function (p) { return p.id === id; }) || project;
   }
 
-  input.addEventListener("input", function () { renderPreview(input.value); });
+  function closeListPopover() {
+    if (!listPopoverEl) return;
+    listPopoverEl.remove();
+    listPopoverEl = null;
+    listTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  function openListPopover() {
+    closeListPopover();
+    listTrigger.setAttribute("aria-expanded", "true");
+    const pop = document.createElement("div");
+    pop.className = "field-popover field-popover--up field-popover--narrow";
+    pop.innerHTML = '<div class="field-popover-list">' +
+      lists.map(function (p) {
+        const active = p.id === selectedId;
+        return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-list-id="' + escHtml(p.id) + '">' +
+          '<span class="field-popover-row-label">' + escHtml(p.name) + '</span>' +
+          (active ? '<i data-lucide="check"></i>' : "") +
+        '</button>';
+      }).join("") +
+    '</div>';
+    listPicker.appendChild(pop);
+    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+    pop.querySelectorAll("[data-list-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        selectedId = btn.dataset.listId;
+        manualPick = true;
+        closeListPopover();
+        render();
+      });
+    });
+    listPopoverEl = pop;
+  }
+
+  listTrigger.addEventListener("click", function () {
+    if (listPopoverEl) closeListPopover();
+    else openListPopover();
+  });
+
+  function render() {
+    const raw = input.value;
+    const hashMatch = _detectHashList(raw, lists);
+
+    if (!manualPick) selectedId = hashMatch ? hashMatch.project.id : project.id;
+    const resolved = findList(selectedId);
+
+    // píldoras detectadas en el texto (solo si no hay override manual del mismo campo)
+    const parsed = parseNaturalLanguage(raw);
+    const chips = [];
+    if (parsed.dueDate && !dueOverride) chips.push(buildNLChipsHTML({ dueDate: parsed.dueDate })[0]);
+    if (hashMatch && manualPick) {
+      chips.push('<span class="nl-chip nl-chip-list"><span class="nl-chip-hash">#</span>' + escHtml(hashMatch.project.name) + '</span>');
+    }
+    if (parsed.priority && !prioOverride) chips.push(buildNLChipsHTML({ priority: parsed.priority })[0]);
+    if (chips.length) {
+      preview.hidden = false;
+      preview.innerHTML = chips.join("");
+      if (window.lucide) window.lucide.createIcons({ nodes: [preview] });
+    } else {
+      preview.hidden = true;
+      preview.innerHTML = "";
+    }
+
+    const finalPrio = prioOverride || parsed.priority;
+    dueBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.due === dueOverride); });
+    prioBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.prio === finalPrio); });
+
+    listLabel.textContent = resolved.name;
+    listTrigger.classList.add("active");
+    listTrigger.classList.toggle("qc-list-trigger--inbox", resolved.id === deps.inboxId);
+
+    submitBtn.disabled = raw.trim().length === 0;
+  }
+
+  input.addEventListener("input", render);
+  dueBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const key = btn.dataset.due;
+      dueOverride = dueOverride === key ? null : key;
+      render();
+    });
+  });
+  prioBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const p = btn.dataset.prio;
+      prioOverride = (prioOverride === p) ? null : p;
+      render();
+    });
+  });
+
+  render();
 
   function close() {
     _isOpen = false;
+    document.removeEventListener("mousedown", onDocMouseDown, true);
     closeModal(overlay);
   }
 
   function submit() {
-    const text = input.value.trim();
-    if (!text) {
+    const raw = input.value.trim();
+    if (!raw) {
       input.focus();
       return;
     }
+    const hashMatch = _detectHashList(raw, lists);
+    const text = hashMatch ? _stripRange(raw, hashMatch.start, hashMatch.end) : raw;
+    const targetProject = findList(selectedId);
+    const overrides = {};
+    if (prioOverride) overrides.priority = prioOverride;
+    if (dueOverride) overrides.dueDate = _dueKeyToISO(dueOverride);
+
     if (typeof deps.onCreate === "function") {
-      deps.onCreate(project, text);
+      deps.onCreate(targetProject, text, overrides);
     }
     if (typeof deps.onToast === "function") {
-      deps.onToast(t("quick_capture.added_to") + " " + projLabel);
+      deps.onToast(t("quick_capture.added_to") + " " + targetProject.name);
     }
     close();
   }
@@ -123,6 +278,7 @@ export function showQuickCapture(deps) {
   overlay._cancel = close;
   const closeBtn = box.querySelector(".quick-capture-close");
   if (closeBtn) closeBtn.addEventListener("click", close);
+  submitBtn.addEventListener("click", submit);
 
   input.addEventListener("keydown", function (e) {
     e.stopPropagation();  // Evita que atajos globales (n, s, a, c) actúen
@@ -131,32 +287,16 @@ export function showQuickCapture(deps) {
       submit();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      close();
+      if (listPopoverEl) closeListPopover();
+      else close();
     }
   });
 
+  function onDocMouseDown(e) {
+    if (listPopoverEl && !listPicker.contains(e.target)) closeListPopover();
+  }
+  document.addEventListener("mousedown", onDocMouseDown, true);
+
   // Focus inmediato
   setTimeout(function () { input.focus(); }, 40);
-}
-
-/** Chuleta de lenguaje natural: qué tokens puede escribir el usuario. */
-function _cheatsheetHTML() {
-  const rows = [
-    { icon: "calendar", label: t("quick_capture.nl_dates"),    ex: t("quick_capture.nl_dates_ex") },
-    { icon: "repeat",   label: t("quick_capture.nl_recur"),    ex: t("quick_capture.nl_recur_ex") },
-    { icon: "flag",     label: t("quick_capture.nl_priority"), ex: t("quick_capture.nl_priority_ex") },
-  ];
-  return '<div class="quick-capture-cheats">' +
-    '<span class="qc-cheat-title">' + t("quick_capture.nl_title") + '</span>' +
-    rows.map(function (r) {
-      const codes = r.ex.split("·").map(function (s) {
-        return '<code>' + escHtml(s.trim()) + '</code>';
-      }).join("");
-      return '<div class="qc-cheat-row">' +
-        '<span class="qc-cheat-ico"><i data-lucide="' + r.icon + '"></i></span>' +
-        '<span class="qc-cheat-label">' + escHtml(r.label) + '</span>' +
-        '<span class="qc-cheat-ex">' + codes + '</span>' +
-      '</div>';
-    }).join("") +
-  '</div>';
 }

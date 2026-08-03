@@ -27,10 +27,10 @@ export const en = {
   // ── Profile ───────────────────────────────────────────────
   "profile.local":            "Local",
   "profile.local_storage":    "Local storage",
-  "profile.edit":             "Edit profile",
   "profile.edit_title":       "Your name",
   "profile.name_placeholder": "Type your name...",
   "profile.avatar_label":     "Pick an avatar",
+  "profile.settings":         "Settings",
   "profile.export":           "Export workspace",
   "profile.import":           "Import workspace",
   "profile.notifications":    "Enable notifications",
@@ -42,7 +42,60 @@ export const en = {
   "profile.sync_active":      "Sync active",
   "profile.default_name":     "User",
   "profile.signout":          "Sign out",
+  "profile.workspace_section":"Workspace",
   "profile.signin":           "Sync with Google",
+
+  // ── Settings (two-pane dialog) ─────────────────────────────
+  "settings.nav.account":              "Account",
+  "settings.nav.appearance":           "Appearance",
+  "settings.nav.notifications":        "Notifications",
+  "settings.nav.tasks":                "Tasks",
+  "settings.nav.data":                 "Data",
+  "settings.nav.about":                "About",
+
+  "settings.account.sync":             "Sync with Google",
+  "settings.account.sync_desc":        "Your tasks and notes are saved to the cloud.",
+  "settings.account.connected":        "Connected",
+  "settings.account.language":         "Language",
+  "settings.account.language_desc":    "Interface language.",
+
+  "settings.appearance.theme":         "Theme",
+  "settings.appearance.theme_desc":    "Light for the day, dark for the night.",
+  "settings.appearance.light":         "Light",
+  "settings.appearance.dark":          "Dark",
+  "settings.appearance.accent":        "Accent color",
+  "settings.appearance.accent_desc":   "Sets the character of the interface.",
+  "settings.appearance.container":        "Container",
+  "settings.appearance.container_desc":   "Panels attached or floating over the canvas.",
+  "settings.appearance.shell_attached":   "Attached",
+  "settings.appearance.shell_floating":   "Floating",
+
+  "settings.notifications.tasks":      "Task alerts",
+  "settings.notifications.tasks_desc": "Reminders when a task is due.",
+  "settings.notifications.times":      "Alert times",
+  "settings.notifications.add":        "Add",
+  "settings.notifications.test":       "Test alert",
+  "settings.notifications.digest":     "Daily digest",
+  "settings.notifications.digest_desc":"An email every morning with the day's plan.",
+
+  "settings.tasks.monday":             "Week starts on Monday",
+  "settings.tasks.monday_desc":        "Affects day order in dates.",
+  "settings.tasks.default_priority":       "Default priority",
+  "settings.tasks.default_priority_desc":  "Applied to new tasks without a priority.",
+  "settings.tasks.priority_none":      "None",
+
+  "settings.data.export":              "Export",
+  "settings.data.export_desc":         "Download all your tasks and notes as a file.",
+  "settings.data.import":              "Import",
+  "settings.data.import_desc":         "Restore from a previously exported file.",
+  "settings.data.clear":               "Clear",
+  "settings.data.clear_completed":     "Clear completed tasks",
+  "settings.data.clear_completed_desc":"Permanently deletes tasks that are already done.",
+
+  "settings.about.version":            "Version",
+  "settings.about.version_desc":       "Antask for desktop.",
+  "settings.about.session":            "Session",
+  "settings.about.session_desc":       "Sign out on this device.",
 
   // ── Task input ────────────────────────────────────────────
   "task.input.placeholder":   "New task…",
@@ -62,7 +115,6 @@ export const en = {
 
   // ── Bottom nav (mobile) ───────────────────────────────────
   "nav.projects":             "Projects",
-  "nav.search":               "Search",
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
   "nav.agenda":               "Agenda",
@@ -333,16 +385,12 @@ export const en = {
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.eyebrow":    "New task",
   "quick_capture.title":      "Quick capture",
-  "quick_capture.placeholder":"Type the task and press Enter...",
-  "quick_capture.hint":       "<kbd>Enter</kbd> to create · <kbd>Esc</kbd> to cancel",
+  "quick_capture.placeholder":"What do you need to do?",
+  "quick_capture.key_space":  "Space",
+  "quick_capture.hint_type":          "Type",
+  "quick_capture.hint_autocomplete":  "to autocomplete",
+  "quick_capture.submit":     "Add task",
   "quick_capture.added_to":   "Added to",
-  "quick_capture.nl_title":     "You can type:",
-  "quick_capture.nl_dates":     "Date",
-  "quick_capture.nl_dates_ex":  "hoy · mañana · lunes · en 3 días",
-  "quick_capture.nl_recur":     "Repeat",
-  "quick_capture.nl_recur_ex":  "cada 7 días · todos los lunes",
-  "quick_capture.nl_priority":  "Priority",
-  "quick_capture.nl_priority_ex":"p1 · p2 · p3",
   "task.quick_hint":            "quick capture",
 
   // ── Import / export ───────────────────────────────────────

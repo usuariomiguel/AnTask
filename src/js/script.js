@@ -72,6 +72,9 @@ import {
 import {
   initializeTheme,
   toggleThemeWithTransition,
+  initializeAccent,
+  setAccent,
+  ACCENT_KEY,
 } from "./ui/theme.js";
 import { renderCalendar as _renderCalendarModule } from "./ui/calendar.js";
 import { renderAgenda as _renderAgendaModule } from "./ui/agenda.js";
@@ -89,6 +92,9 @@ function renderAgenda() {
 // sections-and-profile.js usa window.toggleThemeWithTransition para
 // el fallback cuando se pulsa "Cambiar tema" sin View Transition API.
 window.toggleThemeWithTransition = toggleThemeWithTransition;
+// sections-and-profile.js usa window.setAccent para aplicar y persistir
+// el color de acento elegido en Ajustes → Apariencia.
+window.setAccent = setAccent;
 
 /**
  * Atajo no-args para la búsqueda global: inyecta los datos y los
@@ -121,8 +127,14 @@ function openQuickCapture(opts) {
       var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
       return { project: inbox, isFallback: true };
     },
-    onCreate: function(targetProject, rawText) {
-      const created = _createTaskInProject(targetProject, rawText);
+    getLists: function() {
+      var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
+      var others = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
+      return inbox ? [inbox].concat(others) : others;
+    },
+    inboxId: INBOX_ID,
+    onCreate: function(targetProject, rawText, overrides) {
+      const created = _createTaskInProject(targetProject, rawText, overrides);
       if (!created) return;
       saveProjects();
       // Desde una vista que no es de proyecto (Hoy/Agenda/Calendario/smart-list)
@@ -323,6 +335,7 @@ function _syncRowStylePicker() {
 
 // ─── ARRANQUE ────────────────────────────────────────────────
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
+try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
@@ -505,6 +518,12 @@ document.addEventListener("keydown", function(e) {
     return;
   }
 
+  if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+    e.preventDefault();
+    if (typeof window.openSettingsModal === "function") window.openSettingsModal();
+    return;
+  }
+
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
     e.preventDefault();
     var _sb = document.querySelector(".sidebar");
@@ -557,17 +576,6 @@ document.addEventListener("keydown", function(e) {
     return;
   }
 
-  if (e.key === "a" || e.key === "A") {
-    e.preventDefault();
-    showAgendaPanel();
-    return;
-  }
-
-  if (e.key === "c" || e.key === "C") {
-    e.preventDefault();
-    showCalendarPanel();
-    return;
-  }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -894,7 +902,8 @@ if (taskInput) {
  * Crea una tarea aplicando parseo de lenguaje natural sobre el
  * texto bruto. NO persiste ni re-renderiza — eso lo decide el caller.
  */
-function _createTaskInProject(project, rawText) {
+function _createTaskInProject(project, rawText, overrides) {
+  overrides = overrides || {};
   const parsed = parseNaturalLanguage(rawText);
   const text = capitalizeFirst(parsed.text).slice(0, 120);
   if (!text) return null;
@@ -904,8 +913,8 @@ function _createTaskInProject(project, rawText) {
     text:       text,
     comment:    "",
     done:       false,
-    priority:   parsed.priority || null,
-    dueDate:    parsed.dueDate || null,
+    priority:   overrides.priority || parsed.priority || null,
+    dueDate:    overrides.dueDate || parsed.dueDate || null,
     dueTime:    null,
     recurDays:  parsed.recurDays || null,
     reminderAt: null,
@@ -1180,6 +1189,7 @@ window.addEventListener("storage", function(event) {
     renderTasks();
   }
   if (event.key === THEME_KEY) initializeTheme();
+  if (event.key === ACCENT_KEY) initializeAccent();
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -4790,9 +4800,8 @@ function showShortcutsHelp() {
       group("General",
         row('<kbd>N</kbd>', 'Enfocar campo nueva tarea') +
         row('<kbd>S</kbd>', 'Nueva sección') +
-        row('<kbd>A</kbd>', 'Vista de agenda') +
-        row('<kbd>C</kbd>', 'Vista calendario') +
         row('<kbd>Ctrl</kbd>+<kbd>K</kbd>', 'Búsqueda global') +
+        row('<kbd>Ctrl</kbd>+<kbd>,</kbd>', 'Ajustes') +
         row('<kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd>', 'Captura rápida (al Inbox)')
       ) +
       group("En una tarea",
@@ -4822,6 +4831,7 @@ function showShortcutsHelp() {
   btn.addEventListener("click", doClose);
   setTimeout(function() { btn.focus(); }, 50);
 }
+window.showShortcutsHelp = showShortcutsHelp;
 
 // ═══════════════════════════════════════════════════════════════
 // BÚSQUEDA GLOBAL
@@ -5499,29 +5509,38 @@ function _updateProfileMenu(user) {
   var pfSignoutBtn   = document.getElementById("pf-signout-btn");
   var pfAvatar       = document.getElementById("profile-avatar");
   var pfAvatarTop    = document.getElementById("profile-avatar-top");
+  var settingsAvatar = document.getElementById("settings-avatar");
   var pfName         = document.getElementById("profile-name");
   var pfNameTop      = document.getElementById("profile-name-top");
+  var settingsName   = document.getElementById("settings-name");
   var pfSub          = document.getElementById("profile-sub");
   var pfSubTop       = document.getElementById("profile-sub-top");
+  var settingsSub    = document.getElementById("settings-sub");
+  var settingsSigninBtn = document.getElementById("settings-signin-btn");
+  var settingsSyncUser  = document.getElementById("settings-sync-user");
 
   if (pfSyncSep)   pfSyncSep.hidden   = false;
   if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
   if (pfSyncUser)  pfSyncUser.hidden  = !user;
+  if (settingsSigninBtn) settingsSigninBtn.hidden = Boolean(user);
+  if (settingsSyncUser)  settingsSyncUser.hidden  = !user;
 
   // Valores base según el modo (cuenta Google vs. local).
   var baseName, baseInitial;
   if (user) {
     baseInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "☁");
     baseName = user.displayName || user.email || t("profile.user_default");
-    if (pfSub)      pfSub.textContent      = t("profile.synced");
-    if (pfSubTop)   pfSubTop.textContent   = t("profile.sync_active");
+    if (pfSub)      pfSub.innerHTML     = '<span class="profile-sync-dot"></span>' + t("profile.synced");
+    if (pfSubTop)   pfSubTop.textContent = user.email || user.displayName || t("profile.sync_active");
+    if (settingsSub) settingsSub.textContent = user.email || user.displayName || t("profile.sync_active");
     if (pfSyncName) pfSyncName.textContent = user.email || user.displayName || "";
     if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
     baseInitial = "A";
     baseName = "antask";
-    if (pfSub)    pfSub.textContent    = t("profile.local");
-    if (pfSubTop) pfSubTop.textContent = t("profile.local_storage");
+    if (pfSub)       pfSub.textContent       = t("profile.local");
+    if (pfSubTop)    pfSubTop.textContent    = t("profile.local_storage");
+    if (settingsSub) settingsSub.textContent = t("profile.local_storage");
   }
 
   // El perfil local del usuario (nombre + avatar emoji) tiene prioridad.
@@ -5531,7 +5550,9 @@ function _updateProfileMenu(user) {
 
   _applyAvatar(pfAvatar, avatarValue, !!emoji);
   _applyAvatar(pfAvatarTop, avatarValue, !!emoji);
-  if (pfName)    pfName.textContent    = name;
+  _applyAvatar(settingsAvatar, avatarValue, !!emoji);
+  if (pfName)       pfName.textContent       = name;
+  if (settingsName) settingsName.textContent = name;
   if (pfNameTop) pfNameTop.textContent = name;
 }
 
