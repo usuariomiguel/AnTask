@@ -6347,8 +6347,10 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   cursor: pointer;
   font-size: 12.5px;
   font-weight: 550;
-  /* Color de letra tenue del prototipo v1 (sb.ink3). */
-  color: #7a7059;
+  /* El sb.ink3 de v1 (#7a7059) se queda en 3.42:1 sobre la sidebar y no
+     llega a AA. Usamos el token, que es ese mismo gris ya aclarado por el
+     proyecto justo para esto (5.34:1 en oscuro, 5.74:1 en claro). */
+  color: var(--text-tertiary);
   transition: background var(--dur-fast) var(--ease-out),
               color var(--dur-fast) var(--ease-out);
 }

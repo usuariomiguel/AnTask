@@ -247,6 +247,16 @@ function ensureInbox() {
 let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
+
+// ─── Estado leído durante el ARRANQUE ─────────────────────────
+// El bloque de arranque de más abajo pinta la primera vista mientras el
+// módulo aún se está evaluando, así que todo lo que ese render lea tiene
+// que estar declarado ANTES. Si se declara más abajo, un `const` da
+// ReferenceError por TDZ y un `var` se lee como undefined.
+const PRIORITY_PNUM = { high: "P1", medium: "P2", low: "P3" };
+// Plegado de completadas en vista proyecto (prototipo Inbox). Expandido
+// por defecto: completar una tarea no la hace desaparecer de golpe.
+var _doneFoldExpanded = true;
 var _sidebarPrevCounts = {};
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
@@ -2553,8 +2563,6 @@ function _buildDoneFoldRow(foldedDone) {
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
-const PRIORITY_PNUM = { high: "P1", medium: "P2", low: "P3" };
-
 function renderPriorityBadge(task, container) {
   if (!container) return;
   container.innerHTML = "";
@@ -3548,9 +3556,6 @@ function renderTodayView() {
 
 var _hoyQuickAddRefocus = false;
 
-// Plegado de completadas en vista proyecto (prototipo Inbox). Expandido
-// por defecto: completar una tarea no la hace desaparecer de golpe.
-var _doneFoldExpanded = true;
 
 function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   var li = document.createElement("li");

@@ -12,14 +12,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.js",
+    "src/**/*.d.ts",
     "vite.config.js"
   ],
   "exclude": [
