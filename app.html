@@ -98,6 +98,20 @@
 
       <!-- ── SIDEBAR ─────────────────────────────────────── -->
       <aside class="sidebar">
+
+        <!-- Rail colapsado (v1): al plegar, la sidebar no desaparece — se
+             queda en 62px mostrando marca, buscar y la navegación fijada.
+             La marca y el avatar vuelven a desplegarla. -->
+        <div class="sidebar-rail" id="sidebar-rail">
+          <button type="button" class="sidebar-rail-brand" id="sidebar-rail-expand" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos" data-i18n-aria="sidebar.show_sidebar" data-i18n-title="sidebar.show_sidebar">A</button>
+          <span class="sidebar-rail-sep"></span>
+          <button type="button" class="sidebar-rail-btn" id="sidebar-rail-search" aria-label="Buscar" title="Buscar" data-i18n-aria="sidebar.search_short" data-i18n-title="sidebar.search_short"><i data-lucide="search"></i></button>
+          <button type="button" class="sidebar-rail-btn" id="sidebar-rail-today" aria-label="Hoy" title="Hoy" data-i18n-aria="sidebar.today" data-i18n-title="sidebar.today"><i data-lucide="calendar"></i></button>
+          <button type="button" class="sidebar-rail-btn" id="sidebar-rail-inbox" aria-label="Inbox" title="Inbox" data-i18n-aria="sidebar.inbox" data-i18n-title="sidebar.inbox"><i data-lucide="inbox"></i></button>
+          <span class="sidebar-rail-spacer"></span>
+          <button type="button" class="sidebar-rail-avatar" id="sidebar-rail-avatar" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos" data-i18n-aria="sidebar.show_sidebar" data-i18n-title="sidebar.show_sidebar">A</button>
+        </div>
+
         <div class="sidebar-header">
           <div class="sidebar-header-top">
             <div class="sidebar-brand" aria-label="antask">
@@ -253,7 +267,7 @@
 
           <div class="tasks-header">
             <div class="tasks-header-left">
-              <button type="button" id="sidebar-expand-btn" class="sidebar-expand-btn" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left"></i></button>
+              <!-- El expandir vive ahora en el rail de la sidebar (v1). -->
               <div class="tasks-header-titleblock">
                 <span class="view-eyebrow" id="view-eyebrow" hidden>Lista</span>
                 <div class="title-row">
@@ -456,6 +470,22 @@
 
       <!-- ── PANEL DE DETALLE DE TAREA (columna derecha, prototipo v1) ── -->
       <div class="task-detail-wrap" id="task-detail-wrap">
+
+        <!-- Rail plegado — espejo del rail de la sidebar colapsada. Visible
+             siempre que no hay tarea seleccionada: una franja de iconos que
+             insinúa los campos del panel sin ocupar espacio (v1 DetailRail). -->
+        <aside class="task-detail-rail" id="task-detail-rail" aria-hidden="true">
+          <span class="task-detail-rail-top" title="Detalle de tarea" data-i18n-title="detail.rail_hint"><i data-lucide="panel-left"></i></span>
+          <span class="task-detail-rail-sep"></span>
+          <span class="task-detail-rail-ico" title="Nota"          data-i18n-title="detail.note"><i data-lucide="align-left"></i></span>
+          <span class="task-detail-rail-ico" title="Prioridad"     data-i18n-title="detail.priority"><i data-lucide="flag"></i></span>
+          <span class="task-detail-rail-ico" title="Fecha y hora"  data-i18n-title="detail.due_date"><i data-lucide="calendar"></i></span>
+          <span class="task-detail-rail-ico" title="Repetir"       data-i18n-title="detail.recur"><i data-lucide="repeat"></i></span>
+          <span class="task-detail-rail-ico" title="Recordatorio"  data-i18n-title="detail.reminder"><i data-lucide="bell"></i></span>
+          <span class="task-detail-rail-ico" title="Subtareas"     data-i18n-title="detail.subtasks"><i data-lucide="list-plus"></i></span>
+          <span class="task-detail-rail-ico" title="Lista"         data-i18n-title="detail.list"><i data-lucide="inbox"></i></span>
+        </aside>
+
         <aside class="task-detail-panel" id="task-detail-panel" role="complementary" aria-label="Detalle de tarea">
           <div class="task-detail-header">
             <button type="button" class="task-detail-back" id="task-detail-back" aria-label="Volver">

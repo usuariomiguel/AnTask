@@ -11,6 +11,7 @@ export const en = {
   "sidebar.projects_label":   "Lists",
   "sidebar.new_section":      "New group",
   "sidebar.hide_sidebar":     "Hide sidebar",
+  "sidebar.show_sidebar":     "Expand sidebar",
   "sidebar.add_list":         "Add list",
   "sidebar.add_first_list":   "Add the first list",
   "sidebar.new_group":        "New group",
@@ -229,6 +230,7 @@ export const en = {
   // ── Task detail panel ─────────────────────────────────────
   "detail.title":             "Task details",
   "detail.close":             "Close details panel",
+  "detail.rail_hint":         "Task detail — select a task to see its fields",
   "detail.title_placeholder": "Untitled",
   "detail.note":              "Note",
   "detail.note_placeholder":  "Add notes or details…",

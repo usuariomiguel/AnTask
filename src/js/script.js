@@ -1447,6 +1447,44 @@ function _commitAddGroup(value) {
   renderSidebar();
 }
 
+/**
+ * Sincroniza el rail de la sidebar colapsada con el estado de la app:
+ * marca la vista activa y pone un punto de aviso cuando Hoy o Inbox
+ * tienen tareas pendientes (equivalente al `attention` de v1).
+ *
+ * Se llama desde renderSidebar() para no duplicar el cómputo de contadores.
+ */
+function syncSidebarRail() {
+  const todayBtn = document.getElementById("sidebar-rail-today");
+  const inboxBtn = document.getElementById("sidebar-rail-inbox");
+  if (!todayBtn || !inboxBtn) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  let todayCount = 0;
+  let pending    = 0;
+  projects.forEach(function(p) {
+    if (p.archived) return;
+    (p.tasks || []).forEach(function(tk) {
+      if (tk.done) return;
+      pending++;
+      if (tk.dueDate && tk.dueDate <= today) todayCount++;
+    });
+  });
+
+  todayBtn.classList.toggle("active", activeView === "today");
+  inboxBtn.classList.toggle("active", activeView === "project" && activeProjectId === INBOX_ID);
+
+  if (todayCount > 0) todayBtn.setAttribute("data-attention", "");
+  else                todayBtn.removeAttribute("data-attention");
+  if (pending > 0)    inboxBtn.setAttribute("data-attention", "");
+  else                inboxBtn.removeAttribute("data-attention");
+
+  // La inicial del avatar la mantiene el menú de perfil; el rail la copia.
+  const railAvatar = document.getElementById("sidebar-rail-avatar");
+  const profileAvatar = document.getElementById("profile-avatar");
+  if (railAvatar && profileAvatar) railAvatar.textContent = profileAvatar.textContent;
+}
+
 function renderSidebar() {
   // Capture previous counts so we can animate changes
   _sidebarPrevCounts = {};
@@ -1515,6 +1553,7 @@ function renderSidebar() {
   // notas y para que el "scaffolding" del sidebar quede estable.
   renderArchivedWidget();
   renderNotesSidebar();
+  syncSidebarRail();
 }
 
 function renderArchivedWidget() {
@@ -5315,17 +5354,29 @@ window.addEventListener("load", function() {
   const collapseBtn      = document.getElementById("sidebar-collapse-btn");
   const expandBtn        = document.getElementById("sidebar-expand-btn");
   const expandBtnEmpty   = document.getElementById("sidebar-expand-btn-empty");
+  // Rail colapsado (v1): marca y avatar despliegan; buscar/Hoy/Inbox navegan.
+  const railExpand       = document.getElementById("sidebar-rail-expand");
+  const railAvatar       = document.getElementById("sidebar-rail-avatar");
+  const railSearch       = document.getElementById("sidebar-rail-search");
+  const railToday        = document.getElementById("sidebar-rail-today");
+  const railInbox        = document.getElementById("sidebar-rail-inbox");
 
   function setSidebarCollapsed(collapsed) {
     if (!sidebarEl || !mainPanel) return;
     sidebarEl.classList.toggle("sidebar-collapsed", collapsed);
     mainPanel.classList.toggle("sidebar-is-collapsed", collapsed);
     localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
+    if (collapsed) syncSidebarRail();
   }
 
   if (collapseBtn)    collapseBtn.addEventListener("click",    function () { setSidebarCollapsed(true); });
   if (expandBtn)      expandBtn.addEventListener("click",      function () { setSidebarCollapsed(false); });
   if (expandBtnEmpty) expandBtnEmpty.addEventListener("click", function () { setSidebarCollapsed(false); });
+  if (railExpand)     railExpand.addEventListener("click",     function () { setSidebarCollapsed(false); });
+  if (railAvatar)     railAvatar.addEventListener("click",     function () { setSidebarCollapsed(false); });
+  if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
+  if (railToday)      railToday.addEventListener("click",      function () { activateTodayView(); });
+  if (railInbox)      railInbox.addEventListener("click",      function () { activateProject(INBOX_ID); });
 
   // Restaurar estado solo en escritorio
   if (window.innerWidth > 768) {

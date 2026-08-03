@@ -11,6 +11,7 @@ export const es = {
   "sidebar.projects_label":   "Listas",
   "sidebar.new_section":      "Nuevo grupo",
   "sidebar.hide_sidebar":     "Ocultar la barra lateral",
+  "sidebar.show_sidebar":     "Desplegar la barra lateral",
   "sidebar.add_list":         "Añadir lista",
   "sidebar.add_first_list":   "Añadir la primera lista",
   "sidebar.new_group":        "Nuevo grupo",
@@ -229,6 +230,7 @@ export const es = {
   // ── Panel de detalle de tarea ─────────────────────────────
   "detail.title":             "Detalle de tarea",
   "detail.close":             "Cerrar panel de detalles",
+  "detail.rail_hint":         "Detalle de tarea — selecciona una tarea para ver sus campos",
   "detail.title_placeholder": "Sin título",
   "detail.note":              "Nota",
   "detail.note_placeholder":  "Añade notas o detalles…",

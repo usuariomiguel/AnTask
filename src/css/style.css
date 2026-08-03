@@ -144,6 +144,9 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast:    120ms;
   --dur-base:    200ms;
+  /* Plegado/desplegado de las columnas del shell (sidebar y panel de
+     detalle). Curva y duración del prototipo v1. */
+  --shell-collapse: 0.32s cubic-bezier(0.45, 0.05, 0.2, 1);
   --dur-slow:    320ms;
 
   /* ─── Z-INDEX ───────────────────────────────────────────────── */
@@ -578,10 +581,8 @@ body {
     box-shadow: var(--shell-shadow);
   }
 
-  .sidebar.sidebar-collapsed {
-    border: none;
-    box-shadow: none;
-  }
+  /* Colapsada conserva la cápsula flotante: ahora sigue siendo un rail
+     visible, no un hueco. */
 
   .main-panel {
     border: 1px solid var(--border-default);
@@ -672,8 +673,11 @@ body {
   color: var(--c-cyan);
 }
 
+/* El expandir vive ahora en el rail de la sidebar (v1), así que este botón
+   ya no se muestra en ningún estado. Se conserva el markup del estado vacío
+   para no romper referencias del script. */
 .sidebar-is-collapsed .sidebar-expand-btn {
-  display: flex;
+  display: none;
 }
 
 .sidebar-expand-btn-empty {
@@ -691,7 +695,7 @@ body {
   background: var(--surface-deep);
   border-right: 1px solid var(--border-subtle);
   overflow: hidden;
-  transition: width var(--dur-base) var(--ease-out);
+  transition: width var(--shell-collapse);
 }
 
 :root[data-theme="light"] .sidebar {
@@ -699,9 +703,117 @@ body {
   border-right-color: var(--border-default);
 }
 
+/* Colapsado = rail de 62px, no desaparecer (v1). Misma anchura y curva
+   que el rail del panel de detalle. */
 .sidebar.sidebar-collapsed {
-  width: 0;
+  width: 62px;
 }
+
+/* ─── RAIL DE LA SIDEBAR COLAPSADA ───────────────────────────────
+   Espejo de .task-detail-rail: marca arriba (despliega), separador,
+   buscar + navegación fijada, y avatar abajo (despliega). */
+.sidebar-rail {
+  display: none;
+  width: 62px;
+  height: 100%;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 0 12px;
+  overflow: hidden;
+}
+
+.sidebar.sidebar-collapsed .sidebar-rail { display: flex; }
+.sidebar.sidebar-collapsed > :not(.sidebar-rail) { display: none !important; }
+
+.sidebar-rail-brand {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(150deg, #a3b366 0%, #8a9a5b 50%, #566030 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.13s;
+}
+.sidebar-rail-brand:hover { box-shadow: 0 0 0 2px rgba(163, 179, 102, 0.55); }
+
+.sidebar-rail-sep {
+  width: 26px;
+  height: 1px;
+  margin: 7px 0;
+  background: var(--border-default);
+  flex-shrink: 0;
+}
+
+.sidebar-rail-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+.sidebar-rail-btn .lucide { width: 18px; height: 18px; }
+.sidebar-rail-btn:hover {
+  background: var(--row-hover);
+  color: var(--text-primary);
+}
+.sidebar-rail-btn.active {
+  background: var(--accent-tint);
+  color: var(--c-primary-500);
+}
+
+/* Punto de aviso cuando la vista tiene tareas pendientes (v1: `attention`). */
+.sidebar-rail-btn[data-attention]::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-primary-500);
+}
+
+.sidebar-rail-spacer { flex: 1; }
+
+.sidebar-rail-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--c-primary-500);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: 13px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.13s;
+}
+.sidebar-rail-avatar:hover { box-shadow: 0 0 0 2px rgba(163, 179, 102, 0.55); }
 
 /* En esta versión Notas y Archivados no están disponibles (como en v1). */
 #sidebar-more-group { display: none !important; }
@@ -1030,11 +1142,14 @@ body {
    editan aquí, en una tercera columna que empuja (no se superpone)
    junto al sidebar y al panel principal — mismo mecanismo de ancho
    animado que el colapso del sidebar. */
+/* La columna de detalle nunca desaparece: en reposo mide 62px y muestra el
+   rail de iconos; al abrir una tarea se expande a 340px, igual que la
+   sidebar (v1 anima el mismo `width` con esta curva). */
 .task-detail-wrap {
-  width: 0;
+  width: 62px;
   flex-shrink: 0;
   overflow: hidden;
-  transition: width 0.32s cubic-bezier(0.45, 0.05, 0.2, 1);
+  transition: width var(--shell-collapse);
 }
 
 .task-detail-wrap.task-detail-wrap--open {
@@ -1060,6 +1175,68 @@ body {
     box-shadow: var(--shell-shadow);
   }
 }
+
+/* ─── RAIL PLEGADO DEL PANEL DE DETALLE ──────────────────────────
+   Espejo del rail de la sidebar colapsada: franja de 62px con los
+   iconos de los campos del panel, atenuados. Se intercambia con el
+   panel según `.task-detail-wrap--open` (nunca conviven). */
+.task-detail-rail {
+  width: 62px;
+  height: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 0 12px;
+  background: var(--surface-deep);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .task-detail-rail {
+    border-radius: var(--r-xl);
+    box-shadow: var(--shell-shadow);
+  }
+}
+
+/* El rail comparte el lenguaje de color de la sidebar, igual que el panel. */
+:root[data-theme="light"] .task-detail-rail {
+  --text-secondary: #b3a892;
+  --text-tertiary:  #a3967c;
+  --border-default: rgba(255, 245, 225, 0.08);
+}
+
+.task-detail-rail-top,
+.task-detail-rail-ico {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+.task-detail-rail-top { color: var(--text-secondary); }
+.task-detail-rail-top .lucide { width: 18px; height: 18px; }
+
+.task-detail-rail-ico {
+  color: var(--text-tertiary);
+  opacity: 0.55;
+}
+.task-detail-rail-ico .lucide { width: 17px; height: 17px; }
+
+.task-detail-rail-sep {
+  width: 26px;
+  height: 1px;
+  margin: 7px 0;
+  background: var(--border-default);
+  flex-shrink: 0;
+}
+
+/* Intercambio rail ⇄ panel. */
+.task-detail-wrap--open .task-detail-rail { display: none; }
+.task-detail-wrap:not(.task-detail-wrap--open) .task-detail-panel { display: none; }
 
 .task-detail-header {
   display: flex;
@@ -1532,6 +1709,8 @@ body {
   .task-detail-wrap.task-detail-wrap--open {
     width: 100% !important;
   }
+  /* Sin rail en móvil: no hay columna lateral donde alojarlo. */
+  .task-detail-rail { display: none !important; }
   .task-detail-panel {
     width: 100%;
     border-radius: 0;
@@ -3920,11 +4099,15 @@ body.project-dragging .project-item { cursor: grabbing; }
 
 @media (max-width: 768px) {
 
+  /* En móvil la sidebar es un drawer: no se colapsa, así que ni botones
+     de plegar/desplegar ni rail. */
   .sidebar-collapse-btn,
   .sidebar-expand-btn,
-  .sidebar-expand-btn-empty {
+  .sidebar-expand-btn-empty,
+  .sidebar-rail {
     display: none !important;
   }
+  .sidebar.sidebar-collapsed > :not(.sidebar-rail) { display: revert !important; }
 
   body {
     overflow: hidden;
