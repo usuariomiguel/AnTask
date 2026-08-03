@@ -54,6 +54,7 @@ import {
   applyPriorityToNode,
   renderDueBadge,
   renderRecurBadge,
+  renderListBadge,
 } from "./ui/task-badges.js";
 import { renderSubtasks } from "./ui/subtasks.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
@@ -2367,7 +2368,8 @@ function renderTasks() {
       const ul = document.createElement("ul");
       ul.className = "inbox-group-list";
       g.items.forEach(function(it) {
-        const node = _buildTaskNode(it.task, it.project);
+        // Bajo cabecera de grupo: la lista ya está escrita arriba.
+        const node = _buildTaskNode(it.task, it.project, false);
         node.style.setProperty("--task-accent", _projectColor(it.project));
         node.classList.toggle("task-item--foreign", it.project.id !== project.id);
         ul.appendChild(node);
@@ -2385,7 +2387,8 @@ function renderTasks() {
         const doneUl = document.createElement("ul");
         doneUl.className = "inbox-group-list";
         foldedDone.forEach(function(it) {
-          const node = _buildTaskNode(it.task, it.project);
+          // El bloque de completadas no lleva cabecera por proyecto.
+          const node = _buildTaskNode(it.task, it.project, it.project.id !== project.id);
           node.style.setProperty("--task-accent", _projectColor(it.project));
           node.classList.toggle("task-item--foreign", it.project.id !== project.id);
           doneUl.appendChild(node);
@@ -2420,11 +2423,14 @@ function renderTasks() {
     const task = visible[i].task;
     const taskProject = visible[i].project;
     let node = existing.get(task.id);
-    if (!node || node._task !== task) {
+    // Inbox plano (sin cabeceras de grupo): la fila de otro proyecto lleva
+    // su etiqueta de lista, si no no habría forma de saber de dónde sale.
+    const showList = taskProject.id !== project.id;
+    if (!node || node._task !== task || node._showList !== showList) {
       // El objeto task cambió de referencia (sync remoto, import…)
       // → reconstruir el nodo entero para que los listeners apunten al nuevo task.
       if (node) node.remove();
-      node = _buildTaskNode(task, taskProject);
+      node = _buildTaskNode(task, taskProject, showList);
     } else {
       // Mismo objeto task → solo refrescar lo visible (barato).
       _updateTaskNode(node, task);
@@ -2454,7 +2460,7 @@ function renderTasks() {
       taskListDone.appendChild(fold);
       if (_doneFoldExpanded) {
         foldedDone.forEach(function(it) {
-          const node = _buildTaskNode(it.task, it.project);
+          const node = _buildTaskNode(it.task, it.project, it.project.id !== project.id);
           node.style.setProperty("--task-accent", _projectColor(it.project));
           taskListDone.appendChild(node);
         });
@@ -2599,6 +2605,10 @@ function _updateTaskNode(node, task) {
 
   applyPriorityToNode(node, task);
   renderPriorityBadge(task, node.querySelector(".task-priority-container"));
+  // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
+  // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
+  renderListBadge(node._showList ? node._project : null,
+                  node.querySelector(".task-list-container"));
   renderDueBadge(task, node.querySelector(".task-due-container"));
   renderRecurBadge(task, node.querySelector(".task-recur-container"));
 
@@ -2623,9 +2633,13 @@ function _updateTaskNode(node, task) {
  * visual inicial vía _updateTaskNode. Se cachea la referencia al
  * task en `node._task` para detectar cambios de identidad.
  */
-function _buildTaskNode(task, project) {
+function _buildTaskNode(task, project, showList) {
     const node       = template.content.firstElementChild.cloneNode(true);
     node.setAttribute("data-task-id", task.id);
+    // El proyecto de la fila y si debe mostrar su etiqueta de lista viajan
+    // con el nodo: _updateTaskNode los reutiliza al refrescar sin rebuild.
+    node._project    = project;
+    node._showList   = !!showList;
     node.setAttribute("draggable", "false");
     // Color del proyecto → el check de completar usa este acento.
     node.style.setProperty("--task-accent", _projectColor(project));
@@ -2670,6 +2684,9 @@ function _buildTaskNode(task, project) {
         setTimeout(function() { saveAndRender(); }, 220);
       }
       renderDueBadge(task, node.querySelector(".task-due-container"));
+      // El badge trae iconos (calendario / flecha): hay que materializarlos
+      // ya, sin esperar al saveAndRender diferido de la animación.
+      if (window.lucide) lucide.createIcons({ nodes: [node] });
     });
 
     text.addEventListener("dblclick", function(e) {
@@ -3712,26 +3729,42 @@ function renderTodayItem(task, project, todayStr, tone) {
 
   if (task.priority && !done) {
     var pEl = document.createElement("span");
-    pEl.className = "today-prio today-prio-" + task.priority;
+    // Mismo chip que la fila del task-list — v1 usa el mismo `PrioP` en
+    // Hoy y en Inbox, así que aquí compartimos clase, no una copia.
+    pEl.className = "priority-badge priority-badge-" + task.priority;
     pEl.textContent = PRIORITY_PNUM[task.priority] || "";
     pEl.title = t("detail.priority") + ": " + PRIORITY_CONFIG[task.priority].label();
     meta.appendChild(pEl);
   }
 
-  var projBadge = document.createElement("button");
-  projBadge.type = "button";
-  projBadge.className = "today-project-badge";
-  projBadge.textContent = project.name;
-  if (project.color) projBadge.style.setProperty("--proj-color", project.color);
-  projBadge.title = "Ir al proyecto " + project.name;
-  projBadge.addEventListener("click", function(e) {
-    e.stopPropagation();
-    activateProject(project.id);
-    if (typeof navigateToTask === "function") {
-      setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
-    }
-  });
-  meta.appendChild(projBadge);
+  // Etiqueta de lista (el `LabelTag` de v1) — aquí además es pulsable
+  // y lleva al proyecto, que es lo que ya hacía esta vista. Las tareas
+  // del Inbox no llevan ninguna: v1 omite la píldora cuando no hay
+  // lista, para no dejar cápsulas vacías.
+  if (project.id !== INBOX_ID) {
+    var projBadge = document.createElement("button");
+    projBadge.type = "button";
+    projBadge.className = "task-list-badge today-project-badge";
+    projBadge.textContent = project.name;
+    if (project.color) projBadge.style.setProperty("--proj-color", project.color);
+    projBadge.title = "Ir al proyecto " + project.name;
+    projBadge.addEventListener("click", function(e) {
+      e.stopPropagation();
+      activateProject(project.id);
+      if (typeof navigateToTask === "function") {
+        setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
+      }
+    });
+    meta.appendChild(projBadge);
+  }
+
+  // Repetición: mismo chip mono que en el task-list.
+  if (!done) {
+    var recurWrap = document.createElement("span");
+    recurWrap.className = "today-recur";
+    renderRecurBadge(task, recurWrap);
+    if (recurWrap.firstChild) meta.appendChild(recurWrap);
+  }
 
   // Acción contextual (aparece en hover): mover/programar a hoy
   if (!done && (tone === "overdue" || tone === "nodate")) {
@@ -3752,6 +3785,8 @@ function renderTodayItem(task, project, todayStr, tone) {
   }
 
   if (dateLabel) {
+    // v1 cuelga la hora de la fecha con separador ("Hoy · 11:30").
+    var dateText = dateLabel + (task.dueTime ? " · " + task.dueTime : "");
     var dEl = document.createElement("span");
     dEl.className = "today-date-pill" +
       (tone === "today" ? " today-date-pill--today" : "") +
@@ -3759,7 +3794,8 @@ function renderTodayItem(task, project, todayStr, tone) {
     if (overdue && !done) {
       // Como el prototipo v1: la propia píldora de fecha mueve la
       // tarea a hoy, sin necesidad de hover (útil en móvil).
-      dEl.innerHTML = dateLabel + ' <i data-lucide="arrow-right"></i>';
+      dEl.innerHTML = '<span class="today-date-label"></span><i data-lucide="arrow-right"></i>';
+      dEl.querySelector(".today-date-label").textContent = dateText;
       dEl.title = t("hoy.move_one");
       dEl.addEventListener("click", function(e) {
         e.stopPropagation();
@@ -3769,7 +3805,7 @@ function renderTodayItem(task, project, todayStr, tone) {
         renderSidebar();
       });
     } else {
-      dEl.textContent = dateLabel;
+      dEl.textContent = dateText;
     }
     meta.appendChild(dEl);
   }

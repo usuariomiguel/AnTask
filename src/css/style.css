@@ -3274,10 +3274,13 @@ button:focus-visible {
 .task-meta {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: 10px;   /* v1: los chips de la fila respiran a 10px */
   flex-shrink: 0;
   flex-wrap: nowrap;
 }
+
+/* Los contenedores vacíos no deben abrir hueco entre chips. */
+.task-meta > span:empty { display: none; }
 
 .task-kebab-btn {
   display: inline-flex;
@@ -3882,7 +3885,11 @@ input.inline-edit {
               0 4px 14px rgba(176, 82, 74, 0.20);
 }
 
-/* ─── DUE DATE BADGE ─────────────────────────────────────────── */
+/* ─── DUE DATE CHIP ──────────────────────────────────────────────
+   El `DueChip` del prototipo v1: NO es una píldora — es texto mono
+   con un calendario delante, sin fondo ni borde ni mayúsculas. Todo
+   el peso visual lo lleva el color: vencida en rojo tierra, hoy en el
+   acento, el resto en tinta secundaria.                             */
 .task-due-container {
   display: inline-flex;
   align-items: center;
@@ -3890,110 +3897,106 @@ input.inline-edit {
 }
 
 .due-badge {
-  font-size: 0.63rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  padding: 0.10rem 0.40rem;
-  border-radius: var(--r-pill);
-  border: 1px solid transparent;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-right: 0.35rem;
-}
-
-.due-future {
-  color: var(--c-blue);
-  background: rgba(115, 182, 210, 0.08);
-  border-color: rgba(115, 182, 210, 0.22);
-}
-
-.due-soon {
-  color: var(--c-gold);
-  background: rgba(224, 163, 90, 0.07);
-  border-color: rgba(224, 163, 90, 0.22);
-}
-
-.due-today {
-  color: #e0a35a;
-  background: rgba(251, 146, 60, 0.12);
-  border-color: rgba(251, 146, 60, 0.50);
-  font-weight: 700;
-  animation: pulseDue 2s ease-in-out infinite;
-}
-
-.due-overdue {
-  color: var(--c-pink);
-  background: rgba(224, 122, 106, 0.10);
-  border-color: rgba(224, 122, 106, 0.40);
-  animation: pulseDue 1.5s ease-in-out infinite;
-}
-
-.due-badge--action {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.due-badge .lucide {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.8;
+  stroke-width: 2;
+}
+
+.due-future,
+.due-soon  { color: var(--text-secondary); }
+.due-today { color: var(--c-primary-300); }
+.due-overdue { color: var(--c-pink); }
+
+.due-badge--action {
   cursor: pointer;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
-.due-badge--action .lucide { width: 10px; height: 10px; }
-.due-badge--action:hover {
-  animation-play-state: paused;
-  background: rgba(224, 122, 106, 0.18);
-  border-color: rgba(224, 122, 106, 0.60);
+.due-badge--action .due-badge-arrow {
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  margin-left: -3px;
+  transition: opacity var(--dur-fast) var(--ease-out), margin var(--dur-fast) var(--ease-out);
 }
-
-@keyframes pulseDue {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.60;
-  }
+.task-item:hover .due-badge--action .due-badge-arrow {
+  opacity: 0.9;
+  margin-left: 0;
 }
-
-:root[data-theme="light"] .due-future {
-  color: var(--c-blue);
-  background: rgba(61, 110, 133, 0.07);
-  border-color: rgba(61, 110, 133, 0.22);
+.due-badge--action:hover { opacity: 0.75; }
+/* Sin hover (táctil) la flecha se queda fija: es la única pista de que
+   la fecha vencida es pulsable. */
+@media (hover: none) {
+  .due-badge--action .due-badge-arrow { opacity: 0.9; margin-left: 0; }
 }
 
-:root[data-theme="light"] .due-soon {
-  color: #b58236;
-  background: rgba(194, 135, 58, 0.07);
-  border-color: rgba(194, 135, 58, 0.25);
+:root[data-theme="light"] .due-today { color: var(--c-primary-600); }
+
+/* ─── LIST TAG (v1: LabelTag) ────────────────────────────────────
+   Solo en filas cuya lista no se deduce del contexto (Inbox plano o
+   bloque de completadas). Mono compacto, teñido del color de la
+   lista cuando lo tiene.                                            */
+.task-list-container {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-:root[data-theme="light"] .due-today {
-  color: #b58236;
-  background: rgba(194, 135, 58, 0.10);
-  border-color: rgba(194, 135, 58, 0.40);
+.task-list-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 168px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  padding: 3px 9px;
+  border-radius: 5px;
+  color: var(--proj-color, var(--text-secondary));
+  background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 30%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-:root[data-theme="light"] .due-overdue {
-  color: var(--c-pink);
-  background: rgba(176, 82, 74, 0.07);
-  border-color: rgba(176, 82, 74, 0.35);
-}
-
-/* ─── RECURRENCE BADGE & BUTTON ─────────────────────────────── */
+/* ─── RECURRENCE CHIP & BUTTON ──────────────────────────────────
+   Mismo lenguaje que la fecha: icono + texto mono, sin píldora.     */
 .recur-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.18rem;
-  font-size: 0.68rem;
-  font-weight: 500;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
   letter-spacing: 0.01em;
-  padding: 0.10rem 0.40rem;
-  border-radius: var(--r-pill);
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.10);
-  border: 1px solid rgba(163, 179, 102, 0.25);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.recur-badge .lucide { width: 9px; height: 9px; stroke-width: 2.5; }
+.recur-badge .lucide {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.8;
+  stroke-width: 2;
+}
 
 /* ─── RECUR TOAST ────────────────────────────────────────────── */
 .recur-toast {
@@ -4066,13 +4069,15 @@ body.project-dragging .project-item { cursor: grabbing; }
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono, monospace);
-  font-size: 0.68rem;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
   font-variant-numeric: tabular-nums;
-  padding: 0.09rem 0.42rem;
+  padding: 2px 7px;
   border-radius: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .priority-badge-high {
@@ -4087,10 +4092,31 @@ body.project-dragging .project-item { cursor: grabbing; }
   box-shadow: inset 0 0 0 1px rgba(224, 163, 90, 0.30);
 }
 
+/* P3 en oliva, no en azul: v1 usa la propia familia cálida para "baja"
+   (#566030) — es también lo que ya hace la píldora de prioridad de Hoy. */
 .priority-badge-low {
-  color: var(--c-blue);
-  background: rgba(115, 182, 210, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(115, 182, 210, 0.30);
+  color: var(--c-primary-300);
+  background: rgba(163, 179, 102, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(163, 179, 102, 0.30);
+}
+
+/* Paleta cálida de v1 sobre papel: alta #9a3a33, media #8a5e1a, baja #566030. */
+:root[data-theme="light"] .priority-badge-high {
+  color: #9a3a33;
+  background: rgba(176, 71, 63, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(176, 71, 63, 0.30);
+}
+
+:root[data-theme="light"] .priority-badge-medium {
+  color: #8a5e1a;
+  background: rgba(191, 134, 54, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(191, 134, 54, 0.32);
+}
+
+:root[data-theme="light"] .priority-badge-low {
+  color: #566030;
+  background: rgba(111, 122, 61, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(111, 122, 61, 0.30);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -8679,47 +8705,32 @@ button {
     margin-left: 33px;  /* checkbox 20px + gap 13px */
   }
   .today-meta:empty { display: none; }
-  /* Sin hover en táctil: la acción por fila se oculta, quedan las masivas */
-  .today-move-btn { display: none; }
+  /* Sin hover en táctil: la acción por fila se oculta, quedan las masivas.
+     Va con !important porque la regla base de .today-move-btn se declara
+     más abajo en el archivo y, a igual especificidad, ganaría ella. */
+  .today-move-btn { display: none !important; }
 }
 
-.today-prio {
-  flex-shrink: 0;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  letter-spacing: var(--tracking-wide);
-}
-.today-prio-high   { background: rgba(224, 122, 106,0.14); color: #f2b3a8; }
-.today-prio-medium { background: rgba(224, 163, 90,0.14);  color: #f0bd84; }
-.today-prio-low    { background: rgba(163, 179, 102,0.14); color: var(--c-primary-300); }
-:root[data-theme="light"] .today-prio-high   { background: rgba(176, 82, 74, 0.14);  color: #b0524a; }
-:root[data-theme="light"] .today-prio-medium { background: rgba(181, 130, 54, 0.16); color: #945f1c; }
-:root[data-theme="light"] .today-prio-low    { background: var(--accent-tint);       color: var(--c-primary-600); }
+/* La prioridad de Hoy es el mismo chip `PrioP` que la fila del
+   task-list (ver .priority-badge) — no hay variante propia.        */
 
+/* La etiqueta de lista también se comparte (.task-list-badge); aquí
+   solo añadimos que es pulsable y lleva a su proyecto.              */
 .today-project-badge {
-  flex-shrink: 0;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
   cursor: pointer;
-  transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
-  white-space: nowrap;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
 }
 .today-project-badge:hover {
-  background: var(--accent-tint);
-  border-color: color-mix(in srgb, var(--c-primary-500) 30%, transparent);
-  color: var(--c-primary-300);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--proj-color, var(--c-primary-500)) 55%, transparent);
 }
-:root[data-theme="light"] .today-project-badge:hover { color: var(--c-primary-600); }
+
+/* Repetición: mismo chip mono que en el task-list (.recur-badge). */
+.today-recur {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 
 /* Acción contextual en hover: mover / programar a hoy */
 .today-move-btn {
@@ -8772,18 +8783,38 @@ button {
   color: var(--c-primary-300);
 }
 :root[data-theme="light"] .today-date-pill--today { color: var(--c-primary-600); }
+/* En escritorio la fecha es SOLO información, como en v1: mover a hoy es
+   cosa del botón de la fila (.today-move-btn), que aparece en hover. Sin
+   hit-testing la píldora no captura el clic ni muestra su tooltip — el
+   clic cae en la fila, que lleva a la tarea. */
 .today-date-pill--overdue {
   background: rgba(176, 71, 63, 0.13);
   color: #e89a90;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  pointer-events: none;
   transition: background var(--dur-fast) var(--ease-out);
 }
-.today-date-pill--overdue:hover { background: rgba(176, 71, 63, 0.22); }
-.today-date-pill--overdue .lucide { width: 11px; height: 11px; stroke-width: 2.4; }
+.today-date-pill--overdue .lucide { display: none; }
 :root[data-theme="light"] .today-date-pill--overdue { color: #b0473f; }
+
+/* Móvil: aquí no hay hover, así que el botón de fila está oculto y la
+   píldora recupera el papel de atajo (con su flecha como pista). */
+@media (max-width: 768px) {
+  .today-date-pill--overdue {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .today-date-pill--overdue .lucide {
+    display: block;
+    width: 11px;
+    height: 11px;
+    stroke-width: 2.4;
+  }
+  .today-date-pill--overdue:hover,
+  .today-date-pill--overdue:active { background: rgba(176, 71, 63, 0.22); }
+}
 
 /* Animación al marcar hecha */
 .today-completing {

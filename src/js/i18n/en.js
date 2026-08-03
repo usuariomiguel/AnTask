@@ -223,6 +223,7 @@ export const en = {
   // ── Task ──────────────────────────────────────────────────
   "task.rename_hint":         "Double-click to rename",
   "task.move_to_project":     "Move to project...",
+  "task.in_list":             "List",
   "task.move_modal_title":    "Move to project",
   "task.pending_count_one":   "pending",
   "task.pending_count_other": "pending",

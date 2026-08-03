@@ -223,6 +223,7 @@ export const es = {
   // ── Tarea ─────────────────────────────────────────────────
   "task.rename_hint":         "Doble clic para renombrar",
   "task.move_to_project":     "Mover a proyecto...",
+  "task.in_list":             "Lista",
   "task.move_modal_title":    "Mover a proyecto",
   "task.pending_count_one":   "pendiente",
   "task.pending_count_other": "pendientes",

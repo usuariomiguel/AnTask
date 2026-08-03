@@ -22,6 +22,25 @@ export function applyPriorityToNode(node, task) {
   node.classList.add("priority-" + task.priority);
 }
 
+// ─── LISTA (proyecto) ───────────────────────────────────────
+/**
+ * Etiqueta con la lista a la que pertenece la tarea — el `LabelTag` del
+ * prototipo v1. Solo se pinta cuando la fila NO va bajo una cabecera de
+ * grupo que ya diga la lista (Inbox plano, bloque de completadas); en la
+ * vista de un proyecto sería redundante.
+ */
+export function renderListBadge(project, container) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!project) return;
+  const badge = document.createElement("span");
+  badge.className = "task-list-badge";
+  badge.textContent = project.name;
+  badge.title = t("task.in_list") + ": " + project.name;
+  if (project.color) badge.style.setProperty("--proj-color", project.color);
+  container.appendChild(badge);
+}
+
 // ─── FECHA LÍMITE ───────────────────────────────────────────
 export function renderDueBadge(task, container) {
   const existing = container.querySelector(".due-badge");
@@ -31,16 +50,21 @@ export function renderDueBadge(task, container) {
   if (!state) return;
   const badge = document.createElement("span");
   badge.className = "due-badge " + state.cls;
+  // Como el `DueChip` de v1: icono de calendario + fecha relativa, y la
+  // hora colgando detrás con separador ("Hoy · 11:30").
+  const label = state.label + (task.dueTime ? " · " + task.dueTime : "");
   // Vencida: pulsable — mueve la tarea a hoy sin abrir el detalle
   // (mismo atajo que el prototipo v1 en la fila de tarea).
   if (state.cls === "due-overdue") {
     badge.classList.add("due-badge--action");
     badge.dataset.dueAction = "move-today";
     badge.title = t("hoy.move_one");
-    badge.innerHTML = state.label + ' <i data-lucide="arrow-right"></i>';
+    badge.innerHTML = '<i data-lucide="calendar"></i><span class="due-badge-label"></span>' +
+                      '<i data-lucide="arrow-right" class="due-badge-arrow"></i>';
   } else {
-    badge.textContent = state.label;
+    badge.innerHTML = '<i data-lucide="calendar"></i><span class="due-badge-label"></span>';
   }
+  badge.querySelector(".due-badge-label").textContent = label;
   container.appendChild(badge);
 }
 
@@ -51,6 +75,8 @@ export function renderRecurBadge(task, container) {
   if (!task.recurDays) return;
   const badge = document.createElement("span");
   badge.className = "recur-badge";
-  badge.innerHTML = '<i data-lucide="repeat"></i> ' + task.recurDays + 'd';
+  badge.title = t("detail.recur");
+  badge.innerHTML = '<i data-lucide="repeat"></i><span class="recur-badge-label"></span>';
+  badge.querySelector(".recur-badge-label").textContent = task.recurDays + "d";
   container.appendChild(badge);
 }
