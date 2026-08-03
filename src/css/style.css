@@ -342,7 +342,7 @@
    la sidebar (en v1 su `DetailPanel` se pinta con los tokens `sb.*`),
    por eso entra en el mismo ámbito. */
 :root[data-theme="light"] .sidebar,
-:root[data-theme="light"] .task-detail-panel {
+:root[data-theme="light"] .task-detail-wrap {
   --text-primary:   #f2ece0;
   --text-secondary: #b3a892;
   --text-tertiary:  #a3967c;  /* ≥4.5:1 sobre #221d16 (AA) */
@@ -1145,10 +1145,20 @@ body {
 /* La columna de detalle nunca desaparece: en reposo mide 62px y muestra el
    rail de iconos; al abrir una tarea se expande a 340px, igual que la
    sidebar (v1 anima el mismo `width` con esta curva). */
+/* La caja visible (fondo, borde, radio y sombra) vive en el MISMO
+   elemento que anima el ancho, igual que .sidebar. Si viviera en el
+   panel interior, este entraría ya a 340px y el wrap solo lo recortaría:
+   se vería deslizarse tras un corte recto, con las esquinas y la sombra
+   del lado derecho comidas, en vez de una caja que crece. Mismo color
+   que la sidebar en ambos temas (en v1 el DetailPanel se pinta con los
+   tokens `sb.*`). */
 .task-detail-wrap {
   width: 62px;
   flex-shrink: 0;
   overflow: hidden;
+  background: var(--surface-deep);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
   transition: width var(--shell-collapse);
 }
 
@@ -1156,30 +1166,30 @@ body {
   width: 340px;
 }
 
-/* Mismo color que la sidebar en ambos temas (como el DetailPanel de v1,
-   que se pinta con los tokens `sb.*`): fondo profundo y contenido claro. */
+@media (min-width: 769px) {
+  .task-detail-wrap {
+    border-radius: var(--r-xl);
+    box-shadow: var(--shell-shadow);
+  }
+}
+
+/* El panel mantiene su ancho fijo para que su contenido no se recomponga
+   mientras el wrap se abre — lo mismo que hace el contenido de la
+   sidebar, anclado a 226px mientras la columna se pliega. */
 .task-detail-panel {
   width: 340px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--surface-deep);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
   overflow: hidden;
-}
-
-@media (min-width: 769px) {
-  .task-detail-panel {
-    border-radius: var(--r-xl);
-    box-shadow: var(--shell-shadow);
-  }
 }
 
 /* ─── RAIL PLEGADO DEL PANEL DE DETALLE ──────────────────────────
    Espejo del rail de la sidebar colapsada: franja de 62px con los
    iconos de los campos del panel, atenuados. Se intercambia con el
    panel según `.task-detail-wrap--open` (nunca conviven). */
+/* Sin caja propia: la pone el wrap, igual que .sidebar-rail dentro de la
+   sidebar. Solo aporta el ancho de reposo y la columna de iconos. */
 .task-detail-rail {
   width: 62px;
   height: 100%;
@@ -1189,23 +1199,7 @@ body {
   align-items: center;
   gap: 4px;
   padding: 14px 0 12px;
-  background: var(--surface-deep);
-  border: 1px solid var(--border-default);
   overflow: hidden;
-}
-
-@media (min-width: 769px) {
-  .task-detail-rail {
-    border-radius: var(--r-xl);
-    box-shadow: var(--shell-shadow);
-  }
-}
-
-/* El rail comparte el lenguaje de color de la sidebar, igual que el panel. */
-:root[data-theme="light"] .task-detail-rail {
-  --text-secondary: #b3a892;
-  --text-tertiary:  #a3967c;
-  --border-default: rgba(255, 245, 225, 0.08);
 }
 
 .task-detail-rail-top,
@@ -1705,6 +1699,10 @@ body {
     inset: 0;
     z-index: 500;
     transition: none;
+    /* A pantalla completa la caja no tiene marco. */
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
   .task-detail-wrap.task-detail-wrap--open {
     width: 100% !important;
@@ -1713,8 +1711,6 @@ body {
   .task-detail-rail { display: none !important; }
   .task-detail-panel {
     width: 100%;
-    border-radius: 0;
-    border: none;
   }
 
   .task-detail-eyebrow,
@@ -2936,7 +2932,7 @@ button:focus-visible {
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 60%;
+  height: 100%;
   background: var(--task-accent, var(--c-primary-500));
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
   opacity: 0;
@@ -3242,7 +3238,8 @@ button:focus-visible {
   color: var(--text-primary);
   flex: 1;
   min-width: 0;
-  cursor: text;
+  /* Sin cursor propio: hereda el `pointer` de .task-item, que es un
+     único objetivo clicable de punta a punta. */
   line-height: 1.4;
   text-decoration: line-through;
   text-decoration-color: transparent;
@@ -9125,6 +9122,15 @@ button {
  * fila no quede tapada. */
 @media (min-width: 769px) {
   .task-list { padding-bottom: 55px; padding-top: var(--sp-3); }
+  /* …salvo cuando debajo hay bloque de completadas: entonces el hueco es
+     suyo (ver .task-list-done) y aquí sobraría, dejando 77px muertos
+     entre la última tarea y la fila "N completadas". El Inbox agrupado
+     es el caso: no lleva .task-list--project, así que nada le recorta
+     ese padding. El bloque de proyecto sí lo conserva — su padding
+     inferior es parte de la caja, no separación con lo de abajo. */
+  .task-list:not(.task-list--project):has(+ .task-list-done:not(:empty)) {
+    padding-bottom: 0;
+  }
 }
 
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */

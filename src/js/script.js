@@ -2624,7 +2624,9 @@ function _updateTaskNode(node, task) {
     node.classList.toggle("selected", isSelected);
   }
 
-  text.title = t("project.dblclick_rename");
+  // El texto se corta con puntos suspensivos: el tooltip lo deja leer
+  // entero (mismo detalle que la fila de v1).
+  text.title = task.text;
 }
 
 /**
@@ -2689,11 +2691,9 @@ function _buildTaskNode(task, project, showList) {
       if (window.lucide) lucide.createIcons({ nodes: [node] });
     });
 
-    text.addEventListener("dblclick", function(e) {
-      e.stopPropagation();
-      startInlineEdit(text, task);
-    });
-    text.title = t("project.dblclick_rename");
+    // Sin renombrar por doble clic: la fila entera es un solo objetivo
+    // clicable (abre el detalle). Para renombrar está «Renombrar» en el
+    // menú de la tarea, que llama al mismo startInlineEdit.
 
     function openTaskActionsMenu(anchorOrPoint) {
       if (selectMode) return;
@@ -2762,6 +2762,17 @@ function _buildTaskNode(task, project, showList) {
       }
       if (e.target.closest("input")) return;
       openTaskDetail(task.id, project.id);
+    });
+
+    // ── Doble clic sobre la fila: cierra el panel ──
+    // El primer clic del doble ya lo abrió, así que aquí solo hay que
+    // plegarlo. Se ignora sobre botones e inputs, igual que el clic
+    // simple, para no pisar el checkbox ni el menú «…».
+    node.addEventListener("dblclick", function(e) {
+      if (selectMode) return;
+      if (e.target.closest("button, input")) return;
+      e.preventDefault();
+      closeTaskDetail();
     });
     node.addEventListener("keydown", function(e) {
       if (e.target.closest("button, input")) return;
