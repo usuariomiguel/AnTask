@@ -1,5 +1,10 @@
 # ─── Editor / IDE ───────────────────────────────────────────
-.claude/
+# La config local de Claude Code no se versiona, pero las skills sí:
+# son documentación del proyecto y deben viajar entre equipos.
+# Tiene que ser `.claude/*` y no `.claude/`: git no entra en un
+# directorio excluido, así que desde `.claude/` el `!` no reincluiría nada.
+.claude/*
+!.claude/skills/
 .vscode/
 .idea/
 .DS_Store
