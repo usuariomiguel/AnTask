@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>AnTask · Tus tareas, tu día. Tuyo.</title>
     <meta name="theme-color" content="#0A0A0F" />
-    <meta name="description" content="Una app de tareas y notas que funciona 100% offline en tu navegador. Captura con lenguaje natural, sin tracking, sin cookies, sin BS." />
+    <meta name="description" content="Una app de tareas que funciona 100% offline en tu navegador. Captura con lenguaje natural, sin tracking, sin cookies, sin BS." />
     <meta name="color-scheme" content="dark light" />
     <script>
       // Pre-apply theme before paint to evitar flash.
@@ -32,7 +32,7 @@
 
     <!-- Open Graph / Twitter -->
     <meta property="og:title" content="AnTask · Tus tareas, tu día. Tuyo." />
-    <meta property="og:description" content="Una app de tareas y notas que funciona 100% offline. Captura con lenguaje natural. Sin tracking." />
+    <meta property="og:description" content="Una app de tareas que funciona 100% offline. Captura con lenguaje natural. Sin tracking." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/icons/icon-512.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -131,7 +131,7 @@
           </h1>
 
           <p class="hero-lead">
-            Una app de tareas y notas que funciona 100% offline en tu navegador.
+            Una app de tareas que funciona 100% offline en tu navegador.
             Captura con lenguaje natural, sin tracking, sin cookies, sin BS.
           </p>
 
@@ -239,7 +239,6 @@
                       </div>
                       <div class="app-mock-actions">
                         <button class="btn-violet-grad">+ Proyecto</button>
-                        <button class="btn-cyan-grad">+ Nota</button>
                       </div>
                       <div class="app-mock-account">
                         <div class="app-mock-avatar">A</div>
@@ -254,20 +253,16 @@
                   <!-- Main -->
                   <section class="app-mock-main">
                     <div>
-                      <div class="app-mock-eyebrow">AGENDA</div>
+                      <div class="app-mock-eyebrow">HOY</div>
                       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:2px">
                         <div>
                           <div class="app-mock-title">Hoy</div>
                           <div class="app-mock-sub">4 tareas · racha de 12 días</div>
                         </div>
                         <div class="app-mock-tabs">
-                          <div class="app-mock-tab">
+                          <div class="app-mock-tab active">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                             Lista
-                          </div>
-                          <div class="app-mock-tab active">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                            Agenda
                           </div>
                           <div class="app-mock-tab">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 14h2M14 14h2M8 18h2M14 18h2"/></svg>
@@ -468,7 +463,7 @@
               </svg>
             </div>
             <h4 class="tiny-feature-title">Vistas múltiples</h4>
-            <p class="tiny-feature-desc">Lista, Agenda y Mes. Cambia con una tecla.</p>
+            <p class="tiny-feature-desc">Lista y Mes. Cambia con una tecla.</p>
           </article>
 
           <article class="tiny-feature reveal">
@@ -502,16 +497,6 @@
             <p class="tiny-feature-desc">Filtros guardados que se actualizan solos.</p>
           </article>
 
-          <article class="tiny-feature reveal">
-            <div class="tiny-feature-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-              </svg>
-            </div>
-            <h4 class="tiny-feature-title">Notas enriquecidas</h4>
-            <p class="tiny-feature-desc">Editor independiente para todo lo demás.</p>
-          </article>
 
           <article class="tiny-feature reveal">
             <div class="tiny-feature-icon">
@@ -687,7 +672,7 @@
           </div>
 
           <div class="compare-row" role="row">
-            <div class="compare-label" role="cell">Vistas Lista / Agenda / Mes</div>
+            <div class="compare-label" role="cell">Vistas Lista / Mes</div>
             <div class="compare-cell" role="cell"><span class="check-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
             <div class="compare-cell" role="cell"><span class="check-dot accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
           </div>
@@ -759,15 +744,14 @@
               <span class="price-num">$0</span>
               <span class="price-suffix">/mes · siempre</span>
             </div>
-            <div class="price-blurb">Una app completa de tareas y notas. Sin caducidad, sin caps.</div>
+            <div class="price-blurb">Una app completa de tareas. Sin caducidad, sin caps.</div>
             <a href="./app.html" class="btn price-cta secondary">Empezar gratis</a>
             <div class="price-includes">INCLUYE</div>
             <ul class="price-feature-list">
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Captura por lenguaje natural</span></li>
-              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Lista, Agenda, Calendario, Hoy</span></li>
+              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Lista, Calendario, Hoy</span></li>
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Subtareas, comentarios, recordatorios</span></li>
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Smart Lists con filtros guardados</span></li>
-              <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Notas con editor enriquecido</span></li>
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Búsqueda global ⌘K</span></li>
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Sincronización Google · PWA offline</span></li>
               <li class="price-feature"><span class="price-feature-mark"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Sin anuncios. Sin tracking. Siempre.</span></li>

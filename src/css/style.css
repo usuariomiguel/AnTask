@@ -537,10 +537,7 @@
 .task-kebab-btn .lucide               { width: 14px; height: 14px; }
 .sidebar-expand-btn .lucide           { width: 13px; height: 13px; stroke-width: 2; }
 .mobile-icon-btn .lucide              { width: 18px; height: 18px; stroke-width: 2; }
-.global-search-btn .lucide            { width: 13px; height: 13px; stroke-width: 2; }
-.agenda-nav-btn .lucide               { width: 15px; height: 15px; stroke-width: 2; }
-.empty-state-icon .lucide             { width: 48px; height: 48px; stroke-width: 1.25; }
-.profile-item-ico .lucide             { width: 13px; height: 13px; stroke-width: 2; }
+.global-search-btn .lucide            { width: 13px; height: 13px; stroke-width: 2; }.profile-item-ico .lucide             { width: 13px; height: 13px; stroke-width: 2; }
 
 /* ─── RESET ──────────────────────────────────────────────────── */
 *,
@@ -775,7 +772,6 @@ body {
   color: var(--c-primary-300);
 }
 
-
 .sidebar-icon-btn .lucide,
 .sidebar-collapse-btn .lucide {
   width: 16px;
@@ -808,16 +804,9 @@ body {
 }
 
 /* El expandir vive ahora en el rail de la sidebar (v1), así que este botón
-   ya no se muestra en ningún estado. Se conserva el markup del estado vacío
-   para no romper referencias del script. */
+   ya no se muestra en ningún estado. */
 .sidebar-is-collapsed .sidebar-expand-btn {
   display: none;
-}
-
-.sidebar-expand-btn-empty {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
 }
 
 /* ─── SIDEBAR ────────────────────────────────────────────────── */
@@ -1116,7 +1105,6 @@ body {
   color: var(--accent-on);
 }
 
-
 /* ─── PROJECT PROGRESS BAR ───────────────────────────────────── */
 .project-item-top {
   display: flex;
@@ -1227,29 +1215,6 @@ body {
     0 0 0 1px rgba(111, 122, 61, 0.45),
     0 6px 24px rgba(111, 122, 61, 0.45),
     0 2px 8px rgba(111, 122, 61, 0.25);
-}
-
-/* empty state — light mode adjustments */
-:root[data-theme="light"] .empty-state::before {
-  background-image: radial-gradient(circle, rgba(111, 122, 61,0.22) 1px, transparent 1px);
-}
-:root[data-theme="light"] .empty-orb--1 {
-  background: radial-gradient(circle, rgba(111, 122, 61,0.18), transparent 70%);
-}
-:root[data-theme="light"] .empty-orb--2 {
-  background: radial-gradient(circle, rgba(224, 163, 90,0.14), transparent 70%);
-}
-:root[data-theme="light"] .empty-orb--3 {
-  background: radial-gradient(circle, rgba(95, 179, 163,0.12), transparent 70%);
-}
-:root[data-theme="light"] .empty-orb--4 {
-  background: radial-gradient(circle, rgba(111, 122, 61,0.08), transparent 70%);
-}
-:root[data-theme="light"] .empty-orb--5 {
-  background: radial-gradient(circle, rgba(95, 179, 163,0.07), transparent 70%);
-}
-:root[data-theme="light"] .empty-logo {
-  filter: drop-shadow(0 0 14px rgba(111, 122, 61,0.30));
 }
 
 /* ─── MAIN PANEL ─────────────────────────────────────────────── */
@@ -1869,254 +1834,6 @@ body {
   }
 }
 
-/* ─── EMPTY STATE ────────────────────────────────────────────── */
-.empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.empty-state::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(163, 179, 102,0.18) 1px, transparent 1px);
-  background-size: 30px 30px;
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.empty-state::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 50%, var(--surface-canvas) 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-
-.empty-state-visual {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.25rem;
-  z-index: 1;
-}
-
-.empty-orb {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.empty-orb--1 {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(111, 122, 61,0.35), transparent 70%);
-  filter: blur(28px);
-  animation: orb-drift-1 7s ease-in-out infinite;
-}
-.empty-orb--2 {
-  width: 110px;
-  height: 110px;
-  background: radial-gradient(circle, rgba(224, 163, 90,0.25), transparent 70%);
-  filter: blur(22px);
-  animation: orb-drift-2 10s ease-in-out infinite;
-}
-.empty-orb--3 {
-  width: 80px;
-  height: 80px;
-  background: radial-gradient(circle, rgba(95, 179, 163,0.20), transparent 70%);
-  filter: blur(18px);
-  animation: orb-drift-3 13s ease-in-out infinite;
-}
-
-.empty-orb--4 {
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(111, 122, 61,0.12), transparent 70%);
-  filter: blur(50px);
-  animation: orb-drift-1 15s ease-in-out infinite reverse;
-}
-.empty-orb--5 {
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle, rgba(95, 179, 163,0.10), transparent 70%);
-  filter: blur(40px);
-  animation: orb-drift-2 18s ease-in-out infinite reverse;
-}
-
-/* Anillos orbitantes */
-.empty-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(163, 179, 102,0.20);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-.empty-ring--1 {
-  width: 130px;
-  height: 130px;
-  animation: ring-spin 18s linear infinite;
-}
-.empty-ring--2 {
-  width: 170px;
-  height: 170px;
-  border-color: rgba(224, 163, 90,0.15);
-  animation: ring-spin 28s linear infinite reverse;
-}
-
-.empty-ring-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--c-primary-400);
-  margin-top: -2.5px;
-  box-shadow: 0 0 6px 2px rgba(163, 179, 102,0.6);
-}
-.empty-ring--2 .empty-ring-dot {
-  background: #e0a35a;
-  box-shadow: 0 0 6px 2px rgba(224, 163, 90,0.5);
-}
-
-@keyframes ring-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.empty-logo {
-  width: 68px;
-  height: auto;
-  position: relative;
-  z-index: 1;
-  animation: empty-float 4.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 18px rgba(111, 122, 61,0.55));
-}
-
-@keyframes empty-float {
-  0%, 100% {
-    transform: translateY(0px) rotate(-1deg);
-    filter: drop-shadow(0 2px 14px rgba(111, 122, 61,0.40));
-  }
-  50% {
-    transform: translateY(-16px) rotate(1deg);
-    filter: drop-shadow(0 12px 28px rgba(111, 122, 61,0.75));
-  }
-}
-
-@keyframes orb-drift-1 {
-  0%, 100% { transform: translate(-18px, -8px);  opacity: 0.8; }
-  50%       { transform: translate(18px,  8px);   opacity: 1;   }
-}
-@keyframes orb-drift-2 {
-  0%, 100% { transform: translate(14px,  18px);  opacity: 0.7; }
-  50%       { transform: translate(-14px, -18px); opacity: 1;   }
-}
-@keyframes orb-drift-3 {
-  0%, 100% { transform: translate(-8px,  16px);  opacity: 0.6; }
-  50%       { transform: translate(8px,  -16px);  opacity: 0.9; }
-}
-
-.empty-state-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--t-soft);
-  letter-spacing: 0.01em;
-  position: relative;
-  z-index: 1;
-}
-
-.empty-state-sub {
-  font-size: 0.82rem;
-  color: var(--t-muted);
-  text-align: center;
-  max-width: 240px;
-  line-height: 1.5;
-  position: relative;
-  z-index: 1;
-}
-
-/* ── Empty state: acciones rápidas ── */
-.empty-state-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 0.4rem;
-  position: relative;
-  z-index: 1;
-}
-.empty-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  font-family: var(--font-sans);
-  color: var(--text-secondary);
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
-}
-.empty-action-btn:hover {
-  background: var(--surface-raised);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-}
-.empty-action-btn .lucide { width: 15px; height: 15px; stroke-width: 2; }
-.empty-action-btn--primary {
-  background: var(--grad-primary);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 2px 10px rgba(163, 179, 102, 0.30);
-}
-.empty-action-btn--primary:hover {
-  color: #fff;
-  filter: brightness(1.06);
-}
-
-.empty-state-tip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 0.6rem;
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  position: relative;
-  z-index: 1;
-}
-.empty-state-tip kbd {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-  padding: 1px 5px;
-  background: var(--surface-input);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-xs);
-  color: var(--text-secondary);
-}
-@media (max-width: 768px) {
-  .empty-state-tip { display: none; }
-}
-
 /* ─── TASKS PANEL ────────────────────────────────────────────── */
 /* ── Control bar (header + form + view-nav, siempre visible con proyecto) */
 .ctrl-bar {
@@ -2240,7 +1957,6 @@ body {
   flex-shrink: 0;
 }
 
-
 .delete-project-btn {
   min-height: 2.2rem;
 }
@@ -2268,7 +1984,6 @@ body {
 }
 :root[data-theme="light"] .close-panel-btn:hover { background: rgba(50, 40, 24,0.04); }
 .close-panel-btn svg { width: 15px; height: 15px; stroke-width: 2; }
-
 
 .delete-project-btn {
   font-size: 0.78rem;
@@ -2490,7 +2205,7 @@ button:focus-visible {
 }
 
 /* ─── TOOLBAR ────────────────────────────────────────────────── */
-/* ── Alt panels (agenda / kanban / cal) — sólo contenido, sin header propio */
+/* ── Alt panel (calendario) — sólo contenido, sin header propio */
 .alt-panel {
   flex: 1;
   display: flex;
@@ -3609,7 +3324,6 @@ body.tasks-compact .task-text {
   font-style: italic;
 }
 
-
 #task-counter {
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
@@ -3619,15 +3333,6 @@ body.tasks-compact .task-text {
 .save-status {
   font-size: 0.70rem;
   color: var(--text-tertiary);
-}
-
-/* ─── NOTES PAGE ─────────────────────────────────────────────── */
-.notes-label {
-  display: inline-block;
-  margin-bottom: 0.55rem;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--t-soft);
 }
 
 .editor-toolbar {
@@ -3641,104 +3346,9 @@ body.tasks-compact .task-text {
   flex-shrink: 0;
 }
 
-.fmt-btn {
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  font-weight: 500;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.5rem;
-  display: grid;
-  place-items: center;
-  color: var(--t-soft);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  letter-spacing: 0;
-  text-transform: none;
-  transition: all 0.15s ease;
-}
-
-.fmt-btn:hover {
-  color: var(--c-cyan);
-  background: rgba(163, 179, 102, 0.08);
-  border-color: rgba(163, 179, 102, 0.18);
-  transform: none;
-  box-shadow: none;
-}
-
-.fmt-btn.fmt-active {
-  color: var(--c-cyan);
-  background: rgba(163, 179, 102, 0.12);
-  border-color: var(--b-active);
-}
-
-:root[data-theme="light"] .fmt-btn:hover,
-:root[data-theme="light"] .fmt-btn.fmt-active {
-  color: var(--c-cyan);
-}
-
-:root[data-theme="light"] .fmt-btn.fmt-active {
-  background: rgba(111, 122, 61, 0.09);
-  border-color: var(--b-active);
-}
-
-.notes-editor {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  line-height: var(--lh-relaxed);
-  line-height: 1.75;
-  letter-spacing: 0;
-  color: var(--t-primary);
-  background: var(--bg-glass);
-  border-top: none;
-  padding: 1rem 1.1rem;
-  outline: none;
-  transition: border-color 0.18s;
-  overflow-y: auto;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.18) transparent;
-}
-
-.notes-editor::-webkit-scrollbar { width: 4px; }
-.notes-editor::-webkit-scrollbar-track { background: transparent; }
-
-.notes-editor:focus {
-  border-color: var(--b-active);
-  background: rgba(20, 20, 30, 0.90);
-}
-
-.notes-editor:empty::before {
-  content: attr(data-placeholder);
-  color: var(--t-muted);
-  font-style: italic;
-  pointer-events: none;
-}
-
-:root[data-theme="light"] .notes-editor {
-  background: rgba(255, 255, 255, 0.90);
-  border-color: rgba(50, 40, 24, 0.09);
-}
-
-:root[data-theme="light"] .notes-editor:focus {
-  background: #fffdf6;
-}
-
 :root[data-theme="light"] .editor-toolbar {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(50, 40, 24, 0.09);
-}
-
-#notes-status {
-  margin-top: 0.5rem;
-  font-size: 0.70rem;
-  color: var(--t-muted);
-  flex-shrink: 0;
 }
 
 /* ─── INLINE EDIT ────────────────────────────────────────────── */
@@ -4264,7 +3874,6 @@ body.project-dragging .project-item { cursor: grabbing; }
      de plegar/desplegar ni rail. */
   .sidebar-collapse-btn,
   .sidebar-expand-btn,
-  .sidebar-expand-btn-empty,
   .sidebar-rail {
     display: none !important;
   }
@@ -4570,7 +4179,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     animation: none;
   }
 
-  /* ── Tabs de vista (Lista/Agenda/Mes) — ocultas en móvil porque
+  /* ── Tabs de vista (Lista/Mes) — ocultas en móvil porque
         la navegación entre vistas vive en el bottom nav ─────────── */
   .view-nav-tabs {
     display: none !important;
@@ -4741,11 +4350,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Alt panels mobile ────────────────────────────────── */
-  .agenda-panel {
-    padding: 0.4rem 0.85rem 0;
-  }
-
   .task-list-scroll {
     -webkit-overflow-scrolling: touch;
   }
@@ -4782,7 +4386,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     line-clamp: 2;
     -webkit-box-orient: vertical;
   }
-
 
   .task-summary {
     flex: 0 0 100%;
@@ -4886,38 +4489,9 @@ body.project-dragging .project-item { cursor: grabbing; }
     font-size: 1rem;
   }
 
-  .empty-state {
-    padding: 2rem 1.4rem;
-  }
-
-  .empty-state-icon .lucide {
-    width: 38px;
-    height: 38px;
-  }
-
   .modal-box {
     width: min(340px, 90vw);
     padding: 1.35rem 1.15rem;
-  }
-
-  .notes-panel .tasks-header {
-    padding: 0.55rem 0.85rem 0.38rem;
-  }
-
-  .notes-panel .header-actions {
-    display: none;
-  }
-
-  .notes-link-mobile {
-    display: inline-flex;
-  }
-
-  .notes-editor {
-    font-size: 1rem;
-    padding: 0.80rem 0.88rem;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
   }
 
   .editor-toolbar {
@@ -4925,15 +4499,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     border-left: none;
     border-right: none;
     padding: 0.38rem 0.65rem;
-  }
-
-  #notes-status {
-    padding: 0.28rem 0.85rem 0.45rem;
-    margin-top: 0;
-  }
-
-  .notes-panel {
-    padding: 0;
   }
 
   /* En móvil, la búsqueda vive en el bottom nav: ocultar el duplicado del sidebar */
@@ -5078,14 +4643,12 @@ body.project-dragging .project-item { cursor: grabbing; }
     transform: rotate(-90deg);
   }
   /* Cuando "Más" está colapsado, ocultar los wrappers que contiene */
-  .sidebar-more-group:not([open]) .archived-section-wrap,
-  .sidebar-more-group:not([open]) .notes-sidebar-section-wrap {
+  .sidebar-more-group:not([open]) .archived-section-wrap {
     display: none;
   }
-  /* En "Más" abierto, las secciones de Archivados/Notas pierden su
-     border-top propio porque el grupo ya lo aporta */
-  .sidebar-more-group .archived-section-wrap,
-  .sidebar-more-group .notes-sidebar-section-wrap {
+  /* En "Más" abierto, Archivados pierde su border-top propio porque el
+     grupo ya lo aporta */
+  .sidebar-more-group .archived-section-wrap {
     border-top: none;
   }
 
@@ -5493,11 +5056,6 @@ body.project-dragging .project-item { cursor: grabbing; }
   background: color-mix(in srgb, var(--c-primary-500) 8%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--c-primary-500) 20%, transparent);
 }
-.search-section-label--notes {
-  color: #e0a35a;
-  background: color-mix(in srgb, #e0a35a 8%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, #e0a35a 20%, transparent);
-}
 
 /* ── Project subgroups within tasks section ─── */
 .search-group {
@@ -5552,10 +5110,6 @@ body.project-dragging .project-item { cursor: grabbing; }
   background: rgba(163, 179, 102, 0.08);
 }
 
-.search-result-item--note:hover {
-  background: color-mix(in srgb, #e0a35a 8%, transparent);
-}
-
 .search-result-done {
   opacity: 0.45;
 }
@@ -5569,8 +5123,6 @@ body.project-dragging .project-item { cursor: grabbing; }
   align-items: center;
 }
 .search-result-check svg { width: 12px; height: 12px; }
-
-.search-result-check--note { color: #e0a35a; }
 
 .search-result-text { flex: 1; line-height: 1.3; }
 
@@ -6662,332 +6214,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   margin-bottom: 0.25rem;
 }
 
-/* Ghost buttons — acción secundaria, no compiten con la lista de
-   proyectos por foco visual. Antes gradientes saturados. */
-.new-project-btn,
-.new-note-btn {
-  flex: 1;
-  width: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: var(--r-md);
-  font-size: 12.5px;
-  font-weight: var(--fw-medium);
-  letter-spacing: 0;
-  border: 1px dashed var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
-  box-shadow: none;
-}
-
-.new-project-btn:hover,
-.new-note-btn:hover {
-  background: rgba(163, 179, 102, 0.06);
-  border-color: rgba(163, 179, 102, 0.45);
-  border-style: solid;
-  color: var(--c-primary-300);
-  transform: none;
-  box-shadow: none;
-}
-.new-project-btn:active,
-.new-note-btn:active {
-  background: rgba(163, 179, 102, 0.10);
-  transform: none;
-}
-
-/* (Botones de la sidebar footer: siempre sobre fondo oscuro, sin
-   overrides light.) */
-
-.new-project-btn .lucide,
-.new-note-btn .lucide {
-  width: 13px;
-  height: 13px;
-}
-
-/* ── Sección NOTAS en sidebar ── */
-.notes-sidebar-section-wrap {
-  border-top: 1px solid var(--b-subtle);
-  flex-shrink: 0;
-}
-
-/* ── Note item in sidebar — reutiliza estilos de project-item ── */
-.note-sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.42rem 0.75rem;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  position: relative;
-  transition: background var(--dur-fast) var(--ease-out);
-}
-
-.note-sidebar-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 0;
-  background: var(--project-color, var(--c-primary-500));
-  border-radius: 0 var(--r-pill) var(--r-pill) 0;
-  transition: height var(--dur-fast) var(--ease-out),
-              opacity var(--dur-fast) var(--ease-out);
-  opacity: 0;
-}
-
-.note-sidebar-item:hover {
-  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 8%, transparent);
-}
-
-.note-sidebar-item:hover::before { height: 16px; opacity: 0.4; }
-
-.note-sidebar-item.active {
-  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 12%, transparent);
-}
-
-.note-sidebar-item.active::before {
-  height: 60%;
-  opacity: 1;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--project-color, var(--c-primary-500)) 50%, transparent);
-}
-
-.note-sidebar-icon {
-  display: flex;
-  align-items: center;
-  color: var(--t-muted);
-  flex-shrink: 0;
-}
-
-.note-sidebar-icon .lucide { width: 13px; height: 13px; }
-
-.note-sidebar-name {
-  flex: 1;
-  font-size: 0.825rem;
-  color: var(--t-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.note-sidebar-item .project-kebab-btn {
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.note-sidebar-item:hover .project-kebab-btn,
-.note-sidebar-item.active .project-kebab-btn {
-  opacity: 1;
-}
-
-/* ── Panel editor de nota ── */
-.note-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg-void);
-}
-
-.note-panel-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 1.25rem;
-  border-bottom: 1px solid var(--b-subtle);
-  flex-shrink: 0;
-}
-
-.note-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--t-primary);
-  outline: none;
-  border: none;
-  background: transparent;
-  flex: 0 1 220px;
-  min-width: 80px;
-  padding: 0.1rem 0.2rem;
-  border-radius: var(--r-xs);
-  transition: background 0.15s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: text;
-}
-
-.note-title:empty::before {
-  content: attr(data-placeholder);
-  color: var(--t-muted);
-  font-weight: 400;
-  pointer-events: none;
-}
-
-.note-title:focus {
-  background: rgba(163, 179, 102, 0.06);
-  outline: none;
-}
-
-.note-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  flex: 1;
-  justify-content: center;
-}
-
-.note-toolbar .fmt-btn {
-  padding: 0.3rem 0.5rem;
-  border-radius: var(--r-xs);
-  font-size: 0.8rem;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--t-soft);
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  line-height: 1;
-}
-
-.note-toolbar .fmt-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  color: var(--t-primary);
-  border-color: rgba(163, 179, 102, 0.25);
-}
-
-.note-toolbar .fmt-btn.fmt-active {
-  background: rgba(163, 179, 102, 0.16);
-  color: var(--c-primary-400);
-  border-color: rgba(163, 179, 102, 0.35);
-}
-
-.note-toolbar-sep {
-  width: 1px;
-  height: 16px;
-  background: var(--b-subtle);
-  margin: 0 0.2rem;
-  flex-shrink: 0;
-}
-
-/* ── Tamaños de fuente en editores de notas ──────────────────
-   execCommand('fontSize') inserta <font size="1-7">.
-   Mapeamos cada valor a un tamaño visual coherente; size="3"
-   coincide con el tamaño por defecto (0.95rem) del editor.   */
-.notes-editor font[size="1"], .note-editor font[size="1"] { font-size: 0.65rem; }
-.notes-editor font[size="2"], .note-editor font[size="2"] { font-size: 0.78rem; }
-.notes-editor font[size="3"], .note-editor font[size="3"] { font-size: 0.95rem; }
-.notes-editor font[size="5"], .note-editor font[size="5"] { font-size: 1.35rem; }
-.notes-editor font[size="7"], .note-editor font[size="7"] { font-size: 1.75rem; }
-
-/* ── Color picker ──────────────────────────────────────────── */
-.fmt-color-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.fmt-color-label {
-  font-weight: 700;
-  font-size: 0.9em;
-  line-height: 1;
-  border-bottom: 3px solid currentColor;
-  display: block;
-  padding-bottom: 1px;
-}
-
-.fmt-color-palette {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 5px;
-  padding: 7px;
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  z-index: 600;
-  flex-wrap: wrap;
-  width: 130px;
-}
-
-.fmt-color-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  transition: transform 0.1s, border-color 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  color: var(--text-primary);
-}
-.fmt-color-swatch:hover {
-  transform: scale(1.2);
-  border-color: rgba(255,255,255,0.5);
-}
-.fmt-color-clear {
-  background: var(--surface-input) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-tertiary);
-}
-.fmt-color-clear:hover {
-  border-color: var(--border-default) !important;
-  color: var(--text-primary);
-}
-
-.note-save-status {
-  font-size: 0.72rem;
-  color: var(--t-muted);
-  white-space: nowrap;
-  transition: opacity 0.3s;
-  flex-shrink: 0;
-}
-
-.note-save-status--flash {
-  color: var(--c-success);
-}
-
-/* ── El editor propiamente dicho ── */
-.note-editor {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.75rem 2rem;
-  outline: none;
-  font-size: 0.95rem;
-  line-height: 1.75;
-  color: var(--t-primary);
-  caret-color: var(--c-primary-400);
-}
-
-.note-editor:empty::before {
-  content: attr(data-placeholder);
-  color: var(--t-muted);
-  pointer-events: none;
-}
-
-.note-editor p { margin: 0 0 0.5em; }
-.note-editor ul,
-.note-editor ol { padding-left: 1.5em; margin: 0.25em 0 0.75em; }
-.note-editor li { margin: 0.15em 0; }
-.note-editor b, .note-editor strong { color: var(--t-primary); }
-
-/* ── Scrollbar del editor ── */
-.note-editor::-webkit-scrollbar { width: 4px; }
-.note-editor::-webkit-scrollbar-track { background: transparent; }
-
 /* Project kebab button */
 .project-kebab-btn {
   /* Oculto por defecto (sin ocupar sitio): en hover reemplaza al contador. */
@@ -7250,7 +6476,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   margin: 0.28rem 0;
 }
 
-/* Agenda/Calendario/Buscar del dropdown de perfil: solo en móvil, ya
+/* Calendario/Buscar del dropdown de perfil: solo en móvil, ya
    que en escritorio viven en la sidebar (ver barra inferior). */
 .profile-mobile-only,
 .profile-sep.profile-mobile-only {
@@ -7722,276 +6948,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--t-muted);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   BOTÓN AGENDA (sidebar footer)
-   ═══════════════════════════════════════════════════════════════ */
-
-.agenda-nav-btn {
-  flex-shrink: 0;
-  background: transparent;
-  border: 1px solid var(--border-default);
-  color: var(--text-tertiary);
-  border-radius: var(--r-md);
-  padding: 0.46rem 0.60rem;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              background var(--dur-fast) var(--ease-out);
-  font-family: var(--font-sans);
-  line-height: 1;
-}
-
-.agenda-nav-btn:hover,
-.agenda-nav-btn.active {
-  color: var(--c-primary-300);
-  border-color: rgba(163, 179, 102, 0.40);
-  background: rgba(163, 179, 102, 0.08);
-  box-shadow: none;
-  transform: none;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   PANEL AGENDA
-   ═══════════════════════════════════════════════════════════════ */
-
-.agenda-panel {
-  padding: 0.75rem 1.6rem 0;
-}
-
-/* Scroll container */
-.agenda-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.18) transparent;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-7);
-  padding: var(--sp-4) 0px;
-}
-
-.agenda-content::-webkit-scrollbar { width: 4px; }
-.agenda-content::-webkit-scrollbar-track { background: transparent; }
-
-/* ── Grupo ─────────────────────────────────────────────────── */
-.agenda-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.agenda-group-header {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding-bottom: var(--sp-3);
-  margin-bottom: var(--sp-2);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.agenda-group-label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-.agenda-group-count {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  background: var(--surface-raised);
-  color: var(--text-tertiary);
-  border: 1px solid var(--border-subtle);
-}
-
-/* Colores por grupo */
-.agenda-group-overdue .agenda-group-label { color: var(--c-danger); }
-.agenda-group-overdue .agenda-group-count  { background: rgba(224, 122, 106, 0.12); color: var(--c-danger); }
-
-.agenda-group-today .agenda-group-label { color: var(--c-warning); }
-.agenda-group-today .agenda-group-count  { background: rgba(224, 163, 90, 0.12); color: var(--c-warning); }
-
-.agenda-group-week .agenda-group-label { color: var(--c-info); }
-.agenda-group-week .agenda-group-count  { background: rgba(115, 182, 210, 0.12); color: var(--c-info); }
-
-.agenda-group-later .agenda-group-label { color: var(--text-secondary); }
-.agenda-group-later .agenda-group-count  { background: var(--surface-raised); color: var(--text-secondary); }
-
-/* ── Lista de tareas ────────────────────────────────────────── */
-.agenda-task-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-
-.agenda-task-item {
-  padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) + 4px);
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-lg);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  position: relative;
-  overflow: hidden;
-  animation: itemIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
-  box-shadow: var(--shadow-sm);
-}
-
-/* Barra lateral de color por prioridad */
-.agenda-task-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--border-strong);
-  transition: background var(--dur-fast) var(--ease-out);
-}
-
-.agenda-task-item:hover {
-  background: var(--task-hover);
-  border-color: var(--task-hover-border);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.agenda-task-item:active {
-  transform: translateY(0);
-}
-
-.agenda-priority-high::before   { background: var(--c-danger); }
-.agenda-priority-medium::before { background: var(--c-warning); }
-.agenda-priority-low::before    { background: var(--c-info); }
-
-/* Vencidas — borde izquierdo rojo aunque no tengan prioridad */
-.agenda-group-overdue .agenda-task-item:not(.agenda-priority-high):not(.agenda-priority-medium):not(.agenda-priority-low)::before {
-  background: rgba(224, 122, 106, 0.60);
-}
-
-.agenda-task-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.agenda-task-text {
-  font-family: var(--font-sans);
-  font-size: var(--fs-task);
-  font-weight: 450;
-  color: var(--text-primary);
-  line-height: var(--lh-base);
-  word-break: break-word;
-}
-
-/* ── Badges ────────────────────────────────────────────────── */
-.agenda-task-badges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.agenda-badge {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  letter-spacing: var(--tracking-normal);
-  padding: 0.10rem 0.50rem;
-  border-radius: var(--r-pill);
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.agenda-badge-priority.agenda-badge-high   { color: var(--c-danger);  background: rgba(224, 122, 106, 0.10); border-color: rgba(224, 122, 106, 0.25); }
-.agenda-badge-priority.agenda-badge-medium { color: var(--c-warning); background: rgba(224, 163, 90,  0.10); border-color: rgba(224, 163, 90,  0.25); }
-.agenda-badge-priority.agenda-badge-low    { color: var(--c-info);    background: rgba(115, 182, 210, 0.10); border-color: rgba(115, 182, 210, 0.25); }
-
-.agenda-badge-project {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.10);
-  border-color: rgba(163, 179, 102, 0.22);
-}
-
-.agenda-badge-date {
-  color: var(--text-tertiary);
-  margin-left: auto;
-}
-
-.agenda-group-overdue .agenda-badge-date { color: var(--c-danger); }
-.agenda-group-today   .agenda-badge-date { color: var(--c-warning); }
-
-/* ── Estado vacío ──────────────────────────────────────────── */
-.agenda-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-  padding: 4rem 2rem;
-  color: var(--t-muted);
-  text-align: center;
-}
-
-.agenda-empty-icon {
-  font-size: 2.6rem;
-  opacity: 0.35;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-.agenda-empty p {
-  font-size: 0.90rem;
-  line-height: 1.55;
-}
-
-/* ── Light theme ────────────────────────────────────────────── */
-:root[data-theme="light"] .agenda-task-item {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(50, 40, 24, 0.07);
-  box-shadow: 0 1px 3px rgba(50, 40, 24, 0.05);
-}
-
-:root[data-theme="light"] .agenda-task-item:hover {
-  background: var(--task-hover);
-  border-color: var(--task-hover-border);
-  box-shadow: 0 4px 14px rgba(50, 40, 24, 0.07);
-}
-
-:root[data-theme="light"] .agenda-badge-project {
-  background: rgba(111, 122, 61, 0.07);
-  border-color: rgba(111, 122, 61, 0.18);
-}
-
-:root[data-theme="light"] .agenda-group-count {
-  background: rgba(50, 40, 24, 0.06);
-}
-
-/* ── Mobile ─────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .agenda-panel {
-    padding: 0.4rem 0.85rem 0;
-  }
-
-  .agenda-content {
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
-  }
-}
-
 /* ── Paste options toast ───────────────────────────────────────────── */
 .paste-toast {
   position: fixed;
@@ -8115,15 +7071,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   inset: -12px;
 }
 
-/* Images inside the notes editor are inline-block so width/height apply */
-.notes-editor img {
-  max-width: 100%;
-  height: auto;
-  display: inline-block;
-  vertical-align: middle;
-  border-radius: 4px;
-}
-
 /* ═══════════════════════════════════════════════════════════════
    PANEL CALENDARIO
    ═══════════════════════════════════════════════════════════════ */
@@ -8131,7 +7078,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .cal-panel {
   padding: 0;
 }
-
 
 /* Legacy cal-nav kept for compat */
 .cal-nav {
@@ -8680,7 +7626,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   }
 }
 
-/* ─── LIGHT MODE — Calendario & Agenda ───────────────────────── */
+/* ─── LIGHT MODE — Calendario ────────────────────────────────── */
 :root[data-theme="light"] .cal-cell {
   background: var(--surface-card);
   border-color: var(--border-default);
@@ -8744,32 +7690,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 :root[data-theme="light"] .cal-task-chip:hover {
   background: rgba(111, 122, 61, 0.14);
   color: var(--text-primary);
-}
-
-:root[data-theme="light"] .agenda-task-item {
-  background: var(--surface-card);
-  border-color: var(--border-default);
-  box-shadow: var(--shadow-sm);
-}
-
-:root[data-theme="light"] .agenda-task-item:hover {
-  background: var(--surface-raised);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-:root[data-theme="light"] .agenda-nav-btn {
-  border-color: var(--border-default);
-}
-
-:root[data-theme="light"] .agenda-nav-btn:hover,
-:root[data-theme="light"] .agenda-nav-btn.active {
-  color: var(--c-primary-500);
-  border-color: rgba(111, 122, 61, 0.35);
-  background: rgba(111, 122, 61, 0.06);
-}
-
-/* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
+}/* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
 @media (hover: none) {
   .task-item:hover {
     transform: none;
@@ -8807,12 +7728,10 @@ button {
 /* garantizar ripple en los botones más usados */
 .modal-btn,
 .new-project-btn,
-.new-note-btn,
 .view-tab,
 .filter-trigger-btn,
 .task-kebab-btn,
-.sidebar-footer button,
-.fmt-btn {
+.sidebar-footer button {
   position: relative;
   overflow: hidden;
 }
@@ -8922,7 +7841,7 @@ button {
   margin: 0;
 }
 
-/* ── Empty state ilustrado (Hoy, Agenda, proyectos sin tareas) ─────
+/* ── Empty state ilustrado (Hoy y proyectos sin tareas) ───────────
    Sistema unificado: visual con halo morado, título, sub y CTA. */
 .empty-illustrated {
   list-style: none;
@@ -9582,7 +8501,6 @@ button {
      al contenedor de pendientes (que solo necesita un margen pequeño). */
   .task-list-done:not(:empty) { padding-bottom: 55px; }
 }
-
 
 /* Lista anidada dentro de cada bloque de grupo del Inbox */
 .inbox-group-list {
@@ -10529,7 +9447,6 @@ button {
 :root[data-theme="light"] .onb-chip-date  { color: var(--c-primary-600); }
 :root[data-theme="light"] .onb-chip-prio  { color: #9a3a33; }
 
-
 /* ═══════════════════════════════════════════════════════════════
    COOKIE CONSENT BANNER
    ═══════════════════════════════════════════════════════════════ */
@@ -10620,19 +9537,14 @@ button {
    resto de la UI que no forma parte de v1 (antes tras "modo simple").
    ═══════════════════════════════════════════════════════════════ */
 
-/* — Sidebar: fuera secciones, archivados y notas — */
+/* — Sidebar: fuera secciones y archivados — */
 #new-section-btn,
 .sidebar-section-empty,
-#sidebar-more-group,
-#new-note-btn { display: none !important; }
+#sidebar-more-group { display: none !important; }
 
-/* — Cabecera de vista: solo "Lista" (sin Agenda ni Mes) — */
-#view-tab-agenda,
+/* — Cabecera de vista: solo "Lista" (sin Mes) — */
 #view-tab-cal,
 #task-prefs-btn { display: none !important; }
-
-/* — Estado vacío: fuera "crear nota" — */
-#empty-new-note { display: none !important; }
 
 /* — Menú de perfil: fuera el tour (ruido) — */
 #tour-btn { display: none !important; }

@@ -102,7 +102,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         const data = snap.data();
         if (data && Array.isArray(data.projects) &&
             typeof _onRemoteChange === "function") {
-          _onRemoteChange(data.projects, data.sections || [], data.standaloneNotes || [], data.updatedAt);
+          _onRemoteChange(data.projects, data.sections || [], data.updatedAt);
         }
       }, function (err) {
         console.warn("AnsoSync: error en listener:", err);
@@ -149,11 +149,10 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
       getUser: function () { return _user; },
 
       /**
-       * Guarda proyectos / secciones / notas standalone en la nube
-       * con un debounce de 2 s. Pausa el listener para evitar el
-       * bucle escritura → snapshot.
+       * Guarda proyectos y secciones en la nube con un debounce de 2 s.
+       * Pausa el listener para evitar el bucle escritura → snapshot.
        */
-      scheduleSave: function (projects, sections, standaloneNotes) {
+      scheduleSave: function (projects, sections) {
         if (!_user) return;
         if (_saveTimer) clearTimeout(_saveTimer);
         _saveTimer = setTimeout(function () {
@@ -161,7 +160,6 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           setDoc(docRef(), {
             projects:        projects,
             sections:        sections || [],
-            standaloneNotes: standaloneNotes || [],
             updatedAt:       serverTimestamp(),
             version:         2,
           }).then(function () {

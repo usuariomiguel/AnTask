@@ -10,16 +10,14 @@
 import {
   PROJECTS_KEY,
   SECTIONS_KEY,
-  NOTES_KEY,
   METADATA_KEY,
   TASK_PREFS_KEY,
   PROFILE_KEY,
 } from "./keys.js";
-import { sanitizeProject, sanitizeStandaloneNote } from "./sanitize.js";
+import { sanitizeProject } from "./sanitize.js";
 
 /** @typedef {import("./types.js").Project}           Project */
 /** @typedef {import("./types.js").Section}           Section */
-/** @typedef {import("./types.js").StandaloneNote}    StandaloneNote */
 /** @typedef {import("./types.js").WorkspaceMetadata} WorkspaceMetadata */
 
 /** @returns {Project[]} */
@@ -38,16 +36,6 @@ export function loadSections() {
   try {
     const raw = localStorage.getItem(SECTIONS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch (_) {
-    return [];
-  }
-}
-
-/** @returns {StandaloneNote[]} */
-export function loadStandaloneNotes() {
-  try {
-    const raw = localStorage.getItem(NOTES_KEY);
-    return raw ? JSON.parse(raw).map(sanitizeStandaloneNote) : [];
   } catch (_) {
     return [];
   }

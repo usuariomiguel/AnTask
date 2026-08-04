@@ -9,12 +9,10 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { generateId } from "../utils/id.js";
-import { sanitizeRichHtml } from "../utils/sanitize-html.js";
 
 /** @typedef {import("./types.js").Subtask}          Subtask */
 /** @typedef {import("./types.js").Task}             Task */
 /** @typedef {import("./types.js").Project}          Project */
-/** @typedef {import("./types.js").StandaloneNote}   StandaloneNote */
 
 const VALID_PRIORITIES = ["high", "medium", "low"];
 
@@ -72,24 +70,9 @@ export function sanitizeProject(p) {
     name:      typeof p.name === "string" ? p.name.trim().slice(0, 60) : "Sin nombre",
     createdAt: p.createdAt || new Date().toISOString(),
     tasks:     sanitizeTasks(p.tasks),
-    notes:     sanitizeRichHtml(typeof p.notes === "string" ? p.notes : ""),
     sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
     archived:  !!p.archived,
     icon:      typeof p.icon === "string" ? p.icon : "",
     color:     typeof p.color === "string" ? p.color : "",
-  };
-}
-
-/**
- * @param {any} n
- * @returns {StandaloneNote}
- */
-export function sanitizeStandaloneNote(n) {
-  return {
-    id:        typeof n.id === "string" ? n.id : "note-" + Date.now(),
-    name:      typeof n.name === "string" ? n.name.slice(0, 80) : "Sin título",
-    content:   sanitizeRichHtml(typeof n.content === "string" ? n.content : ""),
-    createdAt: n.createdAt || new Date().toISOString(),
-    color:     typeof n.color === "string" ? n.color : "",
   };
 }

@@ -5,7 +5,6 @@
 export const PROJECTS_KEY     = "anso-projects";
 export const ACTIVE_KEY       = "anso-active-project";
 export const METADATA_KEY     = "anso-meta";
-export const NOTES_KEY        = "antask-notes";
 export const TASK_PREFS_KEY   = "antask-task-prefs";
 export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";

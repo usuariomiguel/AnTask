@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════
-// Búsqueda global (proyectos + tareas + notas standalone)
+// Búsqueda global (proyectos + tareas)
 //
 // El módulo no conoce el estado de la app: recibe los datos vía
-// callbacks (`getProjects`, `getStandaloneNotes`) y delega la
-// navegación al caller (`onNavigateToTask`, `onActivateNote`).
+// callbacks (`getProjects`) y delega la navegación al caller
+// (`onNavigateToTask`).
 //
 // Esto permite usarlo desde el botón "Buscar" de la sidebar,
 // el atajo Cmd+K, o el botón del bottom-nav móvil con la misma API.
@@ -16,17 +16,8 @@ import { t } from "../i18n/index.js";
 /**
  * @typedef {Object} SearchDeps
  * @property {() => Array<any>} getProjects
- * @property {() => Array<any>} getStandaloneNotes
  * @property {(projectId: string, taskId: string) => void} onNavigateToTask
- * @property {(noteId: string) => void} onActivateNote
  */
-
-/** Convierte el HTML de una nota a texto plano (para buscar dentro). */
-function noteToPlainText(html) {
-  const tmp = document.createElement("div");
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
-}
 
 /** Envuelve los matches en `<mark>` para resaltar. Escapa HTML. */
 function highlightMatch(text, q) {
@@ -44,7 +35,6 @@ function renderSearchResults(container, q, deps, closeCallback) {
   }
 
   const projects = deps.getProjects() || [];
-  const standaloneNotes = deps.getStandaloneNotes() || [];
 
   const taskGroups = [];
   projects.forEach(function (project) {
@@ -55,12 +45,7 @@ function renderSearchResults(container, q, deps, closeCallback) {
     if (matches.length > 0) taskGroups.push({ project: project, tasks: matches });
   });
 
-  const noteMatches = standaloneNotes.filter(function (n) {
-    return n.name.toLowerCase().includes(q) ||
-           noteToPlainText(n.content).toLowerCase().includes(q);
-  });
-
-  const total = taskGroups.reduce(function (s, g) { return s + g.tasks.length; }, 0) + noteMatches.length;
+  const total = taskGroups.reduce(function (s, g) { return s + g.tasks.length; }, 0);
 
   if (total === 0) {
     container.innerHTML = '<p class="search-hint">' + t("search.no_results") + ' <em>' + escHtml(q) + '</em></p>';
@@ -122,47 +107,6 @@ function renderSearchResults(container, q, deps, closeCallback) {
     container.appendChild(tasksSection);
   }
 
-  // ── Sección notas ────────────────────────────────────────────
-  if (noteMatches.length > 0) {
-    const notesSection = document.createElement("div");
-    notesSection.className = "search-section";
-    notesSection.innerHTML =
-      '<div class="search-section-label search-section-label--notes">' +
-        '<i data-lucide="file-text"></i><span>' + t("search.section.notes") + '</span>' +
-      '</div>';
-
-    noteMatches.forEach(function (note) {
-      const plain = noteToPlainText(note.content);
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "search-result-item search-result-item--note";
-
-      item.innerHTML =
-        '<span class="search-result-check search-result-check--note"><i data-lucide="file-text"></i></span>' +
-        '<span class="search-result-text">' + highlightMatch(note.name, q) + '</span>';
-
-      if (plain.toLowerCase().includes(q)) {
-        const idx     = plain.toLowerCase().indexOf(q);
-        const start   = Math.max(0, idx - 30);
-        const excerpt = (start > 0 ? "…" : "") + plain.slice(start, idx + q.length + 40);
-        const snippet = document.createElement("span");
-        snippet.className = "search-result-snippet";
-        snippet.innerHTML = highlightMatch(excerpt, q);
-        item.appendChild(snippet);
-      }
-
-      item.addEventListener("click", function () {
-        closeCallback();
-        if (typeof deps.onActivateNote === "function") {
-          deps.onActivateNote(note.id);
-        }
-      });
-
-      notesSection.appendChild(item);
-    });
-
-    container.appendChild(notesSection);
-  }
 
   if (window.lucide) window.lucide.createIcons({ nodes: [container] });
 }

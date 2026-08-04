@@ -49,10 +49,8 @@ const STEPS = [
     title:   "Atajos esenciales",
     bodyHTML:
       '<table class="onb-shortcuts">' +
-        '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Buscar en proyectos y notas</td></tr>' +
+        '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Buscar en proyectos y tareas</td></tr>' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd></td><td>Captura rápida (al Inbox)</td></tr>' +
-        '<tr><td><kbd>N</kbd></td><td>Enfocar campo "nueva tarea"</td></tr>' +
-        '<tr><td><kbd>A</kbd> · <kbd>C</kbd></td><td>Vista Agenda · Calendario</td></tr>' +
         '<tr><td><kbd>?</kbd></td><td>Ver todos los atajos</td></tr>' +
       '</table>' +
       '<p class="onb-cta-text">Pulsa <strong>Empezar</strong> y a por ello.</p>',

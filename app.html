@@ -139,26 +139,24 @@
 
         <ul id="project-list" class="project-list" aria-label="Lista de proyectos"></ul>
 
-        <!-- Agrupador "Más" — colapsa Archivados + Notas en móvil para
-             que no compitan con la lista de proyectos. En desktop las
-             dos secciones se mantienen visibles directamente. -->
+        <!-- Agrupador "Más" — colapsa Archivados en móvil para que no
+             compita con la lista de proyectos. En desktop se mantiene
+             visible directamente. -->
         <details class="sidebar-more-group" id="sidebar-more-group">
           <summary class="sidebar-more-summary">
             <i data-lucide="chevron-down" class="sidebar-more-chevron"></i>
             <span data-i18n="sidebar.more">Más</span>
           </summary>
           <div id="archived-section" class="archived-section-wrap"></div>
-          <div id="notes-sidebar-section" class="notes-sidebar-section-wrap"></div>
         </details>
 
         <div class="sidebar-footer">
           <!-- En esta versión, la creación se hace inline en la lista, al estilo
                del prototipo v1 (+ Añadir lista dentro de cada grupo, + Nuevo grupo
-               al final). Los botones de crear proyecto/nota se conservan ocultos
-               para no romper referencias del script ni el estado vacío. -->
+               al final). El botón de crear proyecto se conserva oculto para no
+               romper referencias del script ni el estado vacío. -->
           <div class="new-item-row" hidden aria-hidden="true">
             <button type="button" id="new-project-btn" class="new-project-btn"></button>
-            <button type="button" id="new-note-btn" class="new-note-btn"></button>
           </div>
           <!-- Profile menu -->
           <div class="profile-wrap" id="profile-wrap">
@@ -178,9 +176,8 @@
                   <div class="profile-dropdown-sub" id="profile-sub-top" data-i18n="profile.local_storage">Almacenamiento local</div>
                 </div>
               </div>
-              <!-- Agenda y Calendario no forman parte de v1 (sin atajos ni entrada
-                   en el menú); se dejan ocultas en vez de borrar el panel. -->
-              <button type="button" class="profile-item profile-mobile-only" id="pf-agenda-btn" hidden><span class="profile-item-ico"><i data-lucide="calendar-range"></i></span> <span data-i18n="nav.agenda">Agenda</span></button>
+              <!-- El calendario no forma parte de v1 (sin atajo ni entrada en el
+                   menú); se deja oculto en vez de borrar el panel. -->
               <button type="button" class="profile-item profile-mobile-only" id="pf-calendar-btn" hidden><span class="profile-item-ico"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendario</span></button>
               <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-settings-btn">
@@ -254,7 +251,7 @@
                 <div class="settings-row">
                   <div>
                     <div class="settings-row-label" data-i18n="settings.account.sync">Sincronización con Google</div>
-                    <div class="settings-row-desc" data-i18n="settings.account.sync_desc">Tus tareas y notas se guardan en la nube.</div>
+                    <div class="settings-row-desc" data-i18n="settings.account.sync_desc">Tus tareas se guardan en la nube.</div>
                   </div>
                   <div class="settings-row-control" id="settings-sync-control">
                     <button type="button" class="settings-btn" id="settings-signin-btn" hidden><i data-lucide="cloud"></i> <span data-i18n="profile.signin">Sincronizar con Google</span></button>
@@ -382,7 +379,7 @@
                 <div class="settings-row">
                   <div>
                     <div class="settings-row-label" data-i18n="profile.export">Exportar workspace</div>
-                    <div class="settings-row-desc" data-i18n="settings.data.export_desc">Descarga todas tus tareas y notas en un archivo.</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.export_desc">Descarga todas tus tareas en un archivo.</div>
                   </div>
                   <button type="button" class="settings-btn" id="pf-export-btn"><i data-lucide="upload"></i> <span data-i18n="settings.data.export">Exportar</span></button>
                 </div>
@@ -434,37 +431,6 @@
       <!-- ── MAIN PANEL ──────────────────────────────────── -->
       <main class="main-panel" id="main-panel">
 
-        <!-- Estado vacío: ningún proyecto seleccionado -->
-        <div class="empty-state" id="empty-state">
-          <button type="button" id="sidebar-expand-btn-empty" class="sidebar-expand-btn sidebar-expand-btn-empty" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos"><i data-lucide="panel-left"></i></button>
-          <div class="empty-state-visual">
-            <div class="empty-orb empty-orb--1"></div>
-            <div class="empty-orb empty-orb--2"></div>
-            <div class="empty-orb empty-orb--3"></div>
-            <div class="empty-orb empty-orb--4"></div>
-            <div class="empty-orb empty-orb--5"></div>
-            <div class="empty-ring empty-ring--1"><span class="empty-ring-dot"></span></div>
-            <div class="empty-ring empty-ring--2"><span class="empty-ring-dot"></span></div>
-            <svg class="empty-logo" viewBox="0 0 92 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="eg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#a3b366"/>
-                  <stop offset="0.5" stop-color="#8a9a5b"/>
-                  <stop offset="1" stop-color="#566030"/>
-                </linearGradient>
-              </defs>
-              <path d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z" fill="url(#eg)"/>
-            </svg>
-          </div>
-          <p class="empty-state-title" data-i18n="empty.title">¿Qué quieres hacer?</p>
-          <div class="empty-state-actions">
-            <button type="button" class="empty-action-btn" id="empty-open-inbox">📥 <span data-i18n="empty.open_inbox">Abrir Inbox</span></button>
-            <button type="button" class="empty-action-btn empty-action-btn--primary" id="empty-new-project"><i data-lucide="plus"></i> <span data-i18n="empty.new_project">Crear proyecto</span></button>
-            <button type="button" class="empty-action-btn" id="empty-new-note"><i data-lucide="file-plus"></i> <span data-i18n="empty.new_note">Crear nota</span></button>
-          </div>
-          <p class="empty-state-tip" aria-hidden="true"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>␣</kbd> <span data-i18n="empty.tip">captura rápida</span></p>
-        </div>
-
         <!-- Barra de control persistente: header + form + nav de vistas -->
         <div class="ctrl-bar" id="ctrl-bar" hidden>
 
@@ -484,9 +450,6 @@
               <!-- <div class="view-nav-tabs" id="view-nav-tabs">
                 <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
                   <i data-lucide="list-todo"></i><span data-i18n="nav.tasks">Lista</span>
-                </button>
-                <button type="button" class="view-tab" data-view="agenda" id="view-tab-agenda">
-                  <i data-lucide="calendar-range"></i><span data-i18n="nav.agenda">Agenda</span>
                 </button>
                 <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
                   <i data-lucide="calendar-days"></i><span data-i18n="nav.calendar_short">Mes</span>
@@ -598,58 +561,6 @@
             <ul id="task-list" class="task-list" aria-live="polite"></ul>
             <ul id="task-list-done" class="task-list-done" aria-live="polite"></ul>
           </div>
-        </div>
-
-        <!-- Vista Agenda -->
-        <div class="alt-panel agenda-panel" id="agenda-panel" hidden>
-          <div id="agenda-content" class="agenda-content"></div>
-        </div>
-
-        <!-- Vista Nota -->
-        <div class="note-panel" id="note-panel" hidden>
-          <div class="note-panel-header">
-            <h2 class="note-title" id="note-title" contenteditable="true" spellcheck="false" data-placeholder="Sin título" data-i18n-dp="note.title_placeholder"></h2>
-            <div class="note-toolbar">
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="bold" title="Negrita (Ctrl+B)"><strong>B</strong></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="italic" title="Cursiva (Ctrl+I)"><em>I</em></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="strikeThrough" title="Tachado"><s>S</s></button>
-              <span class="note-toolbar-sep"></span>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="1" title="Muy pequeño"  ><span style="font-size:0.60em;font-weight:700">A</span></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="2" title="Pequeño"      ><span style="font-size:0.78em;font-weight:700">A</span></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="3" title="Normal"       ><span style="font-size:0.95em;font-weight:700">A</span></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="5" title="Grande"       ><span style="font-size:1.20em;font-weight:700">A</span></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="fontSize" data-val="7" title="Muy grande"   ><span style="font-size:1.50em;font-weight:700">A</span></button>
-              <span class="note-toolbar-sep"></span>
-              <div class="fmt-color-wrap">
-                <button type="button" class="fmt-btn note-fmt-btn fmt-color-btn" title="Color de texto"><span class="fmt-color-label">A</span></button>
-                <div class="fmt-color-palette" hidden>
-                  <button class="fmt-color-swatch" data-color="#ef4444" style="background:#ef4444" title="Rojo"></button>
-                  <button class="fmt-color-swatch" data-color="#f97316" style="background:#f97316" title="Naranja"></button>
-                  <button class="fmt-color-swatch" data-color="#eab308" style="background:#eab308" title="Amarillo"></button>
-                  <button class="fmt-color-swatch" data-color="#22c55e" style="background:#22c55e" title="Verde"></button>
-                  <button class="fmt-color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="Azul"></button>
-                  <button class="fmt-color-swatch" data-color="#a855f7" style="background:#a855f7" title="Morado"></button>
-                  <button class="fmt-color-swatch" data-color="#8a9a5b" style="background:#8a9a5b" title="Rosa"></button>
-                  <button class="fmt-color-swatch fmt-color-clear" data-color="" title="Quitar color">✕</button>
-                </div>
-              </div>
-              <span class="note-toolbar-sep"></span>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertUnorderedList" title="Lista con viñetas"><i data-lucide="list"></i></button>
-              <button type="button" class="fmt-btn note-fmt-btn" data-cmd="insertOrderedList"   title="Lista numerada" ><i data-lucide="list-ordered"></i></button>
-            </div>
-            <button type="button" id="close-note-btn" class="close-panel-btn" title="Cerrar nota"><i data-lucide="x"></i></button>
-          </div>
-          <div
-            id="note-editor"
-            class="note-editor"
-            contenteditable="true"
-            role="textbox"
-            aria-multiline="true"
-            data-placeholder="Empieza a escribir..."
-            data-i18n-dp="note.body_placeholder"
-            spellcheck="true"
-          ></div>
         </div>
 
         <!-- Vista Calendario -->
@@ -792,8 +703,8 @@
 
       <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
       <!-- Pastilla flotante con 3 destinos (Hoy · Inbox · Perfil), como
-           el prototipo móvil v1. Agenda/Calendario/Buscar viven dentro
-           de Perfil. El + de captura flota aparte, a la derecha. -->
+           el prototipo móvil v1. Calendario/Buscar viven dentro de Perfil.
+           El + de captura flota aparte, a la derecha. -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
         <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
           <i data-lucide="calendar-check"></i>
@@ -949,17 +860,10 @@
         });
       }
 
-      // Agenda/Calendario dentro del dropdown de perfil (solo móvil, y
-      // ocultos: no forman parte de v1): ejecutan la acción y cierran
-      // el drawer para que se vea la vista.
-      var pfAgendaBtn   = document.getElementById("pf-agenda-btn");
+      // Calendario dentro del dropdown de perfil (solo móvil, y oculto: no
+      // forma parte de v1): ejecuta la acción y cierra el drawer para que se
+      // vea la vista.
       var pfCalendarBtn = document.getElementById("pf-calendar-btn");
-      if (pfAgendaBtn) {
-        pfAgendaBtn.addEventListener("click", function() {
-          closeSidebar();
-          if (typeof window.showAgendaPanel === "function") window.showAgendaPanel();
-        });
-      }
       if (pfCalendarBtn) {
         pfCalendarBtn.addEventListener("click", function() {
           closeSidebar();
@@ -1005,7 +909,7 @@
 
       // ── Header auto-hide al scroll ─────────────────────────────
       // Escucha en captura cualquier scroll de un contenedor interno
-      // (task-list, agenda, cal-content, etc) y oculta/muestra el header
+      // (task-list, cal-content, etc) y oculta/muestra el header
       // según la dirección del scroll. Threshold pequeño evita parpadeo.
       var mobileHeader = document.getElementById("mobile-header");
       var lastScrollY  = 0;
@@ -1044,7 +948,7 @@
       // Al cambiar de vista (cambio de panel scrolleable), resetear lastScrollY
       // y mostrar el header. Lo hacemos vigilando mutaciones del atributo
       // 'hidden' en los paneles principales.
-      ["tasks-panel", "agenda-panel", "cal-panel"].forEach(function(id) {
+      ["tasks-panel", "cal-panel"].forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
         new MutationObserver(function() {
@@ -1059,7 +963,7 @@
         setTimeout(window.syncBnavActive, 0);
       }
 
-      // Grupo "Más" (Archivados + Notas): abierto en desktop (sidebar
+      // Grupo "Más" (Archivados): abierto en desktop (sidebar
       // siempre visible, no tiene sentido esconder), cerrado en móvil
       // (drawer compacto). Sin esto, los wrappers internos quedarían
       // ocultos en desktop por el comportamiento nativo de <details>.

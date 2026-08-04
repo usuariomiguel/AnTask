@@ -16,14 +16,13 @@ const RICH_TEXT_CONFIG = {
     "font",
   ],
   ALLOWED_ATTR: ["style", "src", "width", "height", "alt", "size"],
-  // Permite URLs http/https, data:image/* (imágenes pegadas) y el esquema
-  // interno antask-img:// que usa el image-store para refs a IndexedDB.
+  // Permite URLs http/https y data:image/* (imágenes pegadas).
   // Bloquea javascript:, data:text/html, vbscript:, etc.
-  ALLOWED_URI_REGEXP: /^(?:https?:|data:image\/[\w+.-]+;base64,|antask-img:\/\/|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+  ALLOWED_URI_REGEXP: /^(?:https?:|data:image\/[\w+.-]+;base64,|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
 };
 
 /**
- * Sanitiza HTML de entrada de usuario (notas, paste) usando DOMPurify.
+ * Sanitiza HTML de entrada de usuario (paste) usando DOMPurify.
  * Es seguro llamarlo con cadenas vacías o nulas.
  *
  * @param {string|null|undefined} html

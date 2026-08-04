@@ -67,16 +67,10 @@ Chips de preview en vivo muestran lo detectado mientras escribes.
 
 - **Proyectos múltiples** con sidebar y secciones colapsables
 - **Proyecto Inbox** auto-creado y fijado al tope — destino fallback para captura
-- **Vistas**: Lista · Agenda · Calendario mensual · Hoy (virtual)
+- **Vistas**: Lista · Calendario mensual · Hoy (virtual)
 - **Smart Lists / Filtros guardados** — vistas virtuales basadas en criterios combinables (status + prioridad + fecha + etiqueta). 3 presets predefinidos: Vencidas, Esta semana, Prioridad alta.
 - **Archivado** de proyectos
-- **Búsqueda global** (Cmd/Ctrl + K) — tareas y notas, con resaltado de coincidencias
-
-### Notas
-
-- Notas independientes (no atadas a proyectos), gestionadas desde la sidebar
-- Editor enriquecido (negrita, cursiva, listas, color, tamaños)
-- Guardado automático mientras escribes
+- **Búsqueda global** (Cmd/Ctrl + K) — tareas, con resaltado de coincidencias
 
 ### Notificaciones
 
@@ -100,10 +94,7 @@ Chips de preview en vivo muestran lo detectado mientras escribes.
 | `Ctrl/Cmd + K` | Búsqueda global |
 | `Ctrl/Cmd + Shift + Espacio` | Captura rápida (al Inbox o al proyecto activo) |
 | `Ctrl/Cmd + B` | Mostrar/ocultar sidebar |
-| `N` | Enfocar campo "nueva tarea" |
 | `S` | Crear nueva sección |
-| `A` | Vista Agenda |
-| `C` | Vista Calendario |
 | `?` | Ver todos los atajos |
 
 ---
@@ -176,7 +167,6 @@ AnTask/
         │   ├── search.js       # Búsqueda global
         │   ├── theme.js        # Sistema de temas
         │   ├── calendar.js     # Vista Calendario
-        │   ├── agenda.js       # Vista Agenda
         │   ├── quick-capture.js # Modal Ctrl+Shift+Espacio
         │   └── onboarding.js   # Tour de 3 pasos
         └── utils/              # ── Utilidades puras ───────────────
@@ -200,7 +190,6 @@ Todos los datos se guardan en el `localStorage` del navegador:
 | `anso-active-project`       | ID del proyecto activo                               |
 | `anso-meta`                 | Metadatos (timestamp del último guardado)            |
 | `anso-sections`             | Secciones de la sidebar                              |
-| `antask-notes`              | Notas independientes                                 |
 | `antask-smart-lists`        | Filtros guardados (smart lists)                      |
 | `antask-task-prefs`         | Preferencias de visibilidad de botones de tarea      |
 | `mis-tareas-theme`          | Preferencia de tema (`dark` / `light`)               |
@@ -214,7 +203,7 @@ Los datos persisten entre sesiones en el mismo navegador. Para llevarlos a otro 
 
 ## Exportar e importar
 
-- **Exportar**: descarga un `.json` con todos tus proyectos, tareas, subtareas, secciones, notas y filtros guardados.
+- **Exportar**: descarga un `.json` con todos tus proyectos, tareas, subtareas, secciones y filtros guardados.
 - **Importar**: sube un `.json` exportado previamente para restaurar o migrar datos entre dispositivos.
 
 ---

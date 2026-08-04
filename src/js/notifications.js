@@ -228,8 +228,8 @@ window.AnsoNotif = (function() {
     });
     if (due.length > 5) lines.push("…y " + (due.length - 5) + " más");
     if (overdue > 0) {
-      title = overdue + " " + t("agenda.group.overdue").toLowerCase() +
-              " · " + (due.length - overdue) + " " + t("agenda.group.today").toLowerCase();
+      title = overdue + " " + t("notif.digest_overdue").toLowerCase() +
+              " · " + (due.length - overdue) + " " + t("notif.digest_today").toLowerCase();
     }
     _showNotification(title, lines.join("\n"), "antask-daily-" + dateTag);
   }

@@ -5,7 +5,6 @@ export const en = {
   "sidebar.search":           "Search tasks",
   "sidebar.search_short":     "Search",
   "sidebar.new_project":      "Project",
-  "sidebar.new_note":         "Note",
   "sidebar.inbox":            "Inbox",
   "sidebar.today":            "Today",
   "sidebar.projects_label":   "Lists",
@@ -19,8 +18,6 @@ export const en = {
   "sidebar.group_name":       "Group name",
   "sidebar.archived":         "Archived",
   "sidebar.archived_empty":   "Nothing archived",
-  "sidebar.notes":            "Notes",
-  "sidebar.notes_empty":      "No notes yet",
   "sidebar.more":             "More",
   "sidebar.add_list_title":   "New saved list",
 
@@ -53,7 +50,7 @@ export const en = {
   "settings.nav.about":                "About",
 
   "settings.account.sync":             "Sync with Google",
-  "settings.account.sync_desc":        "Your tasks and notes are saved to the cloud.",
+  "settings.account.sync_desc":        "Your tasks are saved to the cloud.",
   "settings.account.connected":        "Connected",
   "settings.account.language":         "Language",
   "settings.account.language_desc":    "Interface language.",
@@ -84,7 +81,7 @@ export const en = {
   "settings.tasks.priority_none":      "None",
 
   "settings.data.export":              "Export",
-  "settings.data.export_desc":         "Download all your tasks and notes as a file.",
+  "settings.data.export_desc":         "Download all your tasks as a file.",
   "settings.data.import":              "Import",
   "settings.data.import_desc":         "Restore from a previously exported file.",
   "settings.data.clear":               "Clear",
@@ -101,22 +98,11 @@ export const en = {
   "task.input.placeholder_fab": "New task...",
   "task.add_btn":             "Add",
 
-  // ── Notes panel ───────────────────────────────────────────
-  "note.title_placeholder":   "Untitled",
-  "note.body_placeholder":    "Start writing...",
-  "note.saved_at":            "Saved",
-  "note.rename":              "Rename",
-  "note.rename_prompt":       "Rename note",
-  "note.new_prompt":          "Note name",
-  "note.new_placeholder":     "My note...",
-  "note.delete":              "Delete note",
-  "note.confirm_delete":      "Delete the note <strong>{name}</strong>?",
 
   // ── Bottom nav (mobile) ───────────────────────────────────
   "nav.projects":             "Projects",
   "nav.inbox":                "Inbox",
   "nav.today":                "Today",
-  "nav.agenda":               "Agenda",
   "nav.new":                  "New",
   "nav.calendar":             "Calendar",
   "nav.profile":              "Profile",
@@ -137,7 +123,7 @@ export const en = {
 
   // ── Quota modal ───────────────────────────────────────────
   "quota.title":              "Storage full",
-  "quota.body":               "The browser rejected the save because available storage is full (~5 MB).<br><br><strong>Your latest changes were not saved.</strong><br><br>Export a backup and delete projects or notes you no longer need.",
+  "quota.body":               "The browser rejected the save because available storage is full (~5 MB).<br><br><strong>Your latest changes were not saved.</strong><br><br>Export a backup and delete projects you no longer need.",
   "quota.export_btn":         "Export backup now",
   "quota.close_btn":          "Close",
 
@@ -145,7 +131,6 @@ export const en = {
   "view.today_title":         "Today",
   "view.today_subtitle":      "Overdue and today, across all projects",
   "view.list":                "List",
-  "view.agenda":              "Agenda",
   "view.calendar":            "Month",
 
   // ── Accessibility ─────────────────────────────────────────
@@ -154,14 +139,6 @@ export const en = {
   "a11y.mobile_settings":     "Settings",
   "a11y.mobile_projects":     "Projects",
   "a11y.loading":             "Loading antask",
-
-  // ── Empty state ───────────────────────────────────────────
-  "empty.title":              "What do you want to do?",
-  "empty.sub":                "Select a project or note from the sidebar",
-  "empty.open_inbox":         "Open Inbox",
-  "empty.new_project":        "New project",
-  "empty.new_note":           "New note",
-  "empty.tip":                "quick capture",
 
   // ── Today (view) ──────────────────────────────────────────
   "today.empty_title":        "All clear",
@@ -364,22 +341,14 @@ export const en = {
   // ── Due badge (per task) ──────────────────────────────────
   "due.overdue":              "Overdue",
 
-  // ── Agenda ────────────────────────────────────────────────
-  "agenda.group.overdue":     "Overdue",
-  "agenda.group.today":       "Today",
-  "agenda.group.this_week":   "This week",
-  "agenda.group.later":       "Later",
-  "agenda.empty":             "No tasks with a pending due date",
-
   // ── Search ────────────────────────────────────────────────
-  "search.modal_title":       "Search projects and notes",
-  "search.placeholder":       "Search tasks and notes…",
+  "search.modal_title":       "Search projects",
+  "search.placeholder":       "Search tasks…",
   "search.hint_min_chars":    "Type at least 2 characters…",
   "search.no_results":        "No results for",
   "search.count_one":         "1 result",
   "search.count_other":       "{n} results",
   "search.section.tasks":     "Tasks",
-  "search.section.notes":     "Notes",
 
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.eyebrow":    "New task",
@@ -421,6 +390,8 @@ export const en = {
   "notif.task_overdue":       "Overdue task",
   "notif.task_due_today":     "Task due today",
   "notif.tasks_due":          "tasks due",
+  "notif.digest_overdue":     "Overdue",
+  "notif.digest_today":       "Today",
   "notif.reminder_title":     "Reminder",
   "notif.unknown_project":    "No project",
   "notif.remove_time":        "Remove time",
@@ -491,9 +462,6 @@ export const en = {
   // ── Today badges (sidebar) ────────────────────────────────
   "today.due.label":          "Tomorrow",
 
-  // ── Notes (con placeholder) ───────────────────────────────
-  "note.confirm_delete_btn":  "Delete",
-
   // ── Sync / profile ────────────────────────────────────────
   "profile.cloud_icon_fallback": "☁",
   "profile.user_default":     "User",
@@ -528,14 +496,9 @@ export const en = {
   "save.no_recent":           "No recent changes",
   "task.no_other_projects":   "No other projects available.",
   "task.nothing_to_export":   "No projects to export.",
-  "note.name_prompt":         "Note name",
-  "note.name_placeholder":    "My note...",
   "view.eyebrow_tasks":       "List",
-  "view.eyebrow_agenda":      "Agenda",
   "view.eyebrow_calendar":    "Calendar",
   "save.saved_at":            "Saved {time}",
-  "note.action_rename":       "Rename",
-  "note.action_delete":       "Delete note",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "You have <strong>{local} local project</strong> and <strong>{cloud} project in the cloud</strong>. Which do you want to use?",

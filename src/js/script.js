@@ -9,14 +9,6 @@ import { buildNLChipsHTML, formatDueLabel, formatRecurLabel } from "./utils/nl-c
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
 import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
-  preloadAll        as _imgPreloadAll,
-  resolveImages     as _imgResolve,
-  resolveImgElements as _imgResolveEls,
-  extractImages     as _imgExtract,
-  findImageIds      as _imgFindIds,
-  deleteImages      as _imgDelete,
-} from "./utils/image-store.js";
-import {
   createModalBase,
   closeModal,
   modalPrompt,
@@ -27,7 +19,6 @@ import {
   PROJECTS_KEY,
   ACTIVE_KEY,
   METADATA_KEY,
-  NOTES_KEY,
   TASK_PREFS_KEY,
   THEME_KEY,
   SECTIONS_KEY,
@@ -39,12 +30,10 @@ import {
   sanitizeProject,
   sanitizeTasks,
   sanitizeSubtasks,
-  sanitizeStandaloneNote,
 } from "./state/sanitize.js";
 import {
   loadProjects,
   loadSections,
-  loadStandaloneNotes,
   loadMetadata,
   loadTaskPrefs,
   loadProfile,
@@ -77,16 +66,10 @@ import {
   ACCENT_KEY,
 } from "./ui/theme.js";
 import { renderCalendar as _renderCalendarModule } from "./ui/calendar.js";
-import { renderAgenda as _renderAgendaModule } from "./ui/agenda.js";
 
 /** Wrapper local que inyecta el estado actual al módulo de calendario. */
 function renderCalendar() {
   _renderCalendarModule(calState.year, calState.month, projects, activateProject);
-}
-
-/** Wrapper local de agenda — inyecta proyectos y callback de navegación. */
-function renderAgenda() {
-  _renderAgendaModule(projects, activateProject);
 }
 
 // sections-and-profile.js usa window.toggleThemeWithTransition para
@@ -104,9 +87,7 @@ window.setAccent = setAccent;
 function openGlobalSearch() {
   _showGlobalSearch({
     getProjects:        function() { return projects; },
-    getStandaloneNotes: function() { return standaloneNotes; },
     onNavigateToTask:   navigateToTask,
-    onActivateNote:     activateNote,
   });
 }
 // Lo expone también vía window porque el inline script de
@@ -137,7 +118,7 @@ function openQuickCapture(opts) {
       const created = _createTaskInProject(targetProject, rawText, overrides);
       if (!created) return;
       saveProjects();
-      // Desde una vista que no es de proyecto (Hoy/Agenda/Calendario/smart-list)
+      // Desde una vista que no es de proyecto (Hoy/Calendario/smart-list)
       // la tarea va al Inbox; si se pide, redirigir allí para que se vea.
       if (opts.redirectToInbox && activeView !== "project") {
         activateProject(INBOX_ID);
@@ -187,7 +168,6 @@ var setupImageResizer = window.setupImageResizer || null;
 // ─── ELEMENTOS DOM ───────────────────────────────────────────
 const projectListEl    = document.getElementById("project-list");
 const newProjectBtn    = document.getElementById("new-project-btn");
-const emptyState       = document.getElementById("empty-state");
 const ctrlBar          = document.getElementById("ctrl-bar");
 const tasksPanel       = document.getElementById("tasks-panel");
 const projectTitleEl   = document.getElementById("project-title");
@@ -220,15 +200,11 @@ const INBOX_ID = "__inbox__";
 
 let projects        = loadProjects();
 let sections        = loadSections();
-let standaloneNotes = loadStandaloneNotes();
 
-// Migrate any base64 images from localStorage to IndexedDB.
-// Runs async at startup — frees storage space without blocking render.
-_imgPreloadAll().then(function () {
-  return _migrateImagesToIdb();
-}).then(function () {
-  _checkStorageWarning();
-});
+// Las notas se retiraron: borra de una vez su clave para no dejar datos
+// huérfanos ocupando la cuota de localStorage.
+try { localStorage.removeItem("antask-notes"); } catch (_) {}
+_checkStorageWarning();
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
@@ -236,7 +212,6 @@ ensureInbox();
 // Si no hay nada activo arrancamos directos en el Inbox (sin pantalla de
 // bienvenida) para que el usuario escriba ya.
 let activeProjectId = localStorage.getItem(ACTIVE_KEY) || INBOX_ID;
-let activeNoteId    = null;
 // Vista activa: "project" (default) | "today" (vista Hoy virtual).
 let activeView      = "project";
 
@@ -256,7 +231,6 @@ function ensureInbox() {
   try { localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)); } catch (_) {}
 }
 
-let _notePanelSaveTimer = null;
 let currentFilter      = "all";
 let currentSort        = "manual";
 
@@ -285,7 +259,6 @@ let _undoTimer = null;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let _archivedExpanded  = false;
-let _notesExpanded     = false;
 let taskPrefs         = loadTaskPrefs();
 let userProfile       = loadProfile();
 
@@ -395,7 +368,7 @@ setTimeout(function () {
 
   var hasContent = projects.some(function (p) {
     return p.id !== INBOX_ID && Array.isArray(p.tasks) && p.tasks.length > 0;
-  }) || (Array.isArray(standaloneNotes) && standaloneNotes.length > 0);
+  });
 
   if (hasContent) {
     // Usuario existente — marcamos como visto en silencio.
@@ -440,16 +413,6 @@ if (_taskPrefsBtnEl) _taskPrefsBtnEl.addEventListener("click", showTaskPrefsModa
 var _closePanelBtn = document.getElementById("close-panel-btn");
 if (_closePanelBtn) _closePanelBtn.addEventListener("click", function() { activateProject(null); });
 
-var _closeNoteBtn = document.getElementById("close-note-btn");
-if (_closeNoteBtn) _closeNoteBtn.addEventListener("click", function() {
-  var notePanel = document.getElementById("note-panel");
-  if (notePanel) notePanel.hidden = true;
-  activeNoteId = null;
-  if (emptyState) emptyState.hidden = false;
-  if (mobileFab)  mobileFab.classList.remove("visible");
-  document.title = "antask";
-  renderSidebar();
-});
 var _bulkDoneBtn   = document.getElementById("bulk-done-btn");
 var _bulkPendingBtn= document.getElementById("bulk-pending-btn");
 var _bulkMoveBtn   = document.getElementById("bulk-move-btn");
@@ -460,43 +423,6 @@ if (_bulkPendingBtn) _bulkPendingBtn.addEventListener("click", bulkMarkPending);
 if (_bulkMoveBtn)    _bulkMoveBtn.addEventListener("click",    bulkMoveToProject);
 if (_bulkDeleteBtn)  _bulkDeleteBtn.addEventListener("click",  bulkDelete);
 if (_bulkCancelBtn)  _bulkCancelBtn.addEventListener("click",  exitSelectMode);
-
-// Color palettes — standalone note panel
-document.querySelectorAll(".fmt-color-wrap").forEach(function(wrap) {
-  var colorBtn     = wrap.querySelector(".fmt-color-btn");
-  var palette      = wrap.querySelector(".fmt-color-palette");
-  var colorLabel   = wrap.querySelector(".fmt-color-label");
-  if (!colorBtn || !palette) return;
-
-  colorBtn.addEventListener("mousedown", function(e) {
-    e.preventDefault();
-    palette.hidden = !palette.hidden;
-  });
-
-  palette.querySelectorAll(".fmt-color-swatch").forEach(function(swatch) {
-    swatch.addEventListener("mousedown", function(e) {
-      e.preventDefault();
-      var color = swatch.dataset.color;
-      if (color) {
-        document.execCommand("styleWithCSS", false, true);
-        document.execCommand("foreColor", false, color);
-        if (colorLabel) colorLabel.style.color = color;
-      } else {
-        document.execCommand("removeFormat", false, null);
-        if (colorLabel) colorLabel.style.color = "";
-      }
-      palette.hidden = true;
-      var editor = wrap.closest("[contenteditable]") ||
-                   document.getElementById("note-editor");
-      if (editor) editor.focus();
-      if (typeof saveActiveNote === "function") saveActiveNote();
-    });
-  });
-
-  document.addEventListener("mousedown", function(e) {
-    if (!wrap.contains(e.target)) palette.hidden = true;
-  });
-});
 
 // ─── ATAJOS DE TECLADO GLOBALES ───────────────────────────────
 document.addEventListener("keydown", function(e) {
@@ -545,20 +471,6 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "?") {
     e.preventDefault();
     showShortcutsHelp();
-    return;
-  }
-
-  if (e.key === "n" || e.key === "N") {
-    e.preventDefault();
-    const input = document.getElementById("task-input");
-    if (!input || !tasksPanel) return;
-    if (tasksPanel.hidden && activeProjectId) {
-      _closeAllAltPanels();
-      tasksPanel.hidden = false;
-      if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
-      _setActiveViewTab("tasks");
-    }
-    setTimeout(function() { input.focus(); input.select(); }, 50);
     return;
   }
 
@@ -808,17 +720,6 @@ newProjectBtn.addEventListener("click", function() {
   });
 });
 
-// ─── ACCIONES DEL EMPTY STATE ────────────────────────────────
-document.getElementById("empty-open-inbox")?.addEventListener("click", function() {
-  activateProject(INBOX_ID);
-});
-document.getElementById("empty-new-project")?.addEventListener("click", function() {
-  newProjectBtn.click();
-});
-document.getElementById("empty-new-note")?.addEventListener("click", function() {
-  document.getElementById("new-note-btn")?.click();
-});
-
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
 if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
   const project = getActiveProject();
@@ -982,7 +883,7 @@ if (fabForm) {
   fabForm.addEventListener("submit", function(e) {
     e.preventDefault();
     if (!fabInput) return;
-    // En vistas que NO son de proyecto (Hoy, Agenda, Calendario, smart-lists)
+    // En vistas que NO son de proyecto (Hoy, Calendario, smart-lists)
     // no hay un destino real: la tarea va al Inbox y redirigimos allí para que
     // el usuario la vea (en Hoy no aparecería si no vence hoy).
     var inViewProject = activeView === "project";
@@ -1019,20 +920,11 @@ exportBtn.addEventListener("click", function() {
     modalAlert(t("task.nothing_to_export"), "info");
     return;
   }
-  // Restore base64 so the exported JSON is fully self-contained (no IDB deps).
-  const exportNotes    = standaloneNotes.map(function(n) {
-    return Object.assign({}, n, { content: _imgResolve(n.content || "") });
-  });
-  const exportProjects = projects.map(function(p) {
-    if (!p.notes) return p;
-    return Object.assign({}, p, { notes: _imgResolve(p.notes) });
-  });
   const backup = {
     version: 2,
     exportedAt: new Date().toISOString(),
-    projects: exportProjects,
+    projects: projects,
     sections: sections,
-    standaloneNotes: exportNotes,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1059,15 +951,7 @@ importFile.addEventListener("change", async function() {
         t("backup.restore_title")
       );
       if (!confirmed) return;
-      // Extract images from imported data into IDB before writing to localStorage.
-      const rawProjects = parsed.projects.map(sanitizeProject);
-      for (var _ip = 0; _ip < rawProjects.length; _ip++) {
-        var _p = rawProjects[_ip];
-        if (_p.notes && _p.notes.includes("data:image/")) {
-          _p.notes = await _imgExtract(_p.notes);
-        }
-      }
-      projects = rawProjects;
+      projects = parsed.projects.map(sanitizeProject);
       if (Array.isArray(parsed.sections)) {
         sections = parsed.sections.filter(function(s) {
           return s && typeof s.id === "string" && typeof s.name === "string";
@@ -1076,18 +960,7 @@ importFile.addEventListener("change", async function() {
         });
         saveSections();
       }
-      if (Array.isArray(parsed.standaloneNotes)) {
-        const rawNotes = parsed.standaloneNotes.map(sanitizeStandaloneNote);
-        for (var _in = 0; _in < rawNotes.length; _in++) {
-          var _n = rawNotes[_in];
-          if (_n.content && _n.content.includes("data:image/")) {
-            _n.content = await _imgExtract(_n.content);
-          }
-        }
-        standaloneNotes = rawNotes;
-        localStorage.removeItem(NOTES_KEY);
-        localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
-      }
+      // Los backups antiguos traen `standaloneNotes`: se ignoran sin fallar.
       activeProjectId = projects.length > 0 ? projects[0].id : null;
       if (activeProjectId) localStorage.setItem(ACTIVE_KEY, activeProjectId);
       else localStorage.removeItem(ACTIVE_KEY);
@@ -1120,7 +993,6 @@ importFile.addEventListener("change", async function() {
       return;
     }
     currentProject.tasks = sanitizeTasks(importedTasks);
-    if (typeof parsed.notes === "string") currentProject.notes = parsed.notes;
     saveAndRender();
   } catch(e) {
     await modalAlert(t("backup.parse_error"), "error");
@@ -1202,7 +1074,6 @@ window.activateProject = function(id) { return activateProject(id); };
 function activateProject(id) {
   activeView = "project";
   activeProjectId = id;
-  activeNoteId = null;
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
 
@@ -1210,40 +1081,39 @@ function activateProject(id) {
   _closeAllAltPanels();
 
   const project = getActiveProject();
-  const hasProject = Boolean(project);
 
-  emptyState.hidden = hasProject;
-  if (ctrlBar) { ctrlBar.hidden = !hasProject; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  if (mobileFab) mobileFab.classList.toggle("visible", hasProject);
-  tasksPanel.hidden = !hasProject;
+  // Sin proyecto —id nulo, o la lista que había abierta se acaba de borrar—
+  // ya no hay pantalla de estado vacío que enseñar: caemos en "Hoy", que es
+  // la vista por defecto de la app desde el arranque.
+  if (!project) {
+    localStorage.removeItem(ACTIVE_KEY);
+    activateTodayView();
+    return;
+  }
+
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (mobileFab) mobileFab.classList.add("visible");
+  tasksPanel.hidden = false;
   // Restauramos el formulario por si veníamos de la vista Hoy.
-  if (taskForm) taskForm.style.display = hasProject ? "" : "none";
-  if (hasProject) _setActiveViewTab("tasks");
-  if (!hasProject) document.title = "antask";
+  if (taskForm) taskForm.style.display = "";
+  _setActiveViewTab("tasks");
 
-  // Update mobile header: show project title or logo
+  // Update mobile header: show project title
   var mobileHeader = document.getElementById("mobile-header");
   var mobileHeaderTitle = document.getElementById("mobile-header-title");
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeader) {
-    mobileHeader.classList.toggle("mobile-header--project", hasProject);
-    if (mobileHeaderTitle) mobileHeaderTitle.textContent = hasProject ? project.name : "";
-    if (mobileHeaderCount) mobileHeaderCount.textContent = hasProject
-      ? project.tasks.filter(function(t) { return !t.done; }).length + " pendientes"
-      : "";
+    mobileHeader.classList.add("mobile-header--project");
+    if (mobileHeaderTitle) mobileHeaderTitle.textContent = project.name;
+    if (mobileHeaderCount) mobileHeaderCount.textContent =
+      project.tasks.filter(function(t) { return !t.done; }).length + " pendientes";
     // Color dot del proyecto delante del título (ancla visual).
     // Mismo hash/explícito que en el sidebar para sistema visual coherente.
-    if (hasProject) {
-      mobileHeader.style.setProperty(
-        "--mobile-header-project-color",
-        project.color || _projectColorFromId(project.id)
-      );
-    } else {
-      mobileHeader.style.removeProperty("--mobile-header-project-color");
-    }
+    mobileHeader.style.setProperty(
+      "--mobile-header-project-color",
+      project.color || _projectColorFromId(project.id)
+    );
   }
-
-  if (!hasProject) { renderSidebar(); return; }
 
   projectTitleEl.textContent = project.name;
   projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
@@ -1266,12 +1136,10 @@ function activateProject(id) {
 function activateTodayView() {
   activeView = "today";
   activeProjectId = null;
-  activeNoteId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
   _closeAllAltPanels();
 
-  emptyState.hidden = true;
   if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
   if (mobileFab) mobileFab.classList.add("visible");
   tasksPanel.hidden = false;
@@ -1569,11 +1437,9 @@ function renderSidebar() {
   }
 
   if (window.lucide) lucide.createIcons();
-  // Archivados y Notas se renderizan SIEMPRE — la cabecera aparece
-  // aunque la lista esté vacía, para que el usuario pueda crear
-  // notas y para que el "scaffolding" del sidebar quede estable.
+  // Archivados se renderiza SIEMPRE — la cabecera aparece aunque la lista
+  // esté vacía, para que el "scaffolding" del sidebar quede estable.
   renderArchivedWidget();
-  renderNotesSidebar();
   syncSidebarRail();
 }
 
@@ -4561,7 +4427,6 @@ async function bulkMoveToProject() {
       if (!tab) return;
       var view = tab.dataset.view;
       if (view === "tasks")  { _closeAllAltPanels(); _restoreMainPanel(); }
-      else if (view === "agenda")  showAgendaPanel();
       else if (view === "cal")     showCalendarPanel();
     });
   }
@@ -4629,24 +4494,11 @@ async function bulkMoveToProject() {
   });
 })();
 
-window.showAgendaPanel  = showAgendaPanel;
-
-// ═══════════════════════════════════════════════════════════════
-// VISTA DE AGENDA
-// ═══════════════════════════════════════════════════════════════
-
-
 function _closeAllAltPanels() {
-  var agendaPanel = document.getElementById("agenda-panel");
-  var agendaBtn   = document.getElementById("agenda-btn");
-  var calPanel    = document.getElementById("cal-panel");
-  var calBtn      = document.getElementById("cal-btn");
-  if (agendaPanel) agendaPanel.hidden = true;
-  if (agendaBtn)   agendaBtn.classList.remove("active");
-  if (calPanel)    calPanel.hidden = true;
-  if (calBtn)      calBtn.classList.remove("active");
-  var notePanel = document.getElementById("note-panel");
-  if (notePanel)   notePanel.hidden = true;
+  var calPanel = document.getElementById("cal-panel");
+  var calBtn   = document.getElementById("cal-btn");
+  if (calPanel) calPanel.hidden = true;
+  if (calBtn)   calBtn.classList.remove("active");
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4691,7 +4543,6 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 })();
 
 window.showCalendarPanel = showCalendarPanel;
-window.showAgendaPanel   = showAgendaPanel;
 window.activateTodayView = activateTodayView;
 window.getActiveView = function() { return activeView; };
 window.getActiveProjectId = function() { return activeProjectId; };
@@ -4707,7 +4558,6 @@ function showCalendarPanel() {
   }
 
   _closeAllAltPanels();
-  emptyState.hidden = true;
   if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
   tasksPanel.hidden = true;
   calPanel.hidden = false;
@@ -4718,12 +4568,12 @@ function showCalendarPanel() {
 }
 
 function _restoreMainPanel() {
-  var project = getActiveProject();
   var isVirtualView = (activeView === "today");
-  var hasContent = Boolean(project) || isVirtualView;
-  emptyState.hidden = hasContent;
-  if (ctrlBar) { ctrlBar.hidden = !hasContent; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  tasksPanel.hidden = !hasContent;
+  // Si el proyecto que estaba abierto ya no existe, "Hoy" hace de red de
+  // seguridad: sin estado vacío, el panel se quedaría en blanco.
+  if (!isVirtualView && !getActiveProject()) { activateTodayView(); return; }
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  tasksPanel.hidden = false;
   _setActiveViewTab("tasks");
   if (isVirtualView) renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
@@ -4735,14 +4585,14 @@ function _setActiveViewTab(view) {
   });
   var isTasksView    = (view === "tasks");
   // Como en el prototipo v1, el filtro vive en el cuerpo de la lista y sólo
-  // aparece en las listas normales: la vista "Hoy" y las vistas alternativas
-  // (agenda/mes) llevan un header y un cuerpo sobrios, sin fila de filtro.
+  // aparece en las listas normales: la vista "Hoy" y la vista de mes llevan
+  // un header y un cuerpo sobrios, sin fila de filtro.
   var isHoy          = (activeView === "today");
   var listActions    = isTasksView && !isHoy;
   var listFilterRow  = document.getElementById("list-filter-row");
   if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
   // El selector de estilo de fila acompaña a Hoy y a las listas normales
-  // (como en el prototipo v1); se oculta sólo en agenda/mes.
+  // (como en el prototipo v1); se oculta sólo en la vista de mes.
   var rowStyleWrap   = document.getElementById("row-style-wrap");
   if (rowStyleWrap) rowStyleWrap.style.display = isTasksView ? "" : "none";
   // Ocultar task-form en vistas alternativas
@@ -4751,30 +4601,9 @@ function _setActiveViewTab(view) {
   // Eyebrow que indica la vista actual encima del título
   var eyebrow = document.getElementById("view-eyebrow");
   if (eyebrow) {
-    var labels = { tasks: t("view.eyebrow_tasks"), agenda: t("view.eyebrow_agenda"), cal: t("view.eyebrow_calendar") };
+    var labels = { tasks: t("view.eyebrow_tasks"), cal: t("view.eyebrow_calendar") };
     eyebrow.textContent = labels[view] || "";
   }
-}
-
-function showAgendaPanel() {
-  var agendaPanel = document.getElementById("agenda-panel");
-  if (!agendaPanel) return;
-
-  if (!agendaPanel.hidden) {
-    _closeAllAltPanels();
-    _restoreMainPanel();
-    return;
-  }
-
-  _closeAllAltPanels();
-  emptyState.hidden = true;
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
-  tasksPanel.hidden = true;
-  agendaPanel.hidden = false;
-  _setActiveViewTab("agenda");
-  if (mobileFab) mobileFab.classList.add("visible");
-  renderAgenda();
-  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 
@@ -4798,8 +4627,8 @@ function showShortcutsHelp() {
     '<p class="modal-label">Atajos de teclado</p>' +
     '<div class="shortcuts-cols">' +
       group("General",
-        row('<kbd>N</kbd>', 'Enfocar campo nueva tarea') +
         row('<kbd>S</kbd>', 'Nueva sección') +
+        row('<kbd>Ctrl</kbd>+<kbd>B</kbd>', 'Mostrar / ocultar sidebar') +
         row('<kbd>Ctrl</kbd>+<kbd>K</kbd>', 'Búsqueda global') +
         row('<kbd>Ctrl</kbd>+<kbd>,</kbd>', 'Ajustes') +
         row('<kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd>', 'Captura rápida (al Inbox)')
@@ -4932,330 +4761,11 @@ function saveProjects() {
   updateSaveStatus(now);
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+  window.AnsoSync?.scheduleSave?.(projects, sections);
   if (window.AnsoNotif?.scheduleTaskReminders) {
     window.AnsoNotif.scheduleTaskReminders(projects);
   }
   _checkStorageWarning();
-}
-
-// Extracts base64 images from all notes and project notes, stores them in
-// IndexedDB, and replaces the srcs with antask-img://id refs in localStorage.
-// Called once at startup so existing workspaces benefit immediately.
-async function _migrateImagesToIdb() {
-  try {
-    var notesChanged = false;
-    for (var i = 0; i < standaloneNotes.length; i++) {
-      var note = standaloneNotes[i];
-      if (!note.content || !note.content.includes("data:image/")) continue;
-      note.content = await _imgExtract(note.content);
-      notesChanged = true;
-    }
-    if (notesChanged) {
-      localStorage.removeItem(NOTES_KEY);
-      localStorage.setItem(NOTES_KEY, JSON.stringify(standaloneNotes));
-    }
-
-    var projectsChanged = false;
-    for (var j = 0; j < projects.length; j++) {
-      var p = projects[j];
-      if (!p.notes || !p.notes.includes("data:image/")) continue;
-      p.notes = await _imgExtract(p.notes);
-      projectsChanged = true;
-    }
-    if (projectsChanged) {
-      localStorage.removeItem(PROJECTS_KEY);
-      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-    }
-
-    // Auto-backup keys duplicate project data and may contain base64 images.
-    // Delete stale ones so they get recreated clean on next backup cycle.
-    for (var k = 0; k < localStorage.length; k++) {
-      var lsKey = localStorage.key(k);
-      if (!lsKey || !lsKey.startsWith(AUTO_BACKUP_PREFIX)) continue;
-      try {
-        var bk = JSON.parse(localStorage.getItem(lsKey) || "null");
-        if (bk && JSON.stringify(bk).includes("data:image/")) {
-          localStorage.removeItem(lsKey);
-          k--; // index shifts after removal
-        }
-      } catch (_) {}
-    }
-  } catch (err) {
-    console.warn("image-store: migration error:", err);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// NOTAS INDEPENDIENTES
-// ═══════════════════════════════════════════════════════════════
-
-function renderNotesSidebar() {
-  var wrap = document.getElementById("notes-sidebar-section");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-
-  var isEmpty = standaloneNotes.length === 0;
-
-  var toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "archived-section-toggle" + (isEmpty ? " archived-section-toggle--empty" : "");
-  toggle.innerHTML =
-    '<i data-lucide="' + (_notesExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
-    '<i data-lucide="file-text"></i>' +
-    '<span>' + t("sidebar.notes") + '</span>' +
-    (isEmpty ? '' : '<span class="archived-section-count">' + standaloneNotes.length + '</span>');
-  toggle.addEventListener("click", function() {
-    _notesExpanded = !_notesExpanded;
-    renderNotesSidebar();
-    if (window.lucide) lucide.createIcons({ nodes: [wrap] });
-  });
-  wrap.appendChild(toggle);
-
-  if (_notesExpanded && isEmpty) {
-    var empty = document.createElement("p");
-    empty.className = "sidebar-section-empty";
-    empty.textContent = t("sidebar.notes_empty");
-    wrap.appendChild(empty);
-  } else if (_notesExpanded) {
-    var list = document.createElement("ul");
-    list.className = "archived-project-list";
-    standaloneNotes.forEach(function(note) {
-      var li = document.createElement("li");
-      li.className = "note-sidebar-item";
-      if (note.id === activeNoteId) li.classList.add("active");
-      if (note.color) li.style.setProperty("--project-color", note.color);
-
-      var icon = document.createElement("span");
-      icon.className = "note-sidebar-icon";
-      icon.innerHTML = '<i data-lucide="file-text"></i>';
-
-      var name = document.createElement("span");
-      name.className = "note-sidebar-name";
-      name.textContent = note.name;
-
-      var kebab = document.createElement("button");
-      kebab.type = "button";
-      kebab.className = "project-kebab-btn";
-      kebab.innerHTML = '<i data-lucide="ellipsis"></i>';
-      kebab.addEventListener("click", function(e) {
-        e.stopPropagation();
-        showNoteMenu(note, kebab);
-      });
-
-      li.appendChild(icon);
-      li.appendChild(name);
-      li.appendChild(kebab);
-      li.addEventListener("click", function() { activateNote(note.id); });
-      li.addEventListener("contextmenu", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        showNoteMenu(note, kebab);
-      });
-      list.appendChild(li);
-    });
-    wrap.appendChild(list);
-  }
-
-  if (window.lucide) lucide.createIcons({ nodes: [wrap] });
-}
-
-function activateNote(noteId) {
-  activeNoteId = noteId;
-  activeProjectId = null;
-  localStorage.removeItem(ACTIVE_KEY);
-
-  _closeAllAltPanels();
-  var notePanel = document.getElementById("note-panel");
-  if (emptyState) emptyState.hidden = true;
-  if (ctrlBar)    ctrlBar.hidden = true;
-  if (tasksPanel) tasksPanel.hidden = true;
-  if (mobileFab)  mobileFab.classList.remove("visible");
-  if (notePanel)  notePanel.hidden = false;
-
-  var note = standaloneNotes.find(function(n) { return n.id === noteId; });
-  if (!note) return;
-
-  var noteEditor  = document.getElementById("note-editor");
-  var noteTitleEl = document.getElementById("note-title");
-  // Set content immediately. antask-img:// is whitelisted in DOMPurify so
-  // unresolved refs survive sanitization and are patched once IDB is ready.
-  if (noteEditor)  noteEditor.innerHTML = sanitizeRichHtml(note.content || "");
-  if (noteTitleEl) noteTitleEl.textContent = note.name;
-  document.title = note.name + " — antask";
-  renderSidebar();
-
-  // Swap antask-img://id src attrs to real data URLs once the IDB cache loads.
-  _imgPreloadAll().then(function () {
-    if (activeNoteId !== noteId) return; // user navigated away
-    _imgResolveEls(document.getElementById("note-editor"));
-  });
-}
-
-async function saveActiveNote() {
-  var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
-  if (!note) return;
-  var noteEditor = document.getElementById("note-editor");
-  if (noteEditor) note.content = await _imgExtract(noteEditor.innerHTML);
-  saveStandaloneNotes();
-
-  var statusEl = document.getElementById("note-save-status");
-  if (statusEl) {
-    var nowDate = new Date();
-    var localeS = getLang() === "en" ? "en-GB" : "es-ES";
-    statusEl.textContent = t("save.saved_at").replace("{time}", nowDate.toLocaleTimeString(localeS, { hour: "2-digit", minute: "2-digit" }));
-    statusEl.classList.add("note-save-status--flash");
-    setTimeout(function() { statusEl.classList.remove("note-save-status--flash"); }, 800);
-  }
-}
-
-function showNoteMenu(note, anchor) {
-  closeCtxMenu();
-  var items = [
-    {
-      label: t("note.rename"),
-      action: async function() {
-        var newName = await modalPrompt(t("note.rename_prompt"), note.name, note.name);
-        if (newName === null) return;
-        var trimmed = newName.trim().slice(0, 80);
-        if (!trimmed || trimmed === note.name) return;
-        note.name = trimmed;
-        if (activeNoteId === note.id) {
-          var titleEl = document.getElementById("note-title");
-          if (titleEl) titleEl.textContent = note.name;
-          document.title = note.name + " — antask";
-        }
-        saveStandaloneNotes();
-        renderNotesSidebar();
-      }
-    },
-    null,
-    {
-      label: t("note.action_delete"),
-      danger: true,
-      action: async function() {
-        var ok = await modalConfirm(
-          t("note.confirm_delete").replace("{name}", escHtml(note.name)),
-          t("note.confirm_delete_btn")
-        );
-        if (!ok) return;
-        standaloneNotes = standaloneNotes.filter(function(n) { return n.id !== note.id; });
-        saveStandaloneNotes();
-        if (activeNoteId === note.id) {
-          activeNoteId = null;
-          var notePanel = document.getElementById("note-panel");
-          if (notePanel) notePanel.hidden = true;
-          var firstActive = projects.find(function(p) { return !p.archived; });
-          if (firstActive) activateProject(firstActive.id);
-          else { if (emptyState) emptyState.hidden = false; if (ctrlBar) ctrlBar.hidden = true; }
-        }
-        renderSidebar();
-      }
-    }
-  ];
-  var menu = _buildCtxMenu(items);
-  positionCtxMenu(menu, anchor);
-  _ctxMenu = menu;
-  requestAnimationFrame(function() {
-    _ctxCloseHandler = function(e) { if (!menu.contains(e.target)) closeCtxMenu(); };
-    document.addEventListener("mousedown", _ctxCloseHandler);
-  });
-}
-
-// ─── Inicialización del editor de notas independientes ────────
-(function() {
-  var noteEditor  = document.getElementById("note-editor");
-  var noteFmtBtns = document.querySelectorAll(".note-fmt-btn");
-  var noteTitleEl = document.getElementById("note-title");
-  var newNoteBtn  = document.getElementById("new-note-btn");
-
-  if (noteEditor) {
-    if (typeof window.setupPasteHandler === "function") window.setupPasteHandler(noteEditor, saveActiveNote);
-    if (typeof window.setupImageResizer === "function") window.setupImageResizer(noteEditor);
-
-    noteEditor.addEventListener("input", function() {
-      if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
-      _notePanelSaveTimer = setTimeout(saveActiveNote, 700);
-    });
-    noteEditor.addEventListener("keydown", function(e) {
-      if (e.ctrlKey || e.metaKey) {
-        // Ctrl+Shift+X — atajos globales: dejar que se propague al handler global
-        if (e.shiftKey) return;
-        var cmd = { b: "bold", i: "italic", u: "underline", m: "strikeThrough" }[e.key.toLowerCase()];
-        if (cmd) {
-          // Solo aquí absorbemos el evento: queremos formateo, no
-          // que dispare el toggle de sidebar del atajo global Ctrl+B.
-          e.preventDefault();
-          e.stopPropagation();
-          document.execCommand(cmd, false, null);
-          _syncNoteFmtBtns();
-        }
-      }
-      // Resto de teclas (letras sueltas, Ctrl+K, Ctrl+Shift+Espacio, etc.)
-      // se propagan al handler global. El isEditing check del global
-      // bloquea correctamente las letras sueltas como N/A/C/?/...
-    });
-    noteEditor.addEventListener("keyup",   _syncNoteFmtBtns);
-    noteEditor.addEventListener("mouseup", _syncNoteFmtBtns);
-  }
-
-  noteFmtBtns.forEach(function(btn) {
-    btn.addEventListener("mousedown", function(e) {
-      e.preventDefault();
-      if (btn.classList.contains("fmt-color-btn")) return;
-      document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
-      if (noteEditor) noteEditor.focus();
-      _syncNoteFmtBtns();
-    });
-  });
-
-  if (noteTitleEl) {
-    noteTitleEl.addEventListener("input", function() {
-      var note = standaloneNotes.find(function(n) { return n.id === activeNoteId; });
-      if (!note) return;
-      note.name = (noteTitleEl.textContent || "").trim().slice(0, 80) || t("default.untitled");
-      document.title = note.name + " — antask";
-      if (_notePanelSaveTimer) clearTimeout(_notePanelSaveTimer);
-      _notePanelSaveTimer = setTimeout(function() { saveStandaloneNotes(); renderNotesSidebar(); }, 700);
-    });
-    noteTitleEl.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (noteEditor) noteEditor.focus();
-      }
-      // El resto (Ctrl+K, Ctrl+Shift+Espacio, letras como '?') se
-      // propagan al handler global, que ya filtra con isEditing.
-    });
-    noteTitleEl.addEventListener("blur", function() {
-      if (!noteTitleEl.textContent.trim()) noteTitleEl.textContent = t("default.untitled");
-    });
-  }
-
-  if (newNoteBtn) {
-    newNoteBtn.addEventListener("click", async function() {
-      var name = await modalPrompt(t("note.name_prompt"), "", t("note.name_placeholder"));
-      if (!name || !name.trim()) return;
-      var note = sanitizeStandaloneNote({
-        id:        "note-" + generateId(),
-        name:      capitalizeFirst(name.trim()).slice(0, 80),
-        content:   "",
-        createdAt: new Date().toISOString(),
-      });
-      standaloneNotes.push(note);
-      saveStandaloneNotes();
-      activateNote(note.id);
-      setTimeout(function() { if (noteEditor) noteEditor.focus(); }, 80);
-    });
-  }
-})();
-
-function _syncNoteFmtBtns() {
-  document.querySelectorAll(".note-fmt-btn").forEach(function(btn) {
-    try {
-      btn.classList.toggle("fmt-active", document.queryCommandState(btn.dataset.cmd));
-    } catch(e) {}
-  });
 }
 
 
@@ -5306,13 +4816,6 @@ function showTaskPrefsModal() {
   });
 }
 
-function saveStandaloneNotes() {
-  const ok = safeLsSet(NOTES_KEY, JSON.stringify(standaloneNotes), _showQuotaModal);
-  if (!ok) return;
-  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
-  _checkStorageWarning();
-}
-
 function saveSections() {
   const ok = safeLsSet(SECTIONS_KEY, JSON.stringify(sections), _showQuotaModal);
   if (!ok) return;
@@ -5320,7 +4823,7 @@ function saveSections() {
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+  window.AnsoSync?.scheduleSave?.(projects, sections);
 }
 
 function updateSaveStatus(lastSavedAt) {
@@ -5429,7 +4932,6 @@ window.addEventListener("load", function() {
   const mainPanel        = document.getElementById("main-panel");
   const collapseBtn      = document.getElementById("sidebar-collapse-btn");
   const expandBtn        = document.getElementById("sidebar-expand-btn");
-  const expandBtnEmpty   = document.getElementById("sidebar-expand-btn-empty");
   // Rail colapsado (v1): marca y avatar despliegan; buscar/Hoy/Inbox navegan.
   const railExpand       = document.getElementById("sidebar-rail-expand");
   const railAvatar       = document.getElementById("sidebar-rail-avatar");
@@ -5447,7 +4949,6 @@ window.addEventListener("load", function() {
 
   if (collapseBtn)    collapseBtn.addEventListener("click",    function () { setSidebarCollapsed(true); });
   if (expandBtn)      expandBtn.addEventListener("click",      function () { setSidebarCollapsed(false); });
-  if (expandBtnEmpty) expandBtnEmpty.addEventListener("click", function () { setSidebarCollapsed(false); });
   if (railExpand)     railExpand.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railAvatar)     railAvatar.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
@@ -5496,9 +4997,7 @@ function _clearLocalData() {
   // y en la nube — no se pierden.
   projects          = [];
   sections          = [];
-  standaloneNotes   = [];
   activeProjectId   = null;
-  activeNoteId      = null;
   activeView        = "project";
 
   // localStorage del espacio anónimo
@@ -5506,7 +5005,6 @@ function _clearLocalData() {
   localStorage.removeItem(SECTIONS_KEY);
   localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
-  localStorage.removeItem(NOTES_KEY);
 
   // El Inbox es estructural — siempre debe existir. Recrearlo tras el clear.
   ensureInbox();
@@ -5637,7 +5135,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+      window.AnsoSync?.scheduleSave?.(projects, sections);
       return;
     }
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
@@ -5645,7 +5143,7 @@ function _syncOnFirstConnect(cloudData) {
     var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
 
     if (cloudTime >= localTime) {
-      _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
+      _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
     } else {
       // Caché local más reciente → restaurar y subir
       try {
@@ -5655,7 +5153,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+      window.AnsoSync?.scheduleSave?.(projects, sections);
     }
     return;
   }
@@ -5668,13 +5166,13 @@ function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
     _saveAccountCache(uid);
-    if (projects.length > 0) window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+    if (projects.length > 0) window.AnsoSync?.scheduleSave?.(projects, sections);
     return;
   }
 
   if (!hasAnonymousData) {
     // Sin datos locales → usar nube directamente
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
     return;
   }
 
@@ -5687,8 +5185,8 @@ function _syncOnFirstConnect(cloudData) {
 
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
-    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
-    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes); }
+    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(projects, sections); }
     return;
   }
 
@@ -5721,42 +5219,24 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.querySelector("#_sc-cloud").addEventListener("click", function() {
     closeModal(overlay);
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], cloudData.standaloneNotes || [], uid);
+    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
   });
 
   box.querySelector("#_sc-local").addEventListener("click", function() {
     closeModal(overlay);
     _saveAccountCache(uid);
-    window.AnsoSync?.scheduleSave?.(projects, sections, standaloneNotes);
+    window.AnsoSync?.scheduleSave?.(projects, sections);
   });
 }
 
-function _syncOnRemoteChange(remoteProjects, remoteSections, remoteStandaloneNotes) {
+function _syncOnRemoteChange(remoteProjects, remoteSections) {
   var user = window.AnsoSync?.getUser?.() ?? null;
-  _syncApplyRemote(remoteProjects, remoteSections || [], remoteStandaloneNotes || [], user ? user.uid : null);
+  _syncApplyRemote(remoteProjects, remoteSections || [], user ? user.uid : null);
 }
 
-async function _syncApplyRemote(remoteProjects, remoteSections, remoteStandaloneNotes, uid) {
+async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
   try {
-    // Extract any base64 images from cloud data into IDB before touching
-    // localStorage — cloud data may predate the local IDB migration.
     var cleanProjects = remoteProjects.map(sanitizeProject);
-    for (var _i = 0; _i < cleanProjects.length; _i++) {
-      var _cp = cleanProjects[_i];
-      if (_cp.notes && _cp.notes.includes("data:image/")) {
-        _cp.notes = await _imgExtract(_cp.notes);
-      }
-    }
-
-    var cleanNotes = Array.isArray(remoteStandaloneNotes)
-      ? remoteStandaloneNotes.map(sanitizeStandaloneNote)
-      : [];
-    for (var _j = 0; _j < cleanNotes.length; _j++) {
-      var _cn = cleanNotes[_j];
-      if (_cn.content && _cn.content.includes("data:image/")) {
-        _cn.content = await _imgExtract(_cn.content);
-      }
-    }
 
     // Write to localStorage first — if this throws we haven't touched memory yet.
     localStorage.removeItem(PROJECTS_KEY);
@@ -5764,14 +5244,11 @@ async function _syncApplyRemote(remoteProjects, remoteSections, remoteStandalone
     if (Array.isArray(remoteSections)) {
       localStorage.setItem(SECTIONS_KEY, JSON.stringify(remoteSections));
     }
-    localStorage.removeItem(NOTES_KEY);
-    localStorage.setItem(NOTES_KEY, JSON.stringify(cleanNotes));
 
     // Commit to memory only after successful persistence.
     projects = cleanProjects;
     ensureInbox();
     if (Array.isArray(remoteSections)) sections = remoteSections;
-    standaloneNotes = cleanNotes;
 
     if (uid) _saveAccountCache(uid);
 

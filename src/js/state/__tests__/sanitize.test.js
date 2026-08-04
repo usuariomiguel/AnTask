@@ -4,7 +4,6 @@ import {
   sanitizeSubtasks,
   sanitizeTasks,
   sanitizeProject,
-  sanitizeStandaloneNote,
 } from "../sanitize.js";
 
 // ────────────────────────────────────────────────────────────────
@@ -88,7 +87,7 @@ describe("sanitizeTasks", () => {
 describe("sanitizeProject", () => {
   it("normaliza proyecto válido", () => {
     const p = sanitizeProject({
-      id: "p1", name: " Mi proyecto ", tasks: [], notes: "<b>Nota</b>",
+      id: "p1", name: " Mi proyecto ", tasks: [],
       sectionId: "sec1", archived: false,
     });
     expect(p.id).toBe("p1");
@@ -107,39 +106,9 @@ describe("sanitizeProject", () => {
     expect(p.name.length).toBe(60);
   });
 
-  it("notas con XSS son sanitizadas", () => {
-    const p = sanitizeProject({ notes: '<script>alert(1)</script><b>ok</b>' });
-    expect(p.notes).not.toContain("<script>");
-    expect(p.notes).toContain("<b>ok</b>");
-  });
-
   it("archived coerciona truthy correctamente", () => {
     expect(sanitizeProject({ archived: 1 }).archived).toBe(true);
     expect(sanitizeProject({ archived: 0 }).archived).toBe(false);
     expect(sanitizeProject({}).archived).toBe(false);
-  });
-});
-
-// ────────────────────────────────────────────────────────────────
-// sanitizeStandaloneNote
-// ────────────────────────────────────────────────────────────────
-describe("sanitizeStandaloneNote", () => {
-  it("normaliza nota válida", () => {
-    const n = sanitizeStandaloneNote({
-      id: "n1", name: "Mis ideas", content: "<p>texto</p>",
-    });
-    expect(n.id).toBe("n1");
-    expect(n.name).toBe("Mis ideas");
-    expect(n.content).toContain("texto");
-  });
-
-  it("content con XSS es sanitizado", () => {
-    const n = sanitizeStandaloneNote({ content: '<img onerror="pwn()" src="x">' });
-    expect(n.content).not.toContain("onerror");
-  });
-
-  it("nombre por defecto si falta", () => {
-    const n = sanitizeStandaloneNote({});
-    expect(n.name).toBe("Sin título");
   });
 });

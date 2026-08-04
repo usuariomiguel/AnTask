@@ -5,7 +5,6 @@ export const es = {
   "sidebar.search":           "Buscar tareas",
   "sidebar.search_short":     "Buscar",
   "sidebar.new_project":      "Proyecto",
-  "sidebar.new_note":         "Nota",
   "sidebar.inbox":            "Inbox",
   "sidebar.today":            "Hoy",
   "sidebar.projects_label":   "Listas",
@@ -19,8 +18,6 @@ export const es = {
   "sidebar.group_name":       "Nombre del grupo",
   "sidebar.archived":         "Archivados",
   "sidebar.archived_empty":   "Sin archivados",
-  "sidebar.notes":            "Notas",
-  "sidebar.notes_empty":      "Sin notas todavía",
   "sidebar.more":             "Más",
   "sidebar.add_list_title":   "Nueva lista guardada",
 
@@ -53,7 +50,7 @@ export const es = {
   "settings.nav.about":                "Acerca de",
 
   "settings.account.sync":             "Sincronización con Google",
-  "settings.account.sync_desc":        "Tus tareas y notas se guardan en la nube.",
+  "settings.account.sync_desc":        "Tus tareas se guardan en la nube.",
   "settings.account.connected":        "Conectado",
   "settings.account.language":         "Idioma",
   "settings.account.language_desc":    "Idioma de la interfaz.",
@@ -84,7 +81,7 @@ export const es = {
   "settings.tasks.priority_none":      "Ninguna",
 
   "settings.data.export":              "Exportar",
-  "settings.data.export_desc":         "Descarga todas tus tareas y notas en un archivo.",
+  "settings.data.export_desc":         "Descarga todas tus tareas en un archivo.",
   "settings.data.import":              "Importar",
   "settings.data.import_desc":         "Restaura desde un archivo exportado previamente.",
   "settings.data.clear":               "Limpiar",
@@ -101,22 +98,11 @@ export const es = {
   "task.input.placeholder_fab": "Nueva tarea...",
   "task.add_btn":             "Añadir",
 
-  // ── Panel de notas ────────────────────────────────────────
-  "note.title_placeholder":   "Sin título",
-  "note.body_placeholder":    "Empieza a escribir...",
-  "note.saved_at":            "Guardado",
-  "note.rename":              "Renombrar",
-  "note.rename_prompt":       "Renombrar nota",
-  "note.new_prompt":          "Nombre de la nota",
-  "note.new_placeholder":     "Mi nota...",
-  "note.delete":              "Eliminar nota",
-  "note.confirm_delete":      "¿Eliminar la nota <strong>{name}</strong>?",
 
   // ── Navegación inferior (móvil) ───────────────────────────
   "nav.projects":             "Proyectos",
   "nav.inbox":                "Bandeja",
   "nav.today":                "Hoy",
-  "nav.agenda":               "Agenda",
   "nav.new":                  "Nueva",
   "nav.calendar":             "Calendario",
   "nav.profile":              "Perfil",
@@ -137,7 +123,7 @@ export const es = {
 
   // ── Modal de cuota ────────────────────────────────────────
   "quota.title":              "Almacenamiento lleno",
-  "quota.body":               "El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br><strong>Tus últimos cambios no se han guardado.</strong><br><br>Exporta una copia de seguridad y elimina proyectos o notas que ya no necesites.",
+  "quota.body":               "El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br><strong>Tus últimos cambios no se han guardado.</strong><br><br>Exporta una copia de seguridad y elimina proyectos que ya no necesites.",
   "quota.export_btn":         "Exportar backup ahora",
   "quota.close_btn":          "Cerrar",
 
@@ -145,7 +131,6 @@ export const es = {
   "view.today_title":         "Hoy",
   "view.today_subtitle":      "Vencidas y de hoy, en todos los proyectos",
   "view.list":                "Lista",
-  "view.agenda":              "Agenda",
   "view.calendar":            "Mes",
 
   // ── Accesibilidad ─────────────────────────────────────────
@@ -154,14 +139,6 @@ export const es = {
   "a11y.mobile_settings":     "Ajustes",
   "a11y.mobile_projects":     "Proyectos",
   "a11y.loading":             "Cargando antask",
-
-  // ── Empty state ───────────────────────────────────────────
-  "empty.title":              "¿Qué quieres hacer?",
-  "empty.sub":                "Selecciona un proyecto o una nota desde la barra lateral",
-  "empty.open_inbox":         "Abrir Inbox",
-  "empty.new_project":        "Crear proyecto",
-  "empty.new_note":           "Crear nota",
-  "empty.tip":                "captura rápida",
 
   // ── Hoy (vista) ───────────────────────────────────────────
   "today.empty_title":        "Todo limpio",
@@ -364,22 +341,14 @@ export const es = {
   // ── Fecha límite (badge por tarea) ───────────────────────
   "due.overdue":              "Vencida",
 
-  // ── Agenda ────────────────────────────────────────────────
-  "agenda.group.overdue":     "Vencidas",
-  "agenda.group.today":       "Hoy",
-  "agenda.group.this_week":   "Esta semana",
-  "agenda.group.later":       "Más adelante",
-  "agenda.empty":             "No hay tareas con fecha límite pendientes",
-
   // ── Búsqueda ──────────────────────────────────────────────
-  "search.modal_title":       "Buscar en proyectos y notas",
-  "search.placeholder":       "Buscar tareas y notas…",
+  "search.modal_title":       "Buscar en proyectos",
+  "search.placeholder":       "Buscar tareas…",
   "search.hint_min_chars":    "Escribe al menos 2 caracteres…",
   "search.no_results":        "Sin resultados para",
   "search.count_one":         "1 resultado",
   "search.count_other":       "{n} resultados",
   "search.section.tasks":     "Tareas",
-  "search.section.notes":     "Notas",
 
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.eyebrow":    "Nueva tarea",
@@ -421,6 +390,8 @@ export const es = {
   "notif.task_overdue":       "Tarea vencida",
   "notif.task_due_today":     "Tarea vence hoy",
   "notif.tasks_due":          "tareas pendientes",
+  "notif.digest_overdue":     "Vencidas",
+  "notif.digest_today":       "Hoy",
   "notif.reminder_title":     "Recordatorio",
   "notif.unknown_project":    "Sin proyecto",
   "notif.remove_time":        "Quitar hora",
@@ -491,8 +462,6 @@ export const es = {
   // ── Today badges (sidebar) ────────────────────────────────
   "today.due.label":          "Mañana",
 
-  // ── Notes (con placeholder) ───────────────────────────────
-  "note.confirm_delete_btn":  "Eliminar",
 
   // ── Sync / profile ────────────────────────────────────────
   "profile.cloud_icon_fallback": "☁",
@@ -528,14 +497,9 @@ export const es = {
   "save.no_recent":           "Sin cambios recientes",
   "task.no_other_projects":   "No hay otros proyectos disponibles.",
   "task.nothing_to_export":   "No hay proyectos que exportar.",
-  "note.name_prompt":         "Nombre de la nota",
-  "note.name_placeholder":    "Mi nota...",
   "view.eyebrow_tasks":       "Lista",
-  "view.eyebrow_agenda":      "Agenda",
   "view.eyebrow_calendar":    "Calendario",
   "save.saved_at":            "Guardado {time}",
-  "note.action_rename":       "Renombrar",
-  "note.action_delete":       "Eliminar nota",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "Tienes <strong>{local} proyecto local</strong> y <strong>{cloud} proyecto en la nube</strong>. ¿Cuáles quieres usar?",

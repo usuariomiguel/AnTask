@@ -59,7 +59,6 @@
  * @property {string}        name
  * @property {string}        [createdAt]      - ISO timestamp
  * @property {Task[]}        tasks
- * @property {string}        [notes]          - HTML de las notas del proyecto (legacy)
  * @property {string|null}   [sectionId]      - ID de la sección a la que pertenece (o null)
  * @property {boolean}       [archived]
  * @property {string}        [icon]           - Emoji
@@ -73,17 +72,6 @@
  * @property {string}  id
  * @property {string}  name
  * @property {boolean} [collapsed]
- */
-
-/**
- * Nota independiente (no atada a un proyecto).
- *
- * @typedef {object} StandaloneNote
- * @property {string}  id
- * @property {string}  name
- * @property {string}  content    - HTML del editor
- * @property {string}  createdAt
- * @property {string}  [color]
  */
 
 /**
