@@ -2734,19 +2734,6 @@ button:focus-visible {
   margin-inline: auto;
 }
 
-/* Bloque de completadas: siempre fuera del contenedor de pendientes
-   (igual que en el Inbox) — sin fondo ni borde propios de "tarjetas". */
-.task-list-done {
-  list-style: none;
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 932px;
-  margin-inline: auto;
-}
-.task-list-done:not(:empty) {
-  padding-bottom: 2rem;
-}
-
 /* ─── TASK ITEM ──────────────────────────────────────────────── */
 /* Estilo "tarjetas" del rediseño Tierra: cada fila es una tarjeta
    elevada (fondo card + borde sutil + sombra pequeña + radio 8px). */
@@ -8449,15 +8436,6 @@ button {
  * fila no quede tapada. */
 @media (min-width: 769px) {
   .task-list { padding-bottom: 55px; padding-top: var(--sp-3); }
-  /* …salvo cuando debajo hay bloque de completadas: entonces el hueco es
-     suyo (ver .task-list-done) y aquí sobraría, dejando 77px muertos
-     entre la última tarea y la fila "N completadas". El Inbox agrupado
-     es el caso: no lleva .task-list--project, así que nada le recorta
-     ese padding. El bloque de proyecto sí lo conserva — su padding
-     inferior es parte de la caja, no separación con lo de abajo. */
-  .task-list:not(.task-list--project):has(+ .task-list-done:not(:empty)) {
-    padding-bottom: 0;
-  }
 }
 
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
@@ -8473,11 +8451,6 @@ button {
   /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
      sobra, así que el bloque queda casi a ras del contenedor. */
   .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
-
-  /* El bloque de completadas, cuando existe, es el último elemento antes
-     de la barra de captura flotante — el hueco le corresponde a él, no
-     al contenedor de pendientes (que solo necesita un margen pequeño). */
-  .task-list-done:not(:empty) { padding-bottom: 55px; }
 }
 
 /* Lista anidada dentro de cada bloque de grupo del Inbox */
@@ -8529,57 +8502,6 @@ button {
   margin-left: 2px;
 }
 
-/* Fila-resumen de completadas plegable (prototipo Inbox) */
-.done-fold {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  cursor: pointer;
-  padding: 11px 15px;
-  margin-bottom:15px;
-  border-radius: var(--r-lg);
-  background: transparent;
-  border: 1px dashed var(--border-strong);
-  color: var(--text-tertiary);
-  font-size: 13px;
-  user-select: none;
-}
-.done-fold-check {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: var(--c-primary-500);
-  color: var(--accent-on);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-.done-fold-check .lucide { width: 11px; height: 11px; stroke-width: 3; }
-.done-fold-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.done-fold-label b { color: var(--text-secondary); font-weight: 650; }
-.done-fold-toggle {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 600;
-  color: var(--c-primary-300);
-  flex-shrink: 0;
-}
-:root[data-theme="light"] .done-fold-toggle { color: var(--c-primary-600); }
-.done-fold-toggle .lucide {
-  width: 13px;
-  height: 13px;
-  transition: transform 0.15s;
-}
-.done-fold--open .done-fold-toggle .lucide { transform: rotate(180deg); }
 :root[data-theme="light"] .today-date {
   background: rgba(50, 40, 24, 0.04);
 }

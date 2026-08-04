@@ -165,10 +165,6 @@ export const es = {
   "hoy.reopen":               "Reabrir tarea",
   "capture.bar_hint":         "Captura rápida — pulsa para escribir…",
   "capture.open":             "Abrir captura rápida",
-  "fold.completed_one":       "{count} completada",
-  "fold.completed_other":     "{count} completadas",
-  "fold.show":                "Mostrar",
-  "fold.hide":                "Ocultar",
   "inbox.group_none":         "Sin lista",
 
 

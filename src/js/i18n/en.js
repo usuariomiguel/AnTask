@@ -165,10 +165,6 @@ export const en = {
   "hoy.reopen":               "Reopen task",
   "capture.bar_hint":         "Quick capture — press to type…",
   "capture.open":             "Open quick capture",
-  "fold.completed_one":       "{count} completed",
-  "fold.completed_other":     "{count} completed",
-  "fold.show":                "Show",
-  "fold.hide":                "Hide",
   "inbox.group_none":         "No list",
 
 

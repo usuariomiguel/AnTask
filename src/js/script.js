@@ -176,7 +176,6 @@ const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
 const taskList         = document.getElementById("task-list");
-const taskListDone     = document.getElementById("task-list-done");
 
 // ─── MOBILE FAB REFS ─────────────────────────────────────────
 const mobileFab    = document.getElementById("mobile-fab");
@@ -240,9 +239,6 @@ let currentSort        = "manual";
 // que estar declarado ANTES. Si se declara más abajo, un `const` da
 // ReferenceError por TDZ y un `var` se lee como undefined.
 const PRIORITY_PNUM = { high: "P1", medium: "P2", low: "P3" };
-// Plegado de completadas en vista proyecto (prototipo Inbox). Expandido
-// por defecto: completar una tarea no la hace desaparecer de golpe.
-var _doneFoldExpanded = true;
 var _sidebarPrevCounts = {};
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
@@ -2180,17 +2176,10 @@ function renderTasks() {
     });
   }
 
-  // Plegado de completadas (prototipo): con el filtro "Todas", las
-  // pendientes van primero y las hechas quedan tras una fila-resumen
-  // que permite ocultarlas. Solo presentación — el orden real del
-  // array de tareas no cambia.
-  let foldedDone = [];
-  const foldDone = currentFilter === "all" && currentSort === "manual";
+  // Las completadas se quedan donde están: al marcar una tarea no se mueve
+  // a ningún bloque aparte, sólo cambia de aspecto. Para verlas solas está
+  // el filtro "Completadas".
   let pendingItems = items;
-  if (foldDone) {
-    pendingItems = items.filter(function(it) { return !it.task.done; });
-    foldedDone = items.filter(function(it) { return it.task.done; });
-  }
 
   // Agrupar el Inbox por proyecto (las "listas" del prototipo): cada
   // proyecto es un grupo con cabecera y punto en su color; las tareas
@@ -2217,8 +2206,6 @@ function renderTasks() {
     }
   }
 
-  // Las hechas se pintan aparte, en #task-list-done — nunca dentro del
-  // contenedor de pendientes (igual que el bloque de hechas del Inbox).
   let visible = pendingItems;
 
   // ── Inbox agrupado: cada proyecto es un BLOQUE separado (como las
@@ -2227,7 +2214,6 @@ function renderTasks() {
   if (inboxGroups) {
     taskList.classList.remove("task-list--project");
     taskList.innerHTML = "";
-    if (taskListDone) taskListDone.innerHTML = "";
 
     inboxGroups.forEach(function(g) {
       if (g.items.length === 0) return;
@@ -2264,25 +2250,6 @@ function renderTasks() {
       sec.appendChild(ul);
       taskList.appendChild(sec);
     });
-
-    if (foldedDone.length > 0 && taskListDone) {
-      taskListDone.appendChild(_buildDoneFoldRow(foldedDone));
-      if (_doneFoldExpanded) {
-        const doneSec = document.createElement("li");
-        doneSec.className = "hoy-section inbox-group-block";
-        const doneUl = document.createElement("ul");
-        doneUl.className = "inbox-group-list";
-        foldedDone.forEach(function(it) {
-          // El bloque de completadas no lleva cabecera por proyecto.
-          const node = _buildTaskNode(it.task, it.project, it.project.id !== project.id);
-          node.style.setProperty("--task-accent", _projectColor(it.project));
-          node.classList.toggle("task-item--foreign", it.project.id !== project.id);
-          doneUl.appendChild(node);
-        });
-        doneSec.appendChild(doneUl);
-        taskListDone.appendChild(doneSec);
-      }
-    }
 
     _renderTasksFooter(project, isInbox);
     if (window.lucide) lucide.createIcons();
@@ -2336,28 +2303,9 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
-  // Completadas: bloque aparte fuera del contenedor de pendientes
-  // (#task-list-done), como en el Inbox. Se reconstruye entero en
-  // cada render — son pocas filas y no necesitan animación de reorden.
-  if (taskListDone) {
-    taskListDone.innerHTML = "";
-    if (foldedDone.length > 0) {
-      const fold = _buildDoneFoldRow(foldedDone);
-      taskListDone.appendChild(fold);
-      if (_doneFoldExpanded) {
-        foldedDone.forEach(function(it) {
-          const node = _buildTaskNode(it.task, it.project, it.project.id !== project.id);
-          node.style.setProperty("--task-accent", _projectColor(it.project));
-          taskListDone.appendChild(node);
-        });
-      }
-      if (window.lucide) lucide.createIcons({ nodes: [taskListDone] });
-    }
-  }
-
   // Empty state: si el proyecto no tiene tareas visibles (o no tiene
   // ninguna), inyectamos una ilustración + CTA para captura rápida.
-  if (visible.length === 0 && foldedDone.length === 0) {
+  if (visible.length === 0) {
     const empty = document.createElement("li");
     empty.className = "today-empty empty-illustrated";
     const hasAnyTask = isInbox ? items.length > 0 : project.tasks.length > 0;
@@ -2400,42 +2348,6 @@ function _renderTasksFooter(project, isInbox) {
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — antask"
     : project.name + " — antask";
-}
-
-/** Fila-resumen «N completadas — Mostrar/Ocultar» (prototipo Inbox). */
-function _buildDoneFoldRow(foldedDone) {
-  const fold = document.createElement("li");
-  fold.className = "done-fold" + (_doneFoldExpanded ? " done-fold--open" : "");
-  const preview = foldedDone.slice(0, 2).map(function(it) { return it.task.text; }).join(", ") +
-    (foldedDone.length > 2 ? "…" : "");
-  fold.innerHTML =
-    '<span class="done-fold-check"><i data-lucide="check"></i></span>' +
-    '<span class="done-fold-label"><b></b><span class="done-fold-preview"></span></span>' +
-    '<span class="done-fold-toggle">' +
-      '<span class="done-fold-toggle-text"></span><i data-lucide="chevron-down"></i>' +
-    '</span>';
-  fold.querySelector("b").textContent =
-    (foldedDone.length === 1 ? t("fold.completed_one") : t("fold.completed_other"))
-      .replace("{count}", String(foldedDone.length));
-  fold.querySelector(".done-fold-preview").textContent =
-    _doneFoldExpanded ? "" : " — " + preview;
-  fold.querySelector(".done-fold-toggle-text").textContent =
-    _doneFoldExpanded ? t("fold.hide") : t("fold.show");
-  fold.setAttribute("role", "button");
-  fold.setAttribute("tabindex", "0");
-  fold.setAttribute("aria-expanded", _doneFoldExpanded ? "true" : "false");
-  fold.addEventListener("click", function() {
-    _doneFoldExpanded = !_doneFoldExpanded;
-    renderTasks();
-  });
-  fold.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      _doneFoldExpanded = !_doneFoldExpanded;
-      renderTasks();
-    }
-  });
-  return fold;
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
@@ -3333,10 +3245,6 @@ function _wireEmptyStateCTA(emptyNode) {
 
 function renderTodayView() {
   taskList.innerHTML = "";
-  // El Hoy muestra las completadas de hoy inline en "Para hoy"; el fold
-  // "N completadas" es de la vista proyecto/Inbox y no aplica aquí. Sin
-  // esta limpieza quedaba colgado de la vista anterior (hueco + expandir roto).
-  if (taskListDone) taskListDone.innerHTML = "";
   taskList.classList.remove("task-list--project");
   var today = new Date().toISOString().slice(0, 10);
 
