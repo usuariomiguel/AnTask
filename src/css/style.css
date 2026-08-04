@@ -2766,9 +2766,15 @@ button:focus-visible {
   transition: background var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out),
               box-shadow 150ms var(--ease-out),
+              transform var(--dur-fast) var(--ease-out),
               opacity var(--dur-base) var(--ease-out);
   position: relative;
-  animation: itemIn 0.22s var(--ease-out) both;
+  /* `backwards`, no `both`: con `both` la animación conserva su fotograma
+     final para siempre y —las animaciones ganan a las reglas normales—
+     dejaba clavados `opacity` y `transform`, anulando tanto el atenuado de
+     .task-item.done como la elevación del hover. El fotograma final ya es
+     el estado natural de la fila, así que no hace falta retenerlo. */
+  animation: itemIn 0.22s var(--ease-out) backwards;
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
@@ -2788,10 +2794,14 @@ button:focus-visible {
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 
+/* Mismo hover que la vista Hoy (.today-item): realce, sombra proyectada
+   y una elevación de 1px. El tema claro no lo redeclara —Hoy tampoco—
+   porque los tokens ya se encargan del color. */
 .task-item:hover {
   background: var(--task-hover);
   border-color: var(--task-hover-border);
-  box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
+  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
+  transform: translateY(-1px);
 }
 
 .task-item:focus-visible {
@@ -2804,10 +2814,10 @@ button:focus-visible {
   box-shadow: var(--shadow-sm);
 }
 
+/* En claro hay que repetir la sombra del hover: la regla de reposo de
+   arriba es más específica que `.task-item:hover` y si no, gana ella. */
 :root[data-theme="light"] .task-item:hover {
-  background: var(--task-hover);
-  border-color: var(--task-hover-border);
-  box-shadow: 0 6px 16px -8px rgba(40, 30, 15, 0.28);
+  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
 }
 
 /* ─── ESTILOS DE FILA (como el prototipo v1) ───────────────────
@@ -2826,6 +2836,7 @@ button:focus-visible {
   background: var(--task-hover);
   border-color: transparent;
   box-shadow: none;
+  transform: none;
 }
 
 /* Líneas — separador inferior, sin tarjeta ni esquinas redondeadas. */
@@ -2841,6 +2852,7 @@ button:focus-visible {
   background: var(--task-hover);
   border-bottom-color: var(--task-hover-border);
   box-shadow: none;
+  transform: none;
 }
 .task-list[data-row-style="lineas"] .task-item:last-child { border-bottom-color: transparent; }
 
@@ -2862,6 +2874,7 @@ button:focus-visible {
 }
 .task-list[data-row-style="compacto"] .task-item:hover {
   box-shadow: none;
+  transform: none;
   z-index: 1;
 }
 /* Inbox agrupado: cada grupo apila sus tareas con flex `gap: 6px`, que el
@@ -2985,8 +2998,12 @@ button:focus-visible {
   align-items: center;
   gap: var(--sp-3);
   flex: 1;
+  /* Sin `overflow: hidden`: el checkbox arranca justo en el borde izquierdo
+     de esta caja y el recorte convertía en cuadrado el anillo redondo que
+     el checkbox luce al pasar por encima. Quien trunca el texto es
+     `.task-text` (overflow + ellipsis) apoyado en este `min-width: 0`, y
+     `.task-item` sigue recortando por fuera como red de seguridad. */
   min-width: 0;
-  overflow: hidden;
 }
 
 .task-summary .task-toggle-wrap {
@@ -3009,15 +3026,31 @@ button:focus-visible {
   background: transparent;
   cursor: pointer;
   position: relative;
+  opacity: 0.7;
   transition: border-color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out);
+              opacity var(--dur-fast) var(--ease-out),
+              box-shadow 150ms var(--ease-out);
   flex-shrink: 0;
+}
+
+/* Al pasar por encima de la fila el checkbox se ilumina, igual que
+   .today-check en la vista Hoy: opacidad completa, color de acento y un
+   anillo alrededor. El anillo se reserva al estado sin marcar para no
+   pisar el resplandor y la animación que ya tiene el marcado. */
+.task-item:hover .task-toggle {
+  opacity: 1;
+}
+
+.task-item:hover .task-toggle:not(:checked) {
+  border-color: var(--c-primary-500);
+  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
 .task-toggle:checked {
   background: var(--task-accent, var(--c-primary-500));
   border-color: var(--task-accent, var(--c-primary-500));
+  opacity: 1;
   box-shadow: 0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 40%, transparent);
   animation: check-pop 0.25s var(--ease-out) both,
              check-pulse 0.5s var(--ease-out) both;
@@ -7690,9 +7723,12 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 :root[data-theme="light"] .cal-task-chip:hover {
   background: rgba(111, 122, 61, 0.14);
   color: var(--text-primary);
-}/* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
+}
+
+/* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
 @media (hover: none) {
-  .task-item:hover {
+  .task-item:hover,
+  .today-item:hover {
     transform: none;
   }
 
