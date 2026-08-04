@@ -29,7 +29,6 @@ export const es = {
   "profile.local_storage":    "Almacenamiento local",
   "profile.edit_title":       "Tu nombre",
   "profile.name_placeholder": "Escribe tu nombre...",
-  "profile.avatar_label":     "Elige un avatar",
   "profile.settings":         "Ajustes",
   "profile.export":           "Exportar workspace",
   "profile.import":           "Importar workspace",

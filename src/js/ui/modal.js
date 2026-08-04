@@ -35,9 +35,20 @@ export function createModalBase() {
  */
 export function closeModal(overlay) {
   overlay.classList.remove("modal-visible");
-  overlay.addEventListener("transitionend", function () {
+
+  // El overlay se quita al acabar el fundido (opacity .18s), pero
+  // `transitionend` NO llega si el navegador se salta la transición —pasa
+  // cuando se abre y se cierra en el mismo frame, o con reduced-motion—, y
+  // entonces el modal se quedaba en el DOM tapando la interfaz. Un plazo de
+  // respaldo garantiza que siempre desaparece.
+  let removed = false;
+  function remove() {
+    if (removed) return;
+    removed = true;
     overlay.remove();
-  }, { once: true });
+  }
+  overlay.addEventListener("transitionend", remove, { once: true });
+  setTimeout(remove, 350);
 }
 
 /**

@@ -7126,17 +7126,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   box-shadow: 0 2px 6px rgba(163, 179, 102, 0.30);
 }
 
-/* Avatar con emoji (OpenMoji): sin gradiente, el emoji manda. */
-.profile-avatar--emoji {
-  background: var(--surface-raised);
-  box-shadow: none;
-  font-size: 20px;
-}
-
-.profile-avatar-lg.profile-avatar--emoji {
-  font-size: 22px;
-}
-
 .profile-meta {
   flex: 1;
   min-width: 0;
@@ -9653,7 +9642,7 @@ button {
   width: 100%;
   cursor: pointer;
   padding: 11px 15px;
-  margin: 8px 0 6px;
+  margin-bottom:15px;
   border-radius: var(--r-lg);
   background: transparent;
   border: 1px dashed var(--border-strong);

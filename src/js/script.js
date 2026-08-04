@@ -3282,7 +3282,7 @@ function _renderTaskDetail() {
   if (els.backLabel) els.backLabel.textContent = project.name;
 
   renderSubtasks(task, els.subtasks, {
-    onMutation:  saveAndRender,
+    onMutation:  saveAndRenderDetail,
     onEditStart: startSubtaskInlineEdit,
   });
 
@@ -3418,7 +3418,7 @@ function _initTaskDetailPanel() {
       if (!val) return;
       open.task.subtasks.unshift({ id: generateId(), text: val, done: false });
       els.subtaskInput.value = "";
-      saveAndRender();
+      saveAndRenderDetail();
     });
   }
 
@@ -3934,7 +3934,7 @@ function startSubtaskInlineEdit(textSpan, subtask) {
     const newText = capitalizeFirst(input.value.trim()).slice(0, 120);
     if (newText && newText !== current) {
       subtask.text = newText;
-      saveAndRender();
+      saveAndRenderDetail();
     } else {
       textSpan.textContent = current;
     }
@@ -4869,6 +4869,20 @@ function saveAndRender() {
   if (openDetailTaskId) _renderTaskDetail();
 }
 
+/**
+ * Guarda y repinta SOLO el panel de detalle.
+ *
+ * Para lo que vive únicamente ahí — las subtareas — llamar a
+ * saveAndRender() reconstruía además la lista y el sidebar entero, que no
+ * muestran nada derivado de las subtareas: los contadores del sidebar son
+ * de tareas, y la fila no tiene indicador de subtareas. Era trabajo tirado
+ * y se notaba como un salto de toda la interfaz.
+ */
+function saveAndRenderDetail() {
+  saveProjects();
+  if (openDetailTaskId) _renderTaskDetail();
+}
+
 // ─── PERSISTENCIA ────────────────────────────────────────────
 
 /** Muestra el modal de cuota llena con botón de exportar workspace. */
@@ -5543,75 +5557,50 @@ function _updateProfileMenu(user) {
     if (settingsSub) settingsSub.textContent = t("profile.local_storage");
   }
 
-  // El perfil local del usuario (nombre + avatar emoji) tiene prioridad.
+  // El nombre local tiene prioridad. El avatar es siempre su inicial: se
+  // retiró el selector de emojis, así que ya no se lee userProfile.icon.
   var name  = (userProfile.name && userProfile.name.trim()) || baseName;
-  var emoji = userProfile.icon || "";
-  var avatarValue = emoji || (name ? name.charAt(0).toUpperCase() : baseInitial);
+  var avatarValue = name ? name.charAt(0).toUpperCase() : baseInitial;
 
-  _applyAvatar(pfAvatar, avatarValue, !!emoji);
-  _applyAvatar(pfAvatarTop, avatarValue, !!emoji);
-  _applyAvatar(settingsAvatar, avatarValue, !!emoji);
+  _applyAvatar(pfAvatar, avatarValue);
+  _applyAvatar(pfAvatarTop, avatarValue);
+  _applyAvatar(settingsAvatar, avatarValue);
   if (pfName)       pfName.textContent       = name;
   if (settingsName) settingsName.textContent = name;
   if (pfNameTop) pfNameTop.textContent = name;
 }
 
-function _applyAvatar(el, value, isEmoji) {
+function _applyAvatar(el, value) {
   if (!el) return;
   el.textContent = value;
-  el.classList.toggle("profile-avatar--emoji", !!isEmoji);
 }
 
 function saveProfile() {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (_) {}
 }
 
-// Modal de edición del perfil local: nombre + avatar emoji (OpenMoji).
+// Modal de edición del perfil local: solo el nombre. El avatar es siempre
+// la inicial — el selector de emojis se retiró.
 function showProfileModal() {
   var { overlay, box } = createModalBase();
-
-  var emojis = [
-    "🙂","😎","🤓","🧑","👤","🧑‍💻","🦸","🧙","🐱","🐶",
-    "🦊","🐼","🐧","🦉","🦄","🐲","🌟","⭐","🔥","⚡",
-    "🚀","🎯","💎","🎨","🎵","📚","💡","🌈","🌙","☀️",
-    "🌿","🍀","🌸","🌊","❤️","💪","🧠","👑","🏆","🦋",
-  ];
-
-  var current = userProfile.icon || "";
-  var gridHtml = emojis.map(function(e) {
-    return '<button type="button" class="icon-picker-emoji' +
-      (current === e ? ' icon-picker-emoji--active' : '') +
-      '" data-emoji="' + e + '">' + e + '</button>';
-  }).join('');
 
   box.innerHTML =
     '<p class="modal-label">' + t("profile.edit_title") + '</p>' +
     '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
       ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
       ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
-    '<p class="modal-label">' + t("profile.avatar_label") + '</p>' +
-    '<div class="icon-picker-grid">' + gridHtml + '</div>' +
     '<div class="modal-actions">' +
-      (userProfile.icon ? '<button type="button" class="modal-btn modal-btn-cancel profile-avatar-clear">' + t("project.icon_clear") + '</button>' : '') +
       '<button type="button" class="modal-btn modal-btn-cancel profile-cancel">' + t("modal.cancel") + '</button>' +
       '<button type="button" class="modal-btn modal-btn-confirm profile-save">' + t("modal.save") + '</button>' +
     '</div>';
 
   var nameInput = box.querySelector('.profile-name-input');
-  var pickedIcon = userProfile.icon || "";
-
-  box.querySelectorAll('.icon-picker-emoji').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      pickedIcon = btn.dataset.emoji;
-      box.querySelectorAll('.icon-picker-emoji').forEach(function(b) {
-        b.classList.toggle('icon-picker-emoji--active', b === btn);
-      });
-    });
-  });
 
   function save() {
     userProfile.name = nameInput.value.trim();
-    userProfile.icon = pickedIcon;
+    // Limpia el emoji que hubiera guardado de antes: sin selector no habría
+    // forma de quitarlo y el avatar se quedaría clavado.
+    userProfile.icon = "";
     saveProfile();
     _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null);
     closeModal(overlay);
@@ -5620,8 +5609,6 @@ function showProfileModal() {
   overlay._cancel = function() { closeModal(overlay); };
   box.querySelector('.profile-cancel').addEventListener('click', function() { closeModal(overlay); });
   box.querySelector('.profile-save').addEventListener('click', save);
-  var clearBtn = box.querySelector('.profile-avatar-clear');
-  if (clearBtn) clearBtn.addEventListener('click', function() { pickedIcon = ""; save(); });
 
   nameInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); save(); }
