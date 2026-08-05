@@ -2404,6 +2404,13 @@ function _updateTaskNode(node, task) {
   const checkbox = node.querySelector(".task-toggle");
   const text     = node.querySelector(".task-text");
 
+  // Las clases de animación de completar/descompletar llevan `forwards` y
+  // `pointer-events: none`. Antes daba igual no retirarlas porque la fila
+  // completada se iba a un bloque aparte y el nodo se reconstruía; ahora se
+  // queda en la lista y este nodo se reutiliza, así que sin esto la fila
+  // quedaba congelada e inservible hasta cambiar de lista.
+  node.classList.remove("task-completing", "task-uncompleting");
+
   checkbox.checked    = task.done;
   text.textContent    = task.text;
   node.classList.toggle("done", task.done);
