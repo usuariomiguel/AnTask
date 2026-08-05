@@ -2404,13 +2404,6 @@ function _updateTaskNode(node, task) {
   const checkbox = node.querySelector(".task-toggle");
   const text     = node.querySelector(".task-text");
 
-  // Las clases de animación de completar/descompletar llevan `forwards` y
-  // `pointer-events: none`. Antes daba igual no retirarlas porque la fila
-  // completada se iba a un bloque aparte y el nodo se reconstruía; ahora se
-  // queda en la lista y este nodo se reutiliza, así que sin esto la fila
-  // quedaba congelada e inservible hasta cambiar de lista.
-  node.classList.remove("task-completing", "task-uncompleting");
-
   checkbox.checked    = task.done;
   text.textContent    = task.text;
   node.classList.toggle("done", task.done);
@@ -2472,35 +2465,25 @@ function _buildTaskNode(task, project, showList) {
     });
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
+    // Sin animación de fila: marcar aplica y repinta en el acto. Antes se
+    // esperaba a que corriese (460ms al completar, 220 al descompletar).
     checkbox.addEventListener("change", function() {
       task.done = checkbox.checked;
-      if (task.done) {
-        node.classList.add("task-completing");
-        setTimeout(function() {
-          if (task.recurDays) {
-            task.done = false;
-            var next = new Date();
-            if (task.dueDate) {
-              next = new Date(task.dueDate + "T00:00:00");
-              next.setDate(next.getDate() + task.recurDays);
-            } else {
-              next.setDate(next.getDate() + task.recurDays);
-            }
-            task.dueDate = next.toISOString().slice(0, 10);
-            saveAndRender();
-            _showRecurToast(task.recurDays, task.dueDate);
-          } else {
-            saveAndRender();
-          }
-        }, 460);
-      } else {
-        node.classList.add("task-uncompleting");
-        setTimeout(function() { saveAndRender(); }, 220);
+      if (task.done && task.recurDays) {
+        task.done = false;
+        var next = new Date();
+        if (task.dueDate) {
+          next = new Date(task.dueDate + "T00:00:00");
+          next.setDate(next.getDate() + task.recurDays);
+        } else {
+          next.setDate(next.getDate() + task.recurDays);
+        }
+        task.dueDate = next.toISOString().slice(0, 10);
+        saveAndRender();
+        _showRecurToast(task.recurDays, task.dueDate);
+        return;
       }
-      renderDueBadge(task, node.querySelector(".task-due-container"));
-      // El badge trae iconos (calendario / flecha): hay que materializarlos
-      // ya, sin esperar al saveAndRender diferido de la animación.
-      if (window.lucide) lucide.createIcons({ nodes: [node] });
+      saveAndRender();
     });
 
     // Sin renombrar por doble clic: la fila entera es un solo objetivo
@@ -3516,18 +3499,15 @@ function renderTodayItem(task, project, todayStr, tone) {
       return;
     }
     task.done = true;
-    li.classList.add("today-completing");
-    setTimeout(function() {
-      if (task.recurDays) {
-        task.done = false;
-        var next = new Date(task.dueDate + "T00:00:00");
-        next.setDate(next.getDate() + task.recurDays);
-        task.dueDate = next.toISOString().slice(0, 10);
-      }
-      saveProjects();
-      renderTasks();
-      renderSidebar();
-    }, 280);
+    if (task.recurDays) {
+      task.done = false;
+      var next = new Date(task.dueDate + "T00:00:00");
+      next.setDate(next.getDate() + task.recurDays);
+      task.dueDate = next.toISOString().slice(0, 10);
+    }
+    saveProjects();
+    renderTasks();
+    renderSidebar();
   });
 
   var text = document.createElement("span");
