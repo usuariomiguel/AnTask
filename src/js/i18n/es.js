@@ -158,6 +158,7 @@ export const es = {
   "hoy.schedule_all":         "Programar todas hoy",
   "hoy.move_one":             "Mover a hoy",
   "hoy.schedule_one":         "Programar hoy",
+  "hoy.quickadd_ph":          "Añadir una tarea para hoy…",
   "hoy.done_of":              "{done} de {total} hechas",
   "hoy.overdue_one":          "vencida",
   "hoy.overdue_other":        "vencidas",

@@ -8295,7 +8295,74 @@ button {
   flex-direction: column;
 }
 .hoy-section-list .today-item { margin-bottom: 0; }
-.hoy-section-list .today-item + .today-item { margin-top: 6px; }
+.hoy-section-list .today-item + .today-item,
+.hoy-section-list .today-item + .hoy-quickadd { margin-top: 6px; }
+
+/* Quick-add contextual del bloque "Para hoy" */
+.hoy-quickadd {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  padding: 11px 15px 11px 17px;
+  /* Altura fija, la misma que una fila de tarea: el botón "Añadir" sólo
+     aparece al escribir y, si la caja se dimensionara sola, la fila daba un
+     salto de 8px al mostrarlo. Los 21px de contenido (45 − borde − padding)
+     son justo lo que mide el botón. */
+  min-height: 45px;
+  margin-top: 2px;
+  cursor: text;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+  transition: border-color 0.12s, box-shadow 150ms;
+}
+.hoy-quickadd:focus-within {
+  border-color: var(--c-primary-500);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.hoy-quickadd-ico {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  color: var(--c-primary-300);
+}
+:root[data-theme="light"] .hoy-quickadd-ico { color: var(--c-primary-600); }
+.hoy-quickadd-ico .lucide { width: 16px; height: 16px; stroke-width: 2.4; }
+.hoy-quickadd-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--text-primary);
+  letter-spacing: -0.006em;
+}
+.hoy-quickadd-input::placeholder { color: var(--text-tertiary); }
+.hoy-quickadd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  /* Alto explícito en vez de padding vertical: así entra en el contenido de
+     la fila sin estirarla al aparecer. */
+  height: 21px;
+  padding: 0 11px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  border: none;
+  background: var(--c-primary-500);
+  color: var(--accent-on);
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1;
+}
+.hoy-quickadd-btn .lucide { width: 13px; height: 13px; stroke-width: 2.4; }
 
 /* Bloque "Todo al día" */
 .hoy-allclear {

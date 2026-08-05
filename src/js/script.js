@@ -3309,18 +3309,13 @@ function renderTodayView() {
     taskList.appendChild(secV.li);
   }
 
-  // ── Para hoy ──
-  // Antes se pintaba siempre porque albergaba el quick-add; retirado éste,
-  // sin tareas quedaba una cabecera hueca. Ahora se comporta como el resto
-  // de bloques. No deja la vista vacía: sin tareas de hoy, o hay vencidas o
-  // entra el bloque "Todo al día".
-  if (todays.length > 0) {
-    var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDone + "/" + todays.length, null, null);
-    todays.forEach(function(it) {
-      secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
-    });
-    taskList.appendChild(secH.li);
-  }
+  // ── Para hoy — siempre visible, con quick-add contextual ──
+  var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDone + "/" + todays.length, null, null);
+  todays.forEach(function(it) {
+    secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
+  });
+  secH.list.appendChild(_hoyQuickAddEl(today));
+  taskList.appendChild(secH.li);
 
   // ── Sin fecha · sugeridas ──
   if (nodate.length > 0) {
@@ -3333,9 +3328,18 @@ function renderTodayView() {
   }
 
   if (window.lucide) lucide.createIcons();
+
+  if (_hoyQuickAddRefocus) {
+    _hoyQuickAddRefocus = false;
+    var qa = taskList.querySelector(".hoy-quickadd-input");
+    if (qa) qa.focus();
+  }
 }
 
 // ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
+
+var _hoyQuickAddRefocus = false;
+
 
 function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   var li = document.createElement("li");
@@ -3373,6 +3377,44 @@ function _hoySetDueToday(items) {
   saveProjects();
   renderTasks();
   renderSidebar();
+}
+
+/** Quick-add contextual del bloque "Para hoy": crea en el Inbox con fecha hoy. */
+function _hoyQuickAddEl(todayStr) {
+  var li = document.createElement("li");
+  li.className = "hoy-quickadd";
+  li.innerHTML =
+    '<span class="hoy-quickadd-ico"><i data-lucide="plus"></i></span>' +
+    '<input type="text" class="hoy-quickadd-input" maxlength="120" autocomplete="off">' +
+    '<button type="button" class="hoy-quickadd-btn" hidden><i data-lucide="plus"></i> ' +
+      '<span></span></button>';
+  var input = li.querySelector(".hoy-quickadd-input");
+  var btn = li.querySelector(".hoy-quickadd-btn");
+  input.placeholder = t("hoy.quickadd_ph");
+  btn.querySelector("span").textContent = t("task.add_btn");
+  function submit() {
+    var value = input.value.trim();
+    if (!value) return;
+    var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!inbox) return;
+    var created = _createTaskInProject(inbox, value);
+    if (!created) return;
+    // El parser NL puede haber fijado ya una fecha ("mañana"); si no, va a hoy.
+    if (!created.dueDate) created.dueDate = todayStr;
+    saveProjects();
+    _hoyQuickAddRefocus = true;
+    renderTasks();
+    renderSidebar();
+  }
+  input.addEventListener("input", function() { btn.hidden = input.value.trim() === ""; });
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); submit(); }
+    else if (e.key === "Escape") { input.value = ""; btn.hidden = true; input.blur(); }
+  });
+  btn.addEventListener("mousedown", function(e) { e.preventDefault(); });
+  btn.addEventListener("click", submit);
+  li.addEventListener("click", function(e) { if (e.target === li) input.focus(); });
+  return li;
 }
 
 /** Stats "N de M hechas · X vencidas" + anillo de progreso en la cabecera. */
