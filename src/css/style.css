@@ -8525,10 +8525,18 @@ button {
   .capture-bar { display: none; }
 }
 
-/* Con la barra flotante la lista necesita hueco para que la última
- * fila no quede tapada. */
+/* Hueco al pie para la barra de captura flotante. Va en el contenedor de
+ * scroll y no en `.task-list`, porque en vista de proyecto
+ * `.task-list--project` reescribe su propio padding (4px) y la última fila
+ * acababa 30px por debajo de la barra, tapada.
+ * 56px dejan 15px de aire entre el borde inferior del contenedor de tareas y
+ * el borde superior de la barra — medido con la lista desplazada al fondo en
+ * Inbox, proyecto y Hoy, que con esto separan igual. */
 @media (min-width: 769px) {
-  .task-list { padding-bottom: 55px; padding-top: var(--sp-3); }
+  .task-list-scroll { padding-bottom: 56px; }
+  /* El hueco lo pone el contenedor de scroll: la lista no añade el suyo, o
+     cada vista acabaría con una separación distinta. */
+  .task-list { padding-top: var(--sp-3); padding-bottom: 0; }
 }
 
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
