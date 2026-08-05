@@ -1451,7 +1451,6 @@ body {
 }
 .task-detail-title.done {
   color: var(--text-tertiary);
-  text-decoration: line-through;
 }
 .task-detail-title::placeholder { color: var(--text-tertiary); }
 
@@ -2952,35 +2951,6 @@ button:focus-visible {
   }
 }
 
-/* ─── TASK COMPLETION ANIMATIONS ────────────────────────────── */
-@keyframes taskComplete {
-  0%   { transform: scale(1);     opacity: 1; }
-  45%  { transform: scale(1.012); opacity: 1; }  /* mantiene la fila visible mientras se dibuja el check */
-  100% { transform: scale(1);     opacity: 0.45; }
-}
-
-@keyframes taskUncomplete {
-  0% {
-    transform: scale(0.98);
-    opacity: 0.5;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.task-completing {
-  animation: taskComplete 0.44s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  pointer-events: none;
-}
-
-.task-uncompleting {
-  animation: taskUncomplete 0.22s ease forwards;
-  pointer-events: none;
-}
-
 /* ─── TASK MAIN ROW ──────────────────────────────────────────── */
 .task-main-row {
   display: flex;
@@ -3045,12 +3015,10 @@ button:focus-visible {
 }
 
 .task-toggle:checked {
-  background: var(--task-accent, var(--c-primary-500));
-  border-color: var(--task-accent, var(--c-primary-500));
+  background: var(--c-primary-500);
+  border-color: var(--c-primary-500);
   opacity: 1;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 40%, transparent);
-  animation: check-pop 0.25s var(--ease-out) both,
-             check-pulse 0.5s var(--ease-out) both;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c-primary-500) 40%, transparent);
 }
 
 /* Tick dibujado con un path SVG (stroke-dashoffset). El SVG es hermano del
@@ -3070,31 +3038,8 @@ button:focus-visible {
 }
 
 .task-check path {
-  stroke-dasharray: 22;
-  stroke-dashoffset: 22;
-}
-
-.task-toggle:checked ~ .task-check path {
-  animation: check-svg-draw 0.3s var(--ease-out) 0.06s forwards;
-}
-
-@keyframes check-pop {
-  0%   { transform: scale(0.72); }
-  60%  { transform: scale(1.18); }
-  100% { transform: scale(1); }
-}
-
-@keyframes check-svg-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-/* Pulso radial al marcar: un anillo que crece y se desvanece, con el
-   color del proyecto (--task-accent). */
-@keyframes check-pulse {
-  0%   { box-shadow: 0 0 0 1px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 50%, transparent),
-                     0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 40%, transparent); }
-  100% { box-shadow: 0 0 0 9px transparent,
-                     0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 40%, transparent); }
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
 }
 
 .task-toggle:hover {
@@ -3103,16 +3048,17 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .task-toggle:checked {
-  background: var(--task-accent, var(--c-primary-500));
-  border-color: var(--task-accent, var(--c-primary-500));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--task-accent, var(--c-primary-500)) 35%, transparent);
+  background: var(--c-primary-500);
+  border-color: var(--c-primary-500);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c-primary-500) 35%, transparent);
 }
 
 .task-text {
   font-family: var(--font-sans);
-  /* v1: 14.5px / 450 / -0.006em — igual que .today-text. */
+  /* 14.5px / 550 / -0.006em — mismo peso que .today-text (Inter es
+     variable, así que 550 se interpola sin caer al siguiente corte). */
   font-size: var(--fs-task);
-  font-weight: 450;
+  font-weight: 550;
   letter-spacing: -0.006em;
   color: var(--text-primary);
   flex: 1;
@@ -3120,10 +3066,7 @@ button:focus-visible {
   /* Sin cursor propio: hereda el `pointer` de .task-item, que es un
      único objetivo clicable de punta a punta. */
   line-height: 1.4;
-  text-decoration: line-through;
-  text-decoration-color: transparent;
-  transition: color var(--dur-fast) var(--ease-out),
-              text-decoration-color var(--dur-base) ease;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .task-item .task-text {
@@ -3134,6 +3077,11 @@ button:focus-visible {
 
 .task-item.done {
   opacity: 0.45;
+  /* Sin animación de entrada: `itemIn` termina en `opacity: 1` y, mientras
+     corre, ese valor gana al 0.45 de aquí. La fila completada se encendía a
+     tope y caía de golpe al acabar, como si se estuviera completando sola
+     cada vez que se abría la lista. */
+  animation: none;
 }
 
 .task-item.done::before {
@@ -3141,9 +3089,11 @@ button:focus-visible {
   box-shadow: none !important;
 }
 
+/* Completada: se apaga el color y el título vuelve al peso ligero — el
+   refuerzo de 550 es sólo para lo que queda por hacer. Sin tachado. */
 .task-item.done .task-text {
-  text-decoration-color: var(--text-tertiary);
   color: var(--text-tertiary);
+  font-weight: 450;
 }
 
 /* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
@@ -3310,6 +3260,7 @@ body.tasks-compact .task-text {
 .subtask-checkbox {
   flex-shrink: 0;
   cursor: pointer;
+  accent-color: var(--c-primary-500);
 }
 
 .subtask-text {
@@ -5315,7 +5266,7 @@ mark.search-hl {
   height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
-  accent-color: var(--c-cyan);
+  accent-color: var(--c-primary-500);
 }
 
 .task-list.select-mode .task-select-cb {
@@ -7550,7 +7501,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    animation: none; /* evita que check-pop pise el centrado */
   }
   /* Tap feedback: halo morado suave alrededor del círculo cuando se pulsa */
   .task-summary .task-toggle:active {
@@ -8058,8 +8008,8 @@ button {
   box-shadow: 0 0 0 3px var(--accent-tint);
 }
 .today-check:checked {
-  border-color: transparent;
-  background: var(--grad-primary);
+  border-color: var(--c-primary-500);
+  background: var(--c-primary-500);
   opacity: 1;
 }
 .today-check:checked::after {
@@ -8075,16 +8025,16 @@ button {
   flex: 1;
   min-width: 0;
   font-size: 14.5px;
-  font-weight: var(--fw-medium);
+  font-weight: 550;
   color: var(--text-primary);
   letter-spacing: -0.006em;
   line-height: 1.4;
   word-break: break-word;
 }
+.today-item--done { opacity: 0.45; }
 .today-item--done .today-text {
   color: var(--text-tertiary);
-  text-decoration: line-through;
-  text-decoration-color: color-mix(in srgb, var(--text-tertiary) 55%, transparent);
+  font-weight: 450;
 }
 
 /* Chips/acciones de la fila: misma línea en escritorio, segunda línea
@@ -8210,13 +8160,6 @@ button {
   }
   .today-date-pill--overdue:hover,
   .today-date-pill--overdue:active { background: rgba(176, 71, 63, 0.22); }
-}
-
-/* Animación al marcar hecha */
-.today-completing {
-  opacity: 0.4;
-  transform: translateX(8px);
-  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
