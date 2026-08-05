@@ -42,10 +42,12 @@
   --ring-primary:       0 0 0 3px rgba(163, 179, 102, 0.22);
 
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
+  --surface-desk:    #080605;   /* escritorio detrás del panel flotante */
   --surface-deep:    #100c08;   /* sidebar, capa más profunda */
-  --surface-canvas:  #17120d;   /* canvas principal */
-  --surface-card:    #211a13;   /* tarjetas / paneles */
+  --surface-canvas:  #12100c;   /* canvas principal (panel central hundido) */
+  --surface-card:    #251e16;   /* tarjetas / paneles */
   --surface-raised:  #2c241b;   /* hover, raised, segmento activo */
+  --block-bg:        rgba(255, 240, 220, 0.045); /* bloque de sección */
   --surface-overlay: rgba(38, 30, 22, 0.96);
   --surface-input:   rgba(255, 245, 230, 0.045);
 
@@ -57,7 +59,7 @@
 
   --text-primary:   #f1e9dc;
   --text-secondary: #b6a691;
-  --text-tertiary:  #93846d;  /* ≥4.5:1 sobre card #211a13 (AA) */
+  --text-tertiary:  #9d8e76;  /* ≥4.5:1 sobre card #251e16 (AA) */
   --text-disabled:  #55492f;
   --text-inverse:   #17120d;
 
@@ -287,10 +289,12 @@
   --ring-primary:       0 0 0 3px rgba(111, 122, 61, 0.20);
 
   /* Surfaces — papel cálido. OJO: la sidebar sigue oscura (ver .sidebar) */
+  --surface-desk:    #d6c9b0;
   --surface-deep:    #221d16;
-  --surface-canvas:  #f4efe3;
+  --surface-canvas:  #e8dfcd;
   --surface-card:    #fffdf6;
   --surface-raised:  #efe6d4;
+  --block-bg:        rgba(255, 253, 246, 0.66);
   --surface-overlay: rgba(255, 253, 246, 0.97);
   --surface-input:   #fffdf6;
 
@@ -302,7 +306,7 @@
   /* Text */
   --text-primary:   #2a251d;
   --text-secondary: #6a6151;
-  --text-tertiary:  #746a58;  /* ≥4.5:1 sobre canvas #f4efe3 (AA) */
+  --text-tertiary:  #665c4c;  /* ≥4.5:1 sobre canvas #e8dfcd (AA) — 4.96:1 */
   --text-disabled:  #b3a892;
   --text-inverse:   #f2ece0;
 
@@ -564,11 +568,7 @@ body {
   align-items: stretch;
   /* Shell flotante "Tierra": el body es el escritorio (desk) sobre el que
      flotan sidebar y panel de contenido. Canvas plano, sin radiales. */
-  background-color: #0c0906;
-}
-
-:root[data-theme="light"] body {
-  background-color: #e3d8c2;
+  background-color: var(--surface-desk);
 }
 
 /* ─── BRAND (sidebar) — "A" olivo + wordmark, como el prototipo v1 ─── */
@@ -1228,10 +1228,11 @@ body {
   background: var(--surface-canvas);
 }
 
-/* Shell flotante: en claro el panel usa card (papel) como el prototipo */
-:root[data-theme="light"] .main-panel {
-  background: var(--surface-card);
-}
+/* El panel central usa `--surface-canvas` en ambos temas: es la capa
+   hundida sobre la que flotan los bloques de sección (--block-bg) y, sobre
+   éstos, las tarjetas de tarea (--surface-card). En claro llegó a pintarse
+   con `card`, pero eso dejaba bloque y tarjeta casi del mismo tono y se
+   perdía la jerarquía de tres niveles. */
 
 /* Bottom nav — hidden on desktop, shown via mobile media query */
 .mobile-bottom-nav { display: none; }
@@ -1944,9 +1945,11 @@ body {
   flex-shrink: 0;
 }
 
+/* -700 y no -600: con el canvas oscurecido (#e8dfcd) la píldora compone
+   sobre un fondo más bajo y el -600 se quedaba en 4.2:1, por debajo de AA. */
 :root[data-theme="light"] .subtitle {
-  color: var(--c-primary-600);
-  border-color: color-mix(in srgb, var(--c-primary-600) 20%, transparent);
+  color: var(--c-primary-700);
+  border-color: color-mix(in srgb, var(--c-primary-700) 20%, transparent);
 }
 
 .header-actions {
@@ -8196,12 +8199,11 @@ button {
 .hoy-section {
   list-style: none;
   margin-bottom: 14px;
-  background: rgba(255, 240, 220, 0.032);
+  background: var(--block-bg);
   border: 1px solid var(--border-default);
   border-radius: calc(var(--r-md) + 8px);
   padding: 11px 11px 10px;
 }
-:root[data-theme="light"] .hoy-section { background: rgba(50, 42, 28, 0.032); }
 
 .hoy-section-head {
   display: flex;
@@ -8508,13 +8510,12 @@ button {
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
 @media (min-width: 769px) {
   .task-list--project {
-    background: rgba(255, 240, 220, 0.032);
+    background: var(--block-bg);
     border: 1px solid var(--border-default);
     border-radius: calc(var(--r-md) + 8px);
     padding: 11px 11px 4px;
     margin-bottom: 14px;
   }
-  :root[data-theme="light"] .task-list--project { background: rgba(50, 42, 28, 0.032); }
   /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
      sobra, así que el bloque queda casi a ras del contenedor. */
   .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
