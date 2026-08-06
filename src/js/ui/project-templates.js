@@ -162,9 +162,6 @@ export function buildTasksFromTemplate(template) {
   });
 }
 
-/** Devuelve el nombre traducido (para mostrar en cabeceras externas). */
-export function getTemplateName(template) { return tplName(template); }
-
 /**
  * Abre la galería de templates. El caller decide qué hacer:
  *   - onPickBlank() — al elegir "Proyecto en blanco"

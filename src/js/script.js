@@ -186,10 +186,6 @@ const taskList         = document.getElementById("task-list");
 
 // ─── MOBILE FAB REFS ─────────────────────────────────────────
 const mobileFab    = document.getElementById("mobile-fab");
-const fabBackdrop  = document.getElementById("fab-backdrop");
-const fabSheet     = document.getElementById("fab-sheet");
-const fabForm      = document.getElementById("fab-form");
-const fabInput     = document.getElementById("fab-input");
 const taskCounter      = document.getElementById("task-counter");
 const saveStatus       = document.getElementById("save-status");
 const clearDoneBtn     = document.getElementById("clear-done");
@@ -507,69 +503,6 @@ document.addEventListener("keydown", function(e) {
 // (los modales genéricos viven en ./ui/modal.js)
 // ═══════════════════════════════════════════════════════════════
 
-function showIconPicker(project) {
-  var { overlay, box } = createModalBase();
-
-  var emojis = [
-    "📁","📂","🗂️","📋","📌","📎","🗒️","📝","✏️","🖊️",
-    "💼","🏢","🏗️","🔧","⚙️","🛠️","🔬","🧪","💡","🔋",
-    "🚀","🎯","🏆","🥇","🎖️","⭐","🌟","💎","🔥","⚡",
-    "📊","📈","📉","💰","💳","🧾","📣","🔔","📡","🌐",
-    "🎨","🎵","🎬","📸","🎮","🕹️","🎲","🧩","🎭","🎪",
-    "🏠","🌱","🌿","🍀","🌸","🌊","🌍","☀️","🌙","❄️",
-    "👥","🤝","🧠","💪","🏃","🧘","❤️","🦋","🐝","🦄",
-    "📚","🎓","🏫","🔑","🗝️","🔐","🛡️","⚖️","🧭","🗺️",
-  ];
-
-  var gridHtml = emojis.map(function(e) {
-    return '<button type="button" class="icon-picker-emoji' +
-      (project.icon === e ? ' icon-picker-emoji--active' : '') +
-      '" data-emoji="' + e + '">' + e + '</button>';
-  }).join('');
-
-  box.innerHTML =
-    '<p class="modal-label">' + t("project.icon_picker_title") + '</p>' +
-    '<div class="icon-picker-grid">' + gridHtml + '</div>' +
-    '<div class="icon-picker-custom">' +
-      '<input class="modal-input icon-picker-input" type="text" maxlength="4"' +
-        ' placeholder="' + escHtml(t("project.icon_placeholder")) + '" autocomplete="off"/>' +
-    '</div>' +
-    '<div class="modal-actions">' +
-      (project.icon ? '<button type="button" class="modal-btn modal-btn-cancel icon-picker-clear">' + t("project.icon_clear") + '</button>' : '') +
-      '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
-    '</div>';
-
-  function apply(emoji) {
-    project.icon = emoji;
-    saveProjects();
-    renderSidebar();
-    closeModal(overlay);
-  }
-
-  overlay._cancel = function() { closeModal(overlay); };
-
-  box.querySelector('.modal-btn-cancel:last-child').addEventListener('click', function() { closeModal(overlay); });
-
-  var clearBtn = box.querySelector('.icon-picker-clear');
-  if (clearBtn) clearBtn.addEventListener('click', function() { apply(''); });
-
-  box.querySelectorAll('.icon-picker-emoji').forEach(function(btn) {
-    btn.addEventListener('click', function() { apply(btn.dataset.emoji); });
-  });
-
-  var customInput = box.querySelector('.icon-picker-input');
-  customInput.addEventListener('input', function() {
-    var val = Array.from(customInput.value).slice(0, 2).join('');
-    if (val) apply(val);
-  });
-
-  document.addEventListener('keydown', function handler(e) {
-    if (e.key === 'Escape') { closeModal(overlay); document.removeEventListener('keydown', handler); }
-  });
-
-  setTimeout(function() { customInput.focus(); }, 50);
-}
-
 function showColorPicker(project) {
   var { overlay, box } = createModalBase();
 
@@ -856,33 +789,19 @@ taskForm.addEventListener("submit", function(event) {
 });
 
 // ─── MOBILE FAB ──────────────────────────────────────────────
-function openFabSheet() {
-  if (!mobileFab || !fabSheet || !fabBackdrop) return;
-  mobileFab.classList.add("open");
-  fabSheet.classList.add("open");
-  fabBackdrop.classList.add("active");
-  fabSheet.setAttribute("aria-hidden", "false");
-  setTimeout(function() { if (fabInput) fabInput.focus(); }, 60);
-}
-
-function closeFabSheet() {
-  if (!mobileFab || !fabSheet || !fabBackdrop) return;
-  mobileFab.classList.remove("open");
-  fabSheet.classList.remove("open");
-  fabBackdrop.classList.remove("active");
-  fabSheet.setAttribute("aria-hidden", "true");
-  if (fabInput) fabInput.value = "";
-}
-
+// El FAB abre la MISMA captura rápida que el atajo de escritorio
+// (preview de chips + chuleta de lenguaje natural). En vistas que no
+// son de proyecto, la tarea va al Inbox y redirige allí.
+//
+// Antes abría un bottom-sheet propio (#fab-sheet, con su formulario y
+// su backdrop). Al pasar a la captura rápida nadie volvió a llamar a
+// `openFabSheet`, así que el panel ya no podía abrirse: se ha retirado
+// junto con su markup y su CSS.
 if (mobileFab) {
-  // El botón "Nueva" abre la MISMA captura rápida que el atajo de PC
-  // (preview de chips + chuleta de lenguaje natural). En vistas que no son
-  // de proyecto, la tarea va al Inbox y redirige allí.
   mobileFab.addEventListener("click", function() {
     openQuickCapture({ redirectToInbox: true });
   });
 }
-if (fabBackdrop) fabBackdrop.addEventListener("click", closeFabSheet);
 
 // Barra de captura flotante de escritorio → misma captura rápida del atajo
 var captureBar = document.getElementById("capture-bar");
@@ -891,33 +810,6 @@ if (captureBar) {
     openQuickCapture({ redirectToInbox: activeView !== "project" });
   });
 }
-
-if (fabForm) {
-  fabForm.addEventListener("submit", function(e) {
-    e.preventDefault();
-    if (!fabInput) return;
-    // En vistas que NO son de proyecto (Hoy, Calendario, smart-lists)
-    // no hay un destino real: la tarea va al Inbox y redirigimos allí para que
-    // el usuario la vea (en Hoy no aparecería si no vence hoy).
-    var inViewProject = activeView === "project";
-    var project = inViewProject ? getActiveProject() : null;
-    if (!project) project = projects.find(function(p) { return p.id === INBOX_ID; });
-    if (!project) return;
-    const created = _createTaskInProject(project, fabInput.value);
-    if (!created) return;
-    closeFabSheet();
-    if (!inViewProject) {
-      saveProjects();
-      activateProject(INBOX_ID); // redirige a Inbox
-    } else {
-      saveAndRender();
-    }
-  });
-}
-
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape" && fabSheet && fabSheet.classList.contains("open")) closeFabSheet();
-});
 
 // ─── LIMPIAR HECHAS ──────────────────────────────────────────
 clearDoneBtn.addEventListener("click", function() {
@@ -1015,13 +907,6 @@ importFile.addEventListener("change", async function() {
 });
 
 // ─── FILTROS ─────────────────────────────────────────────────
-// _filterLabels se accede dinámicamente vía t() para que cambie de idioma.
-function _filterLabel(key) {
-  return key === "all" ? t("filter.all") :
-         key === "pending" ? t("filter.pending") :
-         key === "done" ? t("filter.done") : key;
-}
-
 function applyFilter(value) {
   currentFilter = value;
   document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
@@ -4778,27 +4663,6 @@ function checkAutoBackup() {
     saveAutoBackup();
     localStorage.setItem("lastAutoBackup", now.toISOString());
   }
-}
-
-function getAutoBackups() {
-  const backups = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(AUTO_BACKUP_PREFIX)) {
-      try {
-        const data = JSON.parse(localStorage.getItem(key));
-        backups.push({
-          key: key,
-          date: key.replace(AUTO_BACKUP_PREFIX, ''),
-          timestamp: data.timestamp,
-          projectsCount: data.projects.length
-        });
-      } catch(e) {
-        // Backup corrupto, ignorar
-      }
-    }
-  }
-  return backups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 // ── INITIALIZATION ──────────────────────────────────────────────

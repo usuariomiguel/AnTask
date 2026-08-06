@@ -4,10 +4,8 @@ export const es = {
   // ── Sidebar ───────────────────────────────────────────────
   "sidebar.search":           "Buscar tareas",
   "sidebar.search_short":     "Buscar",
-  "sidebar.new_project":      "Proyecto",
   "sidebar.inbox":            "Inbox",
   "sidebar.today":            "Hoy",
-  "sidebar.projects_label":   "Listas",
   "sidebar.new_section":      "Nuevo grupo",
   "sidebar.hide_sidebar":     "Ocultar la barra lateral",
   "sidebar.show_sidebar":     "Desplegar la barra lateral",
@@ -19,7 +17,6 @@ export const es = {
   "sidebar.archived":         "Archivados",
   "sidebar.archived_empty":   "Sin archivados",
   "sidebar.more":             "Más",
-  "sidebar.add_list_title":   "Nueva lista guardada",
 
   // ── Perfil ────────────────────────────────────────────────
   "profile.local":            "Local",
@@ -29,14 +26,10 @@ export const es = {
   "profile.settings":         "Ajustes",
   "profile.export":           "Exportar workspace",
   "profile.import":           "Importar workspace",
-  "profile.notifications":    "Activar avisos",
-  "profile.theme":            "Cambiar tema",
   "profile.shortcuts":        "Atajos de teclado",
-  "profile.tour":             "Ver tour de bienvenida",
   "profile.lang_switch":      "Switch to English",
   "profile.synced":           "Sincronizado",
   "profile.sync_active":      "Sincronización activa",
-  "profile.default_name":     "Usuario",
   "profile.signout":          "Cerrar sesión",
   "profile.workspace_section":"Espacio de trabajo",
   "profile.signin":           "Sincronizar con Google",
@@ -95,15 +88,11 @@ export const es = {
 
   // ── Input de tareas ───────────────────────────────────────
   "task.input.placeholder":   "Nueva tarea…",
-  "task.input.placeholder_fab": "Nueva tarea...",
   "task.add_btn":             "Añadir",
 
 
   // ── Navegación inferior (móvil) ───────────────────────────
-  "nav.projects":             "Proyectos",
-  "nav.inbox":                "Bandeja",
   "nav.today":                "Hoy",
-  "nav.new":                  "Nueva",
   "nav.calendar":             "Calendario",
   "nav.profile":              "Perfil",
 
@@ -112,14 +101,10 @@ export const es = {
   "toast.undo":               "Deshacer",
   "toast.task_recurred":      "↻ Tarea regenerada",
   "toast.saved":              "Guardado",
-  "toast.save_error":         "Error al guardar",
   "toast.last_saved":         "Último guardado:",
-  "toast.saving":             "Guardando…",
 
   // ── Valores por defecto ───────────────────────────────────
-  "default.untitled":         "Sin título",
   "default.unnamed":          "Sin nombre",
-  "default.no_tasks":         "Sin tareas pendientes",
 
   // ── Modal de cuota ────────────────────────────────────────
   "quota.title":              "Almacenamiento lleno",
@@ -129,26 +114,16 @@ export const es = {
 
   // ── Vistas ────────────────────────────────────────────────
   "view.today_title":         "Hoy",
-  "view.today_subtitle":      "Vencidas y de hoy, en todos los proyectos",
-  "view.list":                "Lista",
-  "view.calendar":            "Mes",
 
   // ── Accesibilidad ─────────────────────────────────────────
-  "a11y.mark_done":           "Marcar tarea como completada",
-  "a11y.select_task":         "Seleccionar tarea",
   "a11y.mobile_settings":     "Ajustes",
   "a11y.mobile_projects":     "Proyectos",
-  "a11y.loading":             "Cargando antask",
 
   // ── Hoy (vista) ───────────────────────────────────────────
-  "today.empty_title":        "Todo limpio",
-  "today.empty_subtitle":     "No hay tareas vencidas ni para hoy. ¡Disfruta!",
   "today.empty_title_full":   "Todo limpio para hoy",
   "today.empty_sub_full":     "Sin vencidas ni pendientes para hoy. Aprovecha el respiro o adelanta algo.",
   "today.counter_one":        "{count} tarea para hoy",
   "today.counter_other":      "{count} tareas para hoy",
-  "today.task_count_one":     "tarea para hoy",
-  "today.task_count_other":   "tareas para hoy",
   "today.go_to_project":      "Ir al proyecto",
 
   "hoy.overdue":              "Vencidas",
@@ -174,11 +149,6 @@ export const es = {
   "filter.all":               "Todas",
   "filter.pending":           "Pendientes",
   "filter.done":              "Hechas",
-  "filter.any":               "Cualquiera",
-  "filter.overdue":           "Vencidas",
-  "filter.today":             "Hoy",
-  "filter.this_week":         "Esta semana",
-  "filter.no_date":           "Sin fecha",
   "sort.priority":            "Prioridad",
   "sort.due":                 "Fecha",
   "sort.az":                  "A–Z",
@@ -193,18 +163,13 @@ export const es = {
   "project.new_placeholder":  "mi-lista...",
   "project.rename":           "Renombrar lista",
   "project.rename_prompt":    "Cambiar nombre de la lista",
-  "project.rename_hint":      "Doble clic para renombrar",
   "project.archive":          "Archivar lista",
   "project.restore":          "Restaurar lista",
   "project.delete":           "Eliminar lista",
   "project.delete_permanent": "Eliminar permanentemente",
   "project.confirm_delete":   "¿Eliminar la lista <strong>{name}</strong> y todas sus tareas?",
   "project.confirm_delete_permanent": "¿Eliminar permanentemente <strong>{name}</strong> y todas sus tareas? Esta acción no se puede deshacer.",
-  "project.change_icon":      "Cambiar icono",
   "project.change_color":     "Cambiar color",
-  "project.icon_picker_title":"Icono de la lista",
-  "project.icon_placeholder": "O escribe un emoji...",
-  "project.icon_clear":       "Quitar icono",
   "project.color_picker_title":"Color de la lista",
   "project.color_clear":      "Sin color",
   "color.red":                "Rojo",
@@ -224,13 +189,6 @@ export const es = {
   "color.gray":               "Gris",
   "color.silver":             "Plateado",
   "project.move_to_section":  "Mover a grupo",
-  "project.remove_from_section": "Quitar del grupo",
-  "project.no_other_projects":"No hay otras listas disponibles.",
-  "project.no_export":        "No hay listas que exportar.",
-  "project.task_count_one":   "tarea",
-  "project.task_count_other": "tareas",
-  "project.pending_count_one":   "pendiente",
-  "project.pending_count_other": "pendientes",
 
   // ── Grupo (antes "sección") ───────────────────────────────
   "section.new_prompt":       "Nuevo grupo",
@@ -242,15 +200,11 @@ export const es = {
   "section.confirm_delete":          "¿Eliminar el grupo <strong>{name}</strong>?",
   "section.confirm_delete_cascade":  "¿Eliminar el grupo <strong>{name}</strong> y sus {count} listas? Esta acción no se puede deshacer.",
   "section.confirm_delete_cascade_one": "¿Eliminar el grupo <strong>{name}</strong> y su 1 lista? Esta acción no se puede deshacer.",
-  "section.move_to":          "Mover a grupo",
 
   // ── Tarea ─────────────────────────────────────────────────
   "task.rename_hint":         "Doble clic para renombrar",
   "task.move_to_project":     "Mover a proyecto...",
   "task.in_list":             "Lista",
-  "task.move_modal_title":    "Mover a proyecto",
-  "task.pending_count_one":   "pendiente",
-  "task.pending_count_other": "pendientes",
 
   // ── Panel de detalle de tarea ─────────────────────────────
   "detail.title":             "Detalle de tarea",
@@ -274,16 +228,12 @@ export const es = {
   "detail.open":              "Ver detalles",
 
   // ── Subtarea ──────────────────────────────────────────────
-  "subtask.add_btn":          "+ Añadir subtarea",
-  "subtask.new_prompt":       "Nueva subtarea",
-  "subtask.new_placeholder":  "escribe la subtarea...",
   "subtask.empty":            "Sin subtareas",
   "subtask.delete_aria":      "Eliminar subtarea",
 
   // ── Modales comunes ───────────────────────────────────────
   "modal.cancel":             "Cancelar",
   "modal.save":               "Guardar",
-  "modal.create":             "Crear",
   "modal.close":              "Cerrar",
   "modal.done":               "Listo",
   "modal.accept":             "Aceptar",
@@ -295,19 +245,14 @@ export const es = {
   "modal.error_title":        "Error",
 
   // ── Acciones ──────────────────────────────────────────────
-  "action.options":           "Opciones",
-  "action.edit":              "Editar",
   "action.delete":            "Eliminar",
   "action.rename":            "Renombrar",
   "action.duplicate":         "Duplicar",
-  "action.drag_reorder":      "Arrastrar para reordenar",
-  "action.irreversible":      "Esta acción no se puede deshacer.",
 
   // ── Fecha / modal fecha ───────────────────────────────────
   "date.today":               "Hoy",
   "date.tomorrow":            "Mañana",
   "date.yesterday":           "Ayer",
-  "date.days_ago":            "d",
 
   // ── Recordatorio ──────────────────────────────────────────
   "reminder.preset.in_1h":    "En 1 hora",
@@ -338,10 +283,8 @@ export const es = {
   "calendar.more":     "más",
 
   // ── Fecha límite (badge por tarea) ───────────────────────
-  "due.overdue":              "Vencida",
 
   // ── Búsqueda ──────────────────────────────────────────────
-  "search.modal_title":       "Buscar en proyectos",
   "search.placeholder":       "Buscar tareas…",
   "search.hint_min_chars":    "Escribe al menos 2 caracteres…",
   "search.no_results":        "Sin resultados para",
@@ -350,7 +293,6 @@ export const es = {
   "search.section.tasks":     "Tareas",
 
   // ── Captura rápida ────────────────────────────────────────
-  "quick_capture.eyebrow":    "Nueva tarea",
   "quick_capture.title":      "Captura rápida",
   "quick_capture.placeholder":"¿Qué hay que hacer?",
   "quick_capture.key_space":  "Espacio",
@@ -358,22 +300,14 @@ export const es = {
   "quick_capture.hint_autocomplete":  "para autocompletar",
   "quick_capture.submit":     "Añadir tarea",
   "quick_capture.added_to":   "Añadida a",
-  "task.quick_hint":            "captura rápida",
 
   // ── Importar / exportar ───────────────────────────────────
-  "import.confirm_replace":   "Esto reemplazará <strong>todos los proyectos actuales</strong> con el backup. ¿Continuar?",
-  "import.restore_label":     "Restaurar workspace",
-  "import.error_invalid":     "Formato no válido. Asegúrate de importar un backup generado por antask.",
-  "import.error_no_project":  "Selecciona un proyecto antes de importar un backup de proyecto individual.",
-  "import.error_json":        "No se pudo importar. Revisa que el archivo sea un JSON válido.",
 
   // ── Preferencias de tarea ─────────────────────────────────
   "task_prefs.view_section":  "Vista",
   "task_prefs.compact_view":  "Vista compacta",
 
   // ── Almacenamiento ────────────────────────────────────────
-  "storage.warning_high":     "Almacenamiento al",
-  "storage.warning_export":   "— exporta tu workspace",
 
   // ── Notificaciones ────────────────────────────────────────
   "notif.enable":             "Activar avisos",
@@ -401,13 +335,8 @@ export const es = {
   "sync.use_local":           "💻 Subir mis datos locales",
 
   // ── Atajos de teclado ─────────────────────────────────────
-  "shortcuts.title":          "Atajos de teclado",
 
   // ── Onboarding ────────────────────────────────────────────
-  "onboarding.skip":          "Saltar",
-  "onboarding.prev":          "← Atrás",
-  "onboarding.next":          "Siguiente →",
-  "onboarding.finish":        "Empezar",
 
   // ── Consent banner ────────────────────────────────────────
   "consent.text":             "antask guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?",
@@ -435,9 +364,6 @@ export const es = {
   "today.menu.postpone_confirm_one":   "¿Mover <strong>{count}</strong> tarea a mañana?",
   "today.menu.postpone_confirm_other": "¿Mover <strong>{count}</strong> tareas a mañana?",
 
-  "inbox.menu.change_icon":   "Cambiar icono",
-  "inbox.menu.assign_icon":   "Asignar icono",
-  "inbox.menu.remove_icon":   "Quitar icono",
   "inbox.menu.clear_done_n":  "Limpiar completadas ({count})",
   "inbox.menu.clear_done":    "Limpiar completadas",
   "inbox.menu.clear_done_title":"Limpiar",
@@ -452,40 +378,28 @@ export const es = {
   "empty.tasks.title_new":    "Empezar este proyecto",
   "empty.tasks.sub_filter":   "Cambia el filtro o limpia las completadas para ver más.",
   "empty.tasks.sub_default":  "Apunta lo siguiente que quieras hacer y construye desde ahí.",
-  "empty.list.title":         "Sin resultados",
-  "empty.list.sub":           "Ajusta los filtros de la lista para ver más tareas.",
   "task.counter_one":         "{count} pendiente",
   "task.counter_other":       "{count} pendientes",
   "empty.cta.add_task":       "Añadir tarea",
 
   // ── Today badges (sidebar) ────────────────────────────────
-  "today.due.label":          "Mañana",
 
 
   // ── Sync / profile ────────────────────────────────────────
-  "profile.cloud_icon_fallback": "☁",
   "profile.user_default":     "Usuario",
   "project.kebab_title":      "Opciones",
   "project.dblclick_rename":  "Doble clic para renombrar",
-  "date.in_n_days":           "En {n}d",
-  "date.n_days_ago":          "Hace {n}d",
   "nav.tasks":                "Lista",
   "nav.calendar_short":       "Mes",
   "filter.section_show":      "Mostrar",
   "filter.section_sort":      "Ordenar",
   "sort.manual":              "Manual",
-  "sort.priority_arrow":      "↑ Prioridad",
   "sort.due_short":           "Fecha límite",
-  "action.select_tasks":      "Seleccionar tareas",
-  "action.customize":         "Personalizar acciones",
-  "action.more":              "Más acciones",
-  "action.clear_done":        "Limpiar hechas",
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
   "rowstyle.lineas":          "Líneas",
   "rowstyle.tarjetas":        "Tarjetas",
   "rowstyle.compacto":        "Compacto",
-  "action.close_project":     "Cerrar proyecto",
   "bulk.count_one":           "{count} seleccionada",
   "bulk.count_other":         "{count} seleccionadas",
   "bulk.mark_done":           "Marcar hechas",
@@ -493,12 +407,10 @@ export const es = {
   "bulk.move_to":             "Mover a...",
   "bulk.delete":              "Eliminar",
   "bulk.cancel":              "Cancelar",
-  "save.no_recent":           "Sin cambios recientes",
   "task.no_other_projects":   "No hay otros proyectos disponibles.",
   "task.nothing_to_export":   "No hay proyectos que exportar.",
   "view.eyebrow_tasks":       "Lista",
   "view.eyebrow_calendar":    "Calendario",
-  "save.saved_at":            "Guardado {time}",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "Tienes <strong>{local} proyecto local</strong> y <strong>{cloud} proyecto en la nube</strong>. ¿Cuáles quieres usar?",
@@ -507,7 +419,6 @@ export const es = {
   "sync.conflict_body_other_other": "Tienes <strong>{local} proyectos locales</strong> y <strong>{cloud} proyectos en la nube</strong>. ¿Cuáles quieres usar?",
 
   // ── Save status ───────────────────────────────────────────
-  "save.never":               "–",
   "save.storage_warn":        "⚠ Almacenamiento al {pct}% — exporta tu workspace",
   "save.storage_info":        "Almacenamiento al {pct}%",
 

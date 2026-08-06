@@ -15,15 +15,3 @@ export function initAnalytics() {
   _loaded = true;
   inject();
 }
-
-/**
- * Envía un evento personalizado.
- * No-op si la librería no está cargada.
- *
- * @param {string} name
- * @param {Record<string, string|number>} [props]
- */
-export function trackEvent(name, props) {
-  if (typeof window.va !== "function") return;
-  window.va("event", { name, ...(props || {}) });
-}

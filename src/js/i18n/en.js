@@ -4,10 +4,8 @@ export const en = {
   // ── Sidebar ───────────────────────────────────────────────
   "sidebar.search":           "Search tasks",
   "sidebar.search_short":     "Search",
-  "sidebar.new_project":      "Project",
   "sidebar.inbox":            "Inbox",
   "sidebar.today":            "Today",
-  "sidebar.projects_label":   "Lists",
   "sidebar.new_section":      "New group",
   "sidebar.hide_sidebar":     "Hide sidebar",
   "sidebar.show_sidebar":     "Expand sidebar",
@@ -19,7 +17,6 @@ export const en = {
   "sidebar.archived":         "Archived",
   "sidebar.archived_empty":   "Nothing archived",
   "sidebar.more":             "More",
-  "sidebar.add_list_title":   "New saved list",
 
   // ── Profile ───────────────────────────────────────────────
   "profile.local":            "Local",
@@ -29,14 +26,10 @@ export const en = {
   "profile.settings":         "Settings",
   "profile.export":           "Export workspace",
   "profile.import":           "Import workspace",
-  "profile.notifications":    "Enable notifications",
-  "profile.theme":            "Toggle theme",
   "profile.shortcuts":        "Keyboard shortcuts",
-  "profile.tour":             "View welcome tour",
   "profile.lang_switch":      "Cambiar a Español",
   "profile.synced":           "Synced",
   "profile.sync_active":      "Sync active",
-  "profile.default_name":     "User",
   "profile.signout":          "Sign out",
   "profile.workspace_section":"Workspace",
   "profile.signin":           "Sync with Google",
@@ -95,15 +88,11 @@ export const en = {
 
   // ── Task input ────────────────────────────────────────────
   "task.input.placeholder":   "New task…",
-  "task.input.placeholder_fab": "New task...",
   "task.add_btn":             "Add",
 
 
   // ── Bottom nav (mobile) ───────────────────────────────────
-  "nav.projects":             "Projects",
-  "nav.inbox":                "Inbox",
   "nav.today":                "Today",
-  "nav.new":                  "New",
   "nav.calendar":             "Calendar",
   "nav.profile":              "Profile",
 
@@ -112,14 +101,10 @@ export const en = {
   "toast.undo":               "Undo",
   "toast.task_recurred":      "↻ Task regenerated",
   "toast.saved":              "Saved",
-  "toast.save_error":         "Save error",
   "toast.last_saved":         "Last saved:",
-  "toast.saving":             "Saving…",
 
   // ── Defaults ─────────────────────────────────────────────
-  "default.untitled":         "Untitled",
   "default.unnamed":          "Unnamed",
-  "default.no_tasks":         "No pending tasks",
 
   // ── Quota modal ───────────────────────────────────────────
   "quota.title":              "Storage full",
@@ -129,26 +114,16 @@ export const en = {
 
   // ── Views ─────────────────────────────────────────────────
   "view.today_title":         "Today",
-  "view.today_subtitle":      "Overdue and today, across all projects",
-  "view.list":                "List",
-  "view.calendar":            "Month",
 
   // ── Accessibility ─────────────────────────────────────────
-  "a11y.mark_done":           "Mark task as completed",
-  "a11y.select_task":         "Select task",
   "a11y.mobile_settings":     "Settings",
   "a11y.mobile_projects":     "Projects",
-  "a11y.loading":             "Loading antask",
 
   // ── Today (view) ──────────────────────────────────────────
-  "today.empty_title":        "All clear",
-  "today.empty_subtitle":     "No overdue or today tasks. Enjoy!",
   "today.empty_title_full":   "All clear for today",
   "today.empty_sub_full":     "No overdue or pending tasks for today. Enjoy the break or get ahead.",
   "today.counter_one":        "{count} task for today",
   "today.counter_other":      "{count} tasks for today",
-  "today.task_count_one":     "task for today",
-  "today.task_count_other":   "tasks for today",
   "today.go_to_project":      "Go to project",
 
   "hoy.overdue":              "Overdue",
@@ -174,11 +149,6 @@ export const en = {
   "filter.all":               "All",
   "filter.pending":           "Pending",
   "filter.done":              "Done",
-  "filter.any":               "Any",
-  "filter.overdue":           "Overdue",
-  "filter.today":             "Today",
-  "filter.this_week":         "This week",
-  "filter.no_date":           "No date",
   "sort.priority":            "Priority",
   "sort.due":                 "Date",
   "sort.az":                  "A–Z",
@@ -193,18 +163,13 @@ export const en = {
   "project.new_placeholder":  "my-list...",
   "project.rename":           "Rename list",
   "project.rename_prompt":    "Rename list",
-  "project.rename_hint":      "Double-click to rename",
   "project.archive":          "Archive list",
   "project.restore":          "Restore list",
   "project.delete":           "Delete list",
   "project.delete_permanent": "Delete permanently",
   "project.confirm_delete":   "Delete list <strong>{name}</strong> and all its tasks?",
   "project.confirm_delete_permanent": "Permanently delete <strong>{name}</strong> and all its tasks? This cannot be undone.",
-  "project.change_icon":      "Change icon",
   "project.change_color":     "Change color",
-  "project.icon_picker_title":"List icon",
-  "project.icon_placeholder": "Or type an emoji...",
-  "project.icon_clear":       "Remove icon",
   "project.color_picker_title":"List color",
   "project.color_clear":      "No color",
   "color.red":                "Red",
@@ -224,13 +189,6 @@ export const en = {
   "color.gray":               "Gray",
   "color.silver":             "Silver",
   "project.move_to_section":  "Move to group",
-  "project.remove_from_section": "Remove from group",
-  "project.no_other_projects":"No other lists available.",
-  "project.no_export":        "No lists to export.",
-  "project.task_count_one":   "task",
-  "project.task_count_other": "tasks",
-  "project.pending_count_one":   "pending",
-  "project.pending_count_other": "pending",
 
   // ── Group (formerly "section") ────────────────────────────
   "section.new_prompt":       "New group",
@@ -242,15 +200,11 @@ export const en = {
   "section.confirm_delete":          "Delete group <strong>{name}</strong>?",
   "section.confirm_delete_cascade":  "Delete group <strong>{name}</strong> and its {count} lists? This cannot be undone.",
   "section.confirm_delete_cascade_one": "Delete group <strong>{name}</strong> and its 1 list? This cannot be undone.",
-  "section.move_to":          "Move to group",
 
   // ── Task ──────────────────────────────────────────────────
   "task.rename_hint":         "Double-click to rename",
   "task.move_to_project":     "Move to project...",
   "task.in_list":             "List",
-  "task.move_modal_title":    "Move to project",
-  "task.pending_count_one":   "pending",
-  "task.pending_count_other": "pending",
 
   // ── Task detail panel ─────────────────────────────────────
   "detail.title":             "Task details",
@@ -274,16 +228,12 @@ export const en = {
   "detail.open":              "View details",
 
   // ── Subtask ───────────────────────────────────────────────
-  "subtask.add_btn":          "+ Add subtask",
-  "subtask.new_prompt":       "New subtask",
-  "subtask.new_placeholder":  "write the subtask...",
   "subtask.empty":            "No subtasks",
   "subtask.delete_aria":      "Delete subtask",
 
   // ── Common modals ─────────────────────────────────────────
   "modal.cancel":             "Cancel",
   "modal.save":               "Save",
-  "modal.create":             "Create",
   "modal.close":              "Close",
   "modal.done":               "Done",
   "modal.accept":             "Accept",
@@ -295,19 +245,14 @@ export const en = {
   "modal.error_title":        "Error",
 
   // ── Actions ───────────────────────────────────────────────
-  "action.options":           "Options",
-  "action.edit":              "Edit",
   "action.delete":            "Delete",
   "action.rename":            "Rename",
   "action.duplicate":         "Duplicate",
-  "action.drag_reorder":      "Drag to reorder",
-  "action.irreversible":      "This action cannot be undone.",
 
   // ── Date / date modal ─────────────────────────────────────
   "date.today":               "Today",
   "date.tomorrow":            "Tomorrow",
   "date.yesterday":           "Yesterday",
-  "date.days_ago":            "d",
 
   // ── Reminder ──────────────────────────────────────────────
   "reminder.preset.in_1h":    "In 1 hour",
@@ -338,10 +283,8 @@ export const en = {
   "calendar.more":     "more",
 
   // ── Due badge (per task) ──────────────────────────────────
-  "due.overdue":              "Overdue",
 
   // ── Search ────────────────────────────────────────────────
-  "search.modal_title":       "Search projects",
   "search.placeholder":       "Search tasks…",
   "search.hint_min_chars":    "Type at least 2 characters…",
   "search.no_results":        "No results for",
@@ -350,7 +293,6 @@ export const en = {
   "search.section.tasks":     "Tasks",
 
   // ── Quick capture ─────────────────────────────────────────
-  "quick_capture.eyebrow":    "New task",
   "quick_capture.title":      "Quick capture",
   "quick_capture.placeholder":"What do you need to do?",
   "quick_capture.key_space":  "Space",
@@ -358,22 +300,14 @@ export const en = {
   "quick_capture.hint_autocomplete":  "to autocomplete",
   "quick_capture.submit":     "Add task",
   "quick_capture.added_to":   "Added to",
-  "task.quick_hint":            "quick capture",
 
   // ── Import / export ───────────────────────────────────────
-  "import.confirm_replace":   "This will replace <strong>all current projects</strong> with the backup. Continue?",
-  "import.restore_label":     "Restore workspace",
-  "import.error_invalid":     "Invalid format. Make sure you import a backup generated by antask.",
-  "import.error_no_project":  "Select a project before importing a single-project backup.",
-  "import.error_json":        "Could not import. Check that the file is valid JSON.",
 
   // ── Task preferences ──────────────────────────────────────
   "task_prefs.view_section":  "View",
   "task_prefs.compact_view":  "Compact view",
 
   // ── Storage ───────────────────────────────────────────────
-  "storage.warning_high":     "Storage at",
-  "storage.warning_export":   "— export your workspace",
 
   // ── Notifications ─────────────────────────────────────────
   "notif.enable":             "Enable notifications",
@@ -401,13 +335,8 @@ export const en = {
   "sync.use_local":           "💻 Upload my local data",
 
   // ── Keyboard shortcuts ────────────────────────────────────
-  "shortcuts.title":          "Keyboard shortcuts",
 
   // ── Onboarding ────────────────────────────────────────────
-  "onboarding.skip":          "Skip",
-  "onboarding.prev":          "← Back",
-  "onboarding.next":          "Next →",
-  "onboarding.finish":        "Get started",
 
   // ── Consent banner ────────────────────────────────────────
   "consent.text":             "antask stores your tasks on your device (local storage). Do you also accept anonymous analytics to help us improve the app?",
@@ -435,9 +364,6 @@ export const en = {
   "today.menu.postpone_confirm_one":   "Move <strong>{count}</strong> task to tomorrow?",
   "today.menu.postpone_confirm_other": "Move <strong>{count}</strong> tasks to tomorrow?",
 
-  "inbox.menu.change_icon":   "Change icon",
-  "inbox.menu.assign_icon":   "Set icon",
-  "inbox.menu.remove_icon":   "Remove icon",
   "inbox.menu.clear_done_n":  "Clear completed ({count})",
   "inbox.menu.clear_done":    "Clear completed",
   "inbox.menu.clear_done_title":"Clear",
@@ -452,39 +378,27 @@ export const en = {
   "empty.tasks.title_new":    "Kick off this project",
   "empty.tasks.sub_filter":   "Change the filter or clear completed to see more.",
   "empty.tasks.sub_default":  "Write down the next thing you want to do and build from there.",
-  "empty.list.title":         "No results",
-  "empty.list.sub":           "Adjust the list filters to see more tasks.",
   "task.counter_one":         "{count} pending",
   "task.counter_other":       "{count} pending",
   "empty.cta.add_task":       "Add task",
 
   // ── Today badges (sidebar) ────────────────────────────────
-  "today.due.label":          "Tomorrow",
 
   // ── Sync / profile ────────────────────────────────────────
-  "profile.cloud_icon_fallback": "☁",
   "profile.user_default":     "User",
   "project.kebab_title":      "Options",
   "project.dblclick_rename":  "Double-click to rename",
-  "date.in_n_days":           "In {n}d",
-  "date.n_days_ago":          "{n}d ago",
   "nav.tasks":                "List",
   "nav.calendar_short":       "Month",
   "filter.section_show":      "Show",
   "filter.section_sort":      "Sort",
   "sort.manual":              "Manual",
-  "sort.priority_arrow":      "↑ Priority",
   "sort.due_short":           "Due date",
-  "action.select_tasks":      "Select tasks",
-  "action.customize":         "Customise actions",
-  "action.more":              "More actions",
-  "action.clear_done":        "Clear done",
   "rowstyle.trigger":         "Row style",
   "rowstyle.limpio":          "Clean",
   "rowstyle.lineas":          "Lines",
   "rowstyle.tarjetas":        "Cards",
   "rowstyle.compacto":        "Compact",
-  "action.close_project":     "Close project",
   "bulk.count_one":           "{count} selected",
   "bulk.count_other":         "{count} selected",
   "bulk.mark_done":           "Mark done",
@@ -492,12 +406,10 @@ export const en = {
   "bulk.move_to":             "Move to...",
   "bulk.delete":              "Delete",
   "bulk.cancel":              "Cancel",
-  "save.no_recent":           "No recent changes",
   "task.no_other_projects":   "No other projects available.",
   "task.nothing_to_export":   "No projects to export.",
   "view.eyebrow_tasks":       "List",
   "view.eyebrow_calendar":    "Calendar",
-  "save.saved_at":            "Saved {time}",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "You have <strong>{local} local project</strong> and <strong>{cloud} project in the cloud</strong>. Which do you want to use?",
@@ -506,7 +418,6 @@ export const en = {
   "sync.conflict_body_other_other": "You have <strong>{local} local projects</strong> and <strong>{cloud} projects in the cloud</strong>. Which do you want to use?",
 
   // ── Save status ───────────────────────────────────────────
-  "save.never":               "–",
   "save.storage_warn":        "⚠ Storage at {pct}% — export your workspace",
   "save.storage_info":        "Storage at {pct}%",
 

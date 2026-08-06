@@ -5,11 +5,6 @@
 
 const CONSENT_KEY = "antask_consent";
 
-/** @returns {"all"|"essential"|null} */
-export function getConsent() {
-  return /** @type {any} */ (localStorage.getItem(CONSENT_KEY));
-}
-
 /** @param {"all"|"essential"} value */
 export function setConsent(value) {
   localStorage.setItem(CONSENT_KEY, value);
