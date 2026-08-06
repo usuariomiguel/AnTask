@@ -37,6 +37,8 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   doc,
+  getDoc,
+  getDocFromServer,
   setDoc,
   onSnapshot,
   serverTimestamp,
@@ -87,17 +89,33 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
 
     function startListening() {
       if (_unsubscribe) _unsubscribe();
-      let isFirst = true;
-      _unsubscribe = onSnapshot(docRef(), function (snap) {
-        if (_syncPaused) return;
 
-        if (isFirst) {
-          isFirst = false;
+      // La primera lectura se pide siempre al servidor, no a la caché offline
+      // de Firestore: si este dispositivo ya tuvo esta cuenta abierta antes
+      // (u otra sesión dejó algo en IndexedDB), el primer onSnapshot podría
+      // devolver esa copia vieja antes de que llegue la del servidor, y ese
+      // dato viejo se trataría como "el estado de la nube" al conectar.
+      // Solo si no hay red caemos a la caché con getDoc.
+      let firstConnectDone = false;
+      getDocFromServer(docRef())
+        .catch(function () { return getDoc(docRef()); })
+        .then(function (snap) {
+          firstConnectDone = true;
           if (typeof _onFirstConnect === "function") {
             _onFirstConnect(snap.exists() ? snap.data() : null);
           }
-          return;
-        }
+        })
+        .catch(function (err) {
+          firstConnectDone = true;
+          console.warn("AnsoSync: error obteniendo datos iniciales:", err);
+          if (typeof _onFirstConnect === "function") _onFirstConnect(null);
+        });
+
+      _unsubscribe = onSnapshot(docRef(), function (snap) {
+        // Ignoramos snapshots mientras la primera lectura (arriba) no se
+        // haya resuelto todavía, para no procesar el mismo dato dos veces
+        // por dos caminos distintos.
+        if (_syncPaused || !firstConnectDone) return;
 
         if (!snap.exists()) return;
         const data = snap.data();

@@ -4982,9 +4982,25 @@ function _showSyncConflictModal(cloudData, uid) {
   });
 }
 
-function _syncOnRemoteChange(remoteProjects, remoteSections) {
+function _syncOnRemoteChange(remoteProjects, remoteSections, remoteUpdatedAt) {
   var user = window.AnsoSync?.getUser?.() ?? null;
-  _syncApplyRemote(remoteProjects, remoteSections || [], user ? user.uid : null);
+  var uid  = user ? user.uid : null;
+
+  // Igual que en la primera conexión: si lo que llega de la nube es más
+  // viejo que la última vez que este dispositivo guardó, se ignora. Sin
+  // esto, un dispositivo que sube por error un estado antiguo (p.ej. tras
+  // arrancar con la caché offline de Firestore desactualizada) pisaba sin
+  // avisar los datos buenos de cualquier otro dispositivo conectado.
+  if (uid && remoteUpdatedAt && typeof remoteUpdatedAt.toMillis === "function") {
+    var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
+    var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
+    if (remoteUpdatedAt.toMillis() < localTime) {
+      console.warn("AnsoSync: cambio remoto descartado por ser más antiguo que el local");
+      return;
+    }
+  }
+
+  _syncApplyRemote(remoteProjects, remoteSections || [], uid);
 }
 
 async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
