@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { getDueDateState } from "../utils/date.js";
+import { projectColor } from "../utils/project-color.js";
 import { t } from "../i18n/index.js";
 
 // ─── PRIORIDAD ──────────────────────────────────────────────
@@ -37,7 +38,9 @@ export function renderListBadge(project, container) {
   badge.className = "task-list-badge";
   badge.textContent = project.name;
   badge.title = t("task.in_list") + ": " + project.name;
-  if (project.color) badge.style.setProperty("--proj-color", project.color);
+  // Color efectivo: las listas sin color elegido —las importadas de un
+  // .json— también tienen el suyo, derivado del id.
+  badge.style.setProperty("--proj-color", projectColor(project));
   container.appendChild(badge);
 }
 

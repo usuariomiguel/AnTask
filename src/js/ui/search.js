@@ -11,6 +11,7 @@
 
 import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
+import { projectColor } from "../utils/project-color.js";
 import { t } from "../i18n/index.js";
 
 /**
@@ -67,9 +68,10 @@ function renderSearchResults(container, q, deps, closeCallback) {
 
       const heading = document.createElement("p");
       heading.className = "search-group-heading";
-      if (g.project.color) heading.style.setProperty("--group-color", g.project.color);
+      const groupColor = projectColor(g.project);
+      heading.style.setProperty("--group-color", groupColor);
       heading.innerHTML =
-        '<span class="search-group-dot" style="background:' + (g.project.color || "var(--c-primary-500)") + '"></span>' +
+        '<span class="search-group-dot" style="background:' + groupColor + '"></span>' +
         escHtml(g.project.name);
       group.appendChild(heading);
 

@@ -45,6 +45,11 @@ import {
   renderRecurBadge,
   renderListBadge,
 } from "./ui/task-badges.js";
+import {
+  INBOX_ID,
+  projectColor as _projectColor,
+  projectColorFromId as _projectColorFromId,
+} from "./utils/project-color.js";
 import { renderSubtasks } from "./ui/subtasks.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
 import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
@@ -195,8 +200,9 @@ const template         = document.getElementById("task-item-template");
 // ─── ESTADO ──────────────────────────────────────────────────
 migrateStorageIfNeeded();
 
-// Proyecto especial "Inbox" — siempre existe, fijo al tope de la sidebar.
-const INBOX_ID = "__inbox__";
+// El proyecto especial "Inbox" —siempre existe, fijo al tope de la sidebar—
+// se importa de utils/project-color.js, que también lo necesita para darle
+// el acento del tema en vez de un color hasheado.
 
 let projects        = loadProjects();
 let sections        = loadSections();
@@ -1564,32 +1570,6 @@ function renderSectionHeader(section, sectionProjects) {
   initSectionDropTarget(li, section);
   initSectionDragDrop(li, section.id);
   projectListEl.appendChild(li);
-}
-
-/**
- * Color determinista por id (hash → hue HSL). Sirve de fallback
- * cuando el proyecto no tiene .color explícito, para que cada uno
- * tenga su propio dot/franja visual.
- */
-function _projectColorFromId(id) {
-  // El Inbox (y un id ausente) usan el acento del tema, no un hue
-  // hasheado: el hash de "__inbox__" caía en violeta, fuera de la
-  // paleta Tierra.
-  if (!id || id === INBOX_ID) return "var(--c-primary-500)";
-  var hash = 0;
-  for (var i = 0; i < id.length; i++) {
-    hash = ((hash << 5) - hash) + id.charCodeAt(i);
-    hash |= 0;
-  }
-  // Paleta cálida "Tierra" del prototipo v1 (evita hues fuera de tono como
-  // el violeta que salía del hash libre). Índice determinista por id.
-  var palette = ["#c98a3c", "#7c8a52", "#5aa06b", "#3d8fb0", "#b0473f", "#8a6fb0"];
-  return palette[Math.abs(hash) % palette.length];
-}
-
-/** Color efectivo de un proyecto: el elegido por el usuario o el hash del id. */
-function _projectColor(project) {
-  return (project && (project.color || _projectColorFromId(project.id))) || "var(--c-primary-500)";
 }
 
 function renderProjectItem(project, indented, isArchived, parentEl) {
@@ -3535,7 +3515,10 @@ function renderTodayItem(task, project, todayStr, tone) {
     projBadge.type = "button";
     projBadge.className = "task-list-badge today-project-badge";
     projBadge.textContent = project.name;
-    if (project.color) projBadge.style.setProperty("--proj-color", project.color);
+    // Color efectivo, no `project.color` a secas: si no, las listas sin color
+    // elegido (las importadas de un .json) salían con el chip gris mientras
+    // la franja de acento de su propia fila sí iba coloreada.
+    projBadge.style.setProperty("--proj-color", _projectColor(project));
     projBadge.title = "Ir al proyecto " + project.name;
     projBadge.addEventListener("click", function(e) {
       e.stopPropagation();
