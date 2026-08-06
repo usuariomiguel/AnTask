@@ -11,6 +11,7 @@ import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
 import {
   createModalBase,
   closeModal,
+  modalHead,
   modalPrompt,
   modalConfirm,
   modalAlert,
@@ -598,11 +599,11 @@ function showColorPicker(project) {
       '" style="background:' + c.hex + '"></button>';
   }).join("");
 
+  box.classList.add("modal-box-v1");
   box.innerHTML =
-    '<div class="modal-icon"><i data-lucide="palette"></i></div>' +
-    '<p class="modal-label">' + t("project.color_picker_title") + '</p>' +
-    '<div class="color-picker-grid">' + swatchesHtml + "</div>" +
-    '<div class="modal-actions">' +
+    modalHead(t("project.color_picker_title"), "palette") +
+    '<div class="modal-body"><div class="color-picker-grid">' + swatchesHtml + "</div></div>" +
+    '<div class="modal-foot">' +
       (project.color ? '<button type="button" class="modal-btn modal-btn-cancel color-picker-clear">' + t("project.color_clear") + '</button>' : "") +
       '<button type="button" class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
     "</div>";
@@ -619,6 +620,7 @@ function showColorPicker(project) {
 
   overlay._cancel = function() { closeModal(overlay); };
   box.querySelector(".modal-btn-cancel:last-child").addEventListener("click", function() { closeModal(overlay); });
+  box.querySelector(".modal-head-close").addEventListener("click", function() { closeModal(overlay); });
 
   var clearBtn = box.querySelector(".color-picker-clear");
   if (clearBtn) clearBtn.addEventListener("click", function() { apply(""); });
@@ -4964,15 +4966,19 @@ function saveProfile() {
 function showProfileModal() {
   var { overlay, box } = createModalBase();
 
+  box.classList.add("modal-box-v1");
   box.innerHTML =
-    '<p class="modal-label">' + t("profile.edit_title") + '</p>' +
-    '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
-      ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
-      ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
-    '<div class="modal-actions">' +
+    modalHead(t("profile.edit_title"), "user-round") +
+    '<div class="modal-body">' +
+      '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
+        ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
+        ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
+    '</div>' +
+    '<div class="modal-foot">' +
       '<button type="button" class="modal-btn modal-btn-cancel profile-cancel">' + t("modal.cancel") + '</button>' +
       '<button type="button" class="modal-btn modal-btn-confirm profile-save">' + t("modal.save") + '</button>' +
     '</div>';
+  if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
   var nameInput = box.querySelector('.profile-name-input');
 
@@ -4988,6 +4994,7 @@ function showProfileModal() {
 
   overlay._cancel = function() { closeModal(overlay); };
   box.querySelector('.profile-cancel').addEventListener('click', function() { closeModal(overlay); });
+  box.querySelector('.modal-head-close').addEventListener('click', function() { closeModal(overlay); });
   box.querySelector('.profile-save').addEventListener('click', save);
 
   nameInput.addEventListener('keydown', function(e) {

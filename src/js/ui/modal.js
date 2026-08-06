@@ -25,9 +25,43 @@ export function createModalBase() {
     if (e.target === overlay) overlay._cancel && overlay._cancel();
   });
 
+  // Escape cierra, aquí y no en cada modal: varios lo montaban por su
+  // cuenta y a otros —perfil, cuota— se les había olvidado, así que
+  // había ventanas que solo se cerraban con el ratón.
+  overlay._onKey = function (e) {
+    if (e.key !== "Escape") return;
+    // Con modales apilados (plantillas → nombre de la lista) solo
+    // responde el de encima; si no, Escape los cerraría todos de golpe.
+    const stack = document.querySelectorAll(".modal-overlay");
+    if (stack[stack.length - 1] !== overlay) return;
+    if (overlay._cancel) overlay._cancel();
+  };
+  document.addEventListener("keydown", overlay._onKey);
+
   document.body.appendChild(overlay);
   requestAnimationFrame(function () { overlay.classList.add("modal-visible"); });
   return { overlay, box };
+}
+
+/**
+ * Cabecera del diálogo v1: distintivo con icono + título + botón de
+ * cerrar. La comparten prompt/confirm/alert y el modal de perfil para
+ * que todas las ventanas emergentes se lean igual.
+ *
+ * @param {string} title  — texto ya traducido
+ * @param {string} icon   — nombre del icono lucide
+ * @param {string} [variant] — "danger" tiñe el distintivo de rojo
+ */
+export function modalHead(title, icon, variant) {
+  return '<div class="modal-head">' +
+    '<span class="modal-head-badge' + (variant === "danger" ? " modal-head-badge--danger" : "") + '">' +
+      '<i data-lucide="' + icon + '"></i>' +
+    '</span>' +
+    '<p class="modal-head-title">' + title + '</p>' +
+    '<button type="button" class="modal-head-close" aria-label="' + t("modal.close") + '">' +
+      '<i data-lucide="x"></i>' +
+    '</button>' +
+  '</div>';
 }
 
 /**
@@ -35,6 +69,10 @@ export function createModalBase() {
  */
 export function closeModal(overlay) {
   overlay.classList.remove("modal-visible");
+  if (overlay._onKey) {
+    document.removeEventListener("keydown", overlay._onKey);
+    overlay._onKey = null;
+  }
 
   // El overlay se quita al acabar el fundido (opacity .18s), pero
   // `transitionend` NO llega si el navegador se salta la transición —pasa
@@ -59,11 +97,13 @@ export function modalPrompt(label, value, placeholder) {
   return new Promise(function (resolve) {
     const { overlay, box } = createModalBase();
 
+    box.classList.add("modal-box-v1");
     box.innerHTML =
-      '<div class="modal-icon"><i data-lucide="pencil-line"></i></div>' +
-      '<p class="modal-label">' + label + '</p>' +
-      '<input class="modal-input" type="text" maxlength="120" autocomplete="off" />' +
-      '<div class="modal-actions">' +
+      modalHead(label, "pencil-line") +
+      '<div class="modal-body">' +
+        '<input class="modal-input" type="text" maxlength="120" autocomplete="off" />' +
+      '</div>' +
+      '<div class="modal-foot">' +
         '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
         '<button class="modal-btn modal-btn-confirm">' + t("modal.accept") + '</button>' +
       '</div>';
@@ -89,6 +129,7 @@ export function modalPrompt(label, value, placeholder) {
     overlay._cancel = doCancel;
     confirm.addEventListener("click", doConfirm);
     cancel.addEventListener("click",  doCancel);
+    box.querySelector(".modal-head-close").addEventListener("click", doCancel);
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter")  doConfirm();
       if (e.key === "Escape") doCancel();
@@ -106,10 +147,13 @@ export function modalConfirm(message, confirmLabel) {
   return new Promise(function (resolve) {
     const { overlay, box } = createModalBase();
 
+    box.classList.add("modal-box-v1");
     box.innerHTML =
-      '<div class="modal-icon modal-icon--danger"><i data-lucide="triangle-alert"></i></div>' +
-      '<p class="modal-label">' + message + '</p>' +
-      '<div class="modal-actions">' +
+      // El título es fijo: el mensaje del llamador suele ser una frase
+      // entera y en la cabecera se cortaría con puntos suspensivos.
+      modalHead(t("modal.confirm_title"), "triangle-alert", "danger") +
+      '<div class="modal-body"><p class="modal-desc">' + message + '</p></div>' +
+      '<div class="modal-foot">' +
         '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
         '<button class="modal-btn modal-btn-danger">' + (confirmLabel || t("modal.delete")) + '</button>' +
       '</div>';
@@ -124,6 +168,7 @@ export function modalConfirm(message, confirmLabel) {
     overlay._cancel = doCancel;
     confirm.addEventListener("click", doConfirm);
     cancel.addEventListener("click",  doCancel);
+    box.querySelector(".modal-head-close").addEventListener("click", doCancel);
     document.addEventListener("keydown", function handler(e) {
       if (e.key === "Escape") { doCancel(); document.removeEventListener("keydown", handler); }
       if (e.key === "Enter")  { doConfirm(); document.removeEventListener("keydown", handler); }
@@ -140,15 +185,17 @@ export function modalConfirm(message, confirmLabel) {
 export function modalAlert(message, type) {
   return new Promise(function (resolve) {
     const { overlay, box } = createModalBase();
-    const icon = type === "error"
-      ? '<i data-lucide="circle-x"></i>'
-      : '<i data-lucide="info"></i>';
-    const cls  = type === "error" ? "modal-label modal-label-error" : "modal-label";
+    const isError = type === "error";
 
+    box.classList.add("modal-box-v1");
     box.innerHTML =
-      '<div class="modal-icon">' + icon + '</div>' +
-      '<p class="' + cls + '">' + message + '</p>' +
-      '<div class="modal-actions">' +
+      modalHead(isError ? t("modal.error_title") : t("modal.notice_title"),
+                isError ? "circle-x" : "info",
+                isError ? "danger" : "") +
+      '<div class="modal-body">' +
+        '<p class="modal-desc' + (isError ? " modal-label-error" : "") + '">' + message + '</p>' +
+      '</div>' +
+      '<div class="modal-foot">' +
         '<button class="modal-btn modal-btn-confirm">' + t("modal.understood") + '</button>' +
       '</div>';
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
@@ -158,6 +205,7 @@ export function modalAlert(message, type) {
 
     overlay._cancel = doClose;
     btn.addEventListener("click", doClose);
+    box.querySelector(".modal-head-close").addEventListener("click", doClose);
     document.addEventListener("keydown", function handler(e) {
       if (e.key === "Escape" || e.key === "Enter") {
         doClose(); document.removeEventListener("keydown", handler);

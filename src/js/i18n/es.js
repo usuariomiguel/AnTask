@@ -290,6 +290,9 @@ export const es = {
   "modal.understood":         "Entendido",
   "modal.clear":              "Quitar",
   "modal.delete":             "Eliminar",
+  "modal.confirm_title":      "Confirmar",
+  "modal.notice_title":       "Aviso",
+  "modal.error_title":        "Error",
 
   // ── Acciones ──────────────────────────────────────────────
   "action.options":           "Opciones",

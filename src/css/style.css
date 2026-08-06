@@ -3381,37 +3381,30 @@ input.inline-edit {
   opacity: 1;
 }
 
+/* v1: la caja es una tarjeta lisa —el mismo `--surface-card` de los
+   paneles—, no el degradado con filo neón y halo verde del diseño
+   anterior. Los modales ya rediseñados (captura, buscador, ajustes)
+   traían este aspecto por su cuenta; ahora sale de la base y lo
+   heredan también renombrar, perfil, atajos y plantillas.            */
 .modal-box {
   position: relative;
-  background: linear-gradient(160deg, #2c241b 0%, #17120d 100%);
-  border: 1px solid rgba(163, 179, 102, 0.18);
-  border-radius: 16px;
-  padding: 1.75rem 1.75rem 1.4rem;
-  width: min(420px, 92vw);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  /* Los modales con cabecera propia (`.modal-box-v1`) reparten el
+     espaciado entre head/body/foot y anulan este padding; los que
+     todavía vuelcan su HTML suelto en la caja lo siguen necesitando. */
+  padding: 1.5rem 1.5rem 1.25rem;
+  width: min(440px, 92vw);
   box-shadow:
-    0 0 0 1px rgba(163, 179, 102, 0.08),
-    0 4px 6px rgba(0, 0, 0, 0.40),
-    0 20px 60px rgba(0, 0, 0, 0.70),
-    0 0 80px rgba(163, 179, 102, 0.06);
-  transform: scale(0.96) translateY(10px);
+    0 4px 12px rgba(0, 0, 0, 0.22),
+    0 24px 64px -12px rgba(0, 0, 0, 0.55);
+  transform: scale(0.97) translateY(8px);
   opacity: 0;
   transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.18s ease;
   overflow: hidden auto; /* recorta en X, permite scroll en Y si no cabe */
   max-height: 90vh;
-}
-
-/* Gradient top line */
-.modal-box::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(163, 179, 102, 0.90) 30%,
-    rgba(138, 154, 91, 0.70) 70%,
-    transparent 100%);
 }
 
 .modal-overlay.modal-visible .modal-box {
@@ -3420,24 +3413,83 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] .modal-overlay {
-  background: rgba(140, 140, 175, 0.45);
+  background: rgba(74, 62, 42, 0.34);
 }
 
 :root[data-theme="light"] .modal-box {
-  background: linear-gradient(160deg, #fffdf6 0%, #f4efe3 100%);
-  border-color: rgba(111, 122, 61, 0.14);
   box-shadow:
-    0 0 0 1px rgba(111, 122, 61, 0.06),
-    0 4px 6px rgba(50, 40, 24, 0.06),
-    0 20px 48px rgba(50, 40, 24, 0.12);
+    0 4px 12px rgba(50, 40, 24, 0.07),
+    0 24px 56px -12px rgba(50, 40, 24, 0.20);
 }
 
-:root[data-theme="light"] .modal-box::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(111, 122, 61, 0.70) 30%,
-    rgba(79, 70, 229, 0.50) 70%,
-    transparent 100%);
+/* ── Diálogo v1: cabecera + cuerpo + pie ────────────────────── */
+.modal-box-v1 { padding: 0; }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.modal-head-badge {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--accent-tint);
+  color: var(--c-primary-300);
+}
+.modal-head-badge .lucide { width: 15px; height: 15px; stroke-width: 2; }
+:root[data-theme="light"] .modal-head-badge { color: var(--c-primary-600); }
+
+.modal-head-badge--danger {
+  background: color-mix(in srgb, var(--c-danger) 14%, transparent);
+  color: var(--c-danger);
+}
+
+.modal-head-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-head-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.modal-head-close .lucide { width: 15px; height: 15px; stroke-width: 2; }
+.modal-head-close:hover { background: var(--row-hover); color: var(--text-primary); }
+
+/* ── Cuerpo y pie ───────────────────────────────────────────── */
+.modal-body { padding: 16px 18px; }
+
+.modal-foot {
+  display: flex;
+  gap: var(--sp-2);
+  justify-content: flex-end;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-default);
 }
 
 .modal-icon {
@@ -3477,7 +3529,9 @@ input.inline-edit {
   font-weight: 600;
 }
 
-.modal-label.modal-label-error {
+/* Sin acoplar a `.modal-label`: el diálogo v1 lo pone sobre
+   `.modal-desc`, y con el selector antiguo no llegaba a aplicarse. */
+.modal-label-error {
   color: var(--c-danger);
 }
 
@@ -3507,6 +3561,22 @@ input.inline-edit {
   background: rgba(163, 179, 102, 0.07);
   box-shadow: 0 0 0 3px rgba(163, 179, 102, 0.14);
 }
+
+/* Dentro del diálogo v1 el espaciado lo pone `.modal-body`: el margen
+   inferior heredado dejaba un hueco muerto sobre el pie.             */
+.modal-body .modal-input,
+.modal-body .color-picker-grid { margin-bottom: 0; }
+
+/* Texto de apoyo bajo el título, cuando el diálogo necesita explicarse
+   (confirmaciones de borrado, avisos).                               */
+.modal-desc {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.modal-desc + .modal-input { margin-top: 12px; }
+.modal-desc strong { color: var(--text-primary); font-weight: 650; }
 
 :root[data-theme="light"] .modal-input {
   background: rgba(50, 40, 24, 0.03);
@@ -3564,49 +3634,38 @@ input.inline-edit {
   color: var(--text-secondary);
 }
 
+/* v1: acción sólida y mate. Ni degradado ni halo de color —el mismo
+   criterio que el botón de la captura rápida.                        */
 .modal-btn-confirm {
   color: #fff;
-  background: linear-gradient(135deg, #a3b366 0%, #566030 100%);
-  border-color: rgba(163, 179, 102, 0.50);
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.12) inset,
-              0 4px 14px rgba(163, 179, 102, 0.30);
+  background: var(--c-primary-700);
+  border-color: transparent;
 }
 
+/* El hover OSCURECE, no aclara. Subir por la rampa (700 → 600) dejaba
+   el blanco en 3.06:1 sobre el oliva claro del tema oscuro, por debajo
+   del 4.5:1 de AA: el estado hover también tiene que cumplir.        */
 .modal-btn-confirm:hover {
-  background: linear-gradient(135deg, #6f7a3d 0%, #566030 100%);
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.15) inset,
-              0 6px 20px rgba(163, 179, 102, 0.44);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--c-primary-700) 85%, #000);
   color: #fff;
 }
 
+/* No usa `--c-danger` directamente: en oscuro vale #e07a6a y el blanco
+   encima se queda en 2.93:1. Este rojo —el mismo que ya usaba el tramo
+   final del degradado anterior— da 5.06:1 y sirve en ambos temas.    */
 .modal-btn-danger {
   color: #fff;
-  background: linear-gradient(135deg, #e07a6a 0%, #b0524a 100%);
-  border-color: rgba(176, 82, 74, 0.50);
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.10) inset,
-              0 4px 14px rgba(176, 82, 74, 0.25);
+  background: #b0524a;
+  border-color: transparent;
 }
 
 .modal-btn-danger:hover {
-  background: linear-gradient(135deg, #b0524a 0%, #9a3a33 100%);
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.12) inset,
-              0 6px 18px rgba(176, 82, 74, 0.38);
-  transform: translateY(-1px);
+  background: #9a3a33;
   color: #fff;
 }
 
-:root[data-theme="light"] .modal-btn-confirm {
-  background: linear-gradient(135deg, #a3b366 0%, #566030 100%);
-  border-color: rgba(111, 122, 61, 0.40);
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.18) inset,
-              0 4px 14px rgba(111, 122, 61, 0.28);
-}
-
-:root[data-theme="light"] .modal-btn-danger {
-  box-shadow: 0 1px 0 rgba(255, 238, 214, 0.14) inset,
-              0 4px 14px rgba(176, 82, 74, 0.20);
-}
+/* Sin bloque aparte para el tema claro: `--c-primary-700` ya se
+   redefine por tema, así que las reglas de arriba valen en los dos. */
 
 /* ─── DUE DATE CHIP ──────────────────────────────────────────────
    Misma píldora teñida que usa la vista Hoy (.today-date-pill),
@@ -4934,8 +4993,6 @@ body.project-dragging .project-item { cursor: grabbing; }
   padding: 0;
   overflow: hidden;
 }
-/* El spotlight v1 no lleva la línea de acento superior del modal genérico. */
-.modal-box-search::before { display: none; }
 
 /* ── Fila de entrada: lupa + input sin borde + píldora ESC ── */
 .search-head {
@@ -6549,7 +6606,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   display: flex;
   overflow: hidden;
 }
-.modal-box-settings-v1::before { display: none; }
 
 .settings-nav {
   width: 200px;
@@ -8561,7 +8617,6 @@ button {
   background: var(--surface-card);
   overflow: hidden auto;
 }
-.modal-box-quick::before { display: none; }
 
 .quick-capture-header {
   display: flex;
