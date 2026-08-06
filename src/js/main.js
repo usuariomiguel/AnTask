@@ -7,7 +7,8 @@
 //   4. notifications   →  window.AnsoNotif
 //   5. script          →  orquestador principal
 //   6. sections-and-profile  →  menú de perfil
-//   7. firebase-sync   →  window.AnsoSync  (carga diferida — no bloquea TTI)
+//   7. firebase-sync   →  window.AnsoSync  (solo si ya se sincroniza;
+//                          si no, al pulsar "Sincronizar con Google")
 //
 // El CSS NO se importa desde aquí — se carga vía <link> en index.html
 // para evitar el FOUC (flash of unstyled content) en dev.
@@ -31,6 +32,7 @@ import "./sections-and-profile.js";
 // Consent + analytics: se ejecuta después de que el DOM esté listo.
 import { analyticsAllowed, showConsentBannerIfNeeded } from "./consent.js";
 import { initAnalytics } from "./analytics.js";
+import { hasSyncHistory, loadSync } from "./sync-loader.js";
 
 // Expone t() globalmente para código legado que no puede usar imports.
 window.t = t;
@@ -52,5 +54,7 @@ document.getElementById("pf-lang-btn")?.addEventListener("click", function () {
   setLang(getLang() === "es" ? "en" : "es");
 });
 
-// Firebase carga de forma diferida: no bloquea el render inicial.
-import("./firebase-sync.js");
+// Firebase (~405 KB) solo se descarga si esta persona ya sincroniza.
+// Quien no ha iniciado sesión nunca no paga ese peso: el módulo se
+// carga bajo demanda desde el botón "Sincronizar con Google".
+if (hasSyncHistory()) loadSync();

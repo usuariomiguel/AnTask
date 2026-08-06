@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { t } from "./i18n/index.js";
+import { loadSync } from "./sync-loader.js";
 
 (function initProfileMenu() {
   // Aliases de globales expuestos por otros módulos
@@ -220,19 +221,27 @@ import { t } from "./i18n/index.js";
   // ─── Cuenta / sincronización con Google ───────────────────────
   function doSignIn() {
     profileDropdown.hidden = true;
-    if (!window.AnsoSync) {
-      if (window.modalAlert) modalAlert("La sincronización aún se está cargando. Espera un momento e inténtalo de nuevo.", "info");
-      return;
-    }
-    AnsoSync.signIn().catch(function(e) {
-      if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
-      var msg = e.code === "auth/popup-blocked"
-        ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
-        : e.code === "auth/unauthorized-domain"
-        ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
-        : "Error al iniciar sesión: " + (e.message || e.code);
-      console.error("AnsoSync signIn error:", e);
-      if (window.modalAlert) modalAlert(msg, "error");
+    // Quien no sincroniza todavía no ha descargado Firebase: este clic
+    // es justo el momento de traerlo. `loadSync` recuerda la promesa,
+    // así que pulsar dos veces no descarga dos veces.
+    loadSync().then(function () {
+      if (!window.AnsoSync) {
+        if (window.modalAlert) modalAlert("La sincronización no está disponible ahora mismo. Inténtalo de nuevo en un momento.", "info");
+        return;
+      }
+      return AnsoSync.signIn().catch(function(e) {
+        if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+        var msg = e.code === "auth/popup-blocked"
+          ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
+          : e.code === "auth/unauthorized-domain"
+          ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+          : "Error al iniciar sesión: " + (e.message || e.code);
+        console.error("AnsoSync signIn error:", e);
+        if (window.modalAlert) modalAlert(msg, "error");
+      });
+    }).catch(function (e) {
+      console.error("AnsoSync: no se pudo cargar el módulo de sincronización:", e);
+      if (window.modalAlert) modalAlert("No se ha podido cargar la sincronización. Comprueba tu conexión e inténtalo de nuevo.", "error");
     });
   }
   function doSignOut() {

@@ -41,6 +41,7 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
+import { markSyncEnabled, clearSyncEnabled } from "./sync-loader.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCEZw4jJ_FAHnmZXI66wr3VlPbFQZDVlSE",
@@ -129,6 +130,11 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         _onFirstConnect = onFirstConnect;
         onAuthStateChanged(auth, function (user) {
           _user = user;
+          // La marca decide si en el próximo arranque Firebase se carga
+          // de entrada o se espera al botón. Se lleva aquí porque es el
+          // único punto por el que pasan tanto el login como el logout.
+          if (user) markSyncEnabled();
+          else      clearSyncEnabled();
           if (user) startListening();
           else      stopListening();
           if (typeof _onAuthChange === "function") _onAuthChange(user);
