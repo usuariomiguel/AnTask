@@ -28,21 +28,62 @@ function writeReport(name, results) {
   return issues;
 }
 
-async function loadFresh(page) {
+async function loadFresh(page, seed) {
   // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
   await page.goto("/app.html");
-  await page.evaluate(() => {
+  await page.evaluate((seed) => {
     localStorage.clear();
     localStorage.setItem("antask_consent", "essential");
     // El tour de onboarding taparía la pantalla auditada
     localStorage.setItem("antask-onboarded", "1");
-  });
+    // Idioma fijo: la config de Playwright no fija locale, así que sin
+    // esto los tests que buscan por texto dependerían de la máquina.
+    localStorage.setItem("antask_lang", "es");
+    if (seed) {
+      localStorage.setItem("anso-projects", JSON.stringify([
+        { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
+          sectionId: null, archived: false, icon: "", color: "", tasks: [] },
+        { id: "p1", name: "Buceo", createdAt: new Date().toISOString(),
+          sectionId: null, archived: false, icon: "", color: "", tasks: [
+            { id: "t1", text: "Tarea de prueba", done: false,
+              createdAt: new Date().toISOString(), subtasks: [], notes: "" },
+          ] },
+      ]));
+    }
+  }, seed);
   await page.goto("/app.html");
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
   await page.evaluate(() => {
     const b = document.getElementById("consent-banner");
     if (b) b.style.display = "none";
   });
+}
+
+/**
+ * Audita SOLO el diálogo abierto.
+ *
+ * El overlay atenúa el fondo pero no lo oculta, así que analizar la
+ * página entera hacía que axe midiese el contraste del contenido de
+ * detrás contra un fondo que ya no es el suyo: ruido, y ajeno a lo que
+ * se quiere comprobar. Las pantallas de fondo ya tienen sus tres tests.
+ */
+async function auditModal(page, nombre) {
+  await page.waitForSelector(".modal-overlay.modal-visible .modal-box", { timeout: 5_000 });
+  // Espera al fundido: a medio camino el contraste medido no es el final.
+  await page.waitForTimeout(400);
+  const results = await new AxeBuilder({ page })
+    .include(".modal-overlay")
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const issues = writeReport(nombre, results);
+  expect(issues, "Violaciones critical/serious en " + nombre).toEqual([]);
+}
+
+/** Abre el menú contextual de la lista "Buceo" y pulsa una entrada. */
+async function ctxMenu(page, texto) {
+  await page.click(".project-item[data-project-id='p1']", { button: "right" });
+  await page.waitForSelector(".ctx-item", { state: "visible", timeout: 5_000 });
+  await page.locator(".ctx-item").filter({ hasText: texto }).first().click();
 }
 
 test("a11y: pantalla inicial", async ({ page }) => {
@@ -84,4 +125,66 @@ test("a11y: menú de perfil abierto", async ({ page }) => {
     .analyze();
   const issues = writeReport("profile-menu", results);
   expect(issues, "Violaciones critical/serious en menú de perfil").toEqual([]);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// VENTANAS EMERGENTES
+//
+// El rediseño v1 dejó el contraste de los botones sólidos ajustado
+// (el principal ronda 4.6:1 sobre blanco en tema oscuro). Se comprobó
+// a mano una vez; estos tests lo vigilan a partir de ahora, junto con
+// nombres accesibles, roles y foco.
+// ═══════════════════════════════════════════════════════════════
+
+test("a11y: diálogo de renombrar lista", async ({ page }) => {
+  await loadFresh(page, true);
+  await ctxMenu(page, /Renombrar|Rename/);
+  await auditModal(page, "modal-prompt-renombrar");
+});
+
+test("a11y: diálogo de confirmar borrado", async ({ page }) => {
+  // Cubre el botón de peligro, el único que no aparece en los demás.
+  await loadFresh(page, true);
+  await ctxMenu(page, /Eliminar|Delete/);
+  await auditModal(page, "modal-confirm-borrado");
+});
+
+test("a11y: diálogo de perfil", async ({ page }) => {
+  await loadFresh(page);
+  await page.evaluate(() => window.showProfileModal && window.showProfileModal());
+  await auditModal(page, "modal-perfil");
+});
+
+test("a11y: selector de color de lista", async ({ page }) => {
+  await loadFresh(page, true);
+  await ctxMenu(page, /color/i);
+  await auditModal(page, "modal-selector-color");
+});
+
+test("a11y: captura rápida", async ({ page }) => {
+  await loadFresh(page);
+  await page.click("#capture-bar");
+  await auditModal(page, "modal-captura-rapida");
+});
+
+test("a11y: búsqueda global", async ({ page }) => {
+  await loadFresh(page, true);
+  await page.keyboard.press("Control+k");
+  await auditModal(page, "modal-busqueda");
+});
+
+test("a11y: atajos de teclado", async ({ page }) => {
+  // Hereda la caja v1 sin haberse rediseñado por dentro: es el que más
+  // papeletas tiene de descolgarse.
+  await loadFresh(page);
+  await page.keyboard.press("?");
+  await auditModal(page, "modal-atajos");
+});
+
+test("a11y: ajustes", async ({ page }) => {
+  await loadFresh(page);
+  await page.click("#profile-btn", { force: true });
+  await page.waitForTimeout(300);
+  await page.click("#pf-settings-btn");
+  await auditModal(page, "modal-ajustes");
 });
