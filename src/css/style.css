@@ -1465,7 +1465,13 @@ body {
 .task-detail-textarea:focus {
   border-color: var(--c-primary-500);
 }
-.task-detail-textarea::placeholder { color: var(--text-tertiary); }
+/* El texto de ayuda pesa menos que el contenido: es una sugerencia,
+   no información. Se atenúa respecto al terciario, que es el tono de
+   los textos secundarios ya de por sí. */
+.task-detail-textarea::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.72;
+}
 
 .task-detail-segmented {
   display: flex;
@@ -1514,6 +1520,10 @@ body {
   background: var(--surface-input);
   color: var(--text-primary);
   font-size: 0.875rem;
+  /* Explícito: sin esto heredaba el 600 de la regla base de `button`,
+     y "Hoy" o "No se repite" pesaban tanto como un título cuando solo
+     son el valor actual de un campo. */
+  font-weight: 500;
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out);
@@ -3176,14 +3186,19 @@ body.tasks-compact .task-text {
   gap: 0.3rem;
 }
 
+/* Las subtareas siguen el mismo lenguaje que las filas de tarea:
+   tarjeta con borde tenue, elevación al pasar por encima y casilla
+   circular de acento. Antes se salían del sistema —casilla cuadrada
+   nativa del navegador, desplazamiento lateral en hover y tachado al
+   completar— y cantaban al lado del resto del panel. */
 .subtask-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--sp-3);
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-md);
-  padding: 0.36rem 0.6rem;
+  padding: 7px 10px;
   background: var(--surface-input);
   transition: border-color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out),
@@ -3192,36 +3207,77 @@ body.tasks-compact .task-text {
 }
 
 .subtask-item:hover {
-  border-color: rgba(163, 179, 102, 0.25);
-  background: rgba(163, 179, 102, 0.06);
-  transform: translateX(2px);
-  box-shadow: inset 2px 0 0 rgba(163, 179, 102, 0.50);
+  background: var(--task-hover);
+  border-color: var(--task-hover-border);
+  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
+  transform: translateY(-1px);
 }
 
 :root[data-theme="light"] .subtask-item {
   background: rgba(50, 40, 24, 0.02);
   border-color: rgba(50, 40, 24, 0.07);
 }
+:root[data-theme="light"] .subtask-item:hover {
+  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
+}
 
+/* Misma casilla circular que .task-toggle, un punto más pequeña por
+   jerarquía: la subtarea cuelga de la tarea, no compite con ella. */
 .subtask-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
   flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  border: 1.7px solid var(--text-tertiary);
+  border-radius: var(--r-pill);
+  background: transparent;
   cursor: pointer;
-  accent-color: var(--c-primary-500);
+  display: grid;
+  place-items: center;
+  opacity: 0.7;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out),
+              box-shadow 150ms var(--ease-out);
+}
+.subtask-item:hover .subtask-checkbox:not(:checked) {
+  border-color: var(--c-primary-500);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+  opacity: 1;
+}
+.subtask-checkbox:checked {
+  border-color: var(--c-primary-500);
+  background: var(--c-primary-500);
+  opacity: 1;
+}
+/* El tick se dibuja con una máscara, igual que en la vista Hoy. */
+.subtask-checkbox:checked::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: var(--accent-on);
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
 }
 
 .subtask-text {
   font-size: 0.86rem;
-  color: var(--t-primary);
+  font-weight: 500;
+  color: var(--text-primary);
   overflow-wrap: anywhere;
   flex: 1;
   min-width: 0;
   cursor: text;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
+/* Sin tachado, como las tareas: completar atenúa, no raya. */
 .subtask-text.done {
-  text-decoration: line-through;
-  color: var(--t-muted);
-  opacity: 0.65;
+  color: var(--text-tertiary);
+  font-weight: 450;
+  opacity: 0.55;
 }
 
 .subtask-inline-edit {
@@ -3229,26 +3285,33 @@ body.tasks-compact .task-text {
   padding: 0.05rem 0.32rem;
 }
 
+/* En reposo es neutro y discreto; el rojo se reserva al hover, que es
+   cuando la acción está a punto de ocurrir. Antes iba siempre teñido
+   de rosa al 45%, un aviso permanente de algo que no pasaba. */
 .subtask-delete-btn {
   font-size: 0.78rem;
   padding: 0.1rem 0.35rem;
-  color: rgba(224, 122, 106, 0.45);
+  color: var(--text-tertiary);
   background: transparent;
   border-color: transparent;
+  opacity: 0.6;
+  transition: color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
 }
 
 .subtask-delete-btn:hover {
-  color: var(--c-pink);
-  background: rgba(224, 122, 106, 0.08);
+  color: var(--c-danger);
+  background: color-mix(in srgb, var(--c-danger) 10%, transparent);
+  opacity: 1;
   transform: none;
   box-shadow: none;
 }
 
 .subtask-empty {
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   font-size: 0.78rem;
   padding: 0.15rem 0;
-  font-style: italic;
 }
 
 #task-counter {
