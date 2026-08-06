@@ -2900,6 +2900,27 @@ button:focus-visible {
   display: inline-flex;
 }
 
+/* Zona táctil de los checkbox en pantallas de dedo.
+   El círculo mide 19-20px por diseño y no se toca: lo que crece es un
+   ::before invisible y posicionado, que no altera la maquetación. Sin
+   esto el control más usado de la app se quedaba por debajo incluso
+   del mínimo de 24x24 de la WCAG 2.2.
+   Solo en punteros gruesos: con ratón la precisión ya es suficiente y
+   ampliarlo robaría clics destinados a abrir la tarea. */
+@media (pointer: coarse) {
+  .task-toggle::before,
+  .today-check::before {
+    content: "";
+    position: absolute;
+    /* 19 + 12*2 = 43px, en el umbral de los 44 recomendados sin llegar
+       a solaparse con el texto de la fila (el hueco es de 12px). */
+    inset: -12px;
+    border-radius: 50%;
+  }
+  .task-toggle,
+  .today-check { position: relative; }
+}
+
 /* Custom checkbox — circle (19px, borde 1.7px, como el prototipo Tierra) */
 .task-toggle {
   appearance: none;
@@ -7894,6 +7915,17 @@ button {
 :root[data-theme="light"] .hoy-section--today .hoy-section-title   { color: var(--c-primary-600); }
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-dot    { background: #4a7644; }
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-title  { color: #4a7644; }
+
+/* En móvil el botón no cabe junto al título —"Programar todas hoy"
+   pide 171px y en una pantalla de 320 se quedaba en 114, cortado a
+   media palabra—, así que la cabecera envuelve y el botón baja a su
+   propia línea en vez de encogerse. El filete decorativo se retira:
+   en dos líneas no separa nada, solo estorba. */
+@media (max-width: 480px) {
+  .hoy-section-head { flex-wrap: wrap; }
+  .hoy-section-action { flex-shrink: 0; margin-left: auto; }
+  .hoy-section-rule { display: none; }
+}
 
 .hoy-section-action {
   display: inline-flex;
