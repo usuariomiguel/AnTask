@@ -935,7 +935,7 @@ exportBtn.addEventListener("click", function() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  const dateStr = new Date().toISOString().slice(0, 10);
+  const dateStr = _localDateISO(new Date());
   link.download = "ansotask-workspace-" + dateStr + ".json";
   link.click();
   URL.revokeObjectURL(url);
@@ -1188,7 +1188,7 @@ function activateTodayView() {
  */
 function renderPinnedItems(inboxProject) {
   // ── Item "Hoy" — vista virtual ─────────────────────────────────
-  var today = new Date().toISOString().slice(0, 10);
+  var today = _localDateISO(new Date());
   var todayCount = 0;
   projects.forEach(function(p) {
     (p.tasks || []).forEach(function(t) {
@@ -1353,7 +1353,7 @@ function syncSidebarRail() {
   const inboxBtn = document.getElementById("sidebar-rail-inbox");
   if (!todayBtn || !inboxBtn) return;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = _localDateISO(new Date());
   let todayCount = 0;
   let pending    = 0;
   projects.forEach(function(p) {
@@ -2003,7 +2003,7 @@ async function showProjectMenu(project, anchor) {
 async function showTodayMenu(x, y) {
   closeCtxMenu();
 
-  var today = new Date().toISOString().slice(0, 10);
+  var today = _localDateISO(new Date());
   var pending = [];
   projects.forEach(function(p) {
     if (p.archived) return;
@@ -2044,7 +2044,7 @@ async function showTodayMenu(x, y) {
         );
         if (!ok) return;
         var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-        var iso = tomorrow.toISOString().slice(0, 10);
+        var iso = _localDateISO(tomorrow);
         unfinished.forEach(function(it) { it.task.dueDate = iso; });
         saveAndRender();
       }
@@ -2478,7 +2478,7 @@ function _buildTaskNode(task, project, showList) {
         } else {
           next.setDate(next.getDate() + task.recurDays);
         }
-        task.dueDate = next.toISOString().slice(0, 10);
+        task.dueDate = _localDateISO(next);
         saveAndRender();
         _showRecurToast(task.recurDays, task.dueDate);
         return;
@@ -2547,7 +2547,8 @@ function _buildTaskNode(task, project, showList) {
       openTaskActionsMenu({ x: e.clientX, y: e.clientY });
     });
 
-    // ── Pulsar la fila abre el panel de detalle (columna derecha) ──
+    // ── Pulsar la fila abre el panel de detalle; volver a pulsarla lo
+    // cierra. Antes cerrarlo pedía doble clic. ──
     node.addEventListener("click", function(e) {
       if (e.target.closest("button")) return;
       if (selectMode) {
@@ -2556,18 +2557,8 @@ function _buildTaskNode(task, project, showList) {
         return;
       }
       if (e.target.closest("input")) return;
+      if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
       openTaskDetail(task.id, project.id);
-    });
-
-    // ── Doble clic sobre la fila: cierra el panel ──
-    // El primer clic del doble ya lo abrió, así que aquí solo hay que
-    // plegarlo. Se ignora sobre botones e inputs, igual que el clic
-    // simple, para no pisar el checkbox ni el menú «…».
-    node.addEventListener("dblclick", function(e) {
-      if (selectMode) return;
-      if (e.target.closest("button, input")) return;
-      e.preventDefault();
-      closeTaskDetail();
     });
     node.addEventListener("keydown", function(e) {
       if (e.target.closest("button, input")) return;
@@ -2575,6 +2566,8 @@ function _buildTaskNode(task, project, showList) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         if (selectMode) { toggleTaskSelection(task.id, node); return; }
+        // Alterna, como el clic y como anuncia el modal de atajos.
+        if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
         openTaskDetail(task.id, project.id);
         return;
       }
@@ -3245,7 +3238,7 @@ function _wireEmptyStateCTA(emptyNode) {
 function renderTodayView() {
   taskList.innerHTML = "";
   taskList.classList.remove("task-list--project");
-  var today = new Date().toISOString().slice(0, 10);
+  var today = _localDateISO(new Date());
 
   // Agrupar como el prototipo: vencidas / para hoy (incluye las hechas hoy,
   // para el progreso) / sin fecha como sugeridas.
@@ -3371,7 +3364,7 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
 /** Acción masiva del prototipo: fija dueDate=hoy en las tareas dadas. */
 function _hoySetDueToday(items) {
   if (!items || items.length === 0) return;
-  var today = new Date().toISOString().slice(0, 10);
+  var today = _localDateISO(new Date());
   items.forEach(function(it) { it.task.dueDate = today; });
   saveProjects();
   renderTasks();
@@ -3503,7 +3496,7 @@ function renderTodayItem(task, project, todayStr, tone) {
       task.done = false;
       var next = new Date(task.dueDate + "T00:00:00");
       next.setDate(next.getDate() + task.recurDays);
-      task.dueDate = next.toISOString().slice(0, 10);
+      task.dueDate = _localDateISO(next);
     }
     saveProjects();
     renderTasks();
@@ -3606,12 +3599,14 @@ function renderTodayItem(task, project, todayStr, tone) {
     meta.appendChild(dEl);
   }
 
-  // Clic en la fila (no en checkbox ni botones) → ir al proyecto + scroll a la tarea
-  li.addEventListener("click", function() {
-    activateProject(project.id);
-    if (typeof navigateToTask === "function") {
-      setTimeout(function() { navigateToTask(project.id, task.id); }, 60);
-    }
+  // Clic en la fila → abre el panel de detalle, igual que en una lista, para
+  // poder editar sin salir de Hoy. Antes saltaba al proyecto, lo que sacaba
+  // de la vista; para eso está el chip con el nombre de la lista.
+  // Volver a pulsar la fila abierta lo cierra.
+  li.addEventListener("click", function(e) {
+    if (e.target.closest("button, input")) return;
+    if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
+    openTaskDetail(task.id, project.id);
   });
 
   return li;
@@ -4750,7 +4745,7 @@ const AUTO_BACKUP_INTERVAL_DAYS = 2; // Cada 2 días
 
 function saveAutoBackup() {
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const dateStr = _localDateISO(now); // YYYY-MM-DD en hora local
   const key = AUTO_BACKUP_PREFIX + dateStr;
   const data = {
     projects: projects,
