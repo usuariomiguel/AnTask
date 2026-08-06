@@ -2960,6 +2960,13 @@ button:focus-visible {
   stroke-dashoffset: 0;
 }
 
+/* El tick solo se ve con la casilla marcada. Es un SVG hermano del
+   input, no un ::after suyo, así que sin esta regla se pintaba siempre:
+   pasaba desapercibido porque su trazo es del color de la tarjeta, y
+   asomaba en cuanto el hover cambiaba el fondo de la fila. */
+.task-check { opacity: 0; }
+.task-toggle:checked ~ .task-check { opacity: 1; }
+
 .task-toggle:hover {
   border-color: var(--c-primary-500);
   box-shadow: 0 0 0 3px var(--accent-tint);
