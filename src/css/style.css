@@ -35,6 +35,7 @@
 
   --accent-on:   #241910;                    /* texto sobre relleno de acento */
   --accent-tint: rgba(163, 179, 102, 0.15);  /* fondos teñidos (nav activa, chips) */
+  --box-shadow-bottom: #100a081e;
 
   --grad-primary:       linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
   --grad-primary-hover: linear-gradient(135deg, #97a865 0%, #66713a 100%);
@@ -2291,7 +2292,7 @@ button:focus-visible {
   font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-tight);
   color: var(--text-secondary);
-  background: transparent;
+  background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   padding: var(--sp-2) var(--sp-3);
@@ -2935,8 +2936,8 @@ button:focus-visible {
 .task-toggle {
   appearance: none;
   -webkit-appearance: none;
-  width: 19px;
-  height: 19px;
+  width: 25px;
+  height: 25px;
   border: 1.7px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
@@ -3666,20 +3667,21 @@ input.inline-edit {
 }
 
 .due-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 4px 9px;
-  border-radius: 7px;
-  background: var(--surface-input);
+display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0px 10px;
+    border-radius: 7px;
+    background: var(--surface-input);
+    height: 25px;
 }
 .due-badge .lucide {
   width: 12px;
@@ -3762,7 +3764,9 @@ input.inline-edit {
   color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
+  height: 25px;
 }
+
 .recur-badge .lucide {
   width: 12px;
   height: 12px;
@@ -3843,14 +3847,17 @@ body.project-dragging .project-item { cursor: grabbing; }
   align-items: center;
   font-family: var(--font-mono, monospace);
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.03em;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: 50%;
   white-space: nowrap;
   flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  justify-content: center;
 }
 
 .priority-badge-high {
@@ -7586,130 +7593,64 @@ button {
   list-style: none;
 }
 
-/* ── Vista Hoy: empty state (legacy, reemplazado por .empty-illustrated) ─ */
-.today-empty {
+/* ── Empty state (v1: proyectos/Inbox sin tareas) ─────────────────
+   Plano, sin ilustración: título + sub, y un CTA solo cuando invita
+   a crear la primera tarea de una lista realmente nueva. */
+.empty-illustrated {
   list-style: none;
-  padding: var(--sp-8) var(--sp-4);
+  padding: 52px 8px;
   text-align: center;
   color: var(--text-tertiary);
 }
 
-/* ── Empty state ilustrado (Hoy y proyectos sin tareas) ───────────
-   Sistema unificado: visual con halo morado, título, sub y CTA. */
-.empty-illustrated {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: center;
-  padding: clamp(48px, 12vh, 96px) 24px 24px;
-  gap: 4px;
-  animation: empty-fade-in 0.32s var(--ease-out) both;
-}
+.empty-illustrated--badge { padding-top: 56px; }
 
-@keyframes empty-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.empty-illustrated-visual {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  margin-bottom: 16px;
+.empty-illustrated-badge {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--accent-tint);
   display: grid;
   place-items: center;
+  color: var(--c-primary-300);
 }
-
-.empty-illustrated-halo {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    rgba(163, 179, 102, 0.22) 0%,
-    rgba(163, 179, 102, 0.08) 40%,
-    transparent 70%
-  );
-  animation: empty-halo-pulse 4s ease-in-out infinite;
-}
-
-@keyframes empty-halo-pulse {
-  0%, 100% { transform: scale(1);    opacity: 0.85; }
-  50%      { transform: scale(1.08); opacity: 1; }
-}
-
-.empty-illustrated-icon {
-  position: relative;
-  font-size: 44px;
-  line-height: 1;
-  filter: drop-shadow(0 4px 12px rgba(163, 179, 102, 0.30));
-}
+:root[data-theme="light"] .empty-illustrated-badge { color: var(--c-primary-600); }
+.empty-illustrated-badge .lucide { width: 20px; height: 20px; stroke-width: 2; }
 
 .empty-illustrated-title {
-  font-size: 17px;
+  font-size: 14.5px;
   font-weight: var(--fw-semibold);
-  color: var(--text-primary);
-  margin: 0 0 4px;
-  letter-spacing: var(--tracking-tight);
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .empty-illustrated-sub {
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: 13px;
   color: var(--text-tertiary);
-  margin: 0 0 20px;
-  max-width: 280px;
+  margin: 4px 0 0;
 }
 
 .empty-illustrated-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  border-radius: var(--r-pill);
+  gap: 7px;
+  margin-top: 14px;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
   background: var(--c-primary-500);
-  color: #fff;
+  color: var(--accent-on);
   border: 0;
   font-size: 13.5px;
-  font-weight: var(--fw-semibold);
+  font-weight: 650;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(163, 179, 102, 0.40);
-  transition: transform var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out);
 }
-.empty-illustrated-cta .lucide { width: 14px; height: 14px; stroke-width: 2.5; }
-.empty-illustrated-cta:hover {
-  background: var(--c-primary-600);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(163, 179, 102, 0.50);
-}
-.empty-illustrated-cta:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(163, 179, 102, 0.35);
-}
+.empty-illustrated-cta .lucide { width: 15px; height: 15px; stroke-width: 2.4; }
+.empty-illustrated-cta:hover { background: var(--c-primary-600); }
 
-:root[data-theme="light"] .empty-illustrated-halo {
-  background: radial-gradient(
-    circle at center,
-    rgba(111, 122, 61, 0.18) 0%,
-    rgba(111, 122, 61, 0.06) 40%,
-    transparent 70%
-  );
-}
-:root[data-theme="light"] .empty-illustrated-icon {
-  filter: drop-shadow(0 4px 12px rgba(111, 122, 61, 0.25));
-}
-:root[data-theme="light"] .empty-illustrated-cta {
-  background: var(--c-primary-500);
-  box-shadow: 0 4px 14px rgba(111, 122, 61, 0.32);
-}
-:root[data-theme="light"] .empty-illustrated-cta:hover {
-  background: var(--c-primary-600);
-  box-shadow: 0 6px 20px rgba(111, 122, 61, 0.42);
-}
+.empty-illustrated-line { font-size: 14px; margin: 0; }
 
 /* ── Vista Hoy: items ──────────────────────────────────────── */
 .today-item {
@@ -7917,11 +7858,6 @@ button {
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
 .hoy-section {
-  list-style: none;
-  margin-bottom: 14px;
-  background: var(--block-bg);
-  border: 1px solid var(--border-default);
-  border-radius: calc(var(--r-md) + 8px);
   padding: 11px 11px 10px;
 }
 
@@ -8121,6 +8057,7 @@ button {
 .hoy-allclear-badge .lucide { width: 28px; height: 28px; }
 .hoy-allclear-title {
   margin: 0;
+  font-family: var(--font-display);
   font-weight: var(--fw-semibold);
   font-size: 20px;
   color: var(--text-secondary);
@@ -8244,20 +8181,6 @@ button {
   /* El hueco lo pone el contenedor de scroll: la lista no añade el suyo, o
      cada vista acabaría con una separación distinta. */
   .task-list { padding-top: var(--sp-3); padding-bottom: 0; }
-}
-
-/* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ──── */
-@media (min-width: 769px) {
-  .task-list--project {
-    background: var(--block-bg);
-    border: 1px solid var(--border-default);
-    border-radius: calc(var(--r-md) + 8px);
-    padding: 11px 11px 4px;
-    margin-bottom: 14px;
-  }
-  /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
-     sobra, así que el bloque queda casi a ras del contenedor. */
-  .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
 }
 
 /* Lista anidada dentro de cada bloque de grupo del Inbox */

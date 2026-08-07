@@ -120,8 +120,8 @@ export const es = {
   "a11y.mobile_projects":     "Proyectos",
 
   // ── Hoy (vista) ───────────────────────────────────────────
-  "today.empty_title_full":   "Todo limpio para hoy",
-  "today.empty_sub_full":     "Sin vencidas ni pendientes para hoy. Aprovecha el respiro o adelanta algo.",
+  "today.empty_title_full":   "Todo al día",
+  "today.empty_sub_full":     "No tienes nada vencido ni ninguna tarea para hoy.",
   "today.counter_one":        "{count} tarea para hoy",
   "today.counter_other":      "{count} tareas para hoy",
   "today.go_to_project":      "Ir al proyecto",
@@ -376,13 +376,14 @@ export const es = {
   "inbox.menu.empty_confirm": "¿Eliminar <strong>todas las {count} tareas</strong> del Inbox? Esta acción no se puede deshacer.",
 
   // ── Empty states ──────────────────────────────────────────
-  "empty.tasks.title_filtered":"Sin tareas que mostrar",
-  "empty.tasks.title_new":    "Empezar este proyecto",
-  "empty.tasks.sub_filter":   "Cambia el filtro o limpia las completadas para ver más.",
-  "empty.tasks.sub_default":  "Apunta lo siguiente que quieras hacer y construye desde ahí.",
+  "empty.tasks.title_filtered":"Sin tareas para este filtro.",
+  "empty.tasks.title_new":    "Aún no hay tareas en «{list}».",
+  "empty.tasks.sub_default":  "Crea la primera para esta lista.",
+  "empty.inbox.title":        "Inbox limpio.",
+  "empty.inbox.sub":          "Todo procesado — captura algo nuevo cuando llegue.",
   "task.counter_one":         "{count} pendiente",
   "task.counter_other":       "{count} pendientes",
-  "empty.cta.add_task":       "Añadir tarea",
+  "empty.cta.add_task":       "Nueva tarea",
 
   // ── Today badges (sidebar) ────────────────────────────────
 

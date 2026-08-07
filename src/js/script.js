@@ -2139,7 +2139,7 @@ function renderTasks() {
   }
 
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
-  // cualquier nodo huérfano (`.today-item`, `.today-empty`, ...) que no
+  // cualquier nodo huérfano (`.today-item`, `.empty-illustrated`, ...) que no
   // pertenece al diff por data-task-id.
   Array.from(taskList.children).forEach(function (n) {
     if (!n.dataset || !n.dataset.taskId) n.remove();
@@ -2185,24 +2185,31 @@ function renderTasks() {
   // Eliminar nodos sobrantes (tareas filtradas o borradas)
   existing.forEach(function (n) { n.remove(); });
 
-  // Empty state: si el proyecto no tiene tareas visibles (o no tiene
-  // ninguna), inyectamos una ilustración + CTA para captura rápida.
+  // Empty state (v1): el Inbox realmente vacío lleva icono y sin CTA;
+  // un proyecto/lista sin ninguna tarea invita a crear la primera; si
+  // hay tareas pero el filtro activo no muestra ninguna, una sola línea.
   if (visible.length === 0) {
     const empty = document.createElement("li");
-    empty.className = "today-empty empty-illustrated";
     const hasAnyTask = isInbox ? items.length > 0 : project.tasks.length > 0;
-    const title = hasAnyTask ? t("empty.tasks.title_filtered") : t("empty.tasks.title_new");
-    const sub   = hasAnyTask ? t("empty.tasks.sub_filter") : t("empty.tasks.sub_default");
-    empty.innerHTML =
-      '<div class="empty-illustrated-visual">' +
-        '<div class="empty-illustrated-halo"></div>' +
-        '<div class="empty-illustrated-icon">' + (project.icon || "📝") + '</div>' +
-      '</div>' +
-      '<p class="empty-illustrated-title">' + title + '</p>' +
-      '<p class="empty-illustrated-sub">' + sub + '</p>' +
-      '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
-        '<i data-lucide="plus"></i> ' + t("empty.cta.add_task") +
-      '</button>';
+
+    if (!hasAnyTask && isInbox) {
+      empty.className = "empty-illustrated empty-illustrated--badge";
+      empty.innerHTML =
+        '<div class="empty-illustrated-badge"><i data-lucide="inbox"></i></div>' +
+        '<p class="empty-illustrated-title">' + t("empty.inbox.title") + '</p>' +
+        '<p class="empty-illustrated-sub">' + t("empty.inbox.sub") + '</p>';
+    } else if (!hasAnyTask) {
+      empty.className = "empty-illustrated";
+      empty.innerHTML =
+        '<p class="empty-illustrated-title">' + t("empty.tasks.title_new").replace("{list}", project.name) + '</p>' +
+        '<p class="empty-illustrated-sub">' + t("empty.tasks.sub_default") + '</p>' +
+        '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
+          '<i data-lucide="plus"></i> ' + t("empty.cta.add_task") +
+        '</button>';
+    } else {
+      empty.className = "empty-illustrated empty-illustrated--line";
+      empty.innerHTML = '<p class="empty-illustrated-line">' + t("empty.tasks.title_filtered") + '</p>';
+    }
     taskList.appendChild(empty);
     _wireEmptyStateCTA(empty);
   }
@@ -3159,7 +3166,7 @@ function renderTodayView() {
     var clearLi = document.createElement("li");
     clearLi.className = "hoy-allclear";
     clearLi.innerHTML =
-      '<span class="hoy-allclear-badge"><i data-lucide="check-check"></i></span>' +
+      '<span class="hoy-allclear-badge"><i data-lucide="check"></i></span>' +
       '<p class="hoy-allclear-title">' + t("today.empty_title_full") + '</p>' +
       '<p class="hoy-allclear-sub">' + t("today.empty_sub_full") + '</p>';
     taskList.appendChild(clearLi);

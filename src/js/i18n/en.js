@@ -120,8 +120,8 @@ export const en = {
   "a11y.mobile_projects":     "Projects",
 
   // ── Today (view) ──────────────────────────────────────────
-  "today.empty_title_full":   "All clear for today",
-  "today.empty_sub_full":     "No overdue or pending tasks for today. Enjoy the break or get ahead.",
+  "today.empty_title_full":   "All caught up",
+  "today.empty_sub_full":     "Nothing overdue and no tasks for today.",
   "today.counter_one":        "{count} task for today",
   "today.counter_other":      "{count} tasks for today",
   "today.go_to_project":      "Go to project",
@@ -376,13 +376,14 @@ export const en = {
   "inbox.menu.empty_confirm": "Remove <strong>all {count} tasks</strong> from the Inbox? This cannot be undone.",
 
   // ── Empty states ──────────────────────────────────────────
-  "empty.tasks.title_filtered":"No tasks to show",
-  "empty.tasks.title_new":    "Kick off this project",
-  "empty.tasks.sub_filter":   "Change the filter or clear completed to see more.",
-  "empty.tasks.sub_default":  "Write down the next thing you want to do and build from there.",
+  "empty.tasks.title_filtered":"No tasks for this filter.",
+  "empty.tasks.title_new":    "No tasks yet in “{list}”.",
+  "empty.tasks.sub_default":  "Create the first one for this list.",
+  "empty.inbox.title":        "Inbox clear.",
+  "empty.inbox.sub":          "All processed — capture something new when it comes up.",
   "task.counter_one":         "{count} pending",
   "task.counter_other":       "{count} pending",
-  "empty.cta.add_task":       "Add task",
+  "empty.cta.add_task":       "New task",
 
   // ── Today badges (sidebar) ────────────────────────────────
 
