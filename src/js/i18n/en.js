@@ -286,12 +286,13 @@ export const en = {
   // ── Due badge (per task) ──────────────────────────────────
 
   // ── Search ────────────────────────────────────────────────
+  "search.results_aria":      "Search results",
+  "search.hint_nav":          "↑↓ navigate",
+  "search.hint_open":         "↵ open",
   "search.placeholder":       "Search tasks…",
-  "search.hint_min_chars":    "Type at least 2 characters…",
   "search.no_results":        "No results for",
   "search.count_one":         "1 result",
   "search.count_other":       "{n} results",
-  "search.section.tasks":     "Tasks",
 
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.title":      "Quick capture",

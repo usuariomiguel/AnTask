@@ -286,12 +286,13 @@ export const es = {
   // ── Fecha límite (badge por tarea) ───────────────────────
 
   // ── Búsqueda ──────────────────────────────────────────────
+  "search.results_aria":      "Resultados de la búsqueda",
+  "search.hint_nav":          "↑↓ navegar",
+  "search.hint_open":         "↵ abrir",
   "search.placeholder":       "Buscar tareas…",
-  "search.hint_min_chars":    "Escribe al menos 2 caracteres…",
   "search.no_results":        "Sin resultados para",
   "search.count_one":         "1 resultado",
   "search.count_other":       "{n} resultados",
-  "search.section.tasks":     "Tareas",
 
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.title":      "Captura rápida",

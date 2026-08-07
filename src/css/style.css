@@ -4899,13 +4899,20 @@ body.project-dragging .project-item { cursor: grabbing; }
   gap: 0;
 }
 
-/* ── Pie: contador de resultados ── */
+/* ── Pie: pistas de teclado + contador ── */
 .search-foot {
   display: flex;
   align-items: center;
+  gap: 14px;
   padding: 9px 16px;
   border-top: 1px solid var(--b-subtle);
   min-height: 20px;
+}
+.search-foot-hint {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
 }
 .search-foot-count {
   margin-left: auto;
@@ -4922,114 +4929,96 @@ body.project-dragging .project-item { cursor: grabbing; }
   padding: 1.4rem 0;
 }
 
-/* ── Section dividers (Tareas / Notas) ─── */
-.search-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.search-section + .search-section {
-  margin-top: 0.5rem;
-}
-
-.search-section-label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.63rem;
-  font-weight: 700;
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
-  padding: 0.28rem 0.5rem 0.22rem;
-  margin-bottom: 0.18rem;
-  border-radius: var(--r-sm) var(--r-sm) 0 0;
-}
-.search-section-label svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-.search-section-label--tasks {
-  color: var(--c-primary-400);
-  background: color-mix(in srgb, var(--c-primary-500) 8%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--c-primary-500) 20%, transparent);
-}
-
-/* ── Project subgroups within tasks section ─── */
-.search-group {
-  margin-bottom: 0.3rem;
-}
-
-.search-group-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.38rem;
-  font-size: 0.67rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.04em;
-  text-transform: none;
-  padding: 0.22rem 0.5rem;
-  margin-bottom: 0.1rem;
-}
-
-.search-group-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* ── Result items ─── */
+/* ── Fila de resultado (v1: lista plana, sin cabeceras por lista) ──
+   El nombre de la lista viaja como chip al final de la propia fila, en
+   vez de agrupar los resultados bajo cabeceras: en una paleta que se
+   recorre con el teclado, los grupos parten la secuencia de arriba
+   abajo y estorban.                                                  */
 .search-result-item {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   background: transparent;
   border: none;
   border-radius: var(--r-md);
-  padding: 0.4rem 0.55rem 0.4rem 1.3rem;
-  gap: 0.1rem;
+  padding: 10px 12px;
   cursor: pointer;
   text-align: left;
-  color: var(--t-primary);
+  color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.84rem;
+  font-size: 14px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
   transition: background var(--dur-fast) var(--ease-out);
   box-shadow: none;
-  position: relative;
 }
 
-.search-result-item:hover {
-  background: rgba(163, 179, 102, 0.08);
-}
-
-.search-result-done {
-  opacity: 0.45;
-}
+/* Un unico estado activo: pasar el raton mueve la seleccion, asi que
+   no hay `:hover` aparte. Con los dos se pintaban dos filas a la vez y
+   no se sabia cual abriria el Enter. */
+.search-result-item--sel { background: var(--accent-tint); }
 
 .search-result-check {
-  position: absolute;
-  left: 0.5rem;
-  top: 0.48rem;
-  color: var(--t-muted);
-  display: flex;
-  align-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: var(--r-pill);
+  border: 1.6px solid var(--text-tertiary);
+  display: grid;
+  place-items: center;
 }
-.search-result-check svg { width: 12px; height: 12px; }
+.search-result-done .search-result-check {
+  border-color: var(--c-primary-500);
+  background: var(--c-primary-500);
+}
+/* Tick por mascara, igual que en Hoy y en las subtareas. */
+.search-result-done .search-result-check::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: var(--accent-on);
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+}
 
-.search-result-text { flex: 1; line-height: 1.3; }
-
-.search-result-snippet {
-  font-size: 0.73rem;
-  color: var(--t-muted);
+.search-result-text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-  line-height: 1.3;
 }
+/* Completada: se atenua, no se tacha. v1 la tacha aqui, pero en esta
+   app se quito el tachado de las tareas y seria incoherente. */
+.search-result-done .search-result-text { color: var(--text-tertiary); }
+.search-result-done { opacity: 0.55; }
+
+/* Nombre de la lista: mono y discreto, como el resto de metadatos. */
+.search-result-list {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La flecha solo aparece en la fila activa: senala donde cae el Enter. */
+.search-result-go {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  opacity: 0;
+}
+.search-result-item--sel .search-result-go { opacity: 1; }
+
 
 mark.search-hl {
   background: color-mix(in srgb, var(--c-gold) 30%, transparent);
