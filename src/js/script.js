@@ -2036,6 +2036,9 @@ function renderTasks() {
   if (!project) { taskList.innerHTML = ""; return; }
 
   taskList.classList.add("task-list--project");
+  // Lista plana de filas: nunca va a dos columnas (lo hacen las vistas
+  // por bloques, que es donde la partición tiene sentido).
+  taskList.classList.remove("task-list--hoy", "task-list--grupos");
 
   // El Inbox del prototipo muestra TODO el pool: sus propias tareas
   // ("Sin lista") más las de cada proyecto, agrupadas por proyecto.
@@ -2089,6 +2092,8 @@ function renderTasks() {
   // reconstruimos la lista entera en lugar de usar el diff plano.
   if (inboxGroups) {
     taskList.classList.remove("task-list--project");
+    // Inbox por bloques: candidato a dos columnas en pantallas anchas.
+    taskList.classList.add("task-list--grupos");
     taskList.innerHTML = "";
 
     inboxGroups.forEach(function(g) {
@@ -3104,7 +3109,8 @@ function _wireEmptyStateCTA(emptyNode) {
 
 function renderTodayView() {
   taskList.innerHTML = "";
-  taskList.classList.remove("task-list--project");
+  taskList.classList.remove("task-list--project", "task-list--grupos");
+  taskList.classList.add("task-list--hoy");
   var today = _localDateISO(new Date());
 
   // Agrupar como el prototipo: vencidas / para hoy (incluye las hechas hoy,
