@@ -2103,11 +2103,12 @@ function renderTasks() {
       sec.className = "hoy-section inbox-group-block";
       const head = document.createElement("div");
       head.className = "inbox-group-head";
-      head.innerHTML =
+      head.appendChild(_blockToggleBtn("grupo:" + g.project.id, sec));
+      head.insertAdjacentHTML("beforeend",
         '<span class="inbox-group-dot"></span>' +
         '<span class="inbox-group-name"></span>' +
         '<span class="inbox-group-count"></span>' +
-        '<span class="inbox-group-rule"></span>';
+        '<span class="inbox-group-rule"></span>');
       head.querySelector(".inbox-group-name").textContent = isNone
         ? t("inbox.group_none")
         : g.project.name;
@@ -3201,6 +3202,68 @@ function renderTodayView() {
   }
 }
 
+// ── Plegado de bloques (secciones de Hoy y grupos del Inbox) ──
+//
+// v1 no pliega estos bloques, pero sí tiene el idioma: las cabeceras de
+// grupo de la barra lateral usan un chevron que rota 90° al abrirse.
+// Se reutiliza ese gesto para no inventar uno nuevo.
+//
+// El estado se guarda por id estable: "hoy:overdue" y compañía para las
+// secciones fijas de Hoy, "grupo:<idProyecto>" para los del Inbox.
+
+var COLLAPSED_KEY = "antask-collapsed-blocks";
+
+/** @returns {string[]} ids de bloques plegados */
+function _collapsedBlocks() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch (e) { return []; }
+}
+
+function _isBlockCollapsed(id) {
+  return _collapsedBlocks().indexOf(id) !== -1;
+}
+
+function _setBlockCollapsed(id, collapsed) {
+  var list = _collapsedBlocks().filter(function(x) { return x !== id; });
+  if (collapsed) list.push(id);
+  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(list)); } catch (e) { /* cuota */ }
+}
+
+/**
+ * Botón de plegado para la cabecera de un bloque.
+ *
+ * Botón propio y no la fila entera: en el Inbox la cabecera ya lleva un
+ * clic que navega al proyecto, y hacerla pulsable para dos cosas
+ * distintas obligaría a adivinar cuál quiere el usuario.
+ *
+ * @param {string} blockId  id estable para recordar el estado
+ * @param {HTMLElement} sec bloque al que aplicar la clase
+ */
+function _blockToggleBtn(blockId, sec) {
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "block-toggle";
+  btn.innerHTML = '<i data-lucide="chevron-right"></i>';
+  btn.setAttribute("aria-label", t("block.toggle"));
+
+  function pintar(collapsed) {
+    sec.classList.toggle("hoy-section--collapsed", collapsed);
+    btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  }
+  pintar(_isBlockCollapsed(blockId));
+
+  btn.addEventListener("click", function(e) {
+    // La cabecera del Inbox navega al proyecto: que el clic no suba.
+    e.stopPropagation();
+    var ahora = !sec.classList.contains("hoy-section--collapsed");
+    _setBlockCollapsed(blockId, ahora);
+    pintar(ahora);
+  });
+  return btn;
+}
+
 // ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
 
 var _hoyQuickAddRefocus = false;
@@ -3211,11 +3274,12 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   li.className = "hoy-section hoy-section--" + tone;
   var head = document.createElement("div");
   head.className = "hoy-section-head";
-  head.innerHTML =
+  head.appendChild(_blockToggleBtn("hoy:" + tone, li));
+  head.insertAdjacentHTML("beforeend",
     '<span class="hoy-section-dot"></span>' +
     '<span class="hoy-section-title"></span>' +
     '<span class="hoy-section-count"></span>' +
-    '<span class="hoy-section-rule"></span>';
+    '<span class="hoy-section-rule"></span>');
   head.querySelector(".hoy-section-title").textContent = label;
   head.querySelector(".hoy-section-count").textContent = "(" + count + ")";
   if (actionLabel && onAction) {

@@ -9315,3 +9315,62 @@ button {
     break-inside: avoid;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PLEGAR BLOQUES — secciones de Hoy y grupos del Inbox
+
+   Gesto tomado de las cabeceras de grupo de la barra lateral en v1:
+   chevron que rota 90° al abrirse. No se hace pulsable la fila
+   entera porque en el Inbox esa fila ya navega al proyecto.
+   ═══════════════════════════════════════════════════════════════ */
+.block-toggle {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: -3px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.block-toggle .lucide {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  transition: transform 0.15s var(--ease-out);
+}
+.block-toggle:hover {
+  background: var(--row-hover);
+  color: var(--text-primary);
+}
+/* Desplegado = chevron mirando abajo. El icono base apunta a la
+   derecha, que es justamente el estado plegado. */
+.block-toggle[aria-expanded="true"] .lucide { transform: rotate(90deg); }
+
+/* Plegado: se va la lista y el margen inferior de la cabecera, para
+   que el bloque quede como una barra compacta. */
+.hoy-section--collapsed .hoy-section-list,
+.hoy-section--collapsed .inbox-group-list { display: none; }
+.hoy-section--collapsed .hoy-section-head,
+.hoy-section--collapsed .inbox-group-head { margin-bottom: 0; }
+
+/* La acción masiva ("Mover todas a hoy") no se ofrece sobre un bloque
+   plegado: actuaría sobre tareas que no se están viendo. */
+.hoy-section--collapsed .hoy-section-action { display: none; }
+
+/* Con la zona táctil ampliada de los checkbox en móvil, el chevron
+   necesita la suya para no quedarse en 20px. */
+@media (pointer: coarse) {
+  .block-toggle::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+  }
+  .block-toggle { position: relative; }
+}

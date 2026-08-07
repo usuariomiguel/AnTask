@@ -240,6 +240,7 @@ export const en = {
   "modal.understood":         "Got it",
   "modal.clear":              "Clear",
   "modal.delete":             "Delete",
+  "block.toggle":             "Collapse or expand list",
   "modal.confirm_title":      "Confirm",
   "modal.notice_title":       "Notice",
   "modal.error_title":        "Error",
