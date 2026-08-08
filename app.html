@@ -289,11 +289,15 @@
                     <div class="settings-row-desc" data-i18n="settings.appearance.accent_desc">Define el carácter de la interfaz.</div>
                   </div>
                   <div class="settings-accent-row" id="settings-accent-row">
+                    <!-- El color del punto es el valor de tema claro de cada acento.
+                         Antes se mezclaban valores de claro y de oscuro, y el de vino
+                         pintaba #9c4628 (el ink de arcilla), que ahora chocaría. -->
                     <button type="button" class="settings-accent-dot active" data-accent="oliva" style="background:#6f7a3d;color:#6f7a3d" title="Oliva"><i data-lucide="check"></i></button>
-                    <button type="button" class="settings-accent-dot" data-accent="terracota" style="background:#c0673a;color:#c0673a" title="Terracota"></button>
-                    <button type="button" class="settings-accent-dot" data-accent="miel" style="background:#e0a35a;color:#e0a35a" title="Miel"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="arcilla" style="background:#ad5230;color:#ad5230" title="Arcilla"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="terracota" style="background:#c25e3a;color:#c25e3a" title="Terracota"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="miel" style="background:#b58236;color:#b58236" title="Miel"></button>
                     <button type="button" class="settings-accent-dot" data-accent="marea" style="background:#3d6e85;color:#3d6e85" title="Marea"></button>
-                    <button type="button" class="settings-accent-dot" data-accent="vino" style="background:#9c4628;color:#9c4628" title="Vino"></button>
+                    <button type="button" class="settings-accent-dot" data-accent="vino" style="background:#96323a;color:#96323a" title="Vino"></button>
                   </div>
                 </div>
                 <div class="settings-row">

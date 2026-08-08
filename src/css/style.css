@@ -69,6 +69,15 @@
   --c-danger:  #e07a6a;
   --c-info:    #73b6d2;
 
+  /* Vencido — rojo de estado, distinto de --c-danger (que significa
+     "acción destructiva"). Lo usan Hoy, las píldoras de fecha y el swipe.
+     El canal RGB va aparte porque este mismo rojo se pinta con nueve
+     alfas distintas; con un solo token hexadecimal harían falta nueve.
+     OJO: el tinte es el rojo CLARO en ambos temas, no el de cada modo.
+     Es como estaba antes de tokenizar y se conserva a propósito. */
+  --c-overdue:     #e89a90;
+  --c-overdue-rgb: 176, 71, 63;
+
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --row-hover: rgba(255, 238, 214, 0.055);  /* hover de fila */
   --kbd-bg:    rgba(255, 245, 230, 0.07);
@@ -317,6 +326,10 @@
   --c-danger:  #b0524a;
   --c-info:    #3d6e85;
 
+  /* Vencido — en claro el rojo baja de tono para leer sobre papel.
+     El canal RGB no cambia: el tinte ya era este en ambos temas. */
+  --c-overdue: #b0473f;
+
   /* Interacción */
   --row-hover: #efe6d4;
   --kbd-bg:    #e7dfcf;
@@ -375,6 +388,8 @@
   --c-warning: #e0a35a;
   --c-danger:  #e07a6a;
   --c-info:    #73b6d2;
+  /* Vuelve al rojo oscuro: aquí el fondo es oscuro aunque el tema sea claro. */
+  --c-overdue: #e89a90;
 
   /* Los aliases legacy (--t-*, --b-*, --bg-*) se computan en :root con
      los valores light globales y se heredan ya resueltos; hay que
@@ -400,20 +415,24 @@
    marca; superficies, texto y semánticos no cambian. La sidebar (y el
    panel de detalle) son siempre oscuros incluso en tema claro, así que
    necesitan su propio matiz — igual que ya hacía oliva antes de esto. */
-:root[data-accent="terracota"] {
-  --c-primary-300: #e0a382;
-  --c-primary-400: #d17f52;
-  --c-primary-500: #c0673a;
-  --c-primary-600: #a3532c;
-  --accent-tint:        rgba(192, 103, 58, 0.15);
-  --grad-primary:       linear-gradient(135deg, #d17f52 0%, #7a3d1e 100%);
-  --task-hover:         rgba(192, 103, 58, 0.10);
-  --task-hover-border:  rgba(192, 103, 58, 0.34);
-  --b-active:           rgba(192, 103, 58, 0.45);
-  --glow-primary:       0 4px 14px rgba(192, 103, 58, 0.30);
-  --ring-primary:       0 0 0 3px rgba(192, 103, 58, 0.22);
+/* Arcilla — el acento por defecto del handoff. Antes no existía como tal:
+   `terracota` llevaba el hex de arcilla (#ad5230) en claro, así que los dos
+   habrían salido idénticos. Arcilla recupera su valor y terracota baja al
+   suyo (#c25e3a), que es el que themes.jsx le asigna desde el principio. */
+:root[data-accent="arcilla"] {
+  --c-primary-300: #eeae8a;
+  --c-primary-400: #e69b71;
+  --c-primary-500: #e08a5a;
+  --c-primary-600: #c9713f;
+  --accent-tint:        rgba(224, 138, 90, 0.15);
+  --grad-primary:       linear-gradient(135deg, #c0673a 0%, #9c4426 100%);
+  --task-hover:         rgba(224, 138, 90, 0.10);
+  --task-hover-border:  rgba(224, 138, 90, 0.34);
+  --b-active:           rgba(224, 138, 90, 0.45);
+  --glow-primary:       0 4px 14px rgba(224, 138, 90, 0.30);
+  --ring-primary:       0 0 0 3px rgba(224, 138, 90, 0.22);
 }
-:root[data-theme="light"][data-accent="terracota"] {
+:root[data-theme="light"][data-accent="arcilla"] {
   --c-primary-300: #c0673a;
   --c-primary-400: #ad5230;
   --c-primary-500: #ad5230;
@@ -425,11 +444,43 @@
   --glow-primary:       0 4px 14px rgba(173, 82, 48, 0.28);
   --ring-primary:       0 0 0 3px rgba(173, 82, 48, 0.20);
 }
-:root[data-theme="light"][data-accent="terracota"] .sidebar,
-:root[data-theme="light"][data-accent="terracota"] .task-detail-wrap {
+:root[data-theme="light"][data-accent="arcilla"] .sidebar,
+:root[data-theme="light"][data-accent="arcilla"] .task-detail-wrap {
   --c-primary-400: #c0673a;
   --c-primary-500: #c0673a;
   --accent-tint:   rgba(192, 103, 58, 0.20);
+}
+
+:root[data-accent="terracota"] {
+  --c-primary-300: #f2b795;
+  --c-primary-400: #eda57f;
+  --c-primary-500: #e8956a;
+  --c-primary-600: #d17c4e;
+  --accent-tint:        rgba(232, 149, 106, 0.15);
+  --grad-primary:       linear-gradient(135deg, #d4703f 0%, #bf4f2c 100%);
+  --task-hover:         rgba(232, 149, 106, 0.10);
+  --task-hover-border:  rgba(232, 149, 106, 0.34);
+  --b-active:           rgba(232, 149, 106, 0.45);
+  --glow-primary:       0 4px 14px rgba(232, 149, 106, 0.30);
+  --ring-primary:       0 0 0 3px rgba(232, 149, 106, 0.22);
+}
+:root[data-theme="light"][data-accent="terracota"] {
+  --c-primary-300: #d4703f;
+  --c-primary-400: #c25e3a;
+  --c-primary-500: #c25e3a;
+  --c-primary-600: #9c4426;
+  --accent-tint:        rgba(194, 94, 58, 0.14);
+  --task-hover:         rgba(194, 94, 58, 0.10);
+  --task-hover-border:  rgba(194, 94, 58, 0.36);
+  --b-active:           rgba(194, 94, 58, 0.45);
+  --glow-primary:       0 4px 14px rgba(194, 94, 58, 0.28);
+  --ring-primary:       0 0 0 3px rgba(194, 94, 58, 0.20);
+}
+:root[data-theme="light"][data-accent="terracota"] .sidebar,
+:root[data-theme="light"][data-accent="terracota"] .task-detail-wrap {
+  --c-primary-400: #d4703f;
+  --c-primary-500: #d4703f;
+  --accent-tint:   rgba(212, 112, 63, 0.20);
 }
 
 :root[data-accent="miel"] {
@@ -2717,6 +2768,9 @@ button:focus-visible {
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease-out);
+  /* Por encima de .task-swipe-content (z-index 3), que desde que es una caja
+     real lleva fondo propio y si no la taparía en multi-selección. */
+  z-index: 4;
 }
 
 /* Mismo hover que la vista Hoy (.today-item): realce, sombra proyectada
@@ -3694,7 +3748,7 @@ display: inline-flex;
 .due-future,
 .due-soon  { color: var(--text-secondary); }
 .due-today { background: var(--accent-tint); color: var(--c-primary-300); }
-.due-overdue { background: rgba(176, 71, 63, 0.13); color: #e89a90; }
+.due-overdue { background: rgba(var(--c-overdue-rgb), 0.13); color: var(--c-overdue); }
 
 .due-badge--action {
   cursor: pointer;
@@ -3719,7 +3773,6 @@ display: inline-flex;
 }
 
 :root[data-theme="light"] .due-today { color: var(--c-primary-600); }
-:root[data-theme="light"] .due-overdue { color: #b0473f; }
 
 /* ─── LIST TAG (v1: LabelTag) ────────────────────────────────────
    Solo en filas cuya lista no se deduce del contexto (Inbox plano o
@@ -3883,8 +3936,8 @@ body.project-dragging .project-item { cursor: grabbing; }
 /* Paleta cálida de v1 sobre papel: alta #9a3a33, media #8a5e1a, baja #566030. */
 :root[data-theme="light"] .priority-badge-high {
   color: #9a3a33;
-  background: rgba(176, 71, 63, 0.13);
-  box-shadow: inset 0 0 0 1px rgba(176, 71, 63, 0.30);
+  background: rgba(var(--c-overdue-rgb), 0.13);
+  box-shadow: inset 0 0 0 1px rgba(var(--c-overdue-rgb), 0.30);
 }
 
 :root[data-theme="light"] .priority-badge-medium {
@@ -3936,6 +3989,17 @@ body.project-dragging .project-item { cursor: grabbing; }
     flex-direction: row;
     overflow: hidden;
     position: relative;
+  }
+
+  /* Lienzo del handoff móvil: #f4efe3, no el --surface-canvas de escritorio.
+     En escritorio el panel central va HUNDIDO respecto a las tarjetas y por
+     eso el token vale #e8dfcd. En móvil no hay panel hundido —la pantalla es
+     el lienzo—, así que recupera el `canvas` real del tema tierra.
+     Se toca .main-panel y no el token porque .field-popover y .settings-seg
+     también leen --surface-canvas, y esos se apoyan SOBRE el lienzo: igualarlos
+     los borraría. En oscuro no aplica, ahí el canvas ya es el de pantalla. */
+  :root[data-theme="light"] .main-panel {
+    background: #f4efe3;
   }
 
   /* Sidebar: drawer fullscreen-height fixed para cubrir bottom nav
@@ -4399,7 +4463,9 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   .task-item {
     margin-bottom: var(--sp-2);
-    padding: var(--sp-3) var(--sp-3);
+    /* 13/15 del handoff móvil. Literales a propósito: la escala de espaciado
+       salta de 12 (--sp-3) a 16 (--sp-4) y ninguno de los dos es el valor. */
+    padding: 13px 15px;
     border-radius: var(--r-md);
   }
 
@@ -5135,39 +5201,70 @@ mark.search-hl {
 }
 
 /* ─── SWIPE GESTURES (mobile) ───────────────────────────────── */
+/* Caja real, no `display: contents`. Antes era contents "para no romper el
+   grid de .task-item", pero ese grid es de UNA columna y este div tiene UN
+   solo hijo, así que el layout sale idéntico — y contents no generaba caja,
+   con lo que el translateX del gesto se ignoraba y la fila nunca se movía.
+   El margen negativo cancela el padding de .task-item para que la fila cubra
+   también esa franja: si no, al desplazarse asomaría una banda de color por
+   arriba y por abajo. Se hace con margen y no moviendo el padding al hijo
+   para que la fila siga bien si el div no existe (p. ej. al pasar de
+   escritorio a móvil redimensionando, sin re-render). */
 .task-swipe-content {
-  display: contents;
-  /* transparente al grid de .task-item */
+  display: block;
+  position: relative;
+  z-index: 3;
+  background-color: inherit;
+  margin: -13px -15px;
+  padding: 13px 15px;
 }
 
-.task-swipe-hint {
+/* Paneles de acción del swipe. A sangre sobre toda la fila, con icono y
+   etiqueta, como el handoff móvil v1 — antes era un icono suelto flotando.
+   NOTA: hoy el panel se descubre por opacidad y no porque la fila se aparte.
+   .task-swipe-content es `display: contents` (para no romper el grid de
+   .task-item), no genera caja y por tanto ignora el translateX que le pone
+   el JS. Arreglarlo pide mover fondo y padding a un hijo real; queda para
+   su propia fase, y hasta entonces el gesto se lee por el color del panel. */
+.task-swipe-act {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  inset: 0;
   display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 22px;
   opacity: 0;
   pointer-events: none;
   z-index: 2;
-  transition: opacity 0.14s ease;
+  transition: opacity 0.14s ease, filter 0.12s ease;
   line-height: 1;
+  font-size: 14.5px;
+  font-weight: var(--fw-bold);
 }
-.task-swipe-hint .lucide { width: 18px; height: 18px; }
+.task-swipe-act .lucide { width: 21px; height: 21px; stroke-width: 2.3; }
+.task-swipe-act-label { white-space: nowrap; }
 
-/* Swipe derecha → revela el hint a la izquierda: eliminar. */
-.task-swipe-hint-right.task-swipe-hint-delete {
-  left: 0.85rem;
-  color: var(--c-pink);
+/* Deslizar a la DERECHA descubre este panel, pegado a la izquierda. */
+.task-swipe-act-today {
+  justify-content: flex-start;
+  background: var(--c-primary-500);
+  color: var(--accent-on);
 }
 
-/* Swipe izquierda → revela el hint a la derecha: mover a hoy. */
-.task-swipe-hint-left.task-swipe-hint-today {
-  right: 0.85rem;
-  color: var(--c-primary-400);
+/* Deslizar a la IZQUIERDA descubre este otro, pegado a la derecha.
+   Rojo plano en ambos temas (#b0473f del handoff), no --c-overdue: ese token
+   es color de TEXTO y en oscuro es un rosa claro, ilegible como fondo. */
+.task-swipe-act-delete {
+  justify-content: flex-end;
+  background: rgb(var(--c-overdue-rgb));
+  color: #fff;
 }
-.task-swipe-hint-left.task-swipe-hint-disabled {
-  color: var(--text-tertiary);
-  opacity: 0 !important;
-}
+
+/* Pasado el umbral la acción está armada: un realce corto lo confirma. */
+.task-swipe-act-armed { filter: brightness(1.12); }
+
+/* Sin acción en ese lado (ya vence hoy, o está hecha): no se pinta. */
+.task-swipe-act-disabled { opacity: 0 !important; }
 
 /* ─── MULTI-SELECT ───────────────────────────────────────────── */
 .task-select-cb {
@@ -7794,11 +7891,10 @@ button {
 }
 .today-move-btn .lucide { width: 13px; height: 13px; stroke-width: 2.2; }
 .today-move-btn--overdue {
-  border: 1px solid rgba(176, 71, 63, 0.40);
-  background: rgba(176, 71, 63, 0.10);
-  color: #e08a80;
+  border: 1px solid rgba(var(--c-overdue-rgb), 0.40);
+  background: rgba(var(--c-overdue-rgb), 0.10);
+  color: var(--c-overdue);
 }
-:root[data-theme="light"] .today-move-btn--overdue { color: #b0473f; }
 .today-move-btn--nodate {
   border: 1px solid var(--c-primary-500);
   background: var(--accent-tint);
@@ -7828,8 +7924,8 @@ button {
    hit-testing la píldora no captura el clic ni muestra su tooltip — el
    clic cae en la fila, que lleva a la tarea. */
 .today-date-pill--overdue {
-  background: rgba(176, 71, 63, 0.13);
-  color: #e89a90;
+  background: rgba(var(--c-overdue-rgb), 0.13);
+  color: var(--c-overdue);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -7837,7 +7933,6 @@ button {
   transition: background var(--dur-fast) var(--ease-out);
 }
 .today-date-pill--overdue .lucide { display: none; }
-:root[data-theme="light"] .today-date-pill--overdue { color: #b0473f; }
 
 /* Móvil: aquí no hay hover, así que el botón de fila está oculto y la
    píldora recupera el papel de atajo (con su flecha como pista). */
@@ -7853,7 +7948,7 @@ button {
     stroke-width: 2.4;
   }
   .today-date-pill--overdue:hover,
-  .today-date-pill--overdue:active { background: rgba(176, 71, 63, 0.22); }
+  .today-date-pill--overdue:active { background: rgba(var(--c-overdue-rgb), 0.22); }
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
@@ -7892,14 +7987,12 @@ button {
   height: 1px;
   background: linear-gradient(90deg, var(--border-default), transparent);
 }
-.hoy-section--overdue .hoy-section-dot   { background: #d9756c; }
-.hoy-section--overdue .hoy-section-title { color: #e08a80; }
+.hoy-section--overdue .hoy-section-dot   { background: var(--c-overdue); }
+.hoy-section--overdue .hoy-section-title { color: var(--c-overdue); }
 .hoy-section--today .hoy-section-dot     { background: var(--c-primary-500); }
 .hoy-section--today .hoy-section-title   { color: var(--c-primary-300); }
 .hoy-section--nodate .hoy-section-dot    { background: #8fae74; }
 .hoy-section--nodate .hoy-section-title  { color: #a9c48e; }
-:root[data-theme="light"] .hoy-section--overdue .hoy-section-dot   { background: #b0473f; }
-:root[data-theme="light"] .hoy-section--overdue .hoy-section-title { color: #b0473f; }
 :root[data-theme="light"] .hoy-section--today .hoy-section-title   { color: var(--c-primary-600); }
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-dot    { background: #4a7644; }
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-title  { color: #4a7644; }
@@ -7928,15 +8021,14 @@ button {
 }
 .hoy-section-action .lucide { width: 14px; height: 14px; stroke-width: 2.2; }
 .hoy-section--overdue .hoy-section-action {
-  border: 1px solid rgba(176, 71, 63, 0.32);
-  background: rgba(176, 71, 63, 0.09);
-  color: #e08a80;
+  border: 1px solid rgba(var(--c-overdue-rgb), 0.32);
+  background: rgba(var(--c-overdue-rgb), 0.09);
+  color: var(--c-overdue);
 }
 .hoy-section--overdue .hoy-section-action:hover {
-  background: rgba(176, 71, 63, 0.17);
-  border-color: rgba(176, 71, 63, 0.52);
+  background: rgba(var(--c-overdue-rgb), 0.17);
+  border-color: rgba(var(--c-overdue-rgb), 0.52);
 }
-:root[data-theme="light"] .hoy-section--overdue .hoy-section-action { color: #b0473f; }
 .hoy-section--nodate .hoy-section-action {
   border: 1px solid rgba(143, 174, 116, 0.40);
   background: rgba(143, 174, 116, 0.10);
@@ -8079,12 +8171,11 @@ button {
   font-variant-numeric: tabular-nums;
 }
 .hoy-stats strong { color: var(--text-primary); font-weight: var(--fw-bold); }
-.hoy-stats-overdue { color: #e08a80; font-weight: 650; }
-:root[data-theme="light"] .hoy-stats-overdue { color: #b0473f; }
+.hoy-stats-overdue { color: var(--c-overdue); font-weight: 650; }
 .hoy-ring {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
 }
 .hoy-ring svg { transform: rotate(-90deg); display: block; }
@@ -8100,7 +8191,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: var(--fw-bold);
   line-height: 1;
   color: var(--text-primary);

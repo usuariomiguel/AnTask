@@ -3365,7 +3365,10 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     host.insertBefore(el, host.firstChild);
   }
   var pct = total > 0 ? Math.round((done / total) * 100) : 100;
-  var R = 17, C = 2 * Math.PI * R;
+  // Anillo de 44 con r=18 (handoff móvil v1). A 42/17 el «100%» centrado
+  // llegaba a rozar el trazo; dos píxeles más de diámetro le dan sitio sin
+  // engordar el stroke.
+  var SZ = 44, R = 18, C = 2 * Math.PI * R;
   var offset = C * (1 - pct / 100);
   var overdueTxt = overdueN > 0
     ? ' <span class="hoy-stats-overdue">· ' + overdueN + " " +
@@ -3379,9 +3382,9 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
       overdueTxt +
     "</span>" +
     '<span class="hoy-ring" title="' + t("hoy.ring_title") + '">' +
-      '<svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">' +
-        '<circle cx="21" cy="21" r="17" fill="none" class="hoy-ring-track" stroke-width="4.5"></circle>' +
-        '<circle cx="21" cy="21" r="17" fill="none" class="hoy-ring-bar" stroke-width="4.5" stroke-linecap="round" ' +
+      '<svg width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '" aria-hidden="true">' +
+        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="4.5"></circle>' +
+        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-bar" stroke-width="4.5" stroke-linecap="round" ' +
           'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '"></circle>' +
       "</svg>" +
       '<span class="hoy-ring-pct">' + pct + "%</span>" +
@@ -3682,14 +3685,33 @@ function _showRecurToast(days, nextDate) {
 // SWIPE GESTURES (mobile)
 // ═══════════════════════════════════════════════════════════════
 
+/* La clave va literal dentro de cada función y NO en una `var` de módulo a
+   propósito: el primer render se dispara mientras el módulo aún se está
+   evaluando, así que una var de nivel superior todavía valdría `undefined` y
+   acabaríamos escribiendo en la clave "undefined" —con lo que el tutorial se
+   repetiría siempre—. Ver la deuda conocida del arranque. */
+
+/** ¿Toca enseñar el tutorial del deslizamiento? Una vez por dispositivo, y
+ *  nunca si el usuario ha pedido menos movimiento. */
+function _shouldHintSwipe() {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  try { return !localStorage.getItem("antask_swipe_hinted"); } catch (_) { return false; }
+}
+
+/** Marca el tutorial como visto. */
+function _markSwipeHinted() {
+  try { localStorage.setItem("antask_swipe_hinted", "1"); } catch (_) {}
+}
+
 function initSwipeGesture(node, task, project) {
   var THRESHOLD   = 80;   // px needed to trigger action
   var MAX_OVER    = 140;  // max visual translation
   var startX = 0, startY = 0, currentX = 0;
   var tracking = false, axisLocked = false, isHorizontal = false;
 
-  // Como en el prototipo v1: swipe derecha → eliminar, swipe izquierda →
-  // mover a hoy (deshabilitado si ya está hecha o ya vence hoy).
+  // Handoff móvil v1: derecha → mover a hoy, izquierda → eliminar. Antes
+  // estaba al revés, con el gesto destructivo en la dirección constructiva.
+  // "Mover a hoy" se deshabilita si ya está hecha o si ya vence hoy.
   var canMoveToday = !task.done && task.dueDate !== _localDateISO(new Date());
 
   var content = document.createElement("div");
@@ -3697,17 +3719,36 @@ function initSwipeGesture(node, task, project) {
   while (node.firstChild) content.appendChild(node.firstChild);
   node.appendChild(content);
 
-  var hintRight = document.createElement("div");
-  hintRight.className = "task-swipe-hint task-swipe-hint-right task-swipe-hint-delete";
-  hintRight.innerHTML = '<i data-lucide="trash-2"></i>';
-  node.appendChild(hintRight);
+  // Deslizar a la DERECHA descubre el panel pegado a la izquierda.
+  var actToday = document.createElement("div");
+  actToday.className = "task-swipe-act task-swipe-act-today" + (canMoveToday ? "" : " task-swipe-act-disabled");
+  actToday.innerHTML = '<i data-lucide="sun"></i><span class="task-swipe-act-label">' + t("date.today") + "</span>";
+  node.appendChild(actToday);
 
-  var hintLeft = document.createElement("div");
-  hintLeft.className = "task-swipe-hint task-swipe-hint-left task-swipe-hint-today" + (canMoveToday ? "" : " task-swipe-hint-disabled");
-  hintLeft.innerHTML = '<i data-lucide="sun"></i>';
-  node.appendChild(hintLeft);
+  // Deslizar a la IZQUIERDA descubre el panel pegado a la derecha.
+  var actDelete = document.createElement("div");
+  actDelete.className = "task-swipe-act task-swipe-act-delete";
+  actDelete.innerHTML = '<span class="task-swipe-act-label">' + t("action.delete") + '</span><i data-lucide="trash-2"></i>';
+  node.appendChild(actDelete);
 
-  if (window.lucide) window.lucide.createIcons({ nodes: [hintRight, hintLeft] });
+  if (window.lucide) window.lucide.createIcons({ nodes: [actToday, actDelete] });
+
+  // Tutorial de una sola vez (handoff móvil v1): la primera fila se aparta
+  // 54px y vuelve, para que se vea que las filas se deslizan. La bandera se
+  // escribe AL EMPEZAR, no al terminar: si se guardase al final, un re-render
+  // dentro de esos 2s volvería a lanzarlo.
+  if (canMoveToday && !node.previousElementSibling && _shouldHintSwipe()) {
+    _markSwipeHinted();
+    setTimeout(function() {
+      content.style.transition = "transform 0.45s cubic-bezier(0.22,1,0.36,1)";
+      content.style.transform  = "translateX(54px)";
+      actToday.style.opacity   = 0.85;
+      setTimeout(function() {
+        content.style.transform = "translateX(0)";
+        actToday.style.opacity  = 0;
+      }, 700);
+    }, 900);
+  }
 
   node.addEventListener("touchstart", function(e) {
     if (e.touches.length !== 1) return;
@@ -3737,9 +3778,9 @@ function initSwipeGesture(node, task, project) {
     if (!isHorizontal) return;
     e.preventDefault();
 
-    // Sin acción configurada en ese lado (izquierda deshabilitada) → goma
-    // blanda, como en el prototipo v1, en vez del recorrido completo.
-    if (dx < 0 && !canMoveToday) dx *= 0.35;
+    // Sin acción configurada en ese lado (derecha deshabilitada cuando no se
+    // puede mover a hoy) → goma blanda en vez del recorrido completo.
+    if (dx > 0 && !canMoveToday) dx *= 0.35;
 
     // Resist past threshold
     if (Math.abs(dx) > THRESHOLD) {
@@ -3752,18 +3793,22 @@ function initSwipeGesture(node, task, project) {
 
     content.style.transform = "translateX(" + dx + "px)";
 
-    // Fade hints based on direction and progress
+    // El panel del lado que se está descubriendo entra según el progreso.
     var pct = Math.min(Math.abs(dx) / THRESHOLD, 1);
     if (dx > 0) {
-      hintRight.style.opacity = pct;
-      hintLeft.style.opacity  = 0;
+      actToday.style.opacity  = canMoveToday ? pct : 0;
+      actDelete.style.opacity = 0;
     } else if (dx < 0) {
-      hintLeft.style.opacity  = pct;
-      hintRight.style.opacity = 0;
+      actDelete.style.opacity = pct;
+      actToday.style.opacity  = 0;
     } else {
-      hintRight.style.opacity = 0;
-      hintLeft.style.opacity  = 0;
+      actToday.style.opacity  = 0;
+      actDelete.style.opacity = 0;
     }
+    // Al llegar al umbral el panel se "arma": lo marcamos para que el CSS
+    // pueda dar el realce sin que el JS tenga que conocer los colores.
+    actToday.classList.toggle("task-swipe-act-armed", dx >= THRESHOLD && canMoveToday);
+    actDelete.classList.toggle("task-swipe-act-armed", dx <= -THRESHOLD);
   }, { passive: false });
 
   node.addEventListener("touchend", function() {
@@ -3772,27 +3817,29 @@ function initSwipeGesture(node, task, project) {
 
     var dx = currentX;
     content.style.transition = "transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)";
-    hintRight.style.transition = "opacity 0.18s";
-    hintLeft.style.transition  = "opacity 0.18s";
+    actToday.style.transition  = "opacity 0.18s";
+    actDelete.style.transition = "opacity 0.18s";
 
-    if (dx >= THRESHOLD) {
-      // Swipe derecha → eliminar
+    if (dx >= THRESHOLD && canMoveToday) {
+      // Swipe derecha → mover a hoy
       content.style.transform = "translateX(110%)";
-      setTimeout(function() {
-        deleteTaskWithUndo(task, project);
-      }, 200);
-    } else if (dx <= -THRESHOLD && canMoveToday) {
-      // Swipe izquierda → mover a hoy
-      content.style.transform = "translateX(-110%)";
       setTimeout(function() {
         task.dueDate = _localDateISO(new Date());
         saveAndRender();
       }, 200);
+    } else if (dx <= -THRESHOLD) {
+      // Swipe izquierda → eliminar
+      content.style.transform = "translateX(-110%)";
+      setTimeout(function() {
+        deleteTaskWithUndo(task, project);
+      }, 200);
     } else {
       // Snap back
       content.style.transform = "translateX(0)";
-      hintRight.style.opacity = 0;
-      hintLeft.style.opacity  = 0;
+      actToday.style.opacity  = 0;
+      actDelete.style.opacity = 0;
+      actToday.classList.remove("task-swipe-act-armed");
+      actDelete.classList.remove("task-swipe-act-armed");
     }
   });
 
@@ -3801,8 +3848,10 @@ function initSwipeGesture(node, task, project) {
     tracking = false;
     content.style.transition = "transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)";
     content.style.transform  = "translateX(0)";
-    hintRight.style.opacity  = 0;
-    hintLeft.style.opacity   = 0;
+    actToday.style.opacity   = 0;
+    actDelete.style.opacity  = 0;
+    actToday.classList.remove("task-swipe-act-armed");
+    actDelete.classList.remove("task-swipe-act-armed");
   });
 }
 
