@@ -2212,7 +2212,6 @@ function renderTasks() {
       sec.className = "hoy-section inbox-group-block";
       const head = document.createElement("div");
       head.className = "inbox-group-head";
-      head.appendChild(_blockToggleBtn("grupo:" + g.project.id, sec));
       head.insertAdjacentHTML("beforeend",
         '<span class="inbox-group-dot"></span>' +
         '<span class="inbox-group-name"></span>' +
@@ -2224,10 +2223,10 @@ function renderTasks() {
       head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
       if (!isNone) {
         head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
-        head.style.cursor = "pointer";
-        head.title = t("today.go_to_project") + " " + g.project.name;
-        head.addEventListener("click", function() { activateProject(g.project.id); });
       }
+      // Plegar es lo único que hace la cabecera. Entrar en la lista se hace
+      // desde los chips.
+      _makeBlockFoldable("grupo:" + g.project.id, sec, head);
       const ul = document.createElement("ul");
       ul.className = "inbox-group-list";
       g.items.forEach(function(it) {
@@ -3357,27 +3356,42 @@ function _setBlockCollapsed(id, collapsed) {
  * @param {string} blockId  id estable para recordar el estado
  * @param {HTMLElement} sec bloque al que aplicar la clase
  */
-function _blockToggleBtn(blockId, sec) {
-  var btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "block-toggle";
-  btn.innerHTML = '<i data-lucide="chevron-right"></i>';
-  btn.setAttribute("aria-label", t("block.toggle"));
+/**
+ * Hace plegable un bloque desde su propia cabecera. Antes esto era una flecha
+ * aparte; ahora el objetivo es la cabecera entera, que es un blanco mucho
+ * mayor —importa en móvil— y evita tener dos acciones distintas conviviendo
+ * en la misma fila.
+ *
+ * En el Inbox, la cabecera de grupo ANTES navegaba a la lista. Ya no: para
+ * eso están los chips, y una cabecera con dos comportamientos según dónde
+ * pulses era justo la ambigüedad que se quería quitar.
+ */
+function _makeBlockFoldable(blockId, sec, head) {
+  head.classList.add("block-foldable");
+  head.setAttribute("role", "button");
+  head.setAttribute("tabindex", "0");
 
   function pintar(collapsed) {
     sec.classList.toggle("hoy-section--collapsed", collapsed);
-    btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    head.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
   pintar(_isBlockCollapsed(blockId));
 
-  btn.addEventListener("click", function(e) {
-    // La cabecera del Inbox navega al proyecto: que el clic no suba.
-    e.stopPropagation();
+  function alternar() {
     var ahora = !sec.classList.contains("hoy-section--collapsed");
     _setBlockCollapsed(blockId, ahora);
     pintar(ahora);
+  }
+
+  head.addEventListener("click", function(e) {
+    // Los botones que viven dentro de la cabecera —«Todas a hoy»— siguen
+    // haciendo lo suyo sin plegar el bloque de paso.
+    if (e.target.closest("button")) return;
+    alternar();
   });
-  return btn;
+  head.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); }
+  });
 }
 
 // ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
@@ -3390,7 +3404,6 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   li.className = "hoy-section hoy-section--" + tone;
   var head = document.createElement("div");
   head.className = "hoy-section-head";
-  head.appendChild(_blockToggleBtn("hoy:" + tone, li));
   head.insertAdjacentHTML("beforeend",
     '<span class="hoy-section-dot"></span>' +
     '<span class="hoy-section-title"></span>' +
@@ -3407,6 +3420,8 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
     btn.addEventListener("click", onAction);
     head.appendChild(btn);
   }
+  // Igual que en el Inbox: la cabecera entera pliega, sin flecha aparte.
+  _makeBlockFoldable("hoy:" + tone, li, head);
   var list = document.createElement("ul");
   list.className = "hoy-section-list";
   li.appendChild(head);

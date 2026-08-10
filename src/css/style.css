@@ -9552,39 +9552,22 @@ button {
 /* ═══════════════════════════════════════════════════════════════
    PLEGAR BLOQUES — secciones de Hoy y grupos del Inbox
 
-   Gesto tomado de las cabeceras de grupo de la barra lateral en v1:
-   chevron que rota 90° al abrirse. No se hace pulsable la fila
-   entera porque en el Inbox esa fila ya navega al proyecto.
+   La cabecera ENTERA pliega y despliega su bloque. Antes era una flecha
+   aparte, y en el Inbox esa misma fila navegaba además al proyecto: dos
+   acciones distintas según dónde pulsaras. Ahora navegar es cosa de los
+   chips y la cabecera solo pliega, con un blanco mucho mayor en móvil.
    ═══════════════════════════════════════════════════════════════ */
-.block-toggle {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  margin-left: -3px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-tertiary);
+.block-foldable {
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
+  user-select: none;
+  border-radius: var(--r-sm);
+  transition: background var(--dur-fast) var(--ease-out);
 }
-.block-toggle .lucide {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2;
-  transition: transform 0.15s var(--ease-out);
+.block-foldable:hover { background: var(--row-hover); }
+.block-foldable:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
-.block-toggle:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
-}
-/* Desplegado = chevron mirando abajo. El icono base apunta a la
-   derecha, que es justamente el estado plegado. */
-.block-toggle[aria-expanded="true"] .lucide { transform: rotate(90deg); }
 
 /* Plegado: se va la lista y el margen inferior de la cabecera, para
    que el bloque quede como una barra compacta. */
@@ -9597,13 +9580,5 @@ button {
    plegado: actuaría sobre tareas que no se están viendo. */
 .hoy-section--collapsed .hoy-section-action { display: none; }
 
-/* Con la zona táctil ampliada de los checkbox en móvil, el chevron
-   necesita la suya para no quedarse en 20px. */
-@media (pointer: coarse) {
-  .block-toggle::before {
-    content: "";
-    position: absolute;
-    inset: -12px;
-  }
-  .block-toggle { position: relative; }
-}
+/* Ya no hay flecha a la que ampliarle la zona táctil: el blanco es la
+   cabecera entera, que de sobra pasa de 44px. */
