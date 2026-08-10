@@ -13,6 +13,7 @@ export const en = {
   "sidebar.add_first_list":   "Add the first list",
   "sidebar.new_group":        "New group",
   "sidebar.list_name":        "List name",
+  "pmenu.lists":              "Lists",
   "sidebar.group_name":       "Group name",
   "sidebar.archived":         "Archived",
   "sidebar.archived_empty":   "Nothing archived",

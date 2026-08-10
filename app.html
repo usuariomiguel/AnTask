@@ -871,11 +871,10 @@
       if (bnavProfile) {
         bnavProfile.addEventListener("click", function() {
           setActiveBnavBtn(bnavProfile);
-          openSidebar();
-          setTimeout(function() {
-            var pb = document.getElementById("profile-btn");
-            if (pb) pb.click();
-          }, 300);
+          // Pantalla «Perfil» propia (handoff móvil v1). Antes esto abría el
+          // drawer y 300 ms después pulsaba por código el botón de perfil de
+          // dentro, confiando en que la animación hubiera acabado.
+          if (typeof window.showProfileMenu === "function") window.showProfileMenu();
         });
       }
 

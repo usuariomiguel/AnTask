@@ -2837,6 +2837,112 @@ button:focus-visible {
 }
 .task-list[data-row-style="lineas"] .task-item:last-child { border-bottom-color: transparent; }
 
+/* ─── PANTALLA «PERFIL» (menú móvil) ────────────────────────────
+   Grupos de filas sobre tarjeta, como el handoff móvil v1. Se apoya en la
+   hoja modal: hereda velo, animación, Escape y safe-area. */
+.modal-sheet--menu { padding-bottom: max(28px, env(safe-area-inset-bottom, 0px)); }
+
+.pmenu-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px 16px;
+}
+.pmenu-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--c-primary-300);
+  font-size: 18px;
+  font-weight: var(--fw-bold);
+}
+:root[data-theme="light"] .pmenu-avatar { color: var(--c-primary-600); }
+.pmenu-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pmenu-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+.pmenu-sub { font-size: var(--fs-sm); color: var(--text-secondary); }
+
+.pmenu-group-label {
+  margin: 4px 10px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* La tarjeta es el grupo, no cada fila: los separadores van entre filas. */
+.pmenu-group {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.pmenu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: var(--fw-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.pmenu-row:last-child { border-bottom: none; }
+.pmenu-row:hover { background: var(--row-hover); }
+
+/* Cuadro de 30px con el icono dentro (handoff). Por defecto es neutro, para
+   las filas de app; las listas traen su color en línea y activan el
+   modificador. El icono NO puede ser blanco en el neutro: en tema claro
+   --surface-raised es un beige y desaparecería. */
+.pmenu-row-ico {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+}
+.pmenu-row-ico--color { color: #fff; }
+.pmenu-row-ico .lucide { width: 16px; height: 16px; stroke-width: 2; }
+
+.pmenu-row-label { flex: 1; min-width: 0; }
+
+.pmenu-row-count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.pmenu-row-chev {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
 /* ─── CHIPS DE LISTAS (solo móvil) ──────────────────────────────
    Navegador lateral entre listas. Oculto por defecto: solo el JS lo muestra,
    y solo dentro de una lista. En escritorio no aparece nunca —la sidebar ya

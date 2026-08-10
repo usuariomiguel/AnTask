@@ -52,7 +52,7 @@ import {
   projectColorFromId as _projectColorFromId,
 } from "./utils/project-color.js";
 import { renderSubtasks } from "./ui/subtasks.js";
-import { sheetPick } from "./ui/sheet.js";
+import { sheetPick, createSheetBase, closeSheet } from "./ui/sheet.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
 import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
 import {
@@ -908,6 +908,92 @@ importFile.addEventListener("change", async function() {
     importFile.value = "";
   }
 });
+
+/**
+ * Pantalla «Perfil» (menú) del handoff móvil v1: grupos de filas sobre
+ * tarjeta, cada una con su cuadro de color, etiqueta, contador y chevron.
+ *
+ * Sustituye a la cadena que había —abrir el drawer y, 300 ms después,
+ * pulsar por código el botón de perfil de dentro—, que dependía de que la
+ * animación hubiera terminado.
+ *
+ * El nombre, el avatar y el estado de cuenta se leen del DOM que
+ * `_updateProfileMenu()` ya mantiene al día, en vez de recalcularlos: así
+ * esta pantalla no duplica nada de la lógica de sesión.
+ */
+function showProfileMenu() {
+  const { overlay, sheet } = createSheetBase();
+  const txt = function(id, fallback) {
+    const el = document.getElementById(id);
+    return el && el.textContent.trim() ? el.textContent.trim() : fallback;
+  };
+  const signedIn = (function() {
+    const u = document.getElementById("pf-sync-user");
+    return !!(u && !u.hidden);
+  })();
+
+  const fila = function(attrs, color, icon, label, count) {
+    return '<button type="button" class="pmenu-row" ' + attrs + ">" +
+      '<span class="pmenu-row-ico' + (color ? " pmenu-row-ico--color" : "") + '"' +
+        (color ? ' style="background:' + escHtml(color) + '"' : "") + ">" +
+        '<i data-lucide="' + icon + '"></i>' +
+      "</span>" +
+      '<span class="pmenu-row-label">' + escHtml(label) + "</span>" +
+      (count != null ? '<span class="pmenu-row-count">' + count + "</span>" : "") +
+      '<i data-lucide="chevron-right" class="pmenu-row-chev"></i>' +
+    "</button>";
+  };
+
+  const lists = projects.filter(function(p) { return p.id !== INBOX_ID; });
+  let html =
+    '<div class="pmenu-head">' +
+      '<span class="pmenu-avatar">' + escHtml(txt("profile-avatar", "A")) + "</span>" +
+      "<span class='pmenu-id'>" +
+        '<span class="pmenu-name">' + escHtml(txt("profile-name", "")) + "</span>" +
+        '<span class="pmenu-sub">' + escHtml(txt("profile-sub", "")) + "</span>" +
+      "</span>" +
+    "</div>";
+
+  if (lists.length) {
+    html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p><div class='pmenu-group'>";
+    lists.forEach(function(p) {
+      const pend = p.tasks.filter(function(x) { return !x.done; }).length;
+      html += fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend);
+    });
+    html += "</div>";
+  }
+
+  html += "<div class='pmenu-group'>" +
+    fila('data-act="settings"', null, "settings", t("profile.settings")) +
+    fila('data-act="shortcuts"', null, "keyboard", t("profile.shortcuts")) +
+    (signedIn
+      ? fila('data-act="signout"', null, "log-out", t("profile.signout"))
+      : fila('data-act="signin"', null, "log-in", t("profile.signin"))) +
+  "</div>";
+
+  sheet.insertAdjacentHTML("beforeend", html);
+  sheet.classList.add("modal-sheet--menu");
+  if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
+
+  sheet.addEventListener("click", function(e) {
+    const btn = e.target.closest("[data-goto],[data-act]");
+    if (!btn) return;
+    closeSheet(overlay);
+    if (btn.dataset.goto) { activateProject(btn.dataset.goto); return; }
+    switch (btn.dataset.act) {
+      case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
+      case "shortcuts": if (window.showShortcutsHelp) window.showShortcutsHelp(); break;
+      // Sesión: se delega en los botones que ya existen para no duplicar la
+      // lógica de Firebase. Viven en el drawer, así que cuando el drawer se
+      // retire (6c) hay que reengancharlos a su función directamente.
+      case "signin":    { const b = document.getElementById("pf-signin-btn");  if (b) b.click(); break; }
+      case "signout":   { const b = document.getElementById("pf-signout-btn"); if (b) b.click(); break; }
+    }
+  });
+
+  overlay._cancel = function() { closeSheet(overlay); };
+}
+window.showProfileMenu = showProfileMenu;
 
 /**
  * Chips de listas — igual que el prototipo v1: siempre presentes, con «Todas»
