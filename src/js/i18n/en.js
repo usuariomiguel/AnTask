@@ -117,6 +117,7 @@ export const en = {
 
   // ── Accessibility ─────────────────────────────────────────
   "a11y.mobile_settings":     "Settings",
+  "a11y.list_chips":         "Switch list",
   "a11y.mobile_projects":     "Projects",
 
   // ── Today (view) ──────────────────────────────────────────
@@ -149,6 +150,11 @@ export const en = {
   "filter.all":               "All",
   "filter.pending":           "Pending",
   "filter.done":              "Done",
+  "filter.overdue":           "Overdue",
+  "filter.today":             "Today",
+  "filter.nodate":            "No date",
+  "filter.high":              "High priority",
+  "filter.note":              "With note",
   "sort.priority":            "Priority",
   "sort.due":                 "Date",
   "sort.az":                  "A–Z",
@@ -394,6 +400,8 @@ export const en = {
   "nav.tasks":                "List",
   "nav.calendar_short":       "Month",
   "filter.section_show":      "Show",
+  "filter.section_when":      "When",
+  "filter.section_attrs":     "Attributes",
   "filter.section_sort":      "Sort",
   "sort.manual":              "Manual",
   "sort.due_short":           "Due date",

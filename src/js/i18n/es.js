@@ -117,6 +117,7 @@ export const es = {
 
   // ── Accesibilidad ─────────────────────────────────────────
   "a11y.mobile_settings":     "Ajustes",
+  "a11y.list_chips":         "Cambiar de lista",
   "a11y.mobile_projects":     "Proyectos",
 
   // ── Hoy (vista) ───────────────────────────────────────────
@@ -149,6 +150,11 @@ export const es = {
   "filter.all":               "Todas",
   "filter.pending":           "Pendientes",
   "filter.done":              "Hechas",
+  "filter.overdue":           "Vencidas",
+  "filter.today":             "Hoy",
+  "filter.nodate":            "Sin fecha",
+  "filter.high":              "Alta prioridad",
+  "filter.note":              "Con nota",
   "sort.priority":            "Prioridad",
   "sort.due":                 "Fecha",
   "sort.az":                  "A–Z",
@@ -395,6 +401,8 @@ export const es = {
   "nav.tasks":                "Lista",
   "nav.calendar_short":       "Mes",
   "filter.section_show":      "Mostrar",
+  "filter.section_when":      "Cuándo",
+  "filter.section_attrs":     "Atributos",
   "filter.section_sort":      "Ordenar",
   "sort.manual":              "Manual",
   "sort.due_short":           "Fecha límite",

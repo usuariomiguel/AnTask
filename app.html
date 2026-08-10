@@ -535,6 +535,33 @@
                 </div>
                 <div class="filter-panel-sep"></div>
                 <div class="filter-panel-section">
+                  <span class="filter-panel-label" data-i18n="filter.section_when">Cuándo</span>
+                  <div class="filter-panel-opts">
+                    <button type="button" class="filter-opt" data-filter="overdue" role="menuitemradio">
+                      <i data-lucide="triangle-alert"></i><span data-i18n="filter.overdue">Vencidas</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-filter="today" role="menuitemradio">
+                      <i data-lucide="sun"></i><span data-i18n="filter.today">Hoy</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-filter="nodate" role="menuitemradio">
+                      <i data-lucide="calendar"></i><span data-i18n="filter.nodate">Sin fecha</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="filter-panel-sep"></div>
+                <div class="filter-panel-section">
+                  <span class="filter-panel-label" data-i18n="filter.section_attrs">Atributos</span>
+                  <div class="filter-panel-opts">
+                    <button type="button" class="filter-opt" data-filter="high" role="menuitemradio">
+                      <i data-lucide="flag"></i><span data-i18n="filter.high">Alta prioridad</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                    <button type="button" class="filter-opt" data-filter="note" role="menuitemradio">
+                      <i data-lucide="file-text"></i><span data-i18n="filter.note">Con nota</span><i data-lucide="check" class="filter-opt-check"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="filter-panel-sep"></div>
+                <div class="filter-panel-section">
                   <span class="filter-panel-label" data-i18n="filter.section_sort">Ordenar</span>
                   <div class="filter-panel-opts">
                     <button type="button" class="filter-opt filter-opt--active" data-sort="manual" role="menuitemradio">
@@ -562,6 +589,11 @@
             <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="bulk.delete">Eliminar</span></button>
             <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn" data-i18n="bulk.cancel">Cancelar</button>
           </div>
+          <!-- Chips de listas (solo móvil, y solo dentro de una lista): saltar
+               a otra lista o volver a todas sin pasar por el drawer. En el
+               Inbox no salen, porque ahí las tareas ya van agrupadas por
+               proyecto y sería el mismo mecanismo dos veces. -->
+          <nav class="list-chips" id="list-chips" hidden aria-label="Cambiar de lista" data-i18n-aria="a11y.list_chips"></nav>
           <!-- El scroll vive en el contenedor a todo el ancho (scrollbar al
                borde del panel, como v1); la lista va centrada a 932px dentro. -->
           <div class="task-list-scroll">

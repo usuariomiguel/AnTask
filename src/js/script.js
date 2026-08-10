@@ -909,6 +909,61 @@ importFile.addEventListener("change", async function() {
   }
 });
 
+/**
+ * Chips de listas: dentro de una lista, ofrece saltar a las OTRAS listas o
+ * volver a todas, sin abrir el drawer.
+ *
+ * No salen en el Inbox: ahí las tareas ya se agrupan por proyecto con
+ * cabeceras, así que unos chips de filtro serían el mismo mecanismo repetido
+ * ocupando una franja fija. Tampoco en escritorio, donde la sidebar está
+ * siempre visible y hace este trabajo mejor.
+ *
+ * La lista actual se omite a propósito: la cabecera ya dice dónde estás, y
+ * así los chips son «a dónde puedo ir», no «dónde estoy».
+ */
+function _renderListChips() {
+  const host = document.getElementById("list-chips");
+  if (!host) return;
+
+  const inList = activeView === "project" && activeProjectId && activeProjectId !== INBOX_ID;
+  if (!inList) { host.hidden = true; host.innerHTML = ""; return; }
+
+  const others = projects.filter(function(p) {
+    return p.id !== INBOX_ID && p.id !== activeProjectId;
+  });
+
+  let html =
+    '<button type="button" class="list-chip list-chip--all" data-chip-target="' + INBOX_ID + '">' +
+      "<span>" + escHtml(t("filter.all")) + "</span>" +
+    "</button>";
+  others.forEach(function(p) {
+    const color = p.color || _projectColorFromId(p.id);
+    html +=
+      '<button type="button" class="list-chip" data-chip-target="' + escHtml(p.id) + '">' +
+        '<span class="list-chip-dot" style="background:' + escHtml(color) + '"></span>' +
+        "<span>" + escHtml(p.name) + "</span>" +
+      "</button>";
+  });
+
+  host.innerHTML = html;
+  host.hidden = false;
+}
+
+/* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
+   casos la cadena se vuelve ilegible y hay que tocarla en tres sitios para
+   añadir uno. «all» no aparece a propósito —ausencia significa no filtrar—,
+   así que un valor desconocido se comporta como «todas» en vez de vaciar la
+   lista. Los cinco últimos vienen del handoff móvil v1. */
+const TASK_FILTERS = {
+  pending: function(t) { return !t.done; },
+  done:    function(t) { return t.done; },
+  overdue: function(t) { return !t.done && !!t.dueDate && t.dueDate < _localDateISO(new Date()); },
+  today:   function(t) { return t.dueDate === _localDateISO(new Date()); },
+  nodate:  function(t) { return !t.dueDate; },
+  high:    function(t) { return t.priority === "high"; },
+  note:    function(t) { return !!(t.comment && t.comment.trim()); },
+};
+
 /* Iconos de las opciones de filtro y orden. Van en un mapa porque lucide
    borra `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
    Debe seguir a los `data-lucide` de #filter-panel en app.html. */
@@ -916,6 +971,11 @@ const FILTER_OPT_ICON = {
   "filter:all":     "list",
   "filter:pending": "circle-dashed",
   "filter:done":    "check-circle-2",
+  "filter:overdue": "triangle-alert",
+  "filter:today":   "sun",
+  "filter:nodate":  "calendar",
+  "filter:high":    "flag",
+  "filter:note":    "file-text",
   "sort:manual":    "grip-vertical",
   "sort:priority":  "flag",
   "sort:due":       "calendar",
@@ -986,7 +1046,9 @@ function _updateFilterTriggerLabel() {
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (!labelEl) return;
   var parts = [];
-  if (currentFilter !== "all")    parts.push(currentFilter === "pending" ? t("filter.pending") : t("filter.done"));
+  // Antes era un ternario pending/done: con ocho filtros, cualquier otro
+  // habría rotulado «Hechas». La clave se deriva del propio valor.
+  if (currentFilter !== "all")    parts.push(t("filter." + currentFilter));
   if (currentSort   !== "manual") parts.push(currentSort === "priority" ? t("sort.priority") : currentSort === "due" ? t("sort.due") : t("sort.az"));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
   labelEl.textContent = parts.length > 0 ? parts.join(", ") : t("filter.trigger_label");
@@ -2067,6 +2129,10 @@ async function showInboxMenu(inboxProject, x, y) {
  * que no han cambiado. Antes con 200 tareas era jank visible.
  */
 function renderTasks() {
+  // Antes de los returns tempranos: si no, al saltar a «Hoy» los chips de la
+  // lista anterior se quedarían pintados.
+  _renderListChips();
+
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
     renderTodayView();
@@ -2105,8 +2171,11 @@ function renderTasks() {
   // proyecto es un grupo con cabecera y punto en su color; las tareas
   // del propio Inbox van al final bajo "Sin lista".
   let inboxGroups = null;
-  if (isInbox && currentSort === "manual" &&
-      (currentFilter === "all" || currentFilter === "pending")) {
+  // Se agrupa con cualquier filtro salvo «done»: la lista de aquí son las
+  // pendientes, así que los filtros nuevos (vencidas, hoy, sin fecha…) se
+  // agrupan igual de bien. Antes se enumeraban los filtros permitidos, lo que
+  // habría dejado los nuevos sin agrupar sin ningún motivo.
+  if (isInbox && currentSort === "manual" && currentFilter !== "done") {
     const byProj = new Map();
     pendingItems.forEach(function(it) {
       const k = it.project.id;
@@ -3613,8 +3682,8 @@ function getActiveProject() {
 
 function getVisibleTasks(project) {
   let tasks = project.tasks.slice();
-  if (currentFilter === "pending") tasks = tasks.filter(function(t) { return !t.done; });
-  else if (currentFilter === "done") tasks = tasks.filter(function(t) { return t.done; });
+  const pred = TASK_FILTERS[currentFilter];
+  if (pred) tasks = tasks.filter(pred);
 
   if (currentSort === "priority") {
     var order = { high: 0, medium: 1, low: 2 };
@@ -4368,6 +4437,15 @@ async function bulkMoveToProject() {
   }
 
   // ── Filter panel toggle ──────────────────────────────────────
+  // Chips de listas — delegado, porque el contenido se repinta en cada render.
+  var listChips = document.getElementById("list-chips");
+  if (listChips) {
+    listChips.addEventListener("click", function(e) {
+      var chip = e.target.closest("[data-chip-target]");
+      if (chip) activateProject(chip.dataset.chipTarget);
+    });
+  }
+
   var filterTriggerBtn = document.getElementById("filter-trigger-btn");
   var filterPanel      = document.getElementById("filter-panel");
   if (filterTriggerBtn && filterPanel) {

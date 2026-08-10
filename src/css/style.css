@@ -2837,6 +2837,69 @@ button:focus-visible {
 }
 .task-list[data-row-style="lineas"] .task-item:last-child { border-bottom-color: transparent; }
 
+/* ─── CHIPS DE LISTAS (solo móvil) ──────────────────────────────
+   Navegador lateral entre listas. Oculto por defecto: solo el JS lo muestra,
+   y solo dentro de una lista. En escritorio no aparece nunca —la sidebar ya
+   está a la vista— así que se fuerza aquí y se revela en el breakpoint. */
+.list-chips { display: none; }
+
+.list-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  /* 44px de zona táctil sin engordar la fila: el alto visible es menor y el
+     resto lo pone el padding vertical del contenedor. */
+  min-height: 34px;
+  padding: 6px 13px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.list-chip:active { background: var(--row-hover); }
+
+/* «Todas» lleva el acento: es el destino de vuelta, no una lista más. */
+.list-chip--all {
+  color: var(--c-primary-300);
+  border-color: var(--accent-tint);
+  background: var(--accent-tint);
+}
+
+.list-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* El bloque va pegado al de arriba para que no haya duda de orden: ambos
+   selectores pesan lo mismo y gana el último.
+   `:not([hidden])` es obligatorio, no cosmético: el atributo `hidden` se
+   apoya en un `display: none` del navegador, y cualquier `display` de autor
+   le gana — sin esto, los chips saldrían también donde deben estar ocultos. */
+@media (max-width: 768px) {
+  .list-chips:not([hidden]) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 16px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .list-chips::-webkit-scrollbar { display: none; }
+}
+
 /* Cebra — sin tarjeta; la lectura la da una franja alterna. Del handoff
    móvil v1, donde es el cuarto modo; aquí es el quinto, porque «compacto»
    viene del handoff de escritorio y se conserva.
