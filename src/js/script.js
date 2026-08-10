@@ -275,9 +275,11 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // El estilo elegido se refleja como atributo data-row-style en #task-list
 // y sólo cambia el aspecto de las filas (puro CSS). Se persiste aparte.
 // ═══════════════════════════════════════════════════════════════
-const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto"];
+/* «cebra» viene del handoff móvil v1. Se AÑADE como quinto en vez de sustituir
+   a «compacto», que es del handoff de escritorio y ya lo usa gente. */
+const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto", "cebra"];
 const DEFAULT_ROW_STYLE = "tarjetas";
-const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers" };
+const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers", cebra: "rows-4" };
 let currentRowStyle = (function() {
   try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
   catch (e) { return DEFAULT_ROW_STYLE; }
@@ -906,6 +908,44 @@ importFile.addEventListener("change", async function() {
     importFile.value = "";
   }
 });
+
+/* Iconos de las opciones de filtro y orden. Van en un mapa porque lucide
+   borra `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
+   Debe seguir a los `data-lucide` de #filter-panel en app.html. */
+const FILTER_OPT_ICON = {
+  "filter:all":     "list",
+  "filter:pending": "circle-dashed",
+  "filter:done":    "check-circle-2",
+  "sort:manual":    "grip-vertical",
+  "sort:priority":  "flag",
+  "sort:due":       "calendar",
+  "sort:az":        "align-left",
+};
+
+/**
+ * Traduce #filter-panel a las secciones que espera `sheetPick`. Se lee del
+ * DOM en vez de declararlo aparte para que las etiquetas y el estado activo
+ * salgan de una sola fuente: si mañana se añade una opción al panel, la hoja
+ * la hereda sin tocar nada.
+ */
+function _filterPanelSections() {
+  const panel = document.getElementById("filter-panel");
+  if (!panel) return [];
+  return Array.prototype.map.call(panel.querySelectorAll(".filter-panel-section"), function(sec) {
+    const headEl = sec.querySelector(".filter-panel-label");
+    const options = Array.prototype.map.call(sec.querySelectorAll("[data-filter],[data-sort]"), function(b) {
+      const kind  = b.dataset.filter ? "filter" : "sort";
+      const value = kind + ":" + (b.dataset.filter || b.dataset.sort);
+      return {
+        value: value,
+        icon: FILTER_OPT_ICON[value] || "list",
+        label: (b.querySelector("span") || {}).textContent || value,
+        active: b.classList.contains("filter-opt--active"),
+      };
+    });
+    return { heading: headEl ? headEl.textContent : "", options: options };
+  }).filter(function(s) { return s.options.length > 0; });
+}
 
 // ─── FILTROS ─────────────────────────────────────────────────
 function applyFilter(value) {
@@ -4333,6 +4373,24 @@ async function bulkMoveToProject() {
   if (filterTriggerBtn && filterPanel) {
     filterTriggerBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+
+      // En móvil, hoja en vez de desplegable (handoff móvil v1, «Filtrar»).
+      // Se mantienen las DOS secciones del repo: el handoff solo describe
+      // filtros, pero quitar la ordenación en móvil sería perder una función
+      // que ya existe. Los valores se prefijan porque la hoja devuelve uno
+      // solo y hay que saber de qué grupo salió.
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        var sections = _filterPanelSections();
+        sheetPick(t("filter.trigger_label"), sections).then(function(picked) {
+          if (!picked) return;
+          var sep = picked.indexOf(":");
+          var kind = picked.slice(0, sep), value = picked.slice(sep + 1);
+          if (kind === "filter") applyFilter(value);
+          else if (kind === "sort") applySort(value);
+        });
+        return;
+      }
+
       var opening = filterPanel.hidden;
       filterPanel.hidden = !opening;
       filterTriggerBtn.classList.toggle("open", opening);

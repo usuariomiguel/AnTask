@@ -403,6 +403,7 @@ export const es = {
   "rowstyle.lineas":          "Líneas",
   "rowstyle.tarjetas":        "Tarjetas",
   "rowstyle.compacto":        "Compacto",
+  "rowstyle.cebra":           "Cebra",
   "bulk.count_one":           "{count} seleccionada",
   "bulk.count_other":         "{count} seleccionadas",
   "bulk.mark_done":           "Marcar hechas",

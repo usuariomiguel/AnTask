@@ -402,6 +402,7 @@ export const en = {
   "rowstyle.lineas":          "Lines",
   "rowstyle.tarjetas":        "Cards",
   "rowstyle.compacto":        "Compact",
+  "rowstyle.cebra":           "Zebra",
   "bulk.count_one":           "{count} selected",
   "bulk.count_other":         "{count} selected",
   "bulk.mark_done":           "Mark done",
