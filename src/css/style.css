@@ -2867,11 +2867,18 @@ button:focus-visible {
 }
 .list-chip:active { background: var(--row-hover); }
 
-/* «Todas» lleva el acento: es el destino de vuelta, no una lista más. */
-.list-chip--all {
-  color: var(--c-primary-300);
-  border-color: var(--accent-tint);
+/* La activa se queda marcada en vez de desaparecer (v1): fondo teñido, texto
+   de acento y borde del mismo acento a poca opacidad. */
+.list-chip--active {
   background: var(--accent-tint);
+  color: var(--c-primary-300);
+  border-color: color-mix(in srgb, var(--c-primary-300) 27%, transparent);
+}
+/* En claro, --c-primary-300 es el oliva CLARO: sobre el chip teñido da 1,7:1.
+   -600 lo sube a 4,79:1 (AA). Mismo criterio que .modal-head-badge. */
+:root[data-theme="light"] .list-chip--active {
+  color: var(--c-primary-600);
+  border-color: color-mix(in srgb, var(--c-primary-600) 30%, transparent);
 }
 
 .list-chip-dot {
@@ -3677,6 +3684,14 @@ input.inline-edit {
   color: var(--c-primary-300);
 }
 .modal-sheet-opt--active .modal-sheet-opt-check { opacity: 1; }
+
+/* Mismo fallo de contraste que en los chips: en tema claro --c-primary-300 es
+   el oliva claro y sobre el fondo teñido de la opción activa no llega a AA. */
+:root[data-theme="light"] .modal-sheet-opt--active,
+:root[data-theme="light"] .modal-sheet-opt--active .modal-sheet-opt-ico,
+:root[data-theme="light"] .modal-sheet-opt-check {
+  color: var(--c-primary-600);
+}
 
 /* Los selectores repiten `.modal-box` para no quedar por debajo del compuesto
    de arriba: si no, la hoja seguiría deslizándose con reduced-motion. */

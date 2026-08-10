@@ -910,39 +910,38 @@ importFile.addEventListener("change", async function() {
 });
 
 /**
- * Chips de listas: dentro de una lista, ofrece saltar a las OTRAS listas o
- * volver a todas, sin abrir el drawer.
+ * Chips de listas — igual que el prototipo v1: siempre presentes, con «Todas»
+ * delante y todas las listas detrás. La activa NO desaparece, se queda
+ * marcada, de modo que la fila indica a la vez dónde estás y a dónde puedes ir.
  *
- * No salen en el Inbox: ahí las tareas ya se agrupan por proyecto con
- * cabeceras, así que unos chips de filtro serían el mismo mecanismo repetido
- * ocupando una franja fija. Tampoco en escritorio, donde la sidebar está
- * siempre visible y hace este trabajo mejor.
- *
- * La lista actual se omite a propósito: la cabecera ya dice dónde estás, y
- * así los chips son «a dónde puedo ir», no «dónde estoy».
+ * Solo en móvil: en escritorio la sidebar está siempre visible y hace este
+ * trabajo mejor. En «Hoy» tampoco, porque esa vista no es de una lista.
  */
 function _renderListChips() {
   const host = document.getElementById("list-chips");
   if (!host) return;
 
-  const inList = activeView === "project" && activeProjectId && activeProjectId !== INBOX_ID;
-  if (!inList) { host.hidden = true; host.innerHTML = ""; return; }
+  const lists = projects.filter(function(p) { return p.id !== INBOX_ID; });
+  if (activeView !== "project" || lists.length === 0) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
 
-  const others = projects.filter(function(p) {
-    return p.id !== INBOX_ID && p.id !== activeProjectId;
-  });
+  // «Todas» es el Inbox: la vista con el pool completo. Va sin punto de color,
+  // como en v1, porque no es una lista más sino la vuelta a todas.
+  const chip = function(id, name, color, active) {
+    return '<button type="button" class="list-chip' + (active ? " list-chip--active" : "") + '"' +
+             ' data-chip-target="' + escHtml(id) + '"' +
+             (active ? ' aria-current="true"' : "") + ">" +
+             (color ? '<span class="list-chip-dot" style="background:' + escHtml(color) + '"></span>' : "") +
+             "<span>" + escHtml(name) + "</span>" +
+           "</button>";
+  };
 
-  let html =
-    '<button type="button" class="list-chip list-chip--all" data-chip-target="' + INBOX_ID + '">' +
-      "<span>" + escHtml(t("filter.all")) + "</span>" +
-    "</button>";
-  others.forEach(function(p) {
-    const color = p.color || _projectColorFromId(p.id);
-    html +=
-      '<button type="button" class="list-chip" data-chip-target="' + escHtml(p.id) + '">' +
-        '<span class="list-chip-dot" style="background:' + escHtml(color) + '"></span>' +
-        "<span>" + escHtml(p.name) + "</span>" +
-      "</button>";
+  let html = chip(INBOX_ID, t("filter.all"), null, activeProjectId === INBOX_ID);
+  lists.forEach(function(p) {
+    html += chip(p.id, p.name, p.color || _projectColorFromId(p.id), p.id === activeProjectId);
   });
 
   host.innerHTML = html;
