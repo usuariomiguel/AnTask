@@ -2910,6 +2910,35 @@ button:focus-visible {
 .pmenu-row:last-child { border-bottom: none; }
 .pmenu-row:hover { background: var(--row-hover); }
 
+/* Fila con lápiz: el botón de editar no puede ir DENTRO del de la fila
+   —botones anidados no son válidos—, así que van como hermanos y el borde
+   inferior pasa al envoltorio para que el separador siga siendo uno solo. */
+.pmenu-rowwrap {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.pmenu-rowwrap:last-child { border-bottom: none; }
+.pmenu-rowwrap .pmenu-row { border-bottom: none; flex: 1; min-width: 0; }
+
+.pmenu-edit {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  margin-right: 4px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.pmenu-edit:hover { background: var(--row-hover); color: var(--text-primary); }
+.pmenu-edit .lucide { width: 16px; height: 16px; stroke-width: 2; }
+
 /* Cuadro de 30px con el icono dentro (handoff). Por defecto es neutro, para
    las filas de app; las listas traen su color en línea y activan el
    modificador. El icono NO puede ser blanco en el neutro: en tema claro

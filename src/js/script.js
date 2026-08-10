@@ -651,7 +651,9 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
   activateProject(project.id);
 }
 
-newProjectBtn.addEventListener("click", function() {
+/* Extraído del handler del botón del drawer para que la pantalla «Perfil»
+   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla. */
+function startNewProject() {
   showProjectTemplatesModal({
     onPickBlank: async function () {
       const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
@@ -667,7 +669,8 @@ newProjectBtn.addEventListener("click", function() {
       });
     },
   });
-});
+}
+newProjectBtn.addEventListener("click", startNewProject);
 
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
 if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
@@ -932,16 +935,24 @@ function showProfileMenu() {
     return !!(u && !u.hidden);
   })();
 
-  const fila = function(attrs, color, icon, label, count) {
-    return '<button type="button" class="pmenu-row" ' + attrs + ">" +
+  // `edit` añade el lápiz de 44px que el handoff pide en las listas del
+  // usuario. Va FUERA del botón de la fila —no se pueden anidar botones— así
+  // que la fila se envuelve y el lápiz queda como hermano.
+  const fila = function(attrs, color, icon, label, count, edit) {
+    const btn = '<button type="button" class="pmenu-row" ' + attrs + ">" +
       '<span class="pmenu-row-ico' + (color ? " pmenu-row-ico--color" : "") + '"' +
         (color ? ' style="background:' + escHtml(color) + '"' : "") + ">" +
         '<i data-lucide="' + icon + '"></i>' +
       "</span>" +
       '<span class="pmenu-row-label">' + escHtml(label) + "</span>" +
       (count != null ? '<span class="pmenu-row-count">' + count + "</span>" : "") +
-      '<i data-lucide="chevron-right" class="pmenu-row-chev"></i>' +
+      (edit ? "" : '<i data-lucide="chevron-right" class="pmenu-row-chev"></i>') +
     "</button>";
+    if (!edit) return btn;
+    return '<span class="pmenu-rowwrap">' + btn +
+      '<button type="button" class="pmenu-edit" data-edit="' + escHtml(edit) + '"' +
+        ' aria-label="' + escHtml(t("project.rename")) + '"><i data-lucide="pencil-line"></i></button>' +
+    "</span>";
   };
 
   const lists = projects.filter(function(p) { return p.id !== INBOX_ID; });
@@ -954,14 +965,21 @@ function showProfileMenu() {
       "</span>" +
     "</div>";
 
-  if (lists.length) {
-    html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p><div class='pmenu-group'>";
-    lists.forEach(function(p) {
-      const pend = p.tasks.filter(function(x) { return !x.done; }).length;
-      html += fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend);
-    });
-    html += "</div>";
-  }
+  // Buscar va primero y solo: es la acción más frecuente y el drawer era su
+  // único acceso en móvil.
+  html += "<div class='pmenu-group'>" +
+    fila('data-act="search"', null, "search", t("sidebar.search_short")) +
+  "</div>";
+
+  html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p><div class='pmenu-group'>";
+  lists.forEach(function(p) {
+    const pend = p.tasks.filter(function(x) { return !x.done; }).length;
+    html += fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
+  });
+  html +=
+    fila('data-act="new-list"', null, "plus", t("sidebar.add_list")) +
+    fila('data-act="new-group"', null, "layers", t("sidebar.new_group")) +
+  "</div>";
 
   html += "<div class='pmenu-group'>" +
     fila('data-act="settings"', null, "settings", t("profile.settings")) +
@@ -976,11 +994,19 @@ function showProfileMenu() {
   if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
 
   sheet.addEventListener("click", function(e) {
-    const btn = e.target.closest("[data-goto],[data-act]");
+    const btn = e.target.closest("[data-goto],[data-act],[data-edit]");
     if (!btn) return;
     closeSheet(overlay);
+    if (btn.dataset.edit) {
+      const p = projects.find(function(x) { return x.id === btn.dataset.edit; });
+      if (p) renameProject(p);
+      return;
+    }
     if (btn.dataset.goto) { activateProject(btn.dataset.goto); return; }
     switch (btn.dataset.act) {
+      case "search":    openGlobalSearch(); break;
+      case "new-list":  startNewProject(); break;
+      case "new-group": startNewSection(); break;
       case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
       case "shortcuts": if (window.showShortcutsHelp) window.showShortcutsHelp(); break;
       // Sesión: se delega en los botones que ya existen para no duplicar la
@@ -1922,6 +1948,20 @@ async function showSectionMenu(section, anchor) {
   });
 }
 
+/* Renombrar una lista. Extraído del menú de proyecto porque el lápiz de la
+   pantalla «Perfil» hace exactamente lo mismo (handoff móvil v1: cada lista
+   del usuario lleva su botón de editar). */
+async function renameProject(project) {
+  var newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
+  if (newName === null) return;
+  var trimmed = capitalizeFirst(newName.trim());
+  if (!trimmed || trimmed === project.name) return;
+  project.name = trimmed;
+  saveProjects();
+  renderSidebar();
+  if (project.id === activeProjectId) activateProject(project.id);
+}
+
 async function showProjectMenu(project, anchor) {
   closeCtxMenu();
 
@@ -1980,16 +2020,7 @@ async function showProjectMenu(project, anchor) {
         },
         {
           label: t("project.rename"),
-          action: async function() {
-            var newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
-            if (newName === null) return;
-            var trimmed = capitalizeFirst(newName.trim());
-            if (!trimmed || trimmed === project.name) return;
-            project.name = trimmed;
-            saveProjects();
-            renderSidebar();
-            if (project.id === activeProjectId) activateProject(project.id);
-          }
+          action: function() { return renameProject(project); }
         },
         null,
         {
@@ -2185,18 +2216,19 @@ async function showInboxMenu(inboxProject, x, y) {
 // New section button
 (function() {
   var newSectionBtn = document.getElementById("new-section-btn");
-  if (newSectionBtn) {
-    newSectionBtn.addEventListener("click", async function() {
-      var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
-      if (name === null) return;
-      var trimmed = name.trim();
-      if (!trimmed) return;
-      sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
-      saveSections();
-      renderSidebar();
-    });
-  }
+  if (newSectionBtn) newSectionBtn.addEventListener("click", startNewSection);
 })();
+
+/* Igual que startNewProject: con nombre para que «Perfil» lo llame directo. */
+async function startNewSection() {
+  var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
+  if (name === null) return;
+  var trimmed = name.trim();
+  if (!trimmed) return;
+  sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
+  saveSections();
+  renderSidebar();
+}
 
 // ── End context menus ────────────────────────────────────────────────────────
 
