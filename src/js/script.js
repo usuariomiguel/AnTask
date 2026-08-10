@@ -52,6 +52,7 @@ import {
   projectColorFromId as _projectColorFromId,
 } from "./utils/project-color.js";
 import { renderSubtasks } from "./ui/subtasks.js";
+import { sheetPick } from "./ui/sheet.js";
 import { showGlobalSearch as _showGlobalSearch } from "./ui/search.js";
 import { showQuickCapture, isQuickCaptureOpen } from "./ui/quick-capture.js";
 import {
@@ -4367,6 +4368,31 @@ async function bulkMoveToProject() {
   if (rowStyleBtn && rowStylePanel) {
     rowStyleBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+
+      // En móvil el desplegable se sustituye por una hoja que sube desde
+      // abajo (handoff móvil v1, «Modo de vista»). Las etiquetas se leen del
+      // propio panel para no duplicar los textos traducidos; los iconos, de
+      // ROW_STYLE_ICON, porque lucide quita `data-lucide` del SVG que genera
+      // y ya no se pueden leer del DOM.
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        var options = Array.prototype.map.call(
+          rowStylePanel.querySelectorAll("[data-row-style]"),
+          function(b) {
+            var v = b.dataset.rowStyle;
+            return {
+              value: v,
+              icon: ROW_STYLE_ICON[v] || "list",
+              label: (b.querySelector("span") || {}).textContent || v,
+              active: v === currentRowStyle,
+            };
+          }
+        );
+        sheetPick(t("rowstyle.trigger"), [{ options: options }]).then(function(picked) {
+          if (picked) applyRowStyle(picked);
+        });
+        return;
+      }
+
       var opening = rowStylePanel.hidden;
       rowStylePanel.hidden = !opening;
       rowStyleBtn.setAttribute("aria-expanded", opening ? "true" : "false");

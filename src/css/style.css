@@ -3470,6 +3470,135 @@ input.inline-edit {
     0 24px 56px -12px rgba(50, 40, 24, 0.20);
 }
 
+/* ─── HOJAS MODALES (bottom sheets, móvil) ───────────────────────
+   La caja se pega abajo y sube. El velo es el del handoff móvil
+   (rgba(20,14,6,0.42)) y va sin desenfoque: la hoja ocupa poca
+   altura y el blur del modal centrado, pensado para tapar toda la
+   pantalla, aquí resultaba pesado. */
+/* El selector es largo a propósito: `:root[data-theme="light"] .modal-overlay`
+   pesa (0,3,0) y le ganaba el velo a la hoja en tema claro. `:root` más las
+   dos clases empata a (0,3,0) y este bloque va después, así que gana — y sin
+   depender de que el atributo de tema esté puesto. */
+:root .modal-overlay.modal-overlay--sheet {
+  align-items: flex-end;
+  justify-content: stretch;
+  padding: 0;
+  background: rgba(20, 14, 6, 0.42);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Compuesto `.modal-box.modal-sheet` (0,2,0) a propósito: dentro del breakpoint
+   móvil hay un `.modal-box { width: min(340px,90vw); padding: 1.35rem 1.15rem }`
+   que va después de este bloque y le ganaba ancho y padding a la hoja. Con dos
+   clases el orden deja de importar. */
+.modal-box.modal-sheet {
+  width: 100%;
+  max-width: none;
+  border: none;
+  border-radius: 22px 22px 0 0;
+  padding: 0 12px max(22px, env(safe-area-inset-bottom, 0px));
+  background: var(--surface-canvas);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+  /* Sube desde abajo; la caja centrada escala y aquí eso no aplica. */
+  transform: translateY(100%);
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  max-height: 86vh;
+  overflow: hidden auto;
+}
+
+/* Más específico que `.modal-overlay.modal-visible .modal-box`, que si no
+   devolvería la caja a su `scale(1) translateY(0)` de modal centrado. */
+.modal-overlay--sheet.modal-visible .modal-sheet {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.modal-sheet-grip {
+  display: block;
+  width: 38px;
+  height: 5px;
+  margin: 9px auto 2px;
+  border-radius: var(--r-pill);
+  background: var(--border-strong);
+}
+
+.modal-sheet-title {
+  margin: 0;
+  padding: 6px 0 8px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.modal-sheet-heading {
+  margin: 14px 6px 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.modal-sheet-heading:first-child { margin-top: 6px; }
+
+.modal-sheet-opt {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  /* 44px de zona táctil mínima, como exige el handoff para navegación. */
+  min-height: 44px;
+  padding: 13px 10px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: var(--fw-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.modal-sheet-opt:hover { background: var(--row-hover); }
+.modal-sheet-opt--active {
+  background: var(--accent-tint);
+  color: var(--c-primary-300);
+  font-weight: var(--fw-semibold);
+}
+
+.modal-sheet-opt-ico {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+.modal-sheet-opt--active .modal-sheet-opt-ico { color: var(--c-primary-300); }
+.modal-sheet-opt-ico .lucide { width: 19px; height: 19px; stroke-width: 1.9; }
+
+.modal-sheet-opt-label { flex: 1; min-width: 0; }
+
+.modal-sheet-opt-check {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.4;
+  flex-shrink: 0;
+  opacity: 0;
+  color: var(--c-primary-300);
+}
+.modal-sheet-opt--active .modal-sheet-opt-check { opacity: 1; }
+
+/* Los selectores repiten `.modal-box` para no quedar por debajo del compuesto
+   de arriba: si no, la hoja seguiría deslizándose con reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-box.modal-sheet { transition: opacity 0.18s ease; transform: none; opacity: 0; }
+  .modal-overlay--sheet.modal-visible .modal-box.modal-sheet { opacity: 1; transform: none; }
+}
+
 /* ── Diálogo v1: cabecera + cuerpo + pie ────────────────────── */
 .modal-box-v1 { padding: 0; }
 
