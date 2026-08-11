@@ -119,7 +119,6 @@ export const en = {
   // ── Accessibility ─────────────────────────────────────────
   "a11y.mobile_settings":     "Settings",
   "a11y.list_chips":         "Switch list",
-  "a11y.mobile_projects":     "Projects",
 
   // ── Today (view) ──────────────────────────────────────────
   "today.empty_title_full":   "All caught up",

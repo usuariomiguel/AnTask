@@ -74,9 +74,10 @@
 
       <!-- ── MOBILE HEADER (only visible on mobile) ────────── -->
       <header class="mobile-header" id="mobile-header">
-        <div class="mobile-header-left">
-          <button type="button" class="mobile-icon-btn" id="mobile-projects-btn" aria-label="Proyectos" data-i18n-aria="a11y.mobile_projects"><i data-lucide="menu"></i></button>
-        </div>
+        <!-- Sin hamburguesa: el drawer ya no se abre en móvil. El contenedor
+             se queda vacío (ancho 0) y el bloque central, que va alineado a
+             la izquierda, pasa a empezar en el propio padding del header. -->
+        <div class="mobile-header-left"></div>
         <div class="mobile-header-center">
           <img src="./src/img/logo-dark.svg"  alt="antask" class="brand-logo brand-logo--dark"  width="130" height="29">
           <img src="./src/img/logo-light.svg" alt="antask" class="brand-logo brand-logo--light" width="130" height="29">
@@ -878,13 +879,10 @@
         });
       }
 
-      // Botón Proyectos (hamburger) del header móvil → abre drawer del sidebar.
-      var mobileProjectsBtn = document.getElementById("mobile-projects-btn");
-      if (mobileProjectsBtn) {
-        mobileProjectsBtn.addEventListener("click", function() {
-          openSidebar();
-        });
-      }
+      // La hamburguesa que abría el drawer ya no existe: en móvil, las listas
+      // y todo lo que colgaba del drawer viven en la pantalla «Perfil» de la
+      // barra inferior. El drawer sigue en el DOM porque es la MISMA sidebar
+      // que usa el escritorio, pero en móvil ya no hay forma de abrirlo.
 
       // Calendario dentro del dropdown de perfil (solo móvil, y oculto: no
       // forma parte de v1): ejecuta la acción y cierra el drawer para que se
@@ -914,15 +912,13 @@
         });
       }
 
-      // Botón Ajustes del header móvil → abre sidebar + dropdown de perfil.
+      // Botón Ajustes del header móvil → abre Ajustes directamente. Antes
+      // abría el drawer y pulsaba por código el perfil 300 ms después, igual
+      // que hacía Perfil; con el drawer ya inalcanzable, además no funcionaría.
       var mobileSettingsBtn = document.getElementById("mobile-settings-btn");
       if (mobileSettingsBtn) {
         mobileSettingsBtn.addEventListener("click", function() {
-          openSidebar();
-          setTimeout(function() {
-            var pb = document.getElementById("profile-btn");
-            if (pb) pb.click();
-          }, 300);
+          if (typeof window.openSettingsModal === "function") window.openSettingsModal();
         });
       }
 

@@ -971,12 +971,30 @@ function showProfileMenu() {
     fila('data-act="search"', null, "search", t("sidebar.search_short")) +
   "</div>";
 
-  html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p><div class='pmenu-group'>";
-  lists.forEach(function(p) {
+  // Las listas se agrupan por sección, como en la sidebar: sin el drawer,
+  // este es el único sitio de móvil donde se ve a qué grupo pertenece cada
+  // una, y sin esto los grupos dejarían de existir de cara al usuario.
+  const filaLista = function(p) {
     const pend = p.tasks.filter(function(x) { return !x.done; }).length;
-    html += fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
+    return fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
+  };
+  const enSeccion = function(id) {
+    return lists.filter(function(p) { return (p.sectionId || null) === id; });
+  };
+
+  const sueltas = enSeccion(null);
+  if (sueltas.length) {
+    html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p>" +
+            "<div class='pmenu-group'>" + sueltas.map(filaLista).join("") + "</div>";
+  }
+  sections.forEach(function(s) {
+    const dentro = enSeccion(s.id);
+    if (!dentro.length) return;
+    html += '<p class="pmenu-group-label">' + escHtml(s.name) + "</p>" +
+            "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
   });
-  html +=
+
+  html += "<div class='pmenu-group'>" +
     fila('data-act="new-list"', null, "plus", t("sidebar.add_list")) +
     fila('data-act="new-group"', null, "layers", t("sidebar.new_group")) +
   "</div>";
@@ -1009,11 +1027,11 @@ function showProfileMenu() {
       case "new-group": startNewSection(); break;
       case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
       case "shortcuts": if (window.showShortcutsHelp) window.showShortcutsHelp(); break;
-      // Sesión: se delega en los botones que ya existen para no duplicar la
-      // lógica de Firebase. Viven en el drawer, así que cuando el drawer se
-      // retire (6c) hay que reengancharlos a su función directamente.
-      case "signin":    { const b = document.getElementById("pf-signin-btn");  if (b) b.click(); break; }
-      case "signout":   { const b = document.getElementById("pf-signout-btn"); if (b) b.click(); break; }
+      // Sesión: se llama a la función real, no al botón del drawer. Trae la
+      // carga bajo demanda del módulo de sincronización y el tratamiento de
+      // popup cerrado / bloqueado / dominio no autorizado.
+      case "signin":    if (window.antaskSignIn)  window.antaskSignIn();  break;
+      case "signout":   if (window.antaskSignOut) window.antaskSignOut(); break;
     }
   });
 

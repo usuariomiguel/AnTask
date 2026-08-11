@@ -119,7 +119,6 @@ export const es = {
   // ── Accesibilidad ─────────────────────────────────────────
   "a11y.mobile_settings":     "Ajustes",
   "a11y.list_chips":         "Cambiar de lista",
-  "a11y.mobile_projects":     "Proyectos",
 
   // ── Hoy (vista) ───────────────────────────────────────────
   "today.empty_title_full":   "Todo al día",
