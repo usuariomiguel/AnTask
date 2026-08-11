@@ -312,7 +312,13 @@ function applyRowStyle(style, persist) {
 function _syncRowStylePicker() {
   const btn = document.getElementById("row-style-btn");
   if (btn) {
-    btn.innerHTML = '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>';
+    // La etiqueta solo se ve en móvil, donde el control es una píldora
+    // «⌷ Cebra ⌄» junto a «Filtrar»; en escritorio el CSS la oculta y queda
+    // el icono suelto de siempre.
+    btn.innerHTML =
+      '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>' +
+      '<span class="row-style-label">' + escHtml(t("rowstyle." + currentRowStyle)) + "</span>" +
+      '<i data-lucide="chevron-down" class="row-style-caret"></i>';
     if (window.lucide) lucide.createIcons({ nodes: [btn] });
   }
   const panel = document.getElementById("row-style-panel");
@@ -1056,6 +1062,23 @@ function showProfileMenu() {
 window.showProfileMenu = showProfileMenu;
 
 /**
+ * El control de modo de vista vive en la cabecera en escritorio y en la fila
+ * de «Filtrar» en móvil, que es donde lo pone el handoff. Se mueve el nodo en
+ * vez de duplicarlo para no tener dos botones con el mismo id ni dos estados
+ * que sincronizar. Se reevalúa al cruzar el breakpoint, así que redimensionar
+ * o girar el teléfono lo recoloca.
+ */
+function _placeRowStyleControl() {
+  const wrap = document.getElementById("row-style-wrap");
+  const filterRow = document.getElementById("list-filter-row");
+  const headerActions = document.querySelector(".tasks-header .view-nav-right");
+  if (!wrap || !filterRow) return;
+  const enMovil = window.matchMedia("(max-width: 768px)").matches;
+  const destino = enMovil ? filterRow : headerActions;
+  if (destino && wrap.parentElement !== destino) destino.appendChild(wrap);
+}
+
+/**
  * Chips de listas — igual que el prototipo v1: siempre presentes, con «Todas»
  * delante y todas las listas detrás. La activa NO desaparece, se queda
  * marcada, de modo que la fila indica a la vez dónde estás y a dónde puedes ir.
@@ -1092,6 +1115,27 @@ function _renderListChips() {
 
   host.innerHTML = html;
   host.hidden = false;
+}
+
+/* Búsqueda dentro de la lista que se está viendo (buscador de móvil). Es
+   distinta de la búsqueda global de «Perfil»: esta filtra lo visible y no
+   navega a ningún sitio. No se persiste a propósito —una búsqueda que
+   sobrevive a recargar deja la lista aparentemente vacía sin motivo—. */
+let currentQuery = "";
+
+/** Normaliza para comparar sin tildes ni mayúsculas: buscar «formacion»
+ *  tiene que encontrar «Formación». */
+function _norm(s) {
+  // NFD separa la letra de su tilde; el rango del class son los diacríticos
+  // combinantes (U+0300–U+036F), que se descartan. El fichero es UTF-8, así
+  // que van como caracteres y no como escapes.
+  return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function _matchesQuery(task) {
+  if (!currentQuery) return true;
+  const q = _norm(currentQuery);
+  return _norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1;
 }
 
 /* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
@@ -3856,6 +3900,7 @@ function getVisibleTasks(project) {
   let tasks = project.tasks.slice();
   const pred = TASK_FILTERS[currentFilter];
   if (pred) tasks = tasks.filter(pred);
+  if (currentQuery) tasks = tasks.filter(_matchesQuery);
 
   if (currentSort === "priority") {
     var order = { high: 0, medium: 1, low: 2 };
@@ -4609,6 +4654,31 @@ async function bulkMoveToProject() {
   }
 
   // ── Filter panel toggle ──────────────────────────────────────
+  // Buscador de la lista (móvil).
+  var listSearch = document.getElementById("list-search-input");
+  var listSearchClear = document.getElementById("list-search-clear");
+  if (listSearch) {
+    listSearch.addEventListener("input", function() {
+      currentQuery = listSearch.value.trim();
+      if (listSearchClear) listSearchClear.hidden = !currentQuery;
+      renderTasks();
+    });
+    listSearch.addEventListener("keydown", function(e) {
+      // Escape limpia y desenfoca, como en el prototipo.
+      if (e.key === "Escape") { listSearch.value = ""; currentQuery = ""; if (listSearchClear) listSearchClear.hidden = true; renderTasks(); listSearch.blur(); }
+    });
+  }
+  if (listSearchClear) {
+    listSearchClear.addEventListener("click", function() {
+      listSearch.value = ""; currentQuery = ""; listSearchClear.hidden = true;
+      renderTasks(); listSearch.focus();
+    });
+  }
+
+  // Coloca el control de vista según el breakpoint, ahora y al cruzarlo.
+  _placeRowStyleControl();
+  window.matchMedia("(max-width: 768px)").addEventListener("change", _placeRowStyleControl);
+
   // Chips de listas — delegado, porque el contenido se repinta en cada render.
   var listChips = document.getElementById("list-chips");
   if (listChips) {

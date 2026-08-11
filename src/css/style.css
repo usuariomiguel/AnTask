@@ -2544,6 +2544,11 @@ button:focus-visible {
 .more-actions-panel button.danger:hover { background: rgba(224, 122, 106,0.08); }
 
 /* ── Selector de estilo de fila (header) — Limpio·Líneas·Tarjetas·Compacto ── */
+/* En escritorio el control es solo el icono; la etiqueta y el chevron que
+   lleva el marcado son para la píldora de móvil. */
+.row-style-label,
+.row-style-caret { display: none; }
+
 .row-style-btn {
   display: inline-flex;
   align-items: center;
@@ -2976,6 +2981,49 @@ button:focus-visible {
   color: var(--text-tertiary);
 }
 
+/* ─── BUSCADOR DE LISTA (solo móvil) ────────────────────────────
+   Filtra lo que se está viendo. Oculto por defecto: en escritorio esa función
+   la cubre la barra lateral, y se revela dentro del breakpoint. */
+.list-search { display: none; }
+
+.list-search-ico {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.list-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary);
+  /* Sin la cruz nativa de WebKit: ya hay un botón propio, y salían dos. */
+  appearance: none;
+}
+.list-search-input::-webkit-search-cancel-button { display: none; }
+.list-search-input::placeholder { color: var(--text-tertiary); }
+
+.list-search-clear {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-right: -4px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.list-search-clear .lucide { width: 16px; height: 16px; stroke-width: 2.2; }
+
 /* ─── CHIPS DE LISTAS (solo móvil) ──────────────────────────────
    Navegador lateral entre listas. Oculto por defecto: solo el JS lo muestra,
    y solo dentro de una lista. En escritorio no aparece nunca —la sidebar ya
@@ -3025,6 +3073,52 @@ button:focus-visible {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  /* Buscador visible, con la caja del handoff: tarjeta con borde y radio. */
+  .list-search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 16px 11px;
+    padding: 11px 13px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 2px);
+    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.04);
+  }
+
+  /* «Filtrar» a la izquierda y el modo de vista a la derecha, en la misma
+     fila (handoff). El nodo del control lo trae aquí _placeRowStyleControl. */
+  .list-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    padding: 0 16px;
+    margin-bottom: 11px;
+  }
+
+  /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
+  .row-style-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: auto;
+    min-height: 36px;
+    padding: 7px 13px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+  }
+  .row-style-btn .row-style-label { display: inline; }
+  .row-style-btn .row-style-caret { width: 13px; height: 13px; opacity: 0.7; }
 }
 
 /* El bloque va pegado al de arriba para que no haya duda de orden: ambos
@@ -4580,7 +4674,16 @@ body.project-dragging .project-item { cursor: grabbing; }
     padding-bottom: 0;
     border-bottom: none;
   }
-  .tasks-header-left { display: block; min-width: 0; }
+  /* Sin esto la caja del título quedaba en ancho 0 —.header-actions se
+     quedaba los 366px enteros—, el título se salía por fuera y las acciones
+     se le montaban encima del subtítulo. El bloque del título toma el hueco y
+     las acciones miden por contenido; ahí solo queda el anillo de «Hoy»,
+     porque el control de vista se ha ido a la fila de «Filtrar». */
+  .tasks-header-left { display: block; flex: 1 1 auto; min-width: 0; }
+  /* `width: auto` es la clave: más abajo hay un `.header-actions{width:100%}`
+     de cuando esta fila llevaba los controles de móvil. Con él puesto, el
+     flex-basis resolvía al 100% y no quedaba nada para el título. */
+  .tasks-header .header-actions { flex: 0 0 auto; width: auto; }
 
   .tasks-header .title-row {
     display: flex;

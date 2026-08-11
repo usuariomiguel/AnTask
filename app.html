@@ -516,6 +516,19 @@
 
         <!-- Vista Lista (tareas) -->
         <div class="tasks-panel" id="tasks-panel" hidden>
+          <!-- Buscador de la lista (solo móvil). Filtra lo que se está viendo;
+               la búsqueda global sigue en «Perfil». En escritorio no aparece:
+               ahí está la barra lateral con su propio buscador. -->
+          <div class="list-search" id="list-search">
+            <i data-lucide="search" class="list-search-ico"></i>
+            <input type="search" id="list-search-input" class="list-search-input"
+                   placeholder="Buscar tareas…" data-i18n-ph="list.search_placeholder"
+                   autocomplete="off" enterkeyhint="search" />
+            <button type="button" class="list-search-clear" id="list-search-clear" hidden
+                    aria-label="Limpiar búsqueda" data-i18n-aria="list.search_clear">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
           <!-- Fila de filtro dentro del cuerpo, como en el prototipo v1 -->
           <div class="list-filter-row" id="list-filter-row">
             <div class="filter-wrap" id="filter-wrap" style="position:relative">

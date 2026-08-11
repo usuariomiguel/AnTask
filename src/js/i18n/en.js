@@ -410,6 +410,8 @@ export const en = {
   "rowstyle.tarjetas":        "Cards",
   "rowstyle.compacto":        "Compact",
   "rowstyle.cebra":           "Zebra",
+  "list.search_placeholder":  "Search tasks…",
+  "list.search_clear":        "Clear search",
   "bulk.count_one":           "{count} selected",
   "bulk.count_other":         "{count} selected",
   "bulk.mark_done":           "Mark done",

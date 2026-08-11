@@ -411,6 +411,8 @@ export const es = {
   "rowstyle.tarjetas":        "Tarjetas",
   "rowstyle.compacto":        "Compacto",
   "rowstyle.cebra":           "Cebra",
+  "list.search_placeholder":  "Buscar tareas…",
+  "list.search_clear":        "Limpiar búsqueda",
   "bulk.count_one":           "{count} seleccionada",
   "bulk.count_other":         "{count} seleccionadas",
   "bulk.mark_done":           "Marcar hechas",
