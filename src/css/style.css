@@ -3076,8 +3076,10 @@ button:focus-visible {
 }
 
 @media (max-width: 768px) {
-  /* Buscador visible, con la caja del handoff: tarjeta con borde y radio. */
-  .list-search {
+  /* Buscador visible, con la caja del handoff: tarjeta con borde y radio.
+     `:not([hidden])` porque en «Hoy» se oculta con el atributo, y un `display`
+     de autor le ganaría. */
+  .list-search:not([hidden]) {
     display: flex;
     align-items: center;
     gap: 9px;
@@ -4464,7 +4466,13 @@ body.project-dragging .project-item { cursor: grabbing; }
      el lienzo—, así que recupera el `canvas` real del tema tierra.
      Se toca .main-panel y no el token porque .field-popover y .settings-seg
      también leen --surface-canvas, y esos se apoyan SOBRE el lienzo: igualarlos
-     los borraría. En oscuro no aplica, ahí el canvas ya es el de pantalla. */
+     los borraría.
+     Aplica a los DOS temas: el token vale #e8dfcd en claro y #12100c en
+     oscuro, y ambos son el panel hundido de escritorio. Los lienzos reales del
+     tema tierra son #f4efe3 y #17120d. */
+  .main-panel {
+    background: #17120d;
+  }
   :root[data-theme="light"] .main-panel {
     background: #f4efe3;
   }
@@ -4829,19 +4837,22 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   /* Filtro: chip con label visible (más claro que solo icono).
      Sin border en móvil — ghost look. */
+  /* Misma píldora que el control de modo de vista: comparten fila, así que
+     tienen que leerse como hermanos. Antes iba sin borde ni fondo y parecía
+     texto suelto al lado de un botón. */
   .filter-trigger-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 12px 0 10px;
-    border: 0;
-    background: transparent;
-    border-radius: var(--r-pill);
-    font-size: 13px;
-    font-weight: var(--fw-medium);
-    color: var(--text-secondary);
+    gap: 7px;
     min-height: 36px;
+    padding: 7px 13px;
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
+    border-radius: var(--r-pill);
+    font-size: 13.5px;
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    white-space: nowrap;
   }
   .filter-trigger-btn .lucide { width: 15px; height: 15px; stroke-width: 2; }
   .filter-trigger-btn .filter-caret { width: 13px; height: 13px; opacity: 0.6; }
@@ -8873,12 +8884,17 @@ button {
   flex-shrink: 0;
 }
 .inbox-group-name {
+  /* Fuente display, como en el prototipo: la cabecera de grupo es un título,
+     no metadato. Iba en Inter por herencia. */
+  font-family: var(--font-display);
   font-size: 14.5px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 .inbox-group-count {
+  /* Mono, que es lo que el prototipo usa para contadores. */
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: var(--fw-semibold);
   color: var(--text-tertiary);

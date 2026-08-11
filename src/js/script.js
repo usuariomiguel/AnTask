@@ -1062,6 +1062,16 @@ function showProfileMenu() {
 window.showProfileMenu = showProfileMenu;
 
 /**
+ * El buscador solo tiene sentido sobre una lista. En «Hoy» no se ofrece: esa
+ * vista es un resumen del día —vencidas, para hoy, sugeridas— y no una lista
+ * que se recorra buscando, así que el handoff no lo pone ahí.
+ */
+function _syncListSearchVisibility() {
+  const box = document.getElementById("list-search");
+  if (box) box.hidden = activeView !== "project";
+}
+
+/**
  * El control de modo de vista vive en la cabecera en escritorio y en la fila
  * de «Filtrar» en móvil, que es donde lo pone el handoff. Se mueve el nodo en
  * vez de duplicarlo para no tener dos botones con el mismo id ni dos estados
@@ -2332,6 +2342,7 @@ function renderTasks() {
   // Antes de los returns tempranos: si no, al saltar a «Hoy» los chips de la
   // lista anterior se quedarían pintados.
   _renderListChips();
+  _syncListSearchVisibility();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
