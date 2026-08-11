@@ -1970,6 +1970,10 @@ body {
 }
 
 /* "N tareas" como pill acentuada al lado del título (prototipo) */
+/* Solo se ve dentro del breakpoint móvil, donde el handoff pide pendientes
+   en vez del total de tareas. En escritorio manda `.subtitle`. */
+.subtitle-mobile { display: none; }
+
 .subtitle {
   display: inline-flex;
   align-items: center;
@@ -4557,19 +4561,55 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: none !important;
   }
 
-  /* En móvil mantenemos .tasks-header pero ocultamos la parte del título
-     (que vive en .mobile-header). Las pestañas y controles siguen visibles. */
+  /* Cabecera de pantalla del handoff móvil: título grande en el flujo del
+     contenido, con el número de pendientes debajo.
+     Sustituye a la barra compacta de arriba (.mobile-header), que venía del
+     paradigma del drawer —punto de color, nombre, píldora y engranaje— y que
+     ya no hace falta: cambiar de lista es cosa de los chips y Ajustes vive en
+     «Perfil». Se oculta entera; iba en flujo normal, así que el contenido
+     simplemente sube. */
+  .mobile-header { display: none; }
+
   .tasks-header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: var(--sp-2);
     flex-wrap: nowrap;
-    margin-bottom: 4px;
-    padding-bottom: 4px;
+    margin-bottom: 10px;
+    padding-bottom: 0;
     border-bottom: none;
   }
-  .tasks-header-left { display: none; }
+  .tasks-header-left { display: block; min-width: 0; }
+
+  .tasks-header .title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .tasks-header .project-title {
+    /* 29px: el token que el repo ya usa para títulos de vista, dentro del
+       rango 29–30 que fija el handoff. */
+    font-size: var(--fs-3xl);
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--title-track);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  /* El subtítulo de escritorio («N tareas») se calla aquí y habla el de
+     móvil («N pendientes»). */
+  .tasks-header .subtitle { display: none; }
+  .tasks-header .subtitle-mobile {
+    display: block;
+    margin-top: 4px;
+    font-size: 13.5px;
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
 
   .mobile-icon-btn {
     width: 40px;

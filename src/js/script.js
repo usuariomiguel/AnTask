@@ -180,6 +180,14 @@ const ctrlBar          = document.getElementById("ctrl-bar");
 const tasksPanel       = document.getElementById("tasks-panel");
 const projectTitleEl   = document.getElementById("project-title");
 const projectSubtitle  = document.getElementById("project-subtitle");
+const projectSubtitleM = document.getElementById("project-subtitle-mobile");
+
+/** Subtítulo de móvil: pendientes, no total (así lo pide el handoff móvil,
+ *  frente al «N tareas» del de escritorio). */
+function _setMobileSubtitle(pending) {
+  if (!projectSubtitleM) return;
+  projectSubtitleM.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+}
 const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
@@ -1255,6 +1263,7 @@ function activateProject(id) {
 
   projectTitleEl.textContent = project.name;
   projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  _setMobileSubtitle(project.tasks.filter(function(x) { return !x.done; }).length);
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -2488,6 +2497,7 @@ function _renderTasksFooter(project, isInbox) {
   if (taskCounter) taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
     .replace("{count}", String(pending));
   projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
+  _setMobileSubtitle(pending);
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0

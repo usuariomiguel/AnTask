@@ -447,6 +447,11 @@
                 <div class="title-row">
                   <h2 id="project-title" class="project-title"></h2>
                   <span id="project-subtitle" class="subtitle"></span>
+                  <!-- El handoff de escritorio pide «N tareas» y el de móvil
+                       «N pendientes». Se pintan los dos y el CSS enseña el que
+                       toca, en vez de decidirlo en JS mirando el ancho, que se
+                       queda obsoleto al girar el teléfono. -->
+                  <span id="project-subtitle-mobile" class="subtitle-mobile"></span>
                 </div>
               </div>
             </div>
