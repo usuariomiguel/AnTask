@@ -219,6 +219,14 @@ let activeProjectId = localStorage.getItem(ACTIVE_KEY) || INBOX_ID;
 // Vista activa: "project" (default) | "today" (vista Hoy virtual).
 let activeView      = "project";
 
+/* Se exponen AQUÍ y no junto al resto de globales, mucho más abajo: el
+   arranque activa la vista en cuanto se evalúa este módulo, y esa activación
+   llama a syncBnavActive(), que lee estas dos. Declaradas al final todavía
+   valían `undefined` en ese momento, así que la barra inferior arrancaba sin
+   ninguna pestaña marcada hasta que el usuario navegaba a mano. */
+window.getActiveView = function() { return activeView; };
+window.getActiveProjectId = function() { return activeProjectId; };
+
 function ensureInbox() {
   if (projects.some(function(p) { return p.id === INBOX_ID; })) return;
   projects.unshift(sanitizeProject({
@@ -1257,6 +1265,10 @@ function activateProject(id) {
   renderSidebar();
   renderTasks();
   updateSaveStatus(loadMetadata().lastSavedAt);
+  // La barra inferior no se sincronizaba al entrar en un proyecto —solo lo
+  // hacían Hoy y el calendario—, así que al arrancar en Inbox, o al abrir una
+  // lista, ninguna pestaña quedaba marcada.
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 /**
@@ -4751,8 +4763,6 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 
 window.showCalendarPanel = showCalendarPanel;
 window.activateTodayView = activateTodayView;
-window.getActiveView = function() { return activeView; };
-window.getActiveProjectId = function() { return activeProjectId; };
 
 function showCalendarPanel() {
   var calPanel = document.getElementById("cal-panel");
@@ -5249,6 +5259,9 @@ function _updateProfileMenu(user) {
   _applyAvatar(pfAvatar, avatarValue);
   _applyAvatar(pfAvatarTop, avatarValue);
   _applyAvatar(settingsAvatar, avatarValue);
+  // La pestaña «Perfil» de la barra inferior lleva el mismo avatar: en el
+  // handoff ese destino se identifica por la cara, no por un icono.
+  _applyAvatar(document.getElementById("bnav-avatar"), avatarValue);
   if (pfName)       pfName.textContent       = name;
   if (settingsName) settingsName.textContent = name;
   if (pfNameTop) pfNameTop.textContent = name;

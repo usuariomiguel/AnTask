@@ -743,8 +743,9 @@
           <i data-lucide="inbox"></i>
           <span data-i18n="sidebar.inbox">Inbox</span>
         </button>
-        <button type="button" class="mobile-bottom-btn" id="bnav-profile-btn">
-          <i data-lucide="user-round"></i>
+        <!-- Perfil usa el avatar circular con anillo, no un icono (handoff). -->
+        <button type="button" class="mobile-bottom-btn mobile-bottom-btn--profile" id="bnav-profile-btn">
+          <span class="bnav-avatar" id="bnav-avatar" aria-hidden="true">A</span>
           <span data-i18n="nav.profile">Perfil</span>
         </button>
       </nav>
@@ -979,10 +980,21 @@
         }).observe(el, { attributes: true, attributeFilter: ["hidden"] });
       });
 
-      // Sync inicial del active state en la bottom nav (por si la app
-      // carga directamente en vista Hoy).
-      if (typeof window.syncBnavActive === "function") {
-        setTimeout(window.syncBnavActive, 0);
+      // Sync inicial del estado activo de la barra inferior.
+      //
+      // Iba con setTimeout(...,0) y no funcionaba nunca: ese temporizador se
+      // disparaba ANTES de que el módulo se evaluara, así que getActiveView y
+      // getActiveProjectId todavía no existían y syncBnavActive terminaba
+      // desmarcándolo todo. Y al revés, cuando el módulo arranca la vista,
+      // este script inline aún no ha definido syncBnavActive. Cada uno llegaba
+      // cuando el otro no estaba, y la app abría sin ninguna pestaña marcada.
+      //
+      // DOMContentLoaded ocurre después de ejecutar los módulos diferidos, que
+      // es justo la garantía que hacía falta.
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", syncBnavActive);
+      } else {
+        syncBnavActive();
       }
 
       // Grupo "Más" (Archivados): abierto en desktop (sidebar

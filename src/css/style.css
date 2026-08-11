@@ -5114,11 +5114,16 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    height: 64px;
-    width: fit-content;
+    justify-content: space-around;
+    /* La pastilla ocupa TODO el ancho hasta el FAB (en v1 es `flex: 1`), no
+       solo lo que miden sus tres pestañas: por eso quedaban apiñadas a la
+       izquierda. 54 del FAB + 11 de separación + 14 de margen. */
     position: fixed;
     left: 14px;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0));
+    right: calc(14px + 54px + 11px);
+    /* Altura natural: padding 8/12 más los 44px mínimos de la pestaña. */
+    padding: 8px 12px;
+    bottom: max(22px, env(safe-area-inset-bottom, 0px));
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: 28px;
@@ -5133,37 +5138,76 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   .mobile-bottom-btn {
     flex: 0 0 auto;
-    width: 64px;
+    /* 56x44 mínimos del handoff, en vez de 64px fijos. */
+    min-width: 56px;
+    min-height: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     border: none;
     background: transparent;
     color: var(--text-tertiary);
     cursor: pointer;
-    padding: var(--sp-2) 0 0;
-    font-size: 10.5px;
-    font-weight: var(--fw-medium);
-    letter-spacing: 0;
+    padding: 2px 0;
+    /* 12px, no 10.5: el handoff fija 12px como mínimo firme para producción. */
+    font-size: var(--fs-sm);
+    font-weight: 550;
+    letter-spacing: 0.01em;
+    /* Interlineado ceñido: con el 1.5 heredado la pestaña se iba a 48px y la
+       pastilla a 66, en vez de los 44/62 del handoff. */
+    line-height: 1.15;
     text-transform: none;
     border-radius: 0;
     transition: color var(--dur-fast) var(--ease-out);
     position: relative;
     z-index: 1;
-    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .mobile-bottom-btn svg { width: 22px; height: 22px; stroke-width: 1.75; flex-shrink: 0; }
+  .mobile-bottom-btn svg { width: 23px; height: 23px; stroke-width: 1.9; flex-shrink: 0; }
   .mobile-bottom-btn > span {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  /* Avatar de la pestaña «Perfil»: círculo de 26px con anillo. El anillo va
+     con `outline` y no con `border` para que no altere la caja y el avatar
+     mantenga sus 26px al pasar a activo (el anillo engorda de 1.5 a 2.5). */
+  .bnav-avatar {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent-tint);
+    color: var(--c-primary-300);
+    font-size: 12px;
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    outline: 1.5px solid var(--text-tertiary);
+    outline-offset: 1.5px;
+    opacity: 0.65;
+    transition: outline-color var(--dur-fast) var(--ease-out),
+                opacity var(--dur-fast) var(--ease-out);
+  }
+  :root[data-theme="light"] .bnav-avatar { color: var(--c-primary-600); }
+  .mobile-bottom-btn.active .bnav-avatar {
+    outline: 2.5px solid var(--c-primary-500);
+    opacity: 1;
+  }
+  :root[data-theme="light"] .mobile-bottom-btn.active .bnav-avatar {
+    outline-color: var(--c-primary-600);
+  }
+
+  /* La etiqueta de «Perfil» inactiva es ink2, no ink3: en el handoff se lee
+     algo más que las otras dos porque el avatar ya no aporta color. */
+  .mobile-bottom-btn--profile { color: var(--text-secondary); }
 
   /* FAB de captura, flotando aparte de la pastilla (variante "Separado"
      del prototipo v1) — mismo suelo/margen que la barra de navegación. */
@@ -5186,7 +5230,10 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: inline-flex;
     position: fixed;
     right: 14px;
-    bottom: calc(13px + env(safe-area-inset-bottom, 0));
+    /* Comparte eje con la pastilla: esta apoya en max(22px, safe) y mide 65px
+       medidos (8 + 47 de pestaña + 8 + 2 de borde), así que el FAB de 54 sube
+       (65-54)/2 ≈ 5px. */
+    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) + 5px);
     z-index: 200;
   }
   .mobile-fab:active { transform: scale(0.94); }
