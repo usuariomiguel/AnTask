@@ -9750,3 +9750,75 @@ button {
      sobra, así que el bloque queda casi a ras del contenedor. */
   .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTROS A LA VISTA (solo escritorio)
+
+   Los tres de uso diario —Todas / Pendientes / Hechas— salen del
+   desplegable a la propia fila. El resto (Cuándo, Atributos,
+   Ordenar) se queda dentro de «Filtrar».
+
+   El móvil NO cambia: allí sigue mandando la hoja, que se construye
+   leyendo #filter-panel, así que sus opciones se conservan en el DOM
+   y solo se ocultan en escritorio.
+   ═══════════════════════════════════════════════════════════════ */
+.filter-segments { display: none; }
+
+@media (min-width: 769px) {
+  .filter-segments {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .filter-segment {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    padding: var(--sp-2) var(--sp-3);
+    min-height: 30px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out);
+  }
+  .filter-segment:hover { color: var(--text-primary); background: var(--row-hover); }
+
+  /* El activo es sólido, como la píldora del prototipo. */
+  .filter-segment.filter-opt--active {
+    background: var(--c-primary-700);
+    border-color: transparent;
+    color: #fff;
+    font-weight: var(--fw-semibold);
+  }
+  .filter-segment.filter-opt--active:hover {
+    background: color-mix(in srgb, var(--c-primary-700) 88%, #000);
+    color: #fff;
+  }
+
+  /* Separador fino entre el segmentado y «Filtrar». */
+  .list-filter-row .filter-wrap { margin-left: var(--sp-2); }
+  .list-filter-row .filter-wrap::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--sp-2) * -1);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 18px;
+    background: var(--border-default);
+  }
+
+  /* En el panel sobra la sección «Mostrar»: ya está fuera. Se oculta en
+     vez de borrarse para no romper la hoja de móvil, que lee este DOM. */
+  #filter-panel .filter-panel-section:first-child,
+  #filter-panel .filter-panel-section:first-child + .filter-panel-sep {
+    display: none;
+  }
+}

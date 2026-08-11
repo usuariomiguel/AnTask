@@ -1119,11 +1119,29 @@ function _filterPanelSections() {
 }
 
 // ─── FILTROS ─────────────────────────────────────────────────
+
+/**
+ * Marca el filtro activo en los DOS sitios donde vive: el segmentado
+ * visible de escritorio y las opciones del panel, que se conservan
+ * porque de ahí se construye la hoja de filtros de móvil.
+ * @param {string} value
+ */
+function _marcarFiltroActivo(value) {
+  document.querySelectorAll("#list-filter-row [data-filter]").forEach(function(b) {
+    var on = b.dataset.filter === value;
+    b.classList.toggle("filter-opt--active", on);
+    // Solo el segmentado es un grupo de pulsación; las del panel son
+    // menuitemradio y su estado ya lo lleva la clase.
+    if (b.classList.contains("filter-segment")) b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
 function applyFilter(value) {
   currentFilter = value;
-  document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
-    b.classList.toggle("filter-opt--active", b.dataset.filter === value);
-  });
+  // El ámbito es la fila entera, no solo el panel: los tres filtros de uso
+  // diario viven ahora fuera, como segmentado, y el panel los conserva para
+  // la hoja de móvil. Los dos juegos tienen que marcarse a la vez.
+  _marcarFiltroActivo(value);
   _updateFilterTriggerLabel();
   renderTasks();
 }
@@ -4604,6 +4622,15 @@ async function bulkMoveToProject() {
       var opening = filterPanel.hidden;
       filterPanel.hidden = !opening;
       filterTriggerBtn.classList.toggle("open", opening);
+    });
+  }
+
+  // ── Segmentado visible (escritorio) ──────────────────────────
+  var filterSegments = document.getElementById("filter-segments");
+  if (filterSegments) {
+    filterSegments.addEventListener("click", function(e) {
+      var btn = e.target.closest("[data-filter]");
+      if (btn) applyFilter(btn.dataset.filter);
     });
   }
 

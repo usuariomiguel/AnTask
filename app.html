@@ -512,6 +512,20 @@
         <div class="tasks-panel" id="tasks-panel" hidden>
           <!-- Fila de filtro dentro del cuerpo, como en el prototipo v1 -->
           <div class="list-filter-row" id="list-filter-row">
+            <!-- Los tres filtros de uso diario, a la vista. Los del panel
+                 siguen existiendo (ocultos en escritorio por CSS) porque la
+                 hoja de filtros de móvil se construye leyendo #filter-panel. -->
+            <div class="filter-segments" id="filter-segments" role="group" data-i18n-label="filter.section_show">
+              <button type="button" class="filter-segment filter-opt--active" data-filter="all" aria-pressed="true">
+                <span data-i18n="filter.all">Todas</span>
+              </button>
+              <button type="button" class="filter-segment" data-filter="pending" aria-pressed="false">
+                <span data-i18n="filter.pending">Pendientes</span>
+              </button>
+              <button type="button" class="filter-segment" data-filter="done" aria-pressed="false">
+                <span data-i18n="filter.done">Hechas</span>
+              </button>
+            </div>
             <div class="filter-wrap" id="filter-wrap" style="position:relative">
               <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
                 <svg class="filter-trigger-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z"/></svg>
