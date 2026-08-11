@@ -3205,8 +3205,8 @@ button:focus-visible {
   .today-check::before {
     content: "";
     position: absolute;
-    /* 19 + 12*2 = 43px, en el umbral de los 44 recomendados sin llegar
-       a solaparse con el texto de la fila (el hueco es de 12px). */
+    /* 20 + 12*2 = 44px, justo el mínimo recomendado, sin llegar a
+       solaparse con el texto de la fila (el hueco es de 12px). */
     inset: -12px;
     border-radius: 50%;
   }
@@ -3218,9 +3218,11 @@ button:focus-visible {
 .task-toggle {
   appearance: none;
   -webkit-appearance: none;
-  width: 25px;
-  height: 25px;
-  border: 1.7px solid var(--text-tertiary);
+  /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
+     la de Hoy son el mismo control y no deben verse distintas. */
+  width: 20px;
+  height: 20px;
+  border: 1.8px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
   cursor: pointer;
@@ -3259,8 +3261,10 @@ button:focus-visible {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 19px;
-  height: 19px;
+  /* El tick vive dentro del círculo de 20px: 10px es lo que ocupa la
+     marca en Hoy, donde se dibuja con máscara. */
+  width: 10px;
+  height: 10px;
   pointer-events: none;
   fill: none;
   stroke: var(--accent-on);
@@ -8317,7 +8321,16 @@ button {
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
+/* Bloque que engloba las tareas de cada sección. Se quitó en
+   `293493d` (empty states) y se restaura tal cual estaba: es lo que
+   separa visualmente "Vencidas" de "Para hoy" y da a cada grupo del
+   Inbox su propia caja. */
 .hoy-section {
+  list-style: none;
+  margin-bottom: 14px;
+  background: var(--block-bg);
+  border: 1px solid var(--border-default);
+  border-radius: calc(var(--r-md) + 8px);
   padding: 11px 11px 10px;
 }
 
@@ -9717,3 +9730,23 @@ button {
 
 /* Ya no hay flecha a la que ampliarle la zona táctil: el blanco es la
    cabecera entera, que de sobra pasa de 44px. */
+
+/* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ────
+   Compañero del bloque de `.hoy-section`: cuando se abre una lista
+   concreta, sus tareas van dentro de la misma caja. Se retiró junto
+   con el otro en `293493d` y se restaura igual.
+
+   Solo en escritorio: en móvil las filas ocupan el ancho completo y
+   una caja alrededor solo restaría sitio.                          */
+@media (min-width: 769px) {
+  .task-list--project {
+    background: var(--block-bg);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 8px);
+    padding: 11px 11px 4px;
+    margin-bottom: 14px;
+  }
+  /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
+     sobra, así que el bloque queda casi a ras del contenedor. */
+  .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
+}
