@@ -803,11 +803,18 @@
           <!-- Orden de v1: prioridad → lista → repetición → fecha (la fecha
                siempre pegada al borde, como en el prototipo). -->
           <div class="task-meta">
-            <span class="task-priority-container"></span>
-            <span class="task-list-container"></span>
-            <span class="task-recur-container"></span>
+            <!-- Los chips van agrupados para poder separarlos de la fecha en
+                 móvil, donde el prototipo los baja a una segunda línea y ancla
+                 la fecha al borde derecho de la fila. En escritorio el envoltorio
+                 es `display: contents` y no altera nada. -->
+            <span class="task-chips">
+              <span class="task-priority-container"></span>
+              <span class="task-list-container"></span>
+              <span class="task-recur-container"></span>
+            </span>
+            <!-- Sin botón de opciones: en escritorio el menú sale con el clic
+                 derecho sobre la fila y en móvil con el gesto de deslizar. -->
             <span class="task-due-container"></span>
-            <button type="button" class="task-kebab-btn" aria-label="Opciones de tarea"><i data-lucide="ellipsis"></i></button>
           </div>
         </div>
       </li>

@@ -48,7 +48,8 @@ export function renderListBadge(project, container) {
 export function renderDueBadge(task, container) {
   const existing = container.querySelector(".due-badge");
   if (existing) existing.remove();
-  if (task.done || !task.dueDate) return;
+  // Igual que la prioridad: completar no borra la fecha de la fila.
+  if (!task.dueDate) return;
   const state = getDueDateState(task.dueDate);
   if (!state) return;
   const badge = document.createElement("span");

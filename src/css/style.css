@@ -81,6 +81,12 @@
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --row-hover: rgba(255, 238, 214, 0.055);  /* hover de fila */
   --zebra-bg:  rgba(255, 240, 220, 0.028);  /* franja alterna del modo cebra */
+  /* Versión OPACA de la franja. La translúcida no vale en las filas:
+     `.task-swipe-content` hereda el `background-color` y lo vuelve a
+     pintar encima, así que un tinte con alfa se aplicaba dos veces en
+     unas vistas y ninguna en otras. Con un color sólido, las tres
+     pantallas rinden el mismo escalón. */
+  --zebra-solid: color-mix(in srgb, #fff0dc 6%, var(--surface-card));
   --kbd-bg:    rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
   --task-hover:        rgba(163, 179, 102, 0.10);
@@ -334,6 +340,7 @@
   /* Interacción */
   --row-hover: #efe6d4;
   --zebra-bg:  rgba(50, 42, 28, 0.025);
+  --zebra-solid: color-mix(in srgb, #322a1c 5%, var(--surface-card));
   --kbd-bg:    #e7dfcf;
   --task-hover:        rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
@@ -2765,6 +2772,13 @@ button:focus-visible {
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
+/* Sin animación de entrada en el Inbox agrupado. Ahí una fila cambia de
+   bloque al completarse o al reabrirse (entra o sale de «Completadas»),
+   y moverla de padre la reinserta en el documento: el navegador cancela
+   y relanza su animación, así que la fila «entraba» otra vez cada vez
+   que se tocaba. */
+.task-list--grupos .task-item { animation: none; }
+
 /* Left accent bar — solo visible cuando la fila está seleccionada
  * (multi-selección). Centrada verticalmente. */
 .task-item::before {
@@ -3419,11 +3433,9 @@ button:focus-visible {
 }
 
 .task-item.done {
-  opacity: 0.45;
-  /* Sin animación de entrada: `itemIn` termina en `opacity: 1` y, mientras
-     corre, ese valor gana al 0.45 de aquí. La fila completada se encendía a
-     tope y caía de golpe al acabar, como si se estuviera completando sola
-     cada vez que se abría la lista. */
+  /* Sin `opacity` de fila: apagarla entera atenuaba también la casilla,
+     los chips y el fondo. Completar solo debe apagar el TÍTULO — el resto
+     de la fila se lee igual que antes, y nunca se tacha. */
   animation: none;
 }
 
@@ -3437,6 +3449,7 @@ button:focus-visible {
 .task-item.done .task-text {
   color: var(--text-tertiary);
   font-weight: 450;
+  opacity: 0.6;
 }
 
 /* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
@@ -3450,6 +3463,12 @@ button:focus-visible {
 
 /* Los contenedores vacíos no deben abrir hueco entre chips. */
 .task-meta > span:empty { display: none; }
+
+/* El envoltorio de chips solo existe para el layout de móvil. Aquí no
+   genera caja, así que los contenedores siguen siendo hijos efectivos
+   de `.task-meta` y el gap de 10px sale igual que antes. */
+.task-chips { display: contents; }
+.task-chips > span:empty { display: none; }
 
 .task-kebab-btn {
   display: inline-flex;
@@ -5018,7 +5037,11 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: flex;
     align-items: center;
     gap: var(--sp-3);
-    overflow: hidden;
+    /* SIN `overflow: hidden`, por lo mismo que la regla base: la zona
+       táctil de 44px tira del checkbox hacia fuera con margen negativo,
+       así que el círculo asoma por el borde izquierdo de esta caja y el
+       recorte le comía un trozo. Quien trunca el título es `.task-text`,
+       y `.task-item` sigue recortando por fuera como red de seguridad. */
   }
 
   .task-text {
@@ -5032,10 +5055,13 @@ body.project-dragging .project-item { cursor: grabbing; }
     color: var(--text-primary);
   }
 
-  /* Meta-row — siempre la segunda fila, alineada con el título */
+  /* Meta-row — siempre la segunda fila, alineada con el título.
+     23px es lo que ocupa el checkbox en el flujo: la caja táctil mide 44
+     pero sus márgenes negativos (-13 y -8) le restan 21. Sumado al gap,
+     los chips arrancan exactamente bajo la primera letra del título. */
   .task-meta {
     flex: 0 0 100%;
-    padding-left: calc(20px + var(--sp-3));
+    padding-left: calc(23px + var(--sp-3));
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -8393,10 +8419,11 @@ button {
   line-height: 1.4;
   word-break: break-word;
 }
-.today-item--done { opacity: 0.45; }
+/* Igual que en las listas: completar apaga el título, no la fila. */
 .today-item--done .today-text {
   color: var(--text-tertiary);
   font-weight: 450;
+  opacity: 0.6;
 }
 
 /* Chips/acciones de la fila: misma línea en escritorio, segunda línea
@@ -8901,6 +8928,12 @@ button {
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
 }
+/* El chip de lista bajo cabecera de grupo es cosa del prototipo móvil.
+   En escritorio la cabecera ya dice la lista, así que ahí sobra. */
+@media (min-width: 769px) {
+  .task-list--grupos .task-list-container { display: none; }
+}
+
 .inbox-group-rule {
   flex: 1;
   height: 1px;
@@ -9904,40 +9937,6 @@ button {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   PLEGAR BLOQUES — secciones de Hoy y grupos del Inbox
-
-   La cabecera ENTERA pliega y despliega su bloque. Antes era una flecha
-   aparte, y en el Inbox esa misma fila navegaba además al proyecto: dos
-   acciones distintas según dónde pulsaras. Ahora navegar es cosa de los
-   chips y la cabecera solo pliega, con un blanco mucho mayor en móvil.
-   ═══════════════════════════════════════════════════════════════ */
-.block-foldable {
-  cursor: pointer;
-  user-select: none;
-  border-radius: var(--r-sm);
-  transition: background var(--dur-fast) var(--ease-out);
-}
-.block-foldable:hover { background: var(--row-hover); }
-.block-foldable:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
-}
-
-/* Plegado: se va la lista y el margen inferior de la cabecera, para
-   que el bloque quede como una barra compacta. */
-.hoy-section--collapsed .hoy-section-list,
-.hoy-section--collapsed .inbox-group-list { display: none; }
-.hoy-section--collapsed .hoy-section-head,
-.hoy-section--collapsed .inbox-group-head { margin-bottom: 0; }
-
-/* La acción masiva ("Mover todas a hoy") no se ofrece sobre un bloque
-   plegado: actuaría sobre tareas que no se están viendo. */
-.hoy-section--collapsed .hoy-section-action { display: none; }
-
-/* Ya no hay flecha a la que ampliarle la zona táctil: el blanco es la
-   cabecera entera, que de sobra pasa de 44px. */
-
 /* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ────
    Compañero del bloque de `.hoy-section`: cuando se abre una lista
    concreta, sus tareas van dentro de la misma caja. Se retiró junto
@@ -10175,6 +10174,218 @@ button {
     font-weight: 650;
   }
 
+  /* ── Estructura de la fila, como `MTaskCard` ─────────────────
+     El prototipo pone la fecha FUERA del bloque de contenido, pegada al
+     borde derecho y centrada sobre toda la fila — no al final de la
+     línea de chips. Con flex no se puede: la fecha vive dentro de
+     `.task-meta`, que es la segunda línea. Así que aquí la fila pasa a
+     rejilla de dos columnas, `.task-meta` se vuelve `display: contents`
+     para que sus hijos sean celdas, y la fecha ocupa la columna derecha
+     a lo alto de las dos filas. */
+  .task-main-row {
+    display: grid;
+    /* casilla · contenido · fecha */
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    /* `center`, no el `normal` por defecto: `normal` equivale a estirar, y
+       el alto sobrante de la fila se repartía entre las dos pistas. En una
+       tarea sin chips eso engordaba la segunda pista —vacía— y dejaba un
+       hueco muerto bajo el título. */
+    align-content: center;
+    column-gap: var(--sp-3);
+    row-gap: 0;
+  }
+  /* `.task-summary` y `.task-meta` dejan de generar caja para que sus
+     hijos sean celdas de la rejilla de la fila. */
+  .task-summary { display: contents; }
+  .task-meta { display: contents; }
+  /* La casilla ocupa su propia columna a lo alto de las dos filas, así
+     que queda centrada sobre la fila entera igual que la fecha —y no
+     colgada del título cuando este ocupa dos líneas. */
+  /* Con `.task-summary` en la especificidad: si no, gana la regla de más
+     arriba que le fija la caja de 44×44. */
+  .task-summary .task-toggle-wrap {
+    grid-area: 1 / 1 / 3 / 2;
+    align-self: center;
+    /* Sin la caja de 44×44 con márgenes negativos que traía de la
+       maquetación flex: al ocupar las dos filas de la rejilla, esos 44px
+       inflaban la segunda fila 9px aunque no hubiera chips, y la fila se
+       quedaba con un hueco muerto abajo. La zona táctil de 44 la sigue
+       dando `.task-toggle::before` (inset -11) del bloque `pointer:
+       coarse`, que no ocupa sitio. */
+    width: 22px;
+    /* Alto CERO a propósito. Al ocupar las dos filas, Chrome reparte el
+       alto del elemento a partes iguales entre las pistas que abarca: con
+       22px, la segunda pista se quedaba con 11 aunque estuviera vacía, y
+       aparecía un hueco muerto bajo el título. El círculo no lo necesita
+       —`.task-toggle` va en `position: absolute` centrado en esta caja—,
+       así que la caja puede no medir nada y el círculo sigue cayendo en
+       mitad de la fila. */
+    height: 0;
+    margin: 0;
+  }
+  .task-text { grid-area: 1 / 2; }
+  .task-chips {
+    grid-area: 2 / 2;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  /* Sin chips no hay segunda línea que separar. */
+  .task-chips:not(:has(span:not(:empty))) { display: none; }
+  .task-due-container {
+    grid-area: 1 / 3 / 3 / 4;
+    align-self: center;
+    justify-self: end;
+  }
+
+  /* Las filas van pegadas: en cebra, que es la única vista de móvil, la
+     franja alterna solo se lee si no hay hueco entre una y otra. */
+  .task-item { margin-bottom: 0; }
+  .inbox-group-list { gap: 0; }
+
+  /* ── Hoy: la misma rejilla ───────────────────────────────────
+     `.today-item` era flex con `wrap`, así que los chips caían a una
+     segunda línea y la casilla se centraba sobre la PRIMERA, no sobre
+     la fila: quedaba 16,5px alta. Con la rejilla, casilla y fecha
+     ocupan sus columnas a lo alto de las dos filas y quedan centradas
+     sobre el alto real. */
+  .today-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 13px;
+    row-gap: 0;
+  }
+  .today-check {
+    grid-area: 1 / 1 / 3 / 2;
+    align-self: center;
+  }
+  .today-text { grid-area: 1 / 2; }
+  .today-meta {
+    grid-area: 2 / 2;
+    margin-top: 6px;
+    /* El `margin-left: 33px` de la maquetación anterior sangraba los chips
+       a mano («checkbox 20 + gap 13»). Con la rejilla la columna del
+       contenido ya empieza donde toca, así que ese margen sobra y se veía
+       como un hueco antes del primer chip. */
+    margin-left: 0;
+  }
+  .today-meta:empty { display: none; }
+  .today-date-pill {
+    grid-area: 1 / 3 / 3 / 4;
+    align-self: center;
+    justify-self: end;
+  }
+
+  /* ── Sin tarjeta de sección ──────────────────────────────────
+     En el prototipo la cabecera va suelta sobre el lienzo y la tarjeta
+     es la LISTA de filas, no el bloque entero. Así el redondeado lo pone
+     la lista y la cebra corre de lado a lado. `.hoy-section` es la clase
+     común de las secciones de Hoy y de los grupos del Inbox. */
+  .hoy-section {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 18px;
+  }
+  .inbox-group-head,
+  .hoy-section-head { padding: 0 4px 9px; margin-bottom: 0; }
+
+  /* La acción masiva («Programar todas hoy») no cabía junto al rótulo:
+     saltaba a una segunda línea y la cabecera doblaba su alto. En 390px
+     el filete decorativo es lo primero que sobra, y el botón se ciñe. */
+  .hoy-section-head .hoy-section-rule { display: none; }
+  .hoy-section-action {
+    margin-left: auto;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hoy-section-action-label { display: none; }
+  .hoy-section-action .lucide { width: 15px; height: 15px; }
+  .inbox-group-list,
+  .hoy-section-list {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 2px);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+  }
+
+  /* El quick-add cuelga del bloque, debajo de la tarjeta de la lista:
+     caja propia con su borde y un hueco de separación. */
+  .hoy-section > .hoy-quickadd { margin-top: 8px; }
+
+  /* En la vista de una lista no hay sección que envuelva: las filas
+     cuelgan de `#task-list` junto al pie y al estado vacío, así que no
+     se puede rodear el bloque con una caja. El marco lo forman las
+     propias filas: laterales en todas, y la primera y la última ponen
+     el borde de arriba/abajo con sus esquinas.
+     El selector lleva el atributo de estilo de fila para empatar en
+     especificidad con las reglas de cebra y ganarles por orden. */
+  .task-list--project[data-row-style="cebra"] .task-item {
+    border-left: 1px solid var(--border-default);
+    border-right: 1px solid var(--border-default);
+  }
+  /* ── Cebra sólida, igual en las tres pantallas ───────────────
+     Medido: la misma regla rendía Δ10 en Inbox, Δ5 en Hoy y Δ0 en una
+     lista. La culpa es de `.task-swipe-content { background-color:
+     inherit }`, que repinta el fondo de la fila encima: un tinte con
+     alfa se componía dos veces donde la fila lo llevaba como color, y
+     desaparecía donde el color era la tarjeta opaca. Con un color
+     sólido en la fila el resultado no depende de cuántas capas haya. */
+  .task-list[data-row-style="cebra"] .task-item,
+  .task-list[data-row-style="cebra"] .today-item {
+    background: var(--surface-card);
+  }
+  .task-list[data-row-style="cebra"] .task-item:nth-child(even),
+  .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even),
+  .task-list--project[data-row-style="cebra"] .task-item:nth-child(even) {
+    background: var(--zebra-solid);
+  }
+  .task-list--project[data-row-style="cebra"] .task-item:first-child {
+    border-top: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 2px) calc(var(--r-md) + 2px) 0 0;
+  }
+  .task-list--project[data-row-style="cebra"] .task-item:not(:has(+ .task-item)) {
+    border-bottom: 1px solid var(--border-default);
+    border-radius: 0 0 calc(var(--r-md) + 2px) calc(var(--r-md) + 2px);
+    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+  }
+  /* Lista de una sola tarea: las cuatro esquinas. */
+  .task-list--project[data-row-style="cebra"] .task-item:first-child:not(:has(+ .task-item)) {
+    border-radius: calc(var(--r-md) + 2px);
+  }
+
+  /* ── Márgenes de pantalla ────────────────────────────────────
+     El prototipo da al contenedor de scroll `padding: 0 16px` y a la
+     cabecera `padding: 8px 20px 14px`: el título va 4px más adentro
+     que el contenido, no al revés. Aquí el título caía en 12 y el
+     buscador en 16, que es lo que se veía descuadrado. */
+  .tasks-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .task-list {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Y deja de ser píldora: en el prototipo solo la vencida lo es —el
+     resto es texto mono suelto, sin fondo ni icono de calendario. */
+  .task-item .due-badge:not(.due-overdue) {
+    background: none;
+    padding: 0;
+    height: auto;
+  }
+  .task-item .due-badge:not(.due-overdue) .lucide { display: none; }
+
   /* Vencida: la ficha la describe como píldora roja pulsable, con
      borde propio y no solo fondo teñido. */
   .due-badge.due-overdue {
@@ -10200,3 +10411,4 @@ button {
     height: 12px;
   }
 }
+

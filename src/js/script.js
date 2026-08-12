@@ -2447,51 +2447,96 @@ function renderTasks() {
   let visible = pendingItems;
 
   // ── Inbox agrupado: cada proyecto es un BLOQUE separado (como las
-  // secciones de Hoy), no filas dentro de un único contenedor. Aquí
-  // reconstruimos la lista entera en lugar de usar el diff plano.
+  // secciones de Hoy), no filas dentro de un único contenedor.
+  //
+  // Se hace por diferencias, no rehaciendo el HTML. Vaciar el contenedor
+  // y volver a colgarlo todo obliga al navegador a CANCELAR y REINICIAR
+  // las animaciones de cada fila al reinsertarlas: bastaba tocar una
+  // tarea para que la lista entera repitiera su entrada, y se leía como
+  // si la página se recargase sola. Reutilizando bloques y filas, un
+  // render que no cambia nada estructural no mueve un solo nodo.
   if (inboxGroups) {
     taskList.classList.remove("task-list--project");
     // Inbox por bloques: candidato a dos columnas en pantallas anchas.
     taskList.classList.add("task-list--grupos");
-    taskList.innerHTML = "";
 
+    const bloquesPrevios = new Map();
+    Array.from(taskList.children).forEach(function(n) {
+      if (n.dataset && n.dataset.groupId) bloquesPrevios.set(n.dataset.groupId, n);
+      else n.remove();   // pie o estado vacío de un render anterior
+    });
+
+    let secPrev = null;
     inboxGroups.forEach(function(g) {
       if (g.items.length === 0) return;
       const isNone = g.project.id === INBOX_ID;
-      const sec = document.createElement("li");
-      sec.className = "hoy-section inbox-group-block";
-      const head = document.createElement("div");
-      head.className = "inbox-group-head";
-      head.insertAdjacentHTML("beforeend",
-        '<span class="inbox-group-dot"></span>' +
-        '<span class="inbox-group-name"></span>' +
-        '<span class="inbox-group-count"></span>' +
-        '<span class="inbox-group-rule"></span>');
+      let sec = bloquesPrevios.get(g.project.id);
+      let head, ul;
+      if (sec) {
+        bloquesPrevios.delete(g.project.id);
+        head = sec.querySelector(".inbox-group-head");
+        ul   = sec.querySelector(".inbox-group-list");
+      } else {
+        sec = document.createElement("li");
+        sec.className = "hoy-section inbox-group-block";
+        sec.dataset.groupId = g.project.id;
+        head = document.createElement("div");
+        head.className = "inbox-group-head";
+        head.insertAdjacentHTML("beforeend",
+          '<span class="inbox-group-dot"></span>' +
+          '<span class="inbox-group-name"></span>' +
+          '<span class="inbox-group-count"></span>' +
+          '<span class="inbox-group-rule"></span>');
+        ul = document.createElement("ul");
+        ul.className = "inbox-group-list";
+        sec.appendChild(head);
+        sec.appendChild(ul);
+      }
+
       head.querySelector(".inbox-group-name").textContent = isNone
         ? t("inbox.group_none")
         : g.project.name;
       // Número pelado, como en el prototipo móvil (`GroupHead`): los
       // paréntesis eran nuestros. Igual que en las secciones de Hoy.
       head.querySelector(".inbox-group-count").textContent = String(g.items.length);
-      if (!isNone) {
-        head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
-      }
-      // Plegar es lo único que hace la cabecera. Entrar en la lista se hace
-      // desde los chips.
-      _makeBlockFoldable("grupo:" + g.project.id, sec, head);
-      const ul = document.createElement("ul");
-      ul.className = "inbox-group-list";
+      head.querySelector(".inbox-group-dot").style.background = isNone
+        ? ""
+        : _projectColor(g.project);
+
+      const filasPrevias = new Map();
+      Array.from(ul.children).forEach(function(n) {
+        if (n.dataset && n.dataset.taskId) filasPrevias.set(n.dataset.taskId, n);
+        else n.remove();
+      });
+
+      let nodoPrev = null;
       g.items.forEach(function(it) {
-        // Bajo cabecera de grupo: la lista ya está escrita arriba.
-        const node = _buildTaskNode(it.task, it.project, false);
+        // El prototipo móvil pinta el chip de lista en toda fila, también
+        // bajo cabecera de grupo. Se construye siempre y en escritorio se
+        // oculta por CSS, donde la cabecera ya nombra la lista.
+        let node = filasPrevias.get(it.task.id);
+        if (node && node._task === it.task && node._showList === true) {
+          filasPrevias.delete(it.task.id);
+          _updateTaskNode(node, it.task);
+        } else {
+          // El objeto cambió de referencia (sync, import…): hay que rehacer
+          // la fila para que los listeners apunten al nuevo `task`.
+          if (node) { node.remove(); filasPrevias.delete(it.task.id); }
+          node = _buildTaskNode(it.task, it.project, true);
+        }
         node.style.setProperty("--task-accent", _projectColor(it.project));
         node.classList.toggle("task-item--foreign", it.project.id !== project.id);
-        ul.appendChild(node);
+        const destino = nodoPrev ? nodoPrev.nextSibling : ul.firstChild;
+        if (destino !== node) ul.insertBefore(node, destino);
+        nodoPrev = node;
       });
-      sec.appendChild(head);
-      sec.appendChild(ul);
-      taskList.appendChild(sec);
+      filasPrevias.forEach(function(n) { n.remove(); });
+
+      const destinoSec = secPrev ? secPrev.nextSibling : taskList.firstChild;
+      if (destinoSec !== sec) taskList.insertBefore(sec, destinoSec);
+      secPrev = sec;
     });
+    bloquesPrevios.forEach(function(n) { n.remove(); });
 
     _renderTasksFooter(project, isInbox);
     if (window.lucide) lucide.createIcons();
@@ -2604,7 +2649,10 @@ function _renderTasksFooter(project, isInbox) {
 function renderPriorityBadge(task, container) {
   if (!container) return;
   container.innerHTML = "";
-  if (task.done || !task.priority) return;
+  // Completar ya no esconde los chips: la fila completada sigue diciendo
+  // de qué lista era y qué prioridad tenía. Lo único que cambia es que
+  // el título se apaga.
+  if (!task.priority) return;
   const badge = document.createElement("span");
   badge.className = "priority-badge priority-badge-" + task.priority;
   badge.textContent = PRIORITY_PNUM[task.priority] || "";
@@ -2650,13 +2698,29 @@ function _updateTaskNode(node, task) {
   node.classList.toggle("done", task.done);
 
   applyPriorityToNode(node, task);
-  renderPriorityBadge(task, node.querySelector(".task-priority-container"));
-  // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
-  // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
-  renderListBadge(node._showList ? node._project : null,
-                  node.querySelector(".task-list-container"));
-  renderDueBadge(task, node.querySelector(".task-due-container"));
-  renderRecurBadge(task, node.querySelector(".task-recur-container"));
+
+  // Los chips se rehacen a base de vaciar y volver a crear el nodo, así que
+  // repintarlos sin necesidad reinicia sus transiciones y provoca un
+  // parpadeo en TODA la lista cada vez que se toca una sola tarea. Con una
+  // firma de lo que les afecta, un render que no cambia nada no los toca.
+  const firmaChips = [
+    task.priority || "",
+    task.dueDate || "", task.dueTime || "",
+    task.recurDays || "",
+    node._showList && node._project ? node._project.id : "",
+    node._showList && node._project ? node._project.name : "",
+    getLang(),
+  ].join("|");
+  if (node._firmaChips !== firmaChips) {
+    node._firmaChips = firmaChips;
+    renderPriorityBadge(task, node.querySelector(".task-priority-container"));
+    // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
+    // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
+    renderListBadge(node._showList ? node._project : null,
+                    node.querySelector(".task-list-container"));
+    renderDueBadge(task, node.querySelector(".task-due-container"));
+    renderRecurBadge(task, node.querySelector(".task-recur-container"));
+  }
 
   // El panel de detalle (columna derecha) sustituye a la expansión en la
   // fila — solo marcamos si su panel está abierto (barra de acento).
@@ -2694,7 +2758,6 @@ function _buildTaskNode(task, project, showList) {
 
     const checkbox = node.querySelector(".task-toggle");
     const text     = node.querySelector(".task-text");
-    const kebabBtn = node.querySelector(".task-kebab-btn");
 
     // Badge de fecha vencida: pulsable, mueve la tarea a hoy sin abrir el panel.
     node.querySelector(".task-due-container").addEventListener("click", function(e) {
@@ -2770,14 +2833,6 @@ function _buildTaskNode(task, project, showList) {
           if (!menu.contains(ev.target)) closeCtxMenu();
         };
         document.addEventListener("mousedown", _ctxCloseHandler);
-      });
-    }
-
-    if (kebabBtn) {
-      kebabBtn.addEventListener("click", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openTaskActionsMenu(kebabBtn);
       });
     }
 
@@ -3548,7 +3603,10 @@ function renderTodayView() {
   todays.forEach(function(it) {
     secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
   });
-  secH.list.appendChild(_hoyQuickAddEl(today));
+  // Fuera de la lista, no dentro: la lista es la tarjeta redondeada y su
+  // `overflow: hidden` le comía el borde. El quick-add es su propia caja
+  // debajo, separada por un hueco.
+  secH.li.appendChild(_hoyQuickAddEl(today));
   taskList.appendChild(secH.li);
 
   // ── Sin fecha · sugeridas ──
@@ -3568,83 +3626,6 @@ function renderTodayView() {
     var qa = taskList.querySelector(".hoy-quickadd-input");
     if (qa) qa.focus();
   }
-}
-
-// ── Plegado de bloques (secciones de Hoy y grupos del Inbox) ──
-//
-// v1 no pliega estos bloques, pero sí tiene el idioma: las cabeceras de
-// grupo de la barra lateral usan un chevron que rota 90° al abrirse.
-// Se reutiliza ese gesto para no inventar uno nuevo.
-//
-// El estado se guarda por id estable: "hoy:overdue" y compañía para las
-// secciones fijas de Hoy, "grupo:<idProyecto>" para los del Inbox.
-
-var COLLAPSED_KEY = "antask-collapsed-blocks";
-
-/** @returns {string[]} ids de bloques plegados */
-function _collapsedBlocks() {
-  try {
-    var raw = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]");
-    return Array.isArray(raw) ? raw : [];
-  } catch (e) { return []; }
-}
-
-function _isBlockCollapsed(id) {
-  return _collapsedBlocks().indexOf(id) !== -1;
-}
-
-function _setBlockCollapsed(id, collapsed) {
-  var list = _collapsedBlocks().filter(function(x) { return x !== id; });
-  if (collapsed) list.push(id);
-  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(list)); } catch (e) { /* cuota */ }
-}
-
-/**
- * Botón de plegado para la cabecera de un bloque.
- *
- * Botón propio y no la fila entera: en el Inbox la cabecera ya lleva un
- * clic que navega al proyecto, y hacerla pulsable para dos cosas
- * distintas obligaría a adivinar cuál quiere el usuario.
- *
- * @param {string} blockId  id estable para recordar el estado
- * @param {HTMLElement} sec bloque al que aplicar la clase
- */
-/**
- * Hace plegable un bloque desde su propia cabecera. Antes esto era una flecha
- * aparte; ahora el objetivo es la cabecera entera, que es un blanco mucho
- * mayor —importa en móvil— y evita tener dos acciones distintas conviviendo
- * en la misma fila.
- *
- * En el Inbox, la cabecera de grupo ANTES navegaba a la lista. Ya no: para
- * eso están los chips, y una cabecera con dos comportamientos según dónde
- * pulses era justo la ambigüedad que se quería quitar.
- */
-function _makeBlockFoldable(blockId, sec, head) {
-  head.classList.add("block-foldable");
-  head.setAttribute("role", "button");
-  head.setAttribute("tabindex", "0");
-
-  function pintar(collapsed) {
-    sec.classList.toggle("hoy-section--collapsed", collapsed);
-    head.setAttribute("aria-expanded", collapsed ? "false" : "true");
-  }
-  pintar(_isBlockCollapsed(blockId));
-
-  function alternar() {
-    var ahora = !sec.classList.contains("hoy-section--collapsed");
-    _setBlockCollapsed(blockId, ahora);
-    pintar(ahora);
-  }
-
-  head.addEventListener("click", function(e) {
-    // Los botones que viven dentro de la cabecera —«Todas a hoy»— siguen
-    // haciendo lo suyo sin plegar el bloque de paso.
-    if (e.target.closest("button")) return;
-    alternar();
-  });
-  head.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); }
-  });
 }
 
 // ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
@@ -3673,12 +3654,17 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
     btn.type = "button";
     btn.className = "hoy-section-action";
     btn.innerHTML = '<i data-lucide="arrow-right"></i> ';
-    btn.appendChild(document.createTextNode(actionLabel));
+    // La etiqueta va en su propio span: en móvil no cabe junto al rótulo de
+    // la sección y se oculta, dejando el botón como icono con `aria-label`.
+    var lbl = document.createElement("span");
+    lbl.className = "hoy-section-action-label";
+    lbl.textContent = actionLabel;
+    btn.appendChild(lbl);
+    btn.setAttribute("aria-label", actionLabel);
+    btn.title = actionLabel;
     btn.addEventListener("click", onAction);
     head.appendChild(btn);
   }
-  // Igual que en el Inbox: la cabecera entera pliega, sin flecha aparte.
-  _makeBlockFoldable("hoy:" + tone, li, head);
   var list = document.createElement("ul");
   list.className = "hoy-section-list";
   li.appendChild(head);
@@ -3698,7 +3684,9 @@ function _hoySetDueToday(items) {
 
 /** Quick-add contextual del bloque "Para hoy": crea en el Inbox con fecha hoy. */
 function _hoyQuickAddEl(todayStr) {
-  var li = document.createElement("li");
+  // `div`, no `li`: cuelga del bloque de sección, no de un `ul`, y un `li`
+  // suelto ahí es HTML inválido (axe lo marca como «serious»).
+  var li = document.createElement("div");
   li.className = "hoy-quickadd";
   li.innerHTML =
     '<span class="hoy-quickadd-ico"><i data-lucide="plus"></i></span>' +
@@ -3755,13 +3743,26 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     ? ' <span class="hoy-stats-overdue">· ' + overdueN + " " +
       (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</span>"
     : "";
+  var statsHtml =
+    t("hoy.done_of")
+      .replace("{done}", "<strong>" + done + "</strong>")
+      .replace("{total}", String(total)) +
+    overdueTxt;
+
+  // El arco solo se anima si el <circle> SOBREVIVE al repintado: una
+  // transición CSS necesita un valor anterior desde el que salir, y
+  // rehacer el innerHTML entero lo estrenaba ya en su posición final.
+  // Así que la primera vez se construye y a partir de ahí se parchea.
+  var bar = el.querySelector(".hoy-ring-bar");
+  if (bar) {
+    el.querySelector(".hoy-stats").innerHTML = statsHtml;
+    el.querySelector(".hoy-ring-pct").textContent = pct + "%";
+    bar.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    return;
+  }
+
   el.innerHTML =
-    '<span class="hoy-stats">' +
-      t("hoy.done_of")
-        .replace("{done}", "<strong>" + done + "</strong>")
-        .replace("{total}", String(total)) +
-      overdueTxt +
-    "</span>" +
+    '<span class="hoy-stats">' + statsHtml + "</span>" +
     '<span class="hoy-ring" title="' + t("hoy.ring_title") + '">' +
       '<svg width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '" aria-hidden="true">' +
         '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="4.5"></circle>' +
