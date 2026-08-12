@@ -10111,6 +10111,7 @@ button {
     border-radius: 0;
     box-shadow: none;
     margin-bottom: 0;
+    margin-top: 0;
   }
   /* Franja en las PARES, como en las listas: empezar por la primera
      pintaría una banda justo bajo la cabecera y se leería como suya. */
