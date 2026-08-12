@@ -861,14 +861,18 @@ clearDoneBtn.addEventListener("click", function() {
 
 // ─── EXPORTAR (workspace completo) ───────────────────────────
 exportBtn.addEventListener("click", function() {
-  if (projects.length === 0) {
+  // Las listas archivadas se quedan fuera: al restaurar el backup volvían
+  // a aparecer, y archivarlas es precisamente decir que ya no se quieren
+  // a la vista. Siguen guardadas en este dispositivo, solo no viajan.
+  const exportables = projects.filter(function(p) { return !p.archived; });
+  if (exportables.length === 0) {
     modalAlert(t("task.nothing_to_export"), "info");
     return;
   }
   const backup = {
     version: 2,
     exportedAt: new Date().toISOString(),
-    projects: projects,
+    projects: exportables,
     sections: sections,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
@@ -1115,7 +1119,12 @@ function _renderListChips() {
   const host = document.getElementById("list-chips");
   if (!host) return;
 
-  const lists = projects.filter(function(p) { return p.id !== INBOX_ID; });
+  // Las archivadas no salen: archivar es sacar una lista de la vista, y en
+  // móvil estos chips SON la navegación entre listas. Asomaban aquí aunque
+  // sus tareas ya se filtraban bien del resto de vistas.
+  const lists = projects.filter(function(p) {
+    return p.id !== INBOX_ID && !p.archived;
+  });
   if (activeView !== "project" || lists.length === 0) {
     host.hidden = true;
     host.innerHTML = "";
