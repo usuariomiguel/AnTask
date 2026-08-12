@@ -3643,13 +3643,17 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
   li.className = "hoy-section hoy-section--" + tone;
   var head = document.createElement("div");
   head.className = "hoy-section-head";
+  // Icono por tono, como el prototipo: sol para hoy, aviso para lo vencido
+  // y bandeja para lo que no tiene fecha. Sustituye al punto de color.
+  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox" };
   head.insertAdjacentHTML("beforeend",
-    '<span class="hoy-section-dot"></span>' +
+    '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
     '<span class="hoy-section-count"></span>' +
     '<span class="hoy-section-rule"></span>');
   head.querySelector(".hoy-section-title").textContent = label;
-  head.querySelector(".hoy-section-count").textContent = "(" + count + ")";
+  // Sin paréntesis: el contador va en píldora, no entre signos.
+  head.querySelector(".hoy-section-count").textContent = count;
   if (actionLabel && onAction) {
     var btn = document.createElement("button");
     btn.type = "button";
@@ -3909,7 +3913,11 @@ function renderTodayItem(task, project, todayStr, tone) {
     } else {
       dEl.textContent = dateText;
     }
-    meta.appendChild(dEl);
+    // Cuelga de la FILA, no de `meta`. En escritorio no cambia nada porque
+    // `.today-meta` es `display: contents` y sus hijos ya se maquetaban como
+    // hermanos; en móvil, en cambio, `meta` salta a una segunda línea y la
+    // fecha tiene que quedarse arriba, pegada al borde derecho.
+    li.appendChild(dEl);
   }
 
   // Clic en la fila → abre el panel de detalle, igual que en una lista, para
