@@ -155,9 +155,6 @@ export const es = {
   "filter.nodate":            "Sin fecha",
   "filter.high":              "Alta prioridad",
   "filter.note":              "Con nota",
-  "sort.priority":            "Prioridad",
-  "sort.due":                 "Fecha",
-  "sort.az":                  "A–Z",
 
   // ── Prioridad ─────────────────────────────────────────────
   "priority.high":            "P1",
@@ -211,6 +208,7 @@ export const es = {
   "task.rename_hint":         "Doble clic para renombrar",
   "task.move_to_project":     "Mover a proyecto...",
   "task.in_list":             "Lista",
+  "task.add_details_hint":    "+ Añadir detalles",
 
   // ── Panel de detalle de tarea ─────────────────────────────
   "detail.title":             "Detalle de tarea",
@@ -402,9 +400,6 @@ export const es = {
   "filter.section_show":      "Mostrar",
   "filter.section_when":      "Cuándo",
   "filter.section_attrs":     "Atributos",
-  "filter.section_sort":      "Ordenar",
-  "sort.manual":              "Manual",
-  "sort.due_short":           "Fecha límite",
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
   "rowstyle.lineas":          "Líneas",

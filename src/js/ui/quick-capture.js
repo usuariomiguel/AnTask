@@ -14,6 +14,7 @@ import { escHtml } from "../utils/html.js";
 import { parseNaturalLanguage } from "../utils/nl-parse.js";
 import { buildNLChipsHTML } from "../utils/nl-chips.js";
 import { t } from "../i18n/index.js";
+import { projectColor } from "../utils/project-color.js";
 
 let _isOpen = false;
 
@@ -122,7 +123,7 @@ export function showQuickCapture(deps) {
       '<span class="qc-chip-sep"></span>' +
       '<div class="qc-list-picker">' +
         '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +
-          '<i data-lucide="inbox"></i><span class="qc-list-label"></span><i data-lucide="chevron-down" class="qc-list-caret"></i>' +
+          '<span class="qc-list-dot"></span><span class="qc-list-label"></span><i data-lucide="chevron-down" class="qc-list-caret"></i>' +
         '</button>' +
       '</div>' +
     '</div>' +
@@ -173,7 +174,9 @@ export function showQuickCapture(deps) {
     pop.innerHTML = '<div class="field-popover-list">' +
       lists.map(function (p) {
         const active = p.id === selectedId;
-        return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-list-id="' + escHtml(p.id) + '">' +
+        return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-list-id="' + escHtml(p.id) + '"' +
+            ' style="--dot-color:' + escHtml(projectColor(p)) + '">' +
+          '<span class="field-popover-row-dot"></span>' +
           '<span class="field-popover-row-label">' + escHtml(p.name) + '</span>' +
           (active ? '<i data-lucide="check"></i>' : "") +
         '</button>';
@@ -227,7 +230,10 @@ export function showQuickCapture(deps) {
 
     listLabel.textContent = resolved.name;
     listTrigger.classList.add("active");
-    listTrigger.classList.toggle("qc-list-trigger--inbox", resolved.id === deps.inboxId);
+    // El color es el mismo que en cualquier otro sitio de la app (chip de
+    // lista, punto de grupo…) — Inbox incluido, con el acento del tema en
+    // vez de un ámbar aparte que no pegaba con el resto de la paleta.
+    listTrigger.style.setProperty("--dot-color", projectColor(resolved));
 
     submitBtn.disabled = raw.trim().length === 0;
   }

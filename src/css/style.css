@@ -1526,6 +1526,10 @@ body {
 .task-detail-textarea:focus {
   border-color: var(--c-primary-500);
 }
+@media (max-width: 768px) {
+  /* Mismo umbral de zoom de Safari que en `.list-search-input`. */
+  .task-detail-textarea { font-size: 16px; }
+}
 /* El texto de ayuda pesa menos que el contenido: es una sugerencia,
    no información. Se atenúa respecto al terciario, que es el tono de
    los textos secundarios ya de por sí. */
@@ -1595,6 +1599,16 @@ body {
 }
 .task-detail-field-btn .lucide { width: 15px; height: 15px; color: var(--text-tertiary); }
 .field-btn-ico { flex-shrink: 0; }
+/* El texto del botón es un span sin `flex-basis` propio: por defecto un
+   flex item no encoge por debajo de su contenido (min-width: auto), así
+   que un valor largo —"Repetir" con varios días, un recordatorio con
+   fecha y hora— empujaba el botón más ancho que la tarjeta. */
+.task-detail-field-btn > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .task-detail-field-btn svg.lucide-chevron-right {
   transition: transform var(--dur-fast) var(--ease-out);
 }
@@ -1642,7 +1656,9 @@ body {
 .field-popover--narrow {
   left: auto;
   right: 0;
-  width: 200px;
+  /* 200px dejaba los nombres de lista largos apretadísimos —casi todos
+     truncaban a media palabra. */
+  width: 240px;
 }
 
 .field-popover-chips {
@@ -1757,8 +1773,8 @@ body {
 .field-popover-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: 9px;
+  padding: 8px 10px;
   border-radius: 7px;
   font-size: 12.5px;
   font-weight: 450;
@@ -1775,8 +1791,26 @@ body {
   color: var(--c-primary-300);
   background: rgba(163, 179, 102, 0.14);
 }
-.field-popover-row .field-popover-row-label { flex: 1; }
+.field-popover-row .field-popover-row-label {
+  flex: 1;
+  /* Con el punto de color los nombres largos ganan competencia por el
+     ancho — que trunquen con elipsis, no que empujen el popover. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .field-popover-row .lucide { width: 12px; height: 12px; flex-shrink: 0; }
+/* Identidad de la lista, igual que `.list-chip-dot` en los filtros: un
+   punto con su color, no toda la fila teñida —así el estado "activa"
+   (fondo + texto de acento) se lee igual para cualquier lista. */
+.field-popover-row-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--dot-color, var(--text-tertiary));
+}
 .field-popover-sep {
   height: 1px;
   background: var(--border-default);
@@ -1802,6 +1836,9 @@ body {
   outline: none;
 }
 .task-detail-subtask-form input:focus { border-color: var(--c-primary-500); }
+@media (max-width: 768px) {
+  .task-detail-subtask-form input { font-size: 16px; }
+}
 .task-detail-subtask-form button {
   display: flex;
   align-items: center;
@@ -2871,6 +2908,25 @@ button:focus-visible {
   gap: 12px;
   padding: 4px 10px 16px;
 }
+/* Sin esto la única forma de cerrar la hoja era tocar fuera —Escape no
+   sirve de nada sin teclado físico en móvil. */
+.pmenu-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.pmenu-close:hover { background: var(--row-hover); color: var(--text-primary); }
+.pmenu-close .lucide { width: 18px; height: 18px; stroke-width: 2; }
 .pmenu-avatar {
   display: grid;
   place-items: center;
@@ -2902,6 +2958,42 @@ button:focus-visible {
   text-transform: uppercase;
   color: var(--text-tertiary);
 }
+
+/* Cabecera de "Listas": el rótulo y "+ Nueva lista" en la misma fila,
+   como MMenu en el prototipo v1 — crear una lista está a un toque desde
+   arriba, no al final del menú. */
+.pmenu-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 6px 9px;
+}
+.pmenu-group-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.pmenu-new-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-primary-300);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.pmenu-new-list:hover { background: var(--row-hover); }
+.pmenu-new-list .lucide { width: 15px; height: 15px; stroke-width: 2.4; }
+:root[data-theme="light"] .pmenu-new-list { color: var(--c-primary-600); }
 
 /* La tarjeta es el grupo, no cada fila: los separadores van entre filas. */
 .pmenu-group {
@@ -3019,6 +3111,12 @@ button:focus-visible {
   color: var(--text-primary);
   /* Sin la cruz nativa de WebKit: ya hay un botón propio, y salían dos. */
   appearance: none;
+}
+@media (max-width: 768px) {
+  /* Safari hace zoom automático al enfocar un campo con font-size por
+     debajo de 16px — el umbral es fijo, no configurable. Por debajo de
+     768px el campo pasa a 16px aunque en escritorio se vea bien a 15. */
+  .list-search-input { font-size: 16px; }
 }
 .list-search-input::-webkit-search-cancel-button { display: none; }
 .list-search-input::placeholder { color: var(--text-tertiary); }
@@ -3469,6 +3567,9 @@ button:focus-visible {
    de `.task-meta` y el gap de 10px sale igual que antes. */
 .task-chips { display: contents; }
 .task-chips > span:empty { display: none; }
+/* Solo tiene sentido en móvil (ver @media más abajo): en escritorio la
+   fila no necesita rellenar hueco, así que no se muestra. */
+.task-chips-empty-hint { display: none; }
 
 .task-kebab-btn {
   display: inline-flex;
@@ -4806,7 +4907,7 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   /* ── Ctrl-bar mobile ─────────────────────────────────── */
   .ctrl-bar {
-    padding: var(--sp-2) var(--sp-3) 0;
+    padding: var(--sp-6) var(--sp-3) 0;
     animation: none;
     border-bottom: none;
   }
@@ -5003,6 +5104,12 @@ body.project-dragging .project-item { cursor: grabbing; }
        salta de 12 (--sp-3) a 16 (--sp-4) y ninguno de los dos es el valor. */
     padding: 13px 15px;
     border-radius: var(--r-md);
+    /* Todas las filas a la misma altura, tengan o no chips: medido con
+       prioridad + fecha + repetición (el caso más alto), 78px. Sin esto
+       una tarea sin nada quedaba en 53px y la de al lado en 78 — el
+       usuario lo pidió parejo. `align-content: center` (regla base) hace
+       el resto: centra el título solo cuando no hay segunda línea. */
+    min-height: 78px;
   }
 
   /* Two-row layout siempre — título arriba, meta-row abajo */
@@ -5012,16 +5119,12 @@ body.project-dragging .project-item { cursor: grabbing; }
     align-items: center;
   }
 
-  /* Título a 2 líneas con clamp (como el prototipo v1) en vez de una
-     sola línea truncada — hay más ancho vertical de sobra en móvil. */
+  /* Una sola línea, truncada con elipsis — el usuario pidió que las
+     filas no crezcan a dos líneas en móvil. */
   .task-item .task-text {
-    white-space: normal;
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: unset;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
   }
 
   .task-summary {
@@ -5302,7 +5405,11 @@ body.project-dragging .project-item { cursor: grabbing; }
     border: 1px solid var(--border-default);
     border-radius: 28px;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
-    z-index: 200;
+    /* Por encima del panel de detalle a pantalla completa (z-index 500):
+       en v1 la barra de navegación se queda visible incluso dentro del
+       detalle de una tarea, para poder saltar de pantalla sin volver
+       atrás primero. */
+    z-index: 510;
     overflow: hidden;
   }
 
@@ -5408,7 +5515,10 @@ body.project-dragging .project-item { cursor: grabbing; }
        medidos (8 + 47 de pestaña + 8 + 2 de borde), así que el FAB de 54 sube
        (65-54)/2 ≈ 5px. */
     bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) + 5px);
-    z-index: 200;
+    /* Mismo motivo que la barra de navegación (z-index 510): por encima
+       del panel de detalle a pantalla completa, para poder capturar una
+       tarea nueva sin salir primero de la que se está viendo. */
+    z-index: 510;
   }
   .mobile-fab:active { transform: scale(0.94); }
   .mobile-fab svg { width: 24px; height: 24px; stroke-width: 2.4; }
@@ -8437,10 +8547,6 @@ button {
     margin-left: 33px;  /* checkbox 20px + gap 13px */
   }
   .today-meta:empty { display: none; }
-  /* Sin hover en táctil: la acción por fila se oculta, quedan las masivas.
-     Va con !important porque la regla base de .today-move-btn se declara
-     más abajo en el archivo y, a igual especificidad, ganaría ella. */
-  .today-move-btn { display: none !important; }
 }
 
 /* La prioridad de Hoy es el mismo chip `PrioP` que la fila del
@@ -8927,11 +9033,10 @@ button {
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
 }
-/* El chip de lista bajo cabecera de grupo es cosa del prototipo móvil.
-   En escritorio la cabecera ya dice la lista, así que ahí sobra. */
-@media (min-width: 769px) {
-  .task-list--grupos .task-list-container { display: none; }
-}
+/* La cabecera de grupo ya dice la lista, así que el chip por fila sobra
+   —también en móvil: el usuario lo pidió al ver "Rutina" repetido en
+   cada fila del Inbox agrupado. */
+.task-list--grupos .task-list-container { display: none; }
 
 .inbox-group-rule {
   flex: 1;
@@ -9126,12 +9231,18 @@ button {
   color: var(--c-primary-300);
 }
 :root[data-theme="light"] .qc-list-trigger.active { color: var(--c-primary-600); }
-.qc-list-trigger--inbox.active {
-  color: var(--c-warning);
-  background: rgba(224, 163, 90, 0.14);
-  border-color: rgba(224, 163, 90, 0.32);
+/* Punto del color propio de la lista — mismo lenguaje que `.list-chip-dot`
+   en los filtros: el acento del chip es siempre el del tema (legible
+   pase lo que pase); el color de la lista solo identifica, en un punto,
+   no tiñe todo el chip. Antes Inbox llevaba un ámbar aparte que no
+   pegaba con el resto de chips de la fila. */
+.qc-list-trigger .qc-list-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--c-primary-500));
+  flex-shrink: 0;
 }
-:root[data-theme="light"] .qc-list-trigger--inbox.active { color: #945f1c; }
 .qc-list-label { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 .qc-list-caret { transition: transform 0.15s; }
 .qc-list-trigger[aria-expanded="true"] .qc-list-caret { transform: rotate(180deg); }
@@ -10139,13 +10250,9 @@ button {
 @media (max-width: 768px) {
   .today-item .today-text {
     font-size: 15px;
-    /* En móvil el título respira a dos líneas, igual que en las listas. */
-    white-space: normal;
-    text-overflow: unset;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    /* Una sola línea, truncada — igual que en las listas. */
+    white-space: nowrap;
+    text-overflow: ellipsis;
     overflow: hidden;
   }
   .today-item .priority-badge,
@@ -10242,8 +10349,27 @@ button {
     gap: 10px;
     margin-top: 6px;
   }
-  /* Sin chips no hay segunda línea que separar. */
+  /* Sin chips no hay segunda línea que separar. Con el chip punteado de
+     abajo esto ya casi nunca se dispara —solo si la tarea tiene fecha
+     y nada más, que ya se lee en la columna de la derecha. */
   .task-chips:not(:has(span:not(:empty))) { display: none; }
+
+  /* Chip fantasma cuando la tarea no tiene NADA: sin esto la fila se
+     leía "rota" (un hueco vacío) y, en móvil, no había ninguna pista de
+     que tocándola se puede añadir fecha o prioridad. */
+  .task-chips-empty-hint {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1px dashed var(--border-default);
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
   .task-due-container {
     grid-area: 1 / 3 / 3 / 4;
     align-self: center;
@@ -10564,10 +10690,13 @@ button {
 
   .quick-capture-preview { margin: 10px 20px 0; }
 
-  /* Los chips manuales no están en el prototipo: ahí la prioridad, la
-     lista y la fecha se escriben en el propio texto, que es lo que
-     enseña la línea de ayuda de debajo. */
-  .quick-capture-chips { display: none; }
+  /* El prototipo v1 solo tiene sintaxis escrita (#lista, p1…), pero para
+     alguien nuevo escribir un `#` antes que nada no es intuitivo — se
+     pidió que también aquí se pueda elegir tocando, igual que en
+     escritorio. Los chips ya son los mismos, solo hacía falta no
+     ocultarlos; `flex-wrap: wrap` (regla base) ya los adapta al ancho
+     estrecho. */
+  .quick-capture-chips { padding: 12px 20px 4px; }
 
   .quick-capture-footer {
     flex-wrap: wrap;
@@ -10631,6 +10760,17 @@ button {
   .task-detail-body {
     padding-top: 4px;
     gap: 0;
+    /* La pastilla de navegación flota encima del panel a pantalla
+       completa (ver .mobile-bottom-nav más abajo): sin este hueco el
+       botón «Eliminar tarea» queda debajo de ella. */
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  /* El título es lo primero que se lee al entrar: más alto que el de
+     escritorio (19px), como en el prototipo móvil (22px). */
+  .task-detail-title {
+    font-size: 22px;
+    line-height: 1.28;
   }
 
   /* Las características van juntas en una tarjeta, con filete entre ellas
@@ -10658,6 +10798,9 @@ button {
 
   /* La etiqueta pasa a ser la fila pulsable: icono, nombre, valor y
      chevron. 48px de alto — por encima del mínimo táctil. */
+  /* Etiqueta apagada a propósito (t.ink2 del prototipo): es el nombre
+     del campo, no el valor — el color fuerte se lo queda el chip de la
+     derecha (fecha vencida, prioridad…), no el rótulo. */
   .task-detail-field[data-acc] > .task-detail-label {
     display: flex;
     align-items: center;
@@ -10668,10 +10811,10 @@ button {
     cursor: pointer;
     user-select: none;
     font-size: 14.5px;
-    font-weight: 550;
+    font-weight: 500;
     letter-spacing: normal;
     text-transform: none;
-    color: var(--text-primary);
+    color: var(--text-secondary);
   }
   .task-detail-field[data-acc] > .task-detail-label .lucide {
     width: 17px;
@@ -10682,6 +10825,11 @@ button {
   .task-detail-field[data-acc] > .task-detail-label:focus-visible {
     outline: 2px solid var(--border-focus);
     outline-offset: -2px;
+  }
+  /* La nota no se pliega, así que su cabecera no es un botón: nada de
+     cursor de mano ni de foco de teclado en ella. */
+  .task-detail-field[data-acc="note"] > .task-detail-label {
+    cursor: default;
   }
 
   .detail-acc-value {
@@ -10728,13 +10876,17 @@ button {
     margin-top: 8px;
   }
 
-  /* La abierta se tiñe para que se vea de un vistazo cuál es. */
-  .detail-acc--open { background: var(--surface-raised); }
+  /* La abierta se tiñe para que se vea de un vistazo cuál es — salvo la
+     nota, que lleva la clase de forma permanente y no es una selección,
+     así que no debe leerse como si lo fuera. */
+  .detail-acc--open:not([data-acc="note"]) { background: var(--surface-raised); }
 
   /* Eliminar: caja propia bajo la tarjeta, como en el prototipo — no una
      línea suelta pegada al fondo de la pantalla. */
   .task-detail-footer {
-    padding: 14px 0 0;
+    /* Mismo hueco que el body: el footer no vive dentro del scroll, así
+       que sin esto "Eliminar tarea" queda debajo de la pastilla flotante. */
+    padding: 14px 0 calc(5.5rem + env(safe-area-inset-bottom, 0));
     margin-top: auto;
     border: none;
     background: none;

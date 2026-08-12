@@ -155,9 +155,6 @@ export const en = {
   "filter.nodate":            "No date",
   "filter.high":              "High priority",
   "filter.note":              "With note",
-  "sort.priority":            "Priority",
-  "sort.due":                 "Date",
-  "sort.az":                  "A–Z",
 
   // ── Priority ──────────────────────────────────────────────
   "priority.high":            "P1",
@@ -211,6 +208,7 @@ export const en = {
   "task.rename_hint":         "Double-click to rename",
   "task.move_to_project":     "Move to project...",
   "task.in_list":             "List",
+  "task.add_details_hint":    "+ Add details",
 
   // ── Task detail panel ─────────────────────────────────────
   "detail.title":             "Task details",
@@ -401,9 +399,6 @@ export const en = {
   "filter.section_show":      "Show",
   "filter.section_when":      "When",
   "filter.section_attrs":     "Attributes",
-  "filter.section_sort":      "Sort",
-  "sort.manual":              "Manual",
-  "sort.due_short":           "Due date",
   "rowstyle.trigger":         "Row style",
   "rowstyle.limpio":          "Clean",
   "rowstyle.lineas":          "Lines",

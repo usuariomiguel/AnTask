@@ -255,7 +255,6 @@ function ensureInbox() {
 }
 
 let currentFilter      = "all";
-let currentSort        = "manual";
 
 // ─── Estado leído durante el ARRANQUE ─────────────────────────
 // El bloque de arranque de más abajo pinta la primera vista mientras el
@@ -686,13 +685,15 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
 }
 
 /* Extraído del handler del botón del drawer para que la pantalla «Perfil»
-   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla. */
-function startNewProject() {
+   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla.
+   `sectionId`: desde el menú de Perfil el botón "+ Nueva lista" vive
+   dentro de un grupo concreto, así que la lista nueva nace ya en él. */
+function startNewProject(sectionId) {
   showProjectTemplatesModal({
     onPickBlank: async function () {
       const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
       if (!name) return;
-      _createProjectWithTasks(name, [], {});
+      _createProjectWithTasks(name, [], { sectionId: sectionId || null });
     },
     onPickTemplate: async function (template) {
       const name = await showTemplatePreview(template);
@@ -700,11 +701,12 @@ function startNewProject() {
       _createProjectWithTasks(name, buildTasksFromTemplate(template), {
         icon:  template.icon,
         color: template.color || "",
+        sectionId: sectionId || null,
       });
     },
   });
 }
-newProjectBtn.addEventListener("click", startNewProject);
+newProjectBtn.addEventListener("click", function() { startNewProject(); });
 
 // ─── ELIMINAR PROYECTO ───────────────────────────────────────
 if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
@@ -1001,13 +1003,8 @@ function showProfileMenu() {
         '<span class="pmenu-name">' + escHtml(txt("profile-name", "")) + "</span>" +
         '<span class="pmenu-sub">' + escHtml(txt("profile-sub", "")) + "</span>" +
       "</span>" +
+      '<button type="button" class="pmenu-close" data-act="close" aria-label="' + escHtml(t("detail.close")) + '"><i data-lucide="x"></i></button>' +
     "</div>";
-
-  // Buscar va primero y solo: es la acción más frecuente y el drawer era su
-  // único acceso en móvil.
-  html += "<div class='pmenu-group'>" +
-    fila('data-act="search"', null, "search", t("sidebar.search_short")) +
-  "</div>";
 
   // Las listas se agrupan por sección, como en la sidebar: sin el drawer,
   // este es el único sitio de móvil donde se ve a qué grupo pertenece cada
@@ -1020,26 +1017,35 @@ function showProfileMenu() {
     return lists.filter(function(p) { return (p.sectionId || null) === id; });
   };
 
+  // Las sueltas (sin grupo) solo se ven y editan aquí — no se puede crear
+  // una lista suelta desde el móvil, así que no llevan acción "+".
   const sueltas = enSeccion(null);
   if (sueltas.length) {
     html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p>" +
             "<div class='pmenu-group'>" + sueltas.map(filaLista).join("") + "</div>";
   }
+
+  // "+ Nueva lista" va arriba de CADA grupo, no una sola vez: crear una
+  // lista significa meterla en un grupo, así que sin grupos no hay dónde
+  // ponerla y el botón no aparece en ningún sitio — hay que crear un
+  // grupo primero.
   sections.forEach(function(s) {
     const dentro = enSeccion(s.id);
-    if (!dentro.length) return;
-    html += '<p class="pmenu-group-label">' + escHtml(s.name) + "</p>" +
-            "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
+    html += '<div class="pmenu-group-head">' +
+      '<span class="pmenu-group-title">' + escHtml(s.name) + "</span>" +
+      '<button type="button" class="pmenu-new-list" data-act="new-list" data-section="' + escHtml(s.id) + '"><i data-lucide="plus"></i>' + escHtml(t("sidebar.add_list")) + "</button>" +
+    "</div>";
+    if (dentro.length) {
+      html += "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
+    }
   });
 
   html += "<div class='pmenu-group'>" +
-    fila('data-act="new-list"', null, "plus", t("sidebar.add_list")) +
     fila('data-act="new-group"', null, "layers", t("sidebar.new_group")) +
   "</div>";
 
   html += "<div class='pmenu-group'>" +
     fila('data-act="settings"', null, "settings", t("profile.settings")) +
-    fila('data-act="shortcuts"', null, "keyboard", t("profile.shortcuts")) +
     (signedIn
       ? fila('data-act="signout"', null, "log-out", t("profile.signout"))
       : fila('data-act="signin"', null, "log-in", t("profile.signin"))) +
@@ -1052,24 +1058,28 @@ function showProfileMenu() {
   sheet.addEventListener("click", function(e) {
     const btn = e.target.closest("[data-goto],[data-act],[data-edit]");
     if (!btn) return;
-    closeSheet(overlay);
     if (btn.dataset.edit) {
+      // El menú completo (renombrar, color, archivar, ELIMINAR) — antes
+      // solo renombraba, así que en móvil no había forma de borrar una
+      // lista. Se ancla al lápiz ANTES de cerrar la hoja: una vez cerrada,
+      // el botón sale del DOM y pierde su posición en pantalla.
       const p = projects.find(function(x) { return x.id === btn.dataset.edit; });
-      if (p) renameProject(p);
+      if (p) showProjectMenu(p, btn);
+      closeSheet(overlay);
       return;
     }
+    closeSheet(overlay);
     if (btn.dataset.goto) { activateProject(btn.dataset.goto); return; }
     switch (btn.dataset.act) {
-      case "search":    openGlobalSearch(); break;
-      case "new-list":  startNewProject(); break;
+      case "new-list":  startNewProject(btn.dataset.section || null); break;
       case "new-group": startNewSection(); break;
       case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
-      case "shortcuts": if (window.showShortcutsHelp) window.showShortcutsHelp(); break;
       // Sesión: se llama a la función real, no al botón del drawer. Trae la
       // carga bajo demanda del módulo de sincronización y el tratamiento de
       // popup cerrado / bloqueado / dominio no autorizado.
       case "signin":    if (window.antaskSignIn)  window.antaskSignIn();  break;
       case "signout":   if (window.antaskSignOut) window.antaskSignOut(); break;
+      // "close" no necesita caso: closeSheet(overlay) ya se disparó arriba.
     }
   });
 
@@ -1166,10 +1176,22 @@ function _norm(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-function _matchesQuery(task) {
+/** Nombre del grupo (sección) al que pertenece un proyecto, si tiene. */
+function _sectionNameOf(project) {
+  if (!project || !project.sectionId) return "";
+  const s = sections.find(function(x) { return x.id === project.sectionId; });
+  return s ? s.name : "";
+}
+
+function _matchesQuery(task, project) {
   if (!currentQuery) return true;
   const q = _norm(currentQuery);
-  return _norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1;
+  if (_norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1) return true;
+  // Como en la búsqueda global (Cmd+K): también por nombre de lista y,
+  // aquí además, de grupo — el usuario lo pidió para el buscador del Inbox.
+  if (project && _norm(project.name).indexOf(q) !== -1) return true;
+  if (project && _norm(_sectionNameOf(project)).indexOf(q) !== -1) return true;
+  return false;
 }
 
 /* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
@@ -1187,8 +1209,8 @@ const TASK_FILTERS = {
   note:    function(t) { return !!(t.comment && t.comment.trim()); },
 };
 
-/* Iconos de las opciones de filtro y orden. Van en un mapa porque lucide
-   borra `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
+/* Iconos de las opciones de filtro. Van en un mapa porque lucide borra
+   `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
    Debe seguir a los `data-lucide` de #filter-panel en app.html. */
 const FILTER_OPT_ICON = {
   "filter:all":     "list",
@@ -1199,10 +1221,6 @@ const FILTER_OPT_ICON = {
   "filter:nodate":  "calendar",
   "filter:high":    "flag",
   "filter:note":    "file-text",
-  "sort:manual":    "grip-vertical",
-  "sort:priority":  "flag",
-  "sort:due":       "calendar",
-  "sort:az":        "align-left",
 };
 
 /**
@@ -1216,9 +1234,8 @@ function _filterPanelSections() {
   if (!panel) return [];
   return Array.prototype.map.call(panel.querySelectorAll(".filter-panel-section"), function(sec) {
     const headEl = sec.querySelector(".filter-panel-label");
-    const options = Array.prototype.map.call(sec.querySelectorAll("[data-filter],[data-sort]"), function(b) {
-      const kind  = b.dataset.filter ? "filter" : "sort";
-      const value = kind + ":" + (b.dataset.filter || b.dataset.sort);
+    const options = Array.prototype.map.call(sec.querySelectorAll("[data-filter]"), function(b) {
+      const value = "filter:" + b.dataset.filter;
       return {
         value: value,
         icon: FILTER_OPT_ICON[value] || "list",
@@ -1259,22 +1276,9 @@ function applyFilter(value) {
 }
 window.applyFilter = applyFilter;
 
-// ─── ORDENACIÓN ──────────────────────────────────────────────
-function applySort(value) {
-  currentSort = value;
-  document.querySelectorAll("#filter-panel [data-sort]").forEach(function(b) {
-    b.classList.toggle("filter-opt--active", b.dataset.sort === value);
-  });
-  _updateFilterTriggerLabel();
-  renderTasks();
-}
-
-function _syncFilterPanel(filter, sort) {
+function _syncFilterPanel(filter) {
   document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
     b.classList.toggle("filter-opt--active", b.dataset.filter === filter);
-  });
-  document.querySelectorAll("#filter-panel [data-sort]").forEach(function(b) {
-    b.classList.toggle("filter-opt--active", b.dataset.sort === sort);
   });
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (triggerBtn) triggerBtn.classList.remove("filter-trigger-btn--active");
@@ -1289,8 +1293,7 @@ function _updateFilterTriggerLabel() {
   var parts = [];
   // Antes era un ternario pending/done: con ocho filtros, cualquier otro
   // habría rotulado «Hechas». La clave se deriva del propio valor.
-  if (currentFilter !== "all")    parts.push(t("filter." + currentFilter));
-  if (currentSort   !== "manual") parts.push(currentSort === "priority" ? t("sort.priority") : currentSort === "due" ? t("sort.due") : t("sort.az"));
+  if (currentFilter !== "all") parts.push(t("filter." + currentFilter));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
   labelEl.textContent = parts.length > 0 ? parts.join(", ") : t("filter.trigger_label");
 }
@@ -1364,8 +1367,7 @@ function activateProject(id) {
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
-  currentSort   = "manual";
-  _syncFilterPanel("all", "manual");
+  _syncFilterPanel("all");
 
   closeTaskDetail();
   renderSidebar();
@@ -1423,8 +1425,7 @@ function activateTodayView() {
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
-  currentSort   = "manual";
-  _syncFilterPanel("all", "manual");
+  _syncFilterPanel("all");
 
   closeTaskDetail();
   renderSidebar();
@@ -2453,7 +2454,7 @@ function renderTasks() {
   // pendientes, así que los filtros nuevos (vencidas, hoy, sin fecha…) se
   // agrupan igual de bien. Antes se enumeraban los filtros permitidos, lo que
   // habría dejado los nuevos sin agrupar sin ningún motivo.
-  if (isInbox && currentSort === "manual" && currentFilter !== "done") {
+  if (isInbox && currentFilter !== "done") {
     const byProj = new Map();
     pendingItems.forEach(function(it) {
       const k = it.project.id;
@@ -2751,6 +2752,31 @@ function _updateTaskNode(node, task) {
                     node.querySelector(".task-list-container"));
     renderDueBadge(task, node.querySelector(".task-due-container"));
     renderRecurBadge(task, node.querySelector(".task-recur-container"));
+    // Sin ningún chip la fila quedaba con un hueco muerto (y, en móvil,
+    // más baja que sus vecinas antes del min-height). Un chip punteado
+    // ocupa ese espacio y, de paso, es la pista de que se puede tocar la
+    // fila para añadir fecha/prioridad — sin eso no era obvio en móvil.
+    // El Inbox agrupado pasa `_showList = true` a TODAS las filas (para
+    // que CSS decida si se ve, según la cabecera de grupo lo diga ya),
+    // así que ahí nunca cuenta como "hay contenido" aunque el flag esté
+    // a true — el chip de lista real está oculto por `.task-list--grupos
+    // .task-list-container { display: none }`.
+    const listaVisible = node._showList && node._project &&
+                          !taskList.classList.contains("task-list--grupos");
+    // La fecha NO cuenta como "hay algo": vive en su propia columna, a la
+    // derecha, y no ocupa la fila de chips — una tarea con solo fecha
+    // seguía dejando ese hueco vacío abajo a la izquierda.
+    const sinNada = !task.priority && !task.recurDays && !listaVisible;
+    const chipsBox = node.querySelector(".task-chips");
+    let hint = chipsBox.querySelector(".task-chips-empty-hint");
+    if (sinNada && !hint) {
+      hint = document.createElement("span");
+      hint.className = "task-chips-empty-hint";
+      hint.textContent = t("task.add_details_hint");
+      chipsBox.appendChild(hint);
+    } else if (!sinNada && hint) {
+      hint.remove();
+    }
   }
 
   // El panel de detalle (columna derecha) sustituye a la expansión en la
@@ -3006,10 +3032,15 @@ function _getOpenDetailTask() {
 
 function openTaskDetail(taskId, projectId) {
   if (selectMode) return;
+  const cambioDeTarea = openDetailTaskId !== taskId;
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
   document.body.classList.add("task-detail-active");
+  // El acordeón móvil no se reinicia solo: sin esto, un campo que se dejó
+  // abierto en OTRA tarea (p. ej. "Repetir") aparecía ya desplegado al
+  // entrar en una que no tiene nada que mostrar ahí.
+  if (cambioDeTarea) _cerrarAcordeon(null);
   _renderTaskDetail();
   renderTasks(); // refresca la barra de acento en la fila abierta
 }
@@ -3316,7 +3347,9 @@ function _openProjectPopover(fieldEl, anchorBtn) {
   _openFieldPopover(fieldEl, anchorBtn, "up", function(pop, close) {
     const rowsHtml = projects.filter(function(p) { return !p.archived; }).map(function(p) {
       const active = p.id === currentProjectId;
-      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-project-id="' + p.id + '">' +
+      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-project-id="' + p.id + '"' +
+          ' style="--dot-color:' + escHtml(_projectColor(p)) + '">' +
+        '<span class="field-popover-row-dot"></span>' +
         '<span class="field-popover-row-label">' + escHtml(p.name) + '</span>' +
         (active ? '<i data-lucide="check"></i>' : "") +
       '</button>';
@@ -3357,7 +3390,10 @@ function _openProjectPopover(fieldEl, anchorBtn) {
 var _mqDetalleMovil = window.matchMedia("(max-width: 768px)");
 
 function _camposDetalle() {
-  return document.querySelectorAll("#task-detail-body .task-detail-field[data-acc]");
+  // La nota queda fuera del acordeón: es el campo más largo y el que
+  // más se usa, así que se pidió que estuviera siempre abierta en vez
+  // de exigir un toque extra para verla.
+  return document.querySelectorAll("#task-detail-body .task-detail-field[data-acc]:not([data-acc='note'])");
 }
 
 function _cerrarAcordeon(salvo) {
@@ -3422,6 +3458,11 @@ function _initDetailAccordion() {
   if (_mqDetalleMovil.addEventListener) {
     _mqDetalleMovil.addEventListener("change", _sincronizarRolesAcordeon);
   }
+  // La nota está fuera de `_camposDetalle()` (no se pliega), pero su
+  // tarjeta usa el mismo CSS de "abierta" que las demás — así que se
+  // marca abierta una vez y para siempre.
+  var notaField = document.querySelector('#task-detail-body .task-detail-field[data-acc="note"]');
+  if (notaField) notaField.classList.add("detail-acc--open");
   if (window.lucide) window.lucide.createIcons({ nodes: [document.getElementById("task-detail-body")] });
 }
 
@@ -4096,30 +4137,7 @@ function getVisibleTasks(project) {
   let tasks = project.tasks.slice();
   const pred = TASK_FILTERS[currentFilter];
   if (pred) tasks = tasks.filter(pred);
-  if (currentQuery) tasks = tasks.filter(_matchesQuery);
-
-  if (currentSort === "priority") {
-    var order = { high: 0, medium: 1, low: 2 };
-    tasks.sort(function(a, b) {
-      var pa = a.priority ? (order[a.priority] !== undefined ? order[a.priority] : 3) : 3;
-      var pb = b.priority ? (order[b.priority] !== undefined ? order[b.priority] : 3) : 3;
-      if (pa !== pb) return pa - pb;
-      // secondary: done tasks last
-      return (a.done ? 1 : 0) - (b.done ? 1 : 0);
-    });
-  } else if (currentSort === "due") {
-    tasks.sort(function(a, b) {
-      var hasA = !!a.dueDate, hasB = !!b.dueDate;
-      if (!hasA && !hasB) return 0;
-      if (!hasA) return 1;   // sin fecha al final
-      if (!hasB) return -1;
-      return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0;
-    });
-  } else if (currentSort === "az") {
-    tasks.sort(function(a, b) {
-      return a.text.localeCompare(b.text, undefined, { sensitivity: "base" });
-    });
-  }
+  if (currentQuery) tasks = tasks.filter(function(tk) { return _matchesQuery(tk, project); });
 
   return tasks;
 }
@@ -4422,8 +4440,9 @@ function initSwipeGesture(node, task, project) {
 // ═══════════════════════════════════════════════════════════════
 
 function initDragDrop(node, taskId) {
-  // Solo activo en filtro "all" y sin ordenación activa
-  if (currentFilter !== "all" || currentSort !== "manual") return;
+  // Solo activo en filtro "all": con cualquier otro, el orden visual ya
+  // no es el orden real del array y arrastrar reordenaría a ciegas.
+  if (currentFilter !== "all") return;
 
   // Sin icono de "agarre": se arrastra la fila entera, siempre que el
   // gesto no empiece sobre un control interactivo (botón, checkbox,
@@ -4930,18 +4949,13 @@ async function bulkMoveToProject() {
       e.stopPropagation();
 
       // En móvil, hoja en vez de desplegable (handoff móvil v1, «Filtrar»).
-      // Se mantienen las DOS secciones del repo: el handoff solo describe
-      // filtros, pero quitar la ordenación en móvil sería perder una función
-      // que ya existe. Los valores se prefijan porque la hoja devuelve uno
-      // solo y hay que saber de qué grupo salió.
+      // El valor lleva el prefijo "filter:" porque `sheetPick` es genérico
+      // y lo devuelve tal cual llegó en `_filterPanelSections()`.
       if (window.matchMedia("(max-width: 768px)").matches) {
         var sections = _filterPanelSections();
         sheetPick(t("filter.trigger_label"), sections).then(function(picked) {
           if (!picked) return;
-          var sep = picked.indexOf(":");
-          var kind = picked.slice(0, sep), value = picked.slice(sep + 1);
-          if (kind === "filter") applyFilter(value);
-          else if (kind === "sort") applySort(value);
+          applyFilter(picked.slice(picked.indexOf(":") + 1));
         });
         return;
       }
@@ -4965,9 +4979,7 @@ async function bulkMoveToProject() {
   if (filterPanel) {
     filterPanel.addEventListener("click", function(e) {
       var btn = e.target.closest("[data-filter]");
-      if (btn) { applyFilter(btn.dataset.filter); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); return; }
-      var sortBtn = e.target.closest("[data-sort]");
-      if (sortBtn) { applySort(sortBtn.dataset.sort); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); }
+      if (btn) { applyFilter(btn.dataset.filter); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); }
     });
   }
 
