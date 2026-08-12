@@ -8475,14 +8475,16 @@ button {
   font-size: 12px;
   font-weight: 650;
   cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
+  /* Visible siempre, no solo al pasar por encima: era la unica forma de
+     mover una tarea a hoy desde la fila y, escondida tras el hover, no
+     la encontraba nadie. Mismo criterio que la flecha de la fecha
+     vencida. */
+  opacity: 0.9;
   transition: opacity 0.14s;
 }
 .today-item:hover .today-move-btn,
 .today-move-btn:focus-visible {
   opacity: 1;
-  pointer-events: auto;
 }
 .today-move-btn .lucide { width: 13px; height: 13px; stroke-width: 2.2; }
 .today-move-btn--overdue {
@@ -10301,6 +10303,20 @@ button {
   }
   .inbox-group-head,
   .hoy-section-head { padding: 0 4px 9px; margin-bottom: 0; }
+
+  /* El nombre de una lista larga se cortaba con puntos suspensivos y no
+     había forma de leerlo entero. La cabecera no tiene prisa: que baje a
+     dos líneas y se lea. La tercera ya sí se recorta. */
+  .tasks-header .project-title {
+    white-space: normal;
+    text-overflow: unset;
+    overflow: visible;
+    word-break: break-word;
+  }
+
+  /* El chip de lista se queda en 168px de la escala de escritorio, que en
+     390px es casi la mitad de la fila. */
+  .task-list-badge { max-width: 120px; }
 
   /* ── Cabecera de Hoy ─────────────────────────────────────────
      «N de M hechas» y el anillo no cabían junto al título: el resumen
