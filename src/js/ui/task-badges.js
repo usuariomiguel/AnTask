@@ -55,8 +55,10 @@ export function renderDueBadge(task, container) {
   const badge = document.createElement("span");
   badge.className = "due-badge " + state.cls;
   // Como el `DueChip` de v1: icono de calendario + fecha relativa, y la
-  // hora colgando detrás con separador ("Hoy · 11:30").
-  const label = state.label + (task.dueTime ? " · " + task.dueTime : "");
+  // hora colgando detrás con separador ("Hoy · 11:30"). La hora va en su
+  // propio span —y el separador en otro— para poder bajarla a una segunda
+  // línea en móvil: junta, "lun 10 ago · 10:00" se comía 188 de los 358px
+  // de la fila y dejaba el título en 92.
   // Vencida: pulsable — mueve la tarea a hoy sin abrir el detalle
   // (mismo atajo que el prototipo v1 en la fila de tarea).
   if (state.cls === "due-overdue") {
@@ -68,7 +70,28 @@ export function renderDueBadge(task, container) {
   } else {
     badge.innerHTML = '<i data-lucide="calendar"></i><span class="due-badge-label"></span>';
   }
-  badge.querySelector(".due-badge-label").textContent = label;
+  const lab = badge.querySelector(".due-badge-label");
+  if (state.parts) {
+    // Día de la semana aparte: en móvil se oculta y queda «26 ago».
+    const dow = document.createElement("span");
+    dow.className = "due-badge-dow";
+    dow.textContent = state.parts.weekday + " ";
+    lab.appendChild(dow);
+    lab.appendChild(document.createTextNode(state.parts.dayMonth));
+  } else {
+    lab.textContent = state.label;
+  }
+  if (task.dueTime) {
+    const sep = document.createElement("span");
+    sep.className = "due-badge-sep";
+    sep.textContent = " · ";
+    const hora = document.createElement("span");
+    hora.className = "due-badge-time";
+    hora.textContent = task.dueTime;
+    const ref = badge.querySelector(".due-badge-arrow");
+    badge.insertBefore(sep, ref);
+    badge.insertBefore(hora, ref);
+  }
   container.appendChild(badge);
 }
 

@@ -6,6 +6,23 @@
 import { t, getLang } from "../i18n/index.js";
 
 /**
+ * Trozos de una fecha ISO: día de la semana y "día mes", por separado.
+ * Separados para poder ocultar el primero en móvil, donde la píldora de
+ * fecha competía por el ancho con el título de la fila.
+ *
+ * @param {string} iso
+ * @returns {{weekday: string, dayMonth: string}}
+ */
+export function formatDueParts(iso) {
+  const d = new Date(iso + "T00:00:00");
+  const locale = getLang() === "en" ? "en-GB" : "es-ES";
+  return {
+    weekday:  d.toLocaleDateString(locale, { weekday: "short" }).replace(".", ""),
+    dayMonth: d.toLocaleDateString(locale, { day: "numeric", month: "short" }),
+  };
+}
+
+/**
  * Formatea una fecha ISO como "vie 20 jul" (día de la semana + día + mes),
  * como en el prototipo v1 — se usa para fechas fuera de la ventana
  * hoy/mañana/ayer, tanto futuras como vencidas.
@@ -14,11 +31,8 @@ import { t, getLang } from "../i18n/index.js";
  * @returns {string}
  */
 export function formatDueWeekday(iso) {
-  const d = new Date(iso + "T00:00:00");
-  const locale = getLang() === "en" ? "en-GB" : "es-ES";
-  const weekday = d.toLocaleDateString(locale, { weekday: "short" }).replace(".", "");
-  const dayMonth = d.toLocaleDateString(locale, { day: "numeric", month: "short" });
-  return weekday + " " + dayMonth;
+  const p = formatDueParts(iso);
+  return p.weekday + " " + p.dayMonth;
 }
 
 /**
@@ -28,6 +42,9 @@ export function formatDueWeekday(iso) {
  * @property {string}              label
  * @property {string}              cls    - "due-overdue" | "due-today" | "due-soon" | "due-future"
  * @property {number}              diff   - Días respecto a hoy (negativo = vencida)
+ * @property {{weekday: string, dayMonth: string}} [parts]
+ *   Solo cuando la etiqueta lleva día de la semana. Permite ocultar ese
+ *   trozo en móvil sin volver a formatear la fecha.
  */
 
 /**
@@ -46,6 +63,8 @@ export function getDueDateState(dueDate) {
   if (diff === 0)  return { label: t("date.today"),         cls: "due-today",   diff };
   if (diff === 1)  return { label: t("date.tomorrow"),      cls: "due-soon",    diff };
   if (diff === -1) return { label: t("date.yesterday"),     cls: "due-overdue", diff };
-  if (diff < 0)     return { label: formatDueWeekday(dueDate), cls: "due-overdue", diff };
-  return                   { label: formatDueWeekday(dueDate), cls: "due-future",  diff };
+  // `parts` solo en los casos con día de la semana: en móvil ese trozo se
+  // oculta para que la píldora no se coma el ancho del título.
+  if (diff < 0)     return { label: formatDueWeekday(dueDate), parts: formatDueParts(dueDate), cls: "due-overdue", diff };
+  return                   { label: formatDueWeekday(dueDate), parts: formatDueParts(dueDate), cls: "due-future",  diff };
 }

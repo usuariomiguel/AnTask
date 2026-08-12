@@ -4242,23 +4242,16 @@ display: inline-flex;
   cursor: pointer;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
+/* La flecha se ve SIEMPRE, no solo al pasar por encima: es la única pista
+   de que la fecha vencida es pulsable, y escondida tras el hover no la
+   encontraba nadie —en táctil directamente no existe el hover. */
 .due-badge--action .due-badge-arrow {
   width: 12px;
   height: 12px;
-  opacity: 0;
-  margin-left: -3px;
-  transition: opacity var(--dur-fast) var(--ease-out), margin var(--dur-fast) var(--ease-out);
-}
-.task-item:hover .due-badge--action .due-badge-arrow {
   opacity: 0.9;
-  margin-left: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .due-badge--action:hover { opacity: 0.75; }
-/* Sin hover (táctil) la flecha se queda fija: es la única pista de que
-   la fecha vencida es pulsable. */
-@media (hover: none) {
-  .due-badge--action .due-badge-arrow { opacity: 0.9; margin-left: 0; }
-}
 
 :root[data-theme="light"] .due-today { color: var(--c-primary-600); }
 
@@ -10422,6 +10415,47 @@ button {
     border: 1px solid rgba(var(--c-overdue-rgb), 0.25);
   }
 
+  /* ── Fechas con hora ─────────────────────────────────────────
+     «lun 10 ago · 10:00» medía 188px de los 358 de la fila y dejaba el
+     título en 92: dos líneas cortadas a media palabra. La columna de la
+     fecha se acota a un tercio y la hora baja a su propia línea, con el
+     separador fuera. */
+  /* El tope va en la píldora y en píxeles: un `max-width` porcentual en el
+     contenedor se resuelve contra una celda de rejilla que a su vez la
+     dimensiona el contenido, así que no acotaba nada. 118px es lo que
+     ocupa la fecha más larga sin hora («lun 10 ago») con su icono. */
+  /* Sin el día de la semana la fecha más larga es «26 ago», así que el
+     tope baja de 118 a 92 y el título recupera esos 26px. */
+  .task-item .due-badge-dow { display: none; }
+  /* Sin hora no hay nada que bajar de línea: la píldora cabe entera y el
+     tope solo conseguía tirar la flecha a un renglón para ella sola. */
+  .task-item .due-badge:not(:has(.due-badge-time)) {
+    max-width: none;
+    flex-wrap: nowrap;
+  }
+  .task-item .due-badge {
+    max-width: 92px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    height: auto;
+    min-height: 22px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    row-gap: 0;
+    text-align: right;
+  }
+  .task-item .due-badge-sep { display: none; }
+  /* La hora ocupa la segunda línea menos el hueco de la flecha, para que
+     esta no caiga a una tercera ella sola. */
+  .task-item .due-badge-time {
+    flex: 1 1 100%;
+    max-width: calc(100% - 17px);
+    text-align: right;
+    opacity: 0.85;
+  }
+  /* Con la hora debajo, el icono y la flecha se quedan con la fecha. */
+  .task-item .due-badge .lucide { align-self: center; }
+
   /* «El círculo visible es de 22px, borde de 2px», con área táctil
      de 44 (22 + 11×2). El ::before que la crea vive en el bloque de
      `pointer: coarse`; aquí solo se corrige su inset. */
@@ -10492,8 +10526,12 @@ button {
 
   /* El campo pasa a ser la caja con borde de acento del prototipo. */
   .quick-capture-input {
-    margin: 14px 16px 0;
-    padding: 13px 14px;
+    /* Un `input` no estira con `width: auto` —usa su ancho intrínseco—, y
+       con el `100%` de la regla base los márgenes laterales no movían nada
+       y el campo salía pegado a los bordes. Se descuentan a mano. */
+    width: calc(100% - 40px);
+    margin: 14px 20px 0;
+    padding: 14px 16px;
     background: var(--surface-card);
     border: 1.5px solid var(--c-primary-500);
     border-radius: var(--r-md);
@@ -10508,7 +10546,7 @@ button {
   }
   .quick-capture-preview { justify-content: flex-start; }
 
-  .quick-capture-preview { margin: 10px 16px 0; }
+  .quick-capture-preview { margin: 10px 20px 0; }
 
   /* Los chips manuales no están en el prototipo: ahí la prioridad, la
      lista y la fecha se escriben en el propio texto, que es lo que
@@ -10519,7 +10557,7 @@ button {
     flex-wrap: wrap;
     align-items: center;
     gap: 4px;
-    padding: 0 16px;
+    padding: 0 20px;
     background: none;
     border: none;
   }
