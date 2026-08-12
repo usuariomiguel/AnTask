@@ -127,6 +127,9 @@ export function showQuickCapture(deps) {
       '</div>' +
     '</div>' +
     '<div class="quick-capture-footer">' +
+      // Solo visible en móvil: en la hoja deslizante el aspa de la cabecera
+      // no se ve, así que la salida es un botón de texto como en v1.
+      '<button type="button" class="quick-capture-cancel">' + t("modal.cancel") + '</button>' +
       '<span class="quick-capture-hint">' +
         '<span class="qc-hint-word">' + t("quick_capture.hint_type") + '</span>' +
         '<code>hoy</code><code>#lista</code><code>p1</code>' +
@@ -278,6 +281,8 @@ export function showQuickCapture(deps) {
   overlay._cancel = close;
   const closeBtn = box.querySelector(".quick-capture-close");
   if (closeBtn) closeBtn.addEventListener("click", close);
+  const cancelBtn = box.querySelector(".quick-capture-cancel");
+  if (cancelBtn) cancelBtn.addEventListener("click", close);
   submitBtn.addEventListener("click", submit);
 
   input.addEventListener("keydown", function (e) {

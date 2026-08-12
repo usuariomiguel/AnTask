@@ -301,7 +301,7 @@ export const es = {
 
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.title":      "Captura rápida",
-  "quick_capture.placeholder":"¿Qué hay que hacer?",
+  "quick_capture.placeholder":"p. ej. Llamar a la gestoría mañana p1 #IRPs",
   "quick_capture.key_space":  "Espacio",
   "quick_capture.hint_type":          "Escribe",
   "quick_capture.hint_autocomplete":  "para autocompletar",

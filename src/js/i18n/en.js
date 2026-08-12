@@ -301,7 +301,7 @@ export const en = {
 
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.title":      "Quick capture",
-  "quick_capture.placeholder":"What do you need to do?",
+  "quick_capture.placeholder":"e.g. Call the office tomorrow p1 #Work",
   "quick_capture.key_space":  "Space",
   "quick_capture.hint_type":          "Type",
   "quick_capture.hint_autocomplete":  "to autocomplete",

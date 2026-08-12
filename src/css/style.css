@@ -8417,7 +8417,11 @@ button {
   color: var(--text-primary);
   letter-spacing: -0.006em;
   line-height: 1.4;
-  word-break: break-word;
+  /* Una sola línea, como la fila de una lista: `.today-text` no tenía
+     ningún límite y un título largo crecía hasta cuatro líneas. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 /* Igual que en las listas: completar apaga el título, no la fila. */
 .today-item--done .today-text {
@@ -10138,7 +10142,17 @@ button {
    Excepción de la propia ficha: el porcentaje del anillo va a 10px.
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .today-item .today-text { font-size: 15px; }
+  .today-item .today-text {
+    font-size: 15px;
+    /* En móvil el título respira a dos líneas, igual que en las listas. */
+    white-space: normal;
+    text-overflow: unset;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .today-item .priority-badge,
   .today-item .task-list-badge,
   .today-item .recur-badge-label { font-size: 12px; }
@@ -10295,6 +10309,22 @@ button {
   .inbox-group-head,
   .hoy-section-head { padding: 0 4px 9px; margin-bottom: 0; }
 
+  /* ── Cabecera de Hoy ─────────────────────────────────────────
+     «N de M hechas» y el anillo no cabían junto al título: el resumen
+     se montaba encima de «Hoy». La ficha ya lo resuelve — las vencidas
+     van BAJO el resumen, no detrás con un punto—, así que el bloque se
+     estrecha y deja sitio. */
+  .hoy-header-extra { gap: 9px; }
+  .hoy-stats {
+    font-size: 12px;
+    text-align: right;
+    white-space: normal;
+    line-height: 1.35;
+  }
+  .hoy-stats-sep { display: none; }
+  .hoy-stats-overdue { display: block; font-weight: 700; }
+  .tasks-header .project-title { min-width: 0; }
+
   /* La acción masiva («Programar todas hoy») no cabía junto al rótulo:
      saltaba a una segunda línea y la cabecera doblaba su alto. En 390px
      el filete decorativo es lo primero que sobra, y el botón se ciñe. */
@@ -10412,3 +10442,119 @@ button {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   MÓVIL — captura rápida como hoja deslizante
+
+   En móvil salía el modal centrado de escritorio. El handoff la
+   describe como hoja: sube desde abajo con `translateY(100%) → 0` en
+   0.26s, velo `rgba(20,14,6,0.42)` con fade de 0.2s, asa de 38×5 y
+   `paddingBottom: max(22px, env(safe-area-inset-bottom))`.
+   ═══════════════════════════════════════════════════════════════ */
+/* En escritorio la salida es el aspa de la cabecera; en la hoja, el botón.
+   Va antes del bloque de móvil para que allí pueda ganarle. */
+.quick-capture-cancel { display: none; }
+
+@media (max-width: 768px) {
+  .modal-overlay:has(.modal-box-quick) {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+    background: rgba(20, 14, 6, 0.42);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .modal-box-quick {
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    border-radius: 22px 22px 0 0;
+    background: var(--surface-canvas);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+    padding-bottom: max(22px, env(safe-area-inset-bottom, 0px));
+    animation: qcSheetIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  /* Asa de la hoja: 38×5, como todas las del handoff. */
+  .modal-box-quick::before {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--border-default);
+    margin: 9px auto 4px;
+  }
+
+  /* La cabecera es de escritorio: título, atajo de teclado y aspa. En la
+     hoja no pinta nada — el asa ya dice que se arrastra y la salida es
+     el botón «Cancelar». */
+  .quick-capture-header { display: none; }
+
+  /* El campo pasa a ser la caja con borde de acento del prototipo. */
+  .quick-capture-input {
+    margin: 14px 16px 0;
+    padding: 13px 14px;
+    background: var(--surface-card);
+    border: 1.5px solid var(--c-primary-500);
+    border-radius: var(--r-md);
+    /* 16px: por debajo de eso iOS hace zoom al enfocar. */
+    font-size: 16px;
+    line-height: 1.4;
+    /* El centrado es del modal de escritorio; en la caja de la hoja el
+       texto arranca a la izquierda, como en el prototipo. */
+    text-align: left;
+    font-weight: 450;
+    letter-spacing: normal;
+  }
+  .quick-capture-preview { justify-content: flex-start; }
+
+  .quick-capture-preview { margin: 10px 16px 0; }
+
+  /* Los chips manuales no están en el prototipo: ahí la prioridad, la
+     lista y la fecha se escriben en el propio texto, que es lo que
+     enseña la línea de ayuda de debajo. */
+  .quick-capture-chips { display: none; }
+
+  .quick-capture-footer {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    background: none;
+    border: none;
+  }
+  .quick-capture-hint {
+    order: -1;
+    flex: 0 0 100%;
+    font-size: 12px;
+    /* 10px de aire bajo el campo y 4 sobre los botones, como el prototipo:
+       la línea de ayuda pertenece al campo, no a la fila de acciones. */
+    margin: 10px 0 4px;
+  }
+  .quick-capture-cancel {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .quick-capture-submit {
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+  /* El recordatorio de la tecla ↵ no aplica sin teclado físico. */
+  .quick-capture-submit .qc-kbd { display: none; }
+}
+
+@keyframes qcSheetIn {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}

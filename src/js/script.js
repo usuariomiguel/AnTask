@@ -216,6 +216,9 @@ let sections        = loadSections();
 // Las notas se retiraron: borra de una vez su clave para no dejar datos
 // huérfanos ocupando la cuota de localStorage.
 try { localStorage.removeItem("antask-notes"); } catch (_) {}
+// Las recurrentes completadas se quedan marcadas hasta que llega su
+// siguiente vuelta; al arrancar se comprueba si ya toca reabrirlas.
+if (_reactivarRecurrentes()) saveProjects();
 _checkStorageWarning();
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
@@ -1287,6 +1290,7 @@ function _updateFilterTriggerLabel() {
 window.addEventListener("storage", function(event) {
   if (event.key === PROJECTS_KEY) {
     projects = loadProjects();
+    if (_reactivarRecurrentes()) saveProjects();
     renderSidebar();
     renderTasks();
   }
@@ -2377,6 +2381,21 @@ async function startNewSection() {
  * que no han cambiado. Antes con 200 tareas era jank visible.
  */
 function renderTasks() {
+  // La vista de Hoy y el Inbox agrupado rehacen bloques enteros, y quitar
+  // contenido por encima del punto de lectura empuja el scroll hacia
+  // arriba: completar una tarea a media lista devolvía al principio.
+  // Se guarda la posición y se restaura tras pintar.
+  var _scroller = document.querySelector(".task-list-scroll");
+  var _scrollTop = _scroller ? _scroller.scrollTop : 0;
+  function _restaurarScroll() {
+    if (!_scroller || _scroller.scrollTop === _scrollTop) return;
+    _scroller.scrollTop = _scrollTop;
+  }
+
+  // Con la app abierta al cambiar el día, las recurrentes completadas ayer
+  // vuelven a estar pendientes al primer repintado.
+  if (_reactivarRecurrentes()) saveProjects();
+
   // Antes de los returns tempranos: si no, al saltar a «Hoy» los chips de la
   // lista anterior se quedarían pintados.
   _renderListChips();
@@ -2385,11 +2404,12 @@ function renderTasks() {
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
     renderTodayView();
+    _restaurarScroll();
     return;
   }
   _removeHoyHeaderExtra();
   const project = getActiveProject();
-  if (!project) { taskList.innerHTML = ""; return; }
+  if (!project) { taskList.innerHTML = ""; _restaurarScroll(); return; }
 
   taskList.classList.add("task-list--project");
   // Lista plana de filas: nunca va a dos columnas (lo hacen las vistas
@@ -2540,6 +2560,7 @@ function renderTasks() {
 
     _renderTasksFooter(project, isInbox);
     if (window.lucide) lucide.createIcons();
+    _restaurarScroll();
     return;
   }
 
@@ -2622,6 +2643,7 @@ function renderTasks() {
   _renderTasksFooter(project, isInbox);
 
   if (window.lucide) lucide.createIcons();
+  _restaurarScroll();
 }
 
 /** Contadores / título de la vista proyecto. El Inbox cuenta el pool completo. */
@@ -2774,17 +2796,12 @@ function _buildTaskNode(task, project, showList) {
     checkbox.addEventListener("change", function() {
       task.done = checkbox.checked;
       if (task.done && task.recurDays) {
-        task.done = false;
-        var next = new Date();
-        if (task.dueDate) {
-          next = new Date(task.dueDate + "T00:00:00");
-          next.setDate(next.getDate() + task.recurDays);
-        } else {
-          next.setDate(next.getDate() + task.recurDays);
-        }
-        task.dueDate = _localDateISO(next);
+        // La tarea SE QUEDA marcada y con su fecha: completarla no la hacía
+        // desaparecer de Hoy en el acto, que es lo que se veía antes al
+        // adelantar la fecha aquí mismo. El salto a la siguiente vuelta lo
+        // hace `_reactivarRecurrentes()` cuando llega el día.
         saveAndRender();
-        _showRecurToast(task.recurDays, task.dueDate);
+        _showRecurToast(task.recurDays, _proximaRecurrencia(task));
         return;
       }
       saveAndRender();
@@ -3739,8 +3756,11 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   // engordar el stroke.
   var SZ = 44, R = 18, C = 2 * Math.PI * R;
   var offset = C * (1 - pct / 100);
+  // El punto va en su propio span: en móvil las vencidas caen a una segunda
+  // línea —como pide la ficha— y ahí el separador sobra.
   var overdueTxt = overdueN > 0
-    ? ' <span class="hoy-stats-overdue">· ' + overdueN + " " +
+    ? '<span class="hoy-stats-sep"> · </span>' +
+      '<span class="hoy-stats-overdue">' + overdueN + " " +
       (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</span>"
     : "";
   var statsHtml =
@@ -3820,16 +3840,14 @@ function renderTodayItem(task, project, todayStr, tone) {
       renderSidebar();
       return;
     }
+    // Las recurrentes se quedan marcadas y con su fecha: adelantarla aquí
+    // las hacía desaparecer de Hoy nada más completarlas. Reaparecen
+    // pendientes cuando llega su vuelta (`_reactivarRecurrentes`).
     task.done = true;
-    if (task.recurDays) {
-      task.done = false;
-      var next = new Date(task.dueDate + "T00:00:00");
-      next.setDate(next.getDate() + task.recurDays);
-      task.dueDate = _localDateISO(next);
-    }
     saveProjects();
     renderTasks();
     renderSidebar();
+    if (task.recurDays) _showRecurToast(task.recurDays, _proximaRecurrencia(task));
   });
 
   var text = document.createElement("span");
@@ -4048,6 +4066,45 @@ function startSubtaskInlineEdit(textSpan, subtask) {
   });
   input.addEventListener("blur", commit);
   input.addEventListener("click", function(e) { e.stopPropagation(); });
+}
+
+/** Fecha de la siguiente vuelta de una tarea con repetición. */
+function _proximaRecurrencia(task) {
+  var next = new Date();
+  if (task.dueDate) next = new Date(task.dueDate + "T00:00:00");
+  next.setDate(next.getDate() + task.recurDays);
+  return _localDateISO(next);
+}
+
+/**
+ * Reabre las tareas con repetición cuya vuelta ya ha llegado.
+ *
+ * Completar una recurrente la deja marcada y con la fecha de esta vuelta,
+ * para que siga a la vista el resto del día. Es aquí donde, al pasar el
+ * día, salta a la siguiente fecha y vuelve a quedar pendiente. El bucle
+ * cubre el caso de no abrir la app en varios ciclos.
+ *
+ * @returns {boolean} true si cambió algo (hay que guardar)
+ */
+function _reactivarRecurrentes() {
+  var hoy = _localDateISO(new Date());
+  var cambios = false;
+  projects.forEach(function(p) {
+    p.tasks.forEach(function(task) {
+      if (!task.recurDays || !task.done || !task.dueDate) return;
+      if (task.dueDate >= hoy) return;
+      var next = new Date(task.dueDate + "T00:00:00");
+      var guarda = 0;
+      do {
+        next.setDate(next.getDate() + task.recurDays);
+        guarda++;
+      } while (_localDateISO(next) < hoy && guarda < 1000);
+      task.dueDate = _localDateISO(next);
+      task.done = false;
+      cambios = true;
+    });
+  });
+  return cambios;
 }
 
 function _showRecurToast(days, nextDate) {
