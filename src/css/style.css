@@ -10149,4 +10149,54 @@ button {
     font-size: 12px;
     font-variant-numeric: tabular-nums;
   }
+
+  /* ── Inbox y listas ──────────────────────────────────────────
+     La fila de tarea es el mismo componente que en Hoy, así que va a
+     la misma escala: «Título de tarea en fila: 15px». El peso queda
+     en 550 igual que `.today-text` — la ficha pide 500, pero el
+     usuario pidió engordar los títulos y una misma fila no puede
+     pesar distinto según la pantalla. */
+  .task-item .task-text {
+    font-size: 15px;
+    font-weight: 550;
+  }
+
+  /* «Chips y contadores: 12px». Iban a 10.5-11px, por debajo del
+     mínimo firme de la ficha. */
+  .task-item .priority-badge,
+  .task-item .task-list-badge,
+  .task-item .recur-badge-label {
+    font-size: 12px;
+  }
+
+  /* La fecha de la fila es metadato: 12px, 650, mono. */
+  .due-badge {
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  /* Vencida: la ficha la describe como píldora roja pulsable, con
+     borde propio y no solo fondo teñido. */
+  .due-badge.due-overdue {
+    border: 1px solid rgba(var(--c-overdue-rgb), 0.25);
+  }
+
+  /* «El círculo visible es de 22px, borde de 2px», con área táctil
+     de 44 (22 + 11×2). El ::before que la crea vive en el bloque de
+     `pointer: coarse`; aquí solo se corrige su inset. */
+  .task-toggle,
+  .today-check {
+    width: 22px;
+    height: 22px;
+    border-width: 2px;
+  }
+  .task-toggle::before,
+  .today-check::before {
+    inset: -11px;
+  }
+  .task-check,
+  .today-check:checked::after {
+    width: 12px;
+    height: 12px;
+  }
 }

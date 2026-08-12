@@ -2470,7 +2470,9 @@ function renderTasks() {
       head.querySelector(".inbox-group-name").textContent = isNone
         ? t("inbox.group_none")
         : g.project.name;
-      head.querySelector(".inbox-group-count").textContent = "(" + g.items.length + ")";
+      // Número pelado, como en el prototipo móvil (`GroupHead`): los
+      // paréntesis eran nuestros. Igual que en las secciones de Hoy.
+      head.querySelector(".inbox-group-count").textContent = String(g.items.length);
       if (!isNone) {
         head.querySelector(".inbox-group-dot").style.background = _projectColor(g.project);
       }
