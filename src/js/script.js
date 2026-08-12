@@ -3343,6 +3343,98 @@ function _openProjectPopover(fieldEl, anchorBtn) {
   });
 }
 
+// ── Detalle de tarea en móvil: acordeón ──────────────────────
+//
+// En móvil el panel salía con las siete características desplegadas a la
+// vez y había que hacer scroll para ver una tarea entera. El prototipo
+// v1 lo resuelve al revés: una fila compacta por característica, con su
+// valor a la derecha, y se despliega la que toques. Solo una abierta a
+// la vez — dos abiertas ya obligan a hacer scroll otra vez.
+//
+// El panel de escritorio no se toca: allí caben todas y verlas de golpe
+// es la gracia.
+
+var _mqDetalleMovil = window.matchMedia("(max-width: 768px)");
+
+function _camposDetalle() {
+  return document.querySelectorAll("#task-detail-body .task-detail-field[data-acc]");
+}
+
+function _cerrarAcordeon(salvo) {
+  _camposDetalle().forEach(function(f) {
+    if (f === salvo) return;
+    f.classList.remove("detail-acc--open");
+    var l = f.querySelector(".task-detail-label");
+    if (l) l.setAttribute("aria-expanded", "false");
+  });
+}
+
+function _alternarAcordeon(field) {
+  if (!_mqDetalleMovil.matches) return;
+  var abierto = field.classList.contains("detail-acc--open");
+  _cerrarAcordeon(null);
+  if (abierto) return;
+  field.classList.add("detail-acc--open");
+  var l = field.querySelector(".task-detail-label");
+  if (l) l.setAttribute("aria-expanded", "true");
+  // Al abrir «Nota» o «Subtareas» el foco va al campo: si no, hay que dar
+  // dos toques para escribir.
+  var foco = field.querySelector("textarea, input[type='text']");
+  if (foco) foco.focus();
+}
+
+/** Marca las cabeceras como pulsables solo cuando el acordeón está activo. */
+function _sincronizarRolesAcordeon() {
+  var movil = _mqDetalleMovil.matches;
+  _camposDetalle().forEach(function(f) {
+    var l = f.querySelector(".task-detail-label");
+    if (!l) return;
+    if (movil) {
+      l.setAttribute("role", "button");
+      l.setAttribute("tabindex", "0");
+      l.setAttribute("aria-expanded", f.classList.contains("detail-acc--open") ? "true" : "false");
+    } else {
+      l.removeAttribute("role");
+      l.removeAttribute("tabindex");
+      l.removeAttribute("aria-expanded");
+      f.classList.remove("detail-acc--open");
+    }
+  });
+}
+
+function _initDetailAccordion() {
+  _camposDetalle().forEach(function(f) {
+    var label = f.querySelector(".task-detail-label");
+    if (!label || label.querySelector(".detail-acc-value")) return;
+    var val = document.createElement("span");
+    val.className = "detail-acc-value";
+    label.appendChild(val);
+    var caret = document.createElement("i");
+    caret.className = "detail-acc-caret";
+    caret.setAttribute("data-lucide", "chevron-down");
+    label.appendChild(caret);
+    label.addEventListener("click", function() { _alternarAcordeon(f); });
+    label.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); _alternarAcordeon(f); }
+    });
+  });
+  _sincronizarRolesAcordeon();
+  if (_mqDetalleMovil.addEventListener) {
+    _mqDetalleMovil.addEventListener("change", _sincronizarRolesAcordeon);
+  }
+  if (window.lucide) window.lucide.createIcons({ nodes: [document.getElementById("task-detail-body")] });
+}
+
+/** Escribe el resumen que se ve con la fila plegada. */
+function _setValorAcordeon(clave, texto, puesto) {
+  var f = document.querySelector('#task-detail-body .task-detail-field[data-acc="' + clave + '"]');
+  if (!f) return;
+  var v = f.querySelector(".detail-acc-value");
+  if (!v) return;
+  v.textContent = texto || "";
+  v.classList.toggle("detail-acc-value--set", !!puesto);
+}
+
 function _formatReminderLabel(iso) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return t("detail.no_reminder");
@@ -3377,6 +3469,22 @@ function _renderTaskDetail() {
     onMutation:  saveAndRenderDetail,
     onEditStart: startSubtaskInlineEdit,
   });
+
+  // Resúmenes de las filas plegadas del acordeón (solo se ven en móvil).
+  var nota = (task.comment || "").trim();
+  _setValorAcordeon("note", nota ? (nota.length > 22 ? nota.slice(0, 22) + "…" : nota) : "", !!nota);
+  _setValorAcordeon("priority",
+    task.priority ? PRIORITY_CONFIG[task.priority].label() : t("detail.priority_none"),
+    !!task.priority);
+  _setValorAcordeon("date",
+    task.dueDate ? els.dateText.textContent + (task.dueTime ? " · " + task.dueTime : "") : t("detail.no_date"),
+    !!task.dueDate);
+  _setValorAcordeon("recur", els.recurText.textContent, !!task.recurDays);
+  _setValorAcordeon("reminder", els.reminderText.textContent, !!task.reminderAt);
+  var subs = (task.subtasks || []);
+  var hechas = subs.filter(function(x) { return x.done; }).length;
+  _setValorAcordeon("subtasks", subs.length ? hechas + "/" + subs.length : "", subs.length > 0);
+  _setValorAcordeon("list", project.name, true);
 
   if (window.lucide) window.lucide.createIcons({ nodes: [els.priority, els.subtasks] });
 }
@@ -3529,6 +3637,7 @@ function _initTaskDetailPanel() {
   }
 }
 _initTaskDetailPanel();
+_initDetailAccordion();
 
 /**
  * Wirea el CTA "Añadir tarea" de un empty state. En móvil dispara

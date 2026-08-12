@@ -10612,3 +10612,141 @@ button {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MÓVIL — detalle de tarea como acordeón
+
+   El panel salía con las siete características desplegadas y había que
+   hacer scroll para ver una tarea entera. El prototipo v1 lo resuelve al
+   revés: una fila por característica con su valor a la derecha, y se
+   despliega la que toques. Solo una abierta a la vez.
+
+   Escritorio no entra aquí: allí caben todas y verlas de golpe es la
+   gracia del panel.
+   ═══════════════════════════════════════════════════════════════ */
+.detail-acc-value,
+.detail-acc-caret { display: none; }
+
+@media (max-width: 768px) {
+  .task-detail-body {
+    padding-top: 4px;
+    gap: 0;
+  }
+
+  /* Las características van juntas en una tarjeta, con filete entre ellas
+     — el mismo lenguaje que los bloques de lista. */
+  .task-detail-field[data-acc] {
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--surface-card);
+  }
+  .task-detail-field[data-acc]:first-of-type {
+    border-radius: calc(var(--r-md) + 2px) calc(var(--r-md) + 2px) 0 0;
+    border-top: 1px solid var(--border-default);
+  }
+  .task-detail-field[data-acc]:last-of-type {
+    border-radius: 0 0 calc(var(--r-md) + 2px) calc(var(--r-md) + 2px);
+  }
+  .task-detail-field[data-acc]:first-of-type,
+  .task-detail-field[data-acc]:last-of-type,
+  .task-detail-field[data-acc] {
+    border-left: 1px solid var(--border-default);
+    border-right: 1px solid var(--border-default);
+  }
+
+  /* La etiqueta pasa a ser la fila pulsable: icono, nombre, valor y
+     chevron. 48px de alto — por encima del mínimo táctil. */
+  .task-detail-field[data-acc] > .task-detail-label {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 48px;
+    margin: 0;
+    padding: 0 14px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14.5px;
+    font-weight: 550;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--text-primary);
+  }
+  .task-detail-field[data-acc] > .task-detail-label .lucide {
+    width: 17px;
+    height: 17px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .task-detail-field[data-acc] > .task-detail-label:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: -2px;
+  }
+
+  .detail-acc-value {
+    display: block;
+    margin-left: auto;
+    max-width: 45%;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+  .detail-acc-value--set { color: var(--c-primary-500); }
+
+  .detail-acc-caret {
+    display: block;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .detail-acc--open > .task-detail-label .detail-acc-caret {
+    transform: rotate(180deg);
+  }
+
+  /* Plegado: fuera todo lo que no sea la cabecera.
+     Las reglas de abierto repiten `[data-acc]` a propósito: sin él pierden
+     en especificidad contra la de plegado y el chevron giraba sin que
+     apareciera nada debajo. */
+  .task-detail-field[data-acc] > *:not(.task-detail-label) { display: none; }
+  .task-detail-field[data-acc].detail-acc--open > *:not(.task-detail-label) {
+    display: block;
+    margin: 0 14px 14px;
+  }
+  /* `flex`, que es lo que ya era: forzarlo a `grid` lo apilaba en una
+     columna y la fila crecía a 222px. */
+  .task-detail-field[data-acc].detail-acc--open > .task-detail-segmented {
+    display: flex;
+    gap: 6px;
+  }
+  .task-detail-field[data-acc].detail-acc--open > .task-detail-date-row { display: flex; }
+  .task-detail-field[data-acc].detail-acc--open > .task-detail-subtask-form {
+    display: flex;
+    margin-top: 8px;
+  }
+
+  /* La abierta se tiñe para que se vea de un vistazo cuál es. */
+  .detail-acc--open { background: var(--surface-raised); }
+
+  /* Eliminar: caja propia bajo la tarjeta, como en el prototipo — no una
+     línea suelta pegada al fondo de la pantalla. */
+  .task-detail-footer {
+    padding: 14px 0 0;
+    margin-top: auto;
+    border: none;
+    background: none;
+  }
+  .task-detail-delete {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+    border: 1px solid rgba(var(--c-overdue-rgb), 0.30);
+    border-radius: calc(var(--r-md) + 2px);
+    background: rgba(var(--c-overdue-rgb), 0.07);
+    font-size: 14.5px;
+    font-weight: 650;
+  }
+}

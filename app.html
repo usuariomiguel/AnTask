@@ -691,12 +691,12 @@
               <textarea class="task-detail-title" id="task-detail-title" rows="2" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
             </div>
 
-            <div class="task-detail-field">
+            <div class="task-detail-field" data-acc="note">
               <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
               <textarea class="task-detail-textarea" id="task-detail-comment" rows="4" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
             </div>
 
-            <div class="task-detail-field">
+            <div class="task-detail-field" data-acc="priority">
               <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
               <div class="task-detail-segmented" id="task-detail-priority">
                 <button type="button" data-value="" data-i18n="detail.priority_none">Ninguna</button>
@@ -706,7 +706,7 @@
               </div>
             </div>
 
-            <div class="task-detail-field" id="task-detail-date-field">
+            <div class="task-detail-field" id="task-detail-date-field" data-acc="date">
               <span class="task-detail-label"><i data-lucide="calendar"></i> <span data-i18n="detail.due_date">Fecha y hora</span></span>
               <div class="task-detail-date-row">
                 <button type="button" class="task-detail-field-btn" id="task-detail-date-btn">
@@ -720,7 +720,7 @@
               </div>
             </div>
 
-            <div class="task-detail-field" id="task-detail-recur-field">
+            <div class="task-detail-field" id="task-detail-recur-field" data-acc="recur">
               <span class="task-detail-label"><i data-lucide="repeat"></i> <span data-i18n="detail.recur">Repetir</span></span>
               <button type="button" class="task-detail-field-btn" id="task-detail-recur-btn">
                 <span id="task-detail-recur-text" data-i18n="detail.no_recur">No se repite</span>
@@ -728,7 +728,7 @@
               </button>
             </div>
 
-            <div class="task-detail-field" id="task-detail-reminder-field">
+            <div class="task-detail-field" id="task-detail-reminder-field" data-acc="reminder">
               <span class="task-detail-label"><i data-lucide="bell"></i> <span data-i18n="detail.reminder">Recordatorio</span></span>
               <button type="button" class="task-detail-field-btn" id="task-detail-reminder-btn">
                 <span id="task-detail-reminder-text" data-i18n="detail.no_reminder">Sin recordatorio</span>
@@ -736,7 +736,7 @@
               </button>
             </div>
 
-            <div class="task-detail-field">
+            <div class="task-detail-field" data-acc="subtasks">
               <span class="task-detail-label"><i data-lucide="list-plus"></i> <span data-i18n="detail.subtasks">Subtareas</span></span>
               <ul class="subtask-list task-detail-subtasks" id="task-detail-subtasks" aria-label="Subtareas"></ul>
               <form class="task-detail-subtask-form" id="task-detail-subtask-form">
@@ -745,7 +745,7 @@
               </form>
             </div>
 
-            <div class="task-detail-field" id="task-detail-project-field">
+            <div class="task-detail-field" id="task-detail-project-field" data-acc="list">
               <span class="task-detail-label"><i data-lucide="inbox"></i> <span data-i18n="detail.list">Lista</span></span>
               <button type="button" class="task-detail-field-btn" id="task-detail-project-btn">
                 <span id="task-detail-project-text"></span>
