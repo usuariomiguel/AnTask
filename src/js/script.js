@@ -1387,6 +1387,14 @@ function activateTodayView() {
       { weekday: "long", day: "numeric", month: "long" });
     projectSubtitle.textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
   }
+  if (projectSubtitleM) {
+    // En móvil, la fecha con el mes abreviado: "Miércoles, 12 ago".
+    // Sin esto el subtítulo se quedaba con el «N pendientes» de la lista
+    // que estuviera abierta antes, porque solo se escribe al abrir una.
+    var fechaM = new Date().toLocaleDateString(getLang() === "en" ? "en-GB" : "es-ES",
+      { weekday: "long", day: "numeric", month: "short" });
+    projectSubtitleM.textContent = fechaM.charAt(0).toUpperCase() + fechaM.slice(1);
+  }
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -4925,7 +4933,16 @@ function _setActiveViewTab(view) {
   var isHoy          = (activeView === "today");
   var listActions    = isTasksView && !isHoy;
   var listFilterRow  = document.getElementById("list-filter-row");
-  if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
+  if (listFilterRow) {
+    // En móvil la píldora de estilo de fila vive dentro de esta fila
+    // (_placeRowStyleControl), así que ocultarla entera en Hoy se llevaba
+    // por delante un control que el prototipo sí muestra ahí. En ese caso
+    // la fila se queda, con todo lo demás oculto por CSS.
+    var soloVista = isTasksView && isHoy &&
+                    window.matchMedia("(max-width: 768px)").matches;
+    listFilterRow.classList.toggle("list-filter-row--solo-vista", soloVista);
+    listFilterRow.style.display = (listActions || soloVista) ? "" : "none";
+  }
   // El selector de estilo de fila acompaña a Hoy y a las listas normales
   // (como en el prototipo v1); se oculta sólo en la vista de mes.
   var rowStyleWrap   = document.getElementById("row-style-wrap");

@@ -4796,6 +4796,7 @@ body.project-dragging .project-item { cursor: grabbing; }
   .ctrl-bar {
     padding: var(--sp-2) var(--sp-3) 0;
     animation: none;
+    border-bottom: none;
   }
 
   /* ── Tabs de vista (Lista/Mes) — ocultas en móvil porque
@@ -10037,4 +10038,22 @@ button {
   #filter-panel .filter-panel-section:first-child + .filter-panel-sep {
     display: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HOY EN MÓVIL — fila que solo lleva la píldora de vista
+
+   En Hoy no hay filtros, pero en móvil la píldora de estilo de fila
+   se aloja en esta misma fila. Se conserva la fila y se oculta todo
+   lo demás, que es como lo enseña el prototipo: la píldora sola,
+   alineada a la derecha bajo la cabecera.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .list-filter-row--solo-vista {
+    justify-content: flex-end;
+    padding-top: 0;
+  }
+  /* Por exclusión y no por lista de clases: así sigue valiendo si mañana
+     se añade otro control a la fila. */
+  .list-filter-row--solo-vista > *:not(#row-style-wrap) { display: none; }
 }
