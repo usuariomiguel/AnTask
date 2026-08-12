@@ -220,7 +220,9 @@ import { loadSync } from "./sync-loader.js";
 
   // ─── Cuenta / sincronización con Google ───────────────────────
   function doSignIn() {
-    profileDropdown.hidden = true;
+    // El desplegable puede no existir (la pantalla «Perfil» de móvil llama
+    // aquí directamente, sin pasar por él).
+    if (profileDropdown) profileDropdown.hidden = true;
     // Quien no sincroniza todavía no ha descargado Firebase: este clic
     // es justo el momento de traerlo. `loadSync` recuerda la promesa,
     // así que pulsar dos veces no descarga dos veces.
@@ -245,9 +247,15 @@ import { loadSync } from "./sync-loader.js";
     });
   }
   function doSignOut() {
-    profileDropdown.hidden = true;
+    if (profileDropdown) profileDropdown.hidden = true;
     if (window.AnsoSync) AnsoSync.signOut();
   }
+
+  /* Expuestas para la pantalla «Perfil» de móvil. No se duplican allí:
+     doSignIn carga el módulo de sincronización bajo demanda y distingue
+     popup cerrado, popup bloqueado y dominio no autorizado. */
+  window.antaskSignIn  = doSignIn;
+  window.antaskSignOut = doSignOut;
   [pfSigninBtn, document.getElementById("settings-signin-btn")].forEach(function(btn) {
     if (btn) btn.addEventListener("click", doSignIn);
   });

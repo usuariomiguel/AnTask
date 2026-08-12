@@ -180,6 +180,14 @@ const ctrlBar          = document.getElementById("ctrl-bar");
 const tasksPanel       = document.getElementById("tasks-panel");
 const projectTitleEl   = document.getElementById("project-title");
 const projectSubtitle  = document.getElementById("project-subtitle");
+const projectSubtitleM = document.getElementById("project-subtitle-mobile");
+
+/** Subtítulo de móvil: pendientes, no total (así lo pide el handoff móvil,
+ *  frente al «N tareas» del de escritorio). */
+function _setMobileSubtitle(pending) {
+  if (!projectSubtitleM) return;
+  projectSubtitleM.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+}
 const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
@@ -218,6 +226,14 @@ ensureInbox();
 let activeProjectId = localStorage.getItem(ACTIVE_KEY) || INBOX_ID;
 // Vista activa: "project" (default) | "today" (vista Hoy virtual).
 let activeView      = "project";
+
+/* Se exponen AQUÍ y no junto al resto de globales, mucho más abajo: el
+   arranque activa la vista en cuanto se evalúa este módulo, y esa activación
+   llama a syncBnavActive(), que lee estas dos. Declaradas al final todavía
+   valían `undefined` en ese momento, así que la barra inferior arrancaba sin
+   ninguna pestaña marcada hasta que el usuario navegaba a mano. */
+window.getActiveView = function() { return activeView; };
+window.getActiveProjectId = function() { return activeProjectId; };
 
 function ensureInbox() {
   if (projects.some(function(p) { return p.id === INBOX_ID; })) return;
@@ -296,7 +312,13 @@ function applyRowStyle(style, persist) {
 function _syncRowStylePicker() {
   const btn = document.getElementById("row-style-btn");
   if (btn) {
-    btn.innerHTML = '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>';
+    // La etiqueta solo se ve en móvil, donde el control es una píldora
+    // «⌷ Cebra ⌄» junto a «Filtrar»; en escritorio el CSS la oculta y queda
+    // el icono suelto de siempre.
+    btn.innerHTML =
+      '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>' +
+      '<span class="row-style-label">' + escHtml(t("rowstyle." + currentRowStyle)) + "</span>" +
+      '<i data-lucide="chevron-down" class="row-style-caret"></i>';
     if (window.lucide) lucide.createIcons({ nodes: [btn] });
   }
   const panel = document.getElementById("row-style-panel");
@@ -971,12 +993,30 @@ function showProfileMenu() {
     fila('data-act="search"', null, "search", t("sidebar.search_short")) +
   "</div>";
 
-  html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p><div class='pmenu-group'>";
-  lists.forEach(function(p) {
+  // Las listas se agrupan por sección, como en la sidebar: sin el drawer,
+  // este es el único sitio de móvil donde se ve a qué grupo pertenece cada
+  // una, y sin esto los grupos dejarían de existir de cara al usuario.
+  const filaLista = function(p) {
     const pend = p.tasks.filter(function(x) { return !x.done; }).length;
-    html += fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
+    return fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
+  };
+  const enSeccion = function(id) {
+    return lists.filter(function(p) { return (p.sectionId || null) === id; });
+  };
+
+  const sueltas = enSeccion(null);
+  if (sueltas.length) {
+    html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p>" +
+            "<div class='pmenu-group'>" + sueltas.map(filaLista).join("") + "</div>";
+  }
+  sections.forEach(function(s) {
+    const dentro = enSeccion(s.id);
+    if (!dentro.length) return;
+    html += '<p class="pmenu-group-label">' + escHtml(s.name) + "</p>" +
+            "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
   });
-  html +=
+
+  html += "<div class='pmenu-group'>" +
     fila('data-act="new-list"', null, "plus", t("sidebar.add_list")) +
     fila('data-act="new-group"', null, "layers", t("sidebar.new_group")) +
   "</div>";
@@ -1009,17 +1049,44 @@ function showProfileMenu() {
       case "new-group": startNewSection(); break;
       case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
       case "shortcuts": if (window.showShortcutsHelp) window.showShortcutsHelp(); break;
-      // Sesión: se delega en los botones que ya existen para no duplicar la
-      // lógica de Firebase. Viven en el drawer, así que cuando el drawer se
-      // retire (6c) hay que reengancharlos a su función directamente.
-      case "signin":    { const b = document.getElementById("pf-signin-btn");  if (b) b.click(); break; }
-      case "signout":   { const b = document.getElementById("pf-signout-btn"); if (b) b.click(); break; }
+      // Sesión: se llama a la función real, no al botón del drawer. Trae la
+      // carga bajo demanda del módulo de sincronización y el tratamiento de
+      // popup cerrado / bloqueado / dominio no autorizado.
+      case "signin":    if (window.antaskSignIn)  window.antaskSignIn();  break;
+      case "signout":   if (window.antaskSignOut) window.antaskSignOut(); break;
     }
   });
 
   overlay._cancel = function() { closeSheet(overlay); };
 }
 window.showProfileMenu = showProfileMenu;
+
+/**
+ * El buscador solo tiene sentido sobre una lista. En «Hoy» no se ofrece: esa
+ * vista es un resumen del día —vencidas, para hoy, sugeridas— y no una lista
+ * que se recorra buscando, así que el handoff no lo pone ahí.
+ */
+function _syncListSearchVisibility() {
+  const box = document.getElementById("list-search");
+  if (box) box.hidden = activeView !== "project";
+}
+
+/**
+ * El control de modo de vista vive en la cabecera en escritorio y en la fila
+ * de «Filtrar» en móvil, que es donde lo pone el handoff. Se mueve el nodo en
+ * vez de duplicarlo para no tener dos botones con el mismo id ni dos estados
+ * que sincronizar. Se reevalúa al cruzar el breakpoint, así que redimensionar
+ * o girar el teléfono lo recoloca.
+ */
+function _placeRowStyleControl() {
+  const wrap = document.getElementById("row-style-wrap");
+  const filterRow = document.getElementById("list-filter-row");
+  const headerActions = document.querySelector(".tasks-header .view-nav-right");
+  if (!wrap || !filterRow) return;
+  const enMovil = window.matchMedia("(max-width: 768px)").matches;
+  const destino = enMovil ? filterRow : headerActions;
+  if (destino && wrap.parentElement !== destino) destino.appendChild(wrap);
+}
 
 /**
  * Chips de listas — igual que el prototipo v1: siempre presentes, con «Todas»
@@ -1058,6 +1125,27 @@ function _renderListChips() {
 
   host.innerHTML = html;
   host.hidden = false;
+}
+
+/* Búsqueda dentro de la lista que se está viendo (buscador de móvil). Es
+   distinta de la búsqueda global de «Perfil»: esta filtra lo visible y no
+   navega a ningún sitio. No se persiste a propósito —una búsqueda que
+   sobrevive a recargar deja la lista aparentemente vacía sin motivo—. */
+let currentQuery = "";
+
+/** Normaliza para comparar sin tildes ni mayúsculas: buscar «formacion»
+ *  tiene que encontrar «Formación». */
+function _norm(s) {
+  // NFD separa la letra de su tilde; el rango del class son los diacríticos
+  // combinantes (U+0300–U+036F), que se descartan. El fichero es UTF-8, así
+  // que van como caracteres y no como escapes.
+  return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function _matchesQuery(task) {
+  if (!currentQuery) return true;
+  const q = _norm(currentQuery);
+  return _norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1;
 }
 
 /* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
@@ -1247,6 +1335,7 @@ function activateProject(id) {
 
   projectTitleEl.textContent = project.name;
   projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
+  _setMobileSubtitle(project.tasks.filter(function(x) { return !x.done; }).length);
 
   if (selectMode) exitSelectMode();
   currentFilter = "all";
@@ -1257,6 +1346,10 @@ function activateProject(id) {
   renderSidebar();
   renderTasks();
   updateSaveStatus(loadMetadata().lastSavedAt);
+  // La barra inferior no se sincronizaba al entrar en un proyecto —solo lo
+  // hacían Hoy y el calendario—, así que al arrancar en Inbox, o al abrir una
+  // lista, ninguna pestaña quedaba marcada.
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
 }
 
 /**
@@ -2267,6 +2360,7 @@ function renderTasks() {
   // Antes de los returns tempranos: si no, al saltar a «Hoy» los chips de la
   // lista anterior se quedarían pintados.
   _renderListChips();
+  _syncListSearchVisibility();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
@@ -2476,6 +2570,7 @@ function _renderTasksFooter(project, isInbox) {
   if (taskCounter) taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
     .replace("{count}", String(pending));
   projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
+  _setMobileSubtitle(pending);
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0
@@ -3834,6 +3929,7 @@ function getVisibleTasks(project) {
   let tasks = project.tasks.slice();
   const pred = TASK_FILTERS[currentFilter];
   if (pred) tasks = tasks.filter(pred);
+  if (currentQuery) tasks = tasks.filter(_matchesQuery);
 
   if (currentSort === "priority") {
     var order = { high: 0, medium: 1, low: 2 };
@@ -4587,6 +4683,31 @@ async function bulkMoveToProject() {
   }
 
   // ── Filter panel toggle ──────────────────────────────────────
+  // Buscador de la lista (móvil).
+  var listSearch = document.getElementById("list-search-input");
+  var listSearchClear = document.getElementById("list-search-clear");
+  if (listSearch) {
+    listSearch.addEventListener("input", function() {
+      currentQuery = listSearch.value.trim();
+      if (listSearchClear) listSearchClear.hidden = !currentQuery;
+      renderTasks();
+    });
+    listSearch.addEventListener("keydown", function(e) {
+      // Escape limpia y desenfoca, como en el prototipo.
+      if (e.key === "Escape") { listSearch.value = ""; currentQuery = ""; if (listSearchClear) listSearchClear.hidden = true; renderTasks(); listSearch.blur(); }
+    });
+  }
+  if (listSearchClear) {
+    listSearchClear.addEventListener("click", function() {
+      listSearch.value = ""; currentQuery = ""; listSearchClear.hidden = true;
+      renderTasks(); listSearch.focus();
+    });
+  }
+
+  // Coloca el control de vista según el breakpoint, ahora y al cruzarlo.
+  _placeRowStyleControl();
+  window.matchMedia("(max-width: 768px)").addEventListener("change", _placeRowStyleControl);
+
   // Chips de listas — delegado, porque el contenido se repinta en cada render.
   var listChips = document.getElementById("list-chips");
   if (listChips) {
@@ -4760,8 +4881,6 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 
 window.showCalendarPanel = showCalendarPanel;
 window.activateTodayView = activateTodayView;
-window.getActiveView = function() { return activeView; };
-window.getActiveProjectId = function() { return activeProjectId; };
 
 function showCalendarPanel() {
   var calPanel = document.getElementById("cal-panel");
@@ -5258,6 +5377,9 @@ function _updateProfileMenu(user) {
   _applyAvatar(pfAvatar, avatarValue);
   _applyAvatar(pfAvatarTop, avatarValue);
   _applyAvatar(settingsAvatar, avatarValue);
+  // La pestaña «Perfil» de la barra inferior lleva el mismo avatar: en el
+  // handoff ese destino se identifica por la cara, no por un icono.
+  _applyAvatar(document.getElementById("bnav-avatar"), avatarValue);
   if (pfName)       pfName.textContent       = name;
   if (settingsName) settingsName.textContent = name;
   if (pfNameTop) pfNameTop.textContent = name;

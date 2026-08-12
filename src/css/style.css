@@ -1970,6 +1970,10 @@ body {
 }
 
 /* "N tareas" como pill acentuada al lado del título (prototipo) */
+/* Solo se ve dentro del breakpoint móvil, donde el handoff pide pendientes
+   en vez del total de tareas. En escritorio manda `.subtitle`. */
+.subtitle-mobile { display: none; }
+
 .subtitle {
   display: inline-flex;
   align-items: center;
@@ -2540,6 +2544,11 @@ button:focus-visible {
 .more-actions-panel button.danger:hover { background: rgba(224, 122, 106,0.08); }
 
 /* ── Selector de estilo de fila (header) — Limpio·Líneas·Tarjetas·Compacto ── */
+/* En escritorio el control es solo el icono; la etiqueta y el chevron que
+   lleva el marcado son para la píldora de móvil. */
+.row-style-label,
+.row-style-caret { display: none; }
+
 .row-style-btn {
   display: inline-flex;
   align-items: center;
@@ -2972,6 +2981,49 @@ button:focus-visible {
   color: var(--text-tertiary);
 }
 
+/* ─── BUSCADOR DE LISTA (solo móvil) ────────────────────────────
+   Filtra lo que se está viendo. Oculto por defecto: en escritorio esa función
+   la cubre la barra lateral, y se revela dentro del breakpoint. */
+.list-search { display: none; }
+
+.list-search-ico {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.list-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary);
+  /* Sin la cruz nativa de WebKit: ya hay un botón propio, y salían dos. */
+  appearance: none;
+}
+.list-search-input::-webkit-search-cancel-button { display: none; }
+.list-search-input::placeholder { color: var(--text-tertiary); }
+
+.list-search-clear {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-right: -4px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.list-search-clear .lucide { width: 16px; height: 16px; stroke-width: 2.2; }
+
 /* ─── CHIPS DE LISTAS (solo móvil) ──────────────────────────────
    Navegador lateral entre listas. Oculto por defecto: solo el JS lo muestra,
    y solo dentro de una lista. En escritorio no aparece nunca —la sidebar ya
@@ -3021,6 +3073,54 @@ button:focus-visible {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  /* Buscador visible, con la caja del handoff: tarjeta con borde y radio.
+     `:not([hidden])` porque en «Hoy» se oculta con el atributo, y un `display`
+     de autor le ganaría. */
+  .list-search:not([hidden]) {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 16px 11px;
+    padding: 11px 13px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 2px);
+    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.04);
+  }
+
+  /* «Filtrar» a la izquierda y el modo de vista a la derecha, en la misma
+     fila (handoff). El nodo del control lo trae aquí _placeRowStyleControl. */
+  .list-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    padding: 0 16px;
+    margin-bottom: 11px;
+  }
+
+  /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
+  .row-style-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: auto;
+    min-height: 36px;
+    padding: 7px 13px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+  }
+  .row-style-btn .row-style-label { display: inline; }
+  .row-style-btn .row-style-caret { width: 13px; height: 13px; opacity: 0.7; }
 }
 
 /* El bloque va pegado al de arriba para que no haya duda de orden: ambos
@@ -4366,7 +4466,13 @@ body.project-dragging .project-item { cursor: grabbing; }
      el lienzo—, así que recupera el `canvas` real del tema tierra.
      Se toca .main-panel y no el token porque .field-popover y .settings-seg
      también leen --surface-canvas, y esos se apoyan SOBRE el lienzo: igualarlos
-     los borraría. En oscuro no aplica, ahí el canvas ya es el de pantalla. */
+     los borraría.
+     Aplica a los DOS temas: el token vale #e8dfcd en claro y #12100c en
+     oscuro, y ambos son el panel hundido de escritorio. Los lienzos reales del
+     tema tierra son #f4efe3 y #17120d. */
+  .main-panel {
+    background: #17120d;
+  }
   :root[data-theme="light"] .main-panel {
     background: #f4efe3;
   }
@@ -4557,19 +4663,64 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: none !important;
   }
 
-  /* En móvil mantenemos .tasks-header pero ocultamos la parte del título
-     (que vive en .mobile-header). Las pestañas y controles siguen visibles. */
+  /* Cabecera de pantalla del handoff móvil: título grande en el flujo del
+     contenido, con el número de pendientes debajo.
+     Sustituye a la barra compacta de arriba (.mobile-header), que venía del
+     paradigma del drawer —punto de color, nombre, píldora y engranaje— y que
+     ya no hace falta: cambiar de lista es cosa de los chips y Ajustes vive en
+     «Perfil». Se oculta entera; iba en flujo normal, así que el contenido
+     simplemente sube. */
+  .mobile-header { display: none; }
+
   .tasks-header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: var(--sp-2);
     flex-wrap: nowrap;
-    margin-bottom: 4px;
-    padding-bottom: 4px;
+    margin-bottom: 10px;
+    padding-bottom: 0;
     border-bottom: none;
   }
-  .tasks-header-left { display: none; }
+  /* Sin esto la caja del título quedaba en ancho 0 —.header-actions se
+     quedaba los 366px enteros—, el título se salía por fuera y las acciones
+     se le montaban encima del subtítulo. El bloque del título toma el hueco y
+     las acciones miden por contenido; ahí solo queda el anillo de «Hoy»,
+     porque el control de vista se ha ido a la fila de «Filtrar». */
+  .tasks-header-left { display: block; flex: 1 1 auto; min-width: 0; }
+  /* `width: auto` es la clave: más abajo hay un `.header-actions{width:100%}`
+     de cuando esta fila llevaba los controles de móvil. Con él puesto, el
+     flex-basis resolvía al 100% y no quedaba nada para el título. */
+  .tasks-header .header-actions { flex: 0 0 auto; width: auto; }
+
+  .tasks-header .title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .tasks-header .project-title {
+    /* 29px: el token que el repo ya usa para títulos de vista, dentro del
+       rango 29–30 que fija el handoff. */
+    font-size: var(--fs-3xl);
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--title-track);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  /* El subtítulo de escritorio («N tareas») se calla aquí y habla el de
+     móvil («N pendientes»). */
+  .tasks-header .subtitle { display: none; }
+  .tasks-header .subtitle-mobile {
+    display: block;
+    margin-top: 4px;
+    font-size: 13.5px;
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
 
   .mobile-icon-btn {
     width: 40px;
@@ -4686,19 +4837,22 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   /* Filtro: chip con label visible (más claro que solo icono).
      Sin border en móvil — ghost look. */
+  /* Misma píldora que el control de modo de vista: comparten fila, así que
+     tienen que leerse como hermanos. Antes iba sin borde ni fondo y parecía
+     texto suelto al lado de un botón. */
   .filter-trigger-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 12px 0 10px;
-    border: 0;
-    background: transparent;
-    border-radius: var(--r-pill);
-    font-size: 13px;
-    font-weight: var(--fw-medium);
-    color: var(--text-secondary);
+    gap: 7px;
     min-height: 36px;
+    padding: 7px 13px;
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
+    border-radius: var(--r-pill);
+    font-size: 13.5px;
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    white-space: nowrap;
   }
   .filter-trigger-btn .lucide { width: 15px; height: 15px; stroke-width: 2; }
   .filter-trigger-btn .filter-caret { width: 13px; height: 13px; opacity: 0.6; }
@@ -5114,11 +5268,16 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    height: 64px;
-    width: fit-content;
+    justify-content: space-around;
+    /* La pastilla ocupa TODO el ancho hasta el FAB (en v1 es `flex: 1`), no
+       solo lo que miden sus tres pestañas: por eso quedaban apiñadas a la
+       izquierda. 54 del FAB + 11 de separación + 14 de margen. */
     position: fixed;
     left: 14px;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0));
+    right: calc(14px + 54px + 11px);
+    /* Altura natural: padding 8/12 más los 44px mínimos de la pestaña. */
+    padding: 8px 12px;
+    bottom: max(22px, env(safe-area-inset-bottom, 0px));
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: 28px;
@@ -5133,37 +5292,76 @@ body.project-dragging .project-item { cursor: grabbing; }
 
   .mobile-bottom-btn {
     flex: 0 0 auto;
-    width: 64px;
+    /* 56x44 mínimos del handoff, en vez de 64px fijos. */
+    min-width: 56px;
+    min-height: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     border: none;
     background: transparent;
     color: var(--text-tertiary);
     cursor: pointer;
-    padding: var(--sp-2) 0 0;
-    font-size: 10.5px;
-    font-weight: var(--fw-medium);
-    letter-spacing: 0;
+    padding: 2px 0;
+    /* 12px, no 10.5: el handoff fija 12px como mínimo firme para producción. */
+    font-size: var(--fs-sm);
+    font-weight: 550;
+    letter-spacing: 0.01em;
+    /* Interlineado ceñido: con el 1.5 heredado la pestaña se iba a 48px y la
+       pastilla a 66, en vez de los 44/62 del handoff. */
+    line-height: 1.15;
     text-transform: none;
     border-radius: 0;
     transition: color var(--dur-fast) var(--ease-out);
     position: relative;
     z-index: 1;
-    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .mobile-bottom-btn svg { width: 22px; height: 22px; stroke-width: 1.75; flex-shrink: 0; }
+  .mobile-bottom-btn svg { width: 23px; height: 23px; stroke-width: 1.9; flex-shrink: 0; }
   .mobile-bottom-btn > span {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  /* Avatar de la pestaña «Perfil»: círculo de 26px con anillo. El anillo va
+     con `outline` y no con `border` para que no altere la caja y el avatar
+     mantenga sus 26px al pasar a activo (el anillo engorda de 1.5 a 2.5). */
+  .bnav-avatar {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent-tint);
+    color: var(--c-primary-300);
+    font-size: 12px;
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    outline: 1.5px solid var(--text-tertiary);
+    outline-offset: 1.5px;
+    opacity: 0.65;
+    transition: outline-color var(--dur-fast) var(--ease-out),
+                opacity var(--dur-fast) var(--ease-out);
+  }
+  :root[data-theme="light"] .bnav-avatar { color: var(--c-primary-600); }
+  .mobile-bottom-btn.active .bnav-avatar {
+    outline: 2.5px solid var(--c-primary-500);
+    opacity: 1;
+  }
+  :root[data-theme="light"] .mobile-bottom-btn.active .bnav-avatar {
+    outline-color: var(--c-primary-600);
+  }
+
+  /* La etiqueta de «Perfil» inactiva es ink2, no ink3: en el handoff se lee
+     algo más que las otras dos porque el avatar ya no aporta color. */
+  .mobile-bottom-btn--profile { color: var(--text-secondary); }
 
   /* FAB de captura, flotando aparte de la pastilla (variante "Separado"
      del prototipo v1) — mismo suelo/margen que la barra de navegación. */
@@ -5186,7 +5384,10 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: inline-flex;
     position: fixed;
     right: 14px;
-    bottom: calc(13px + env(safe-area-inset-bottom, 0));
+    /* Comparte eje con la pastilla: esta apoya en max(22px, safe) y mide 65px
+       medidos (8 + 47 de pestaña + 8 + 2 de borde), así que el FAB de 54 sube
+       (65-54)/2 ≈ 5px. */
+    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) + 5px);
     z-index: 200;
   }
   .mobile-fab:active { transform: scale(0.94); }
@@ -8683,12 +8884,17 @@ button {
   flex-shrink: 0;
 }
 .inbox-group-name {
+  /* Fuente display, como en el prototipo: la cabecera de grupo es un título,
+     no metadato. Iba en Inter por herencia. */
+  font-family: var(--font-display);
   font-size: 14.5px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 .inbox-group-count {
+  /* Mono, que es lo que el prototipo usa para contadores. */
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: var(--fw-semibold);
   color: var(--text-tertiary);

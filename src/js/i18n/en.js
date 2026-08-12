@@ -119,7 +119,6 @@ export const en = {
   // ── Accessibility ─────────────────────────────────────────
   "a11y.mobile_settings":     "Settings",
   "a11y.list_chips":         "Switch list",
-  "a11y.mobile_projects":     "Projects",
 
   // ── Today (view) ──────────────────────────────────────────
   "today.empty_title_full":   "All caught up",
@@ -411,6 +410,8 @@ export const en = {
   "rowstyle.tarjetas":        "Cards",
   "rowstyle.compacto":        "Compact",
   "rowstyle.cebra":           "Zebra",
+  "list.search_placeholder":  "Search tasks…",
+  "list.search_clear":        "Clear search",
   "bulk.count_one":           "{count} selected",
   "bulk.count_other":         "{count} selected",
   "bulk.mark_done":           "Mark done",
