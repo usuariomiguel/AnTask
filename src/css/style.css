@@ -10060,15 +10060,18 @@ button {
 :root[data-theme="light"] .hoy-section--nodate  .hoy-section-ico { color: #4a7644; }
 
 .hoy-section-title {
-  font-size: 11.5px;
+  /* Ficha móvil: «etiqueta en versalitas mono», 12px. El mínimo de 12
+     es firme en ese handoff, así que no baja de ahí en ningún tamaño. */
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
 }
 
 .hoy-section-count {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-tertiary);
   background: var(--block-bg);
@@ -10122,5 +10125,28 @@ button {
     background: var(--task-hover);
     box-shadow: none;
     transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MÓVIL — mínimo tipográfico de la ficha
+
+   `design_handoff_antask_movil/README.md`: «Nada baja de 12px. Es un
+   mínimo firme para producción», y los metadatos van en mono. Se
+   acota a móvil: en escritorio manda la escala del handoff de
+   escritorio, que sí usa tamaños menores.
+
+   Excepción de la propia ficha: el porcentaje del anillo va a 10px.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .today-item .today-text { font-size: 15px; }
+  .today-item .priority-badge,
+  .today-item .task-list-badge,
+  .today-item .recur-badge-label { font-size: 12px; }
+  /* «Metadatos y fechas: 12px, 600-700, mono, tabular-nums». */
+  .today-date-pill {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
   }
 }
