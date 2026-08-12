@@ -10041,24 +10041,6 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   HOY EN MÓVIL — fila que solo lleva la píldora de vista
-
-   En Hoy no hay filtros, pero en móvil la píldora de estilo de fila
-   se aloja en esta misma fila. Se conserva la fila y se oculta todo
-   lo demás, que es como lo enseña el prototipo: la píldora sola,
-   alineada a la derecha bajo la cabecera.
-   ═══════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .list-filter-row--solo-vista {
-    justify-content: flex-end;
-    padding-top: 0;
-  }
-  /* Por exclusión y no por lista de clases: así sigue valiendo si mañana
-     se añade otro control a la fila. */
-  .list-filter-row--solo-vista > *:not(#row-style-wrap) { display: none; }
-}
-
-/* ═══════════════════════════════════════════════════════════════
    CABECERA DE SECCIÓN DE HOY — versalitas con icono (prototipo)
 
    El punto de color pasa a ser un icono por tono y el contador deja
@@ -10107,4 +10089,37 @@ button {
   .today-item > .today-text { flex: 1; min-width: 0; }
   .today-item > .today-date-pill { order: 0; margin-left: auto; flex-shrink: 0; }
   .today-item > .today-meta { order: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MÓVIL — cebra como única vista
+
+   El handoff móvil solo contempla la cebra, así que el selector de
+   estilos no se ofrece: `_rowStyleEfectivo()` fija el atributo a
+   «cebra» por debajo del breakpoint y aquí se retira el control. La
+   preferencia de escritorio se conserva intacta.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .row-style-wrap { display: none !important; }
+
+  /* La cebra existente solo alcanzaba a `.task-item`; en Hoy las filas son
+     `.today-item` y seguían pintándose como tarjetas. Mismo trato: sin
+     tarjeta, la lectura la da la franja alterna sobre el bloque. */
+  .task-list[data-row-style="cebra"] .today-item {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+  }
+  /* Franja en las PARES, como en las listas: empezar por la primera
+     pintaría una banda justo bajo la cabecera y se leería como suya. */
+  .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
+    background: var(--zebra-bg);
+  }
+  .task-list[data-row-style="cebra"] .today-item:hover {
+    background: var(--task-hover);
+    box-shadow: none;
+    transform: none;
+  }
 }

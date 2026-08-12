@@ -301,10 +301,19 @@ let currentRowStyle = (function() {
   catch (e) { return DEFAULT_ROW_STYLE; }
 })();
 
+/**
+ * Estilo que se pinta de verdad. En móvil solo hay cebra —así lo pide el
+ * handoff móvil— y por eso allí no se ofrece el selector. La preferencia
+ * del usuario se conserva intacta para cuando vuelva al escritorio.
+ */
+function _rowStyleEfectivo() {
+  return window.matchMedia("(max-width: 768px)").matches ? "cebra" : currentRowStyle;
+}
+
 function applyRowStyle(style, persist) {
   if (ROW_STYLES.indexOf(style) === -1) style = DEFAULT_ROW_STYLE;
   currentRowStyle = style;
-  if (taskList) taskList.dataset.rowStyle = style;
+  if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
   if (persist !== false) { try { localStorage.setItem(ROW_STYLE_KEY, style); } catch (e) {} }
   _syncRowStylePicker();
 }
@@ -1079,6 +1088,9 @@ function _syncListSearchVisibility() {
  * o girar el teléfono lo recoloca.
  */
 function _placeRowStyleControl() {
+  // Al cruzar el breakpoint cambia el estilo efectivo (móvil = cebra fija),
+  // así que hay que repintar el atributo además de recolocar el control.
+  if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
   const wrap = document.getElementById("row-style-wrap");
   const filterRow = document.getElementById("list-filter-row");
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
@@ -4941,16 +4953,7 @@ function _setActiveViewTab(view) {
   var isHoy          = (activeView === "today");
   var listActions    = isTasksView && !isHoy;
   var listFilterRow  = document.getElementById("list-filter-row");
-  if (listFilterRow) {
-    // En móvil la píldora de estilo de fila vive dentro de esta fila
-    // (_placeRowStyleControl), así que ocultarla entera en Hoy se llevaba
-    // por delante un control que el prototipo sí muestra ahí. En ese caso
-    // la fila se queda, con todo lo demás oculto por CSS.
-    var soloVista = isTasksView && isHoy &&
-                    window.matchMedia("(max-width: 768px)").matches;
-    listFilterRow.classList.toggle("list-filter-row--solo-vista", soloVista);
-    listFilterRow.style.display = (listActions || soloVista) ? "" : "none";
-  }
+  if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
   // El selector de estilo de fila acompaña a Hoy y a las listas normales
   // (como en el prototipo v1); se oculta sólo en la vista de mes.
   var rowStyleWrap   = document.getElementById("row-style-wrap");
