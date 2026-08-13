@@ -1043,8 +1043,14 @@ function showProfileMenu() {
     return lists.filter(function(p) { return (p.sectionId || null) === id; });
   };
 
-  // Las sueltas (sin grupo) solo se ven y editan aquí — no se puede crear
-  // una lista suelta desde el móvil, así que no llevan acción "+".
+  // Todo lo que sigue —sueltas, cada grupo, "Nuevo grupo"— es una sola
+  // sección de cara al usuario: crear y editar listas y grupos. Antes no
+  // tenía rótulo propio y se leía pegado a "Ajustes" de abajo, como si
+  // fuera lo mismo.
+  html += '<p class="pmenu-section-label">' + escHtml(t("pmenu.groups_and_lists")) + "</p>";
+
+  // Las sueltas (sin grupo) se editan aquí y, desde los chips del Inbox
+  // en móvil, también se crean.
   const sueltas = enSeccion(null);
   if (sueltas.length) {
     html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p>" +
@@ -1195,9 +1201,14 @@ function _renderListChips() {
   lists.forEach(function(p) {
     html += chip(p.id, p.name, p.color || _projectColorFromId(p.id), p.id === activeProjectId);
   });
+  // "+" al final de la fila, como en WhatsApp: crear una lista es un
+  // chip más, no un botón aparte en otro sitio.
+  html += '<button type="button" class="list-chip list-chip--add" data-chip-add="1" aria-label="' +
+    escHtml(t("sidebar.add_list")) + '"><i data-lucide="plus"></i></button>';
 
   host.innerHTML = html;
   host.hidden = false;
+  if (window.lucide) window.lucide.createIcons({ nodes: [host] });
 }
 
 /* Búsqueda dentro de la lista que se está viendo (buscador de móvil). Es
@@ -2687,6 +2698,22 @@ function renderTasks() {
     }
     taskList.appendChild(empty);
     _wireEmptyStateCTA(empty);
+  }
+
+  // "Editar lista" al final de sus tareas — solo móvil (por CSS) y solo
+  // para una lista real, no el Inbox: en escritorio ya está la sidebar, y
+  // sin este atajo, editar una lista creada desde el chip "+" solo se
+  // podía hacer desde Perfil, bastante lejos de donde se acaba de crear.
+  if (!isInbox) {
+    const editRow = document.createElement("li");
+    editRow.className = "task-list-edit-row";
+    editRow.innerHTML =
+      '<button type="button" class="task-list-edit-btn"><i data-lucide="pencil-line"></i>' +
+      escHtml(t("project.edit_this_list")) + "</button>";
+    editRow.querySelector("button").addEventListener("click", function() {
+      showProjectMenu(project, this);
+    });
+    taskList.appendChild(editRow);
   }
 
   _renderTasksFooter(project, isInbox);
@@ -4976,6 +5003,7 @@ async function bulkMoveToProject() {
   var listChips = document.getElementById("list-chips");
   if (listChips) {
     listChips.addEventListener("click", function(e) {
+      if (e.target.closest("[data-chip-add]")) { startNewProject(null); return; }
       var chip = e.target.closest("[data-chip-target]");
       if (chip) activateProject(chip.dataset.chipTarget);
     });
