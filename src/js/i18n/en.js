@@ -161,7 +161,6 @@ export const en = {
   "project.rename":           "Rename list",
   "project.edit_this_list":   "Edit this list",
   "project.rename_prompt":    "Rename list",
-  "project.archive":          "Archive list",
   "project.restore":          "Restore list",
   "project.delete":           "Delete list",
   "project.delete_permanent": "Delete permanently",

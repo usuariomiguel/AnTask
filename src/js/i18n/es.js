@@ -161,7 +161,6 @@ export const es = {
   "project.rename":           "Renombrar lista",
   "project.edit_this_list":   "Editar esta lista",
   "project.rename_prompt":    "Cambiar nombre de la lista",
-  "project.archive":          "Archivar lista",
   "project.restore":          "Restaurar lista",
   "project.delete":           "Eliminar lista",
   "project.delete_permanent": "Eliminar permanentemente",

@@ -747,18 +747,23 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
 }
 
 /* Extraído del handler del botón del drawer para que la pantalla «Perfil»
-   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla. */
+   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla.
+   En móvil no hay galería de plantillas: crear una lista va directo a la
+   hoja de nombre + color (handoff móvil) — la galería es un paso de más
+   para el caso de uso principal en touch, y tapaba el cambio (el primer
+   tap seguía cayendo en la misma pantalla de siempre). Las plantillas
+   siguen disponibles en escritorio, donde había sitio para ese paso. */
 function startNewProject() {
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    (async function () {
+      const picked = await showNewListSheet();
+      if (!picked) return;
+      _createProjectWithTasks(picked.name, [], { color: picked.color });
+    })();
+    return;
+  }
   showProjectTemplatesModal({
     onPickBlank: async function () {
-      // En móvil, hoja con nombre + color (handoff móvil); en escritorio,
-      // el prompt genérico sigue bastando para este caso de borde.
-      if (window.matchMedia("(max-width: 768px)").matches) {
-        const picked = await showNewListSheet();
-        if (!picked) return;
-        _createProjectWithTasks(picked.name, [], { color: picked.color });
-        return;
-      }
       const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
       if (!name) return;
       _createProjectWithTasks(name, []);
@@ -2030,21 +2035,6 @@ async function showProjectMenu(project, anchor) {
         },
         null,
         {
-          _id: "archive",
-          label: t("project.archive"),
-          action: function() {
-            project.archived = true;
-            if (activeProjectId === project.id) {
-              var active = projects.filter(function(p) { return !p.archived; });
-              activeProjectId = active.length > 0 ? active[0].id : null;
-            }
-            _archivedExpanded = true;
-            saveProjects();
-            renderSidebar();
-            renderTasks();
-          }
-        },
-        {
           _id: "delete",
           label: t("project.delete"),
           danger: true,
@@ -2068,11 +2058,11 @@ async function showProjectMenu(project, anchor) {
 
   var items = archiveItems;
 
-  // El proyecto Inbox no se puede archivar ni eliminar.
+  // El proyecto Inbox no se puede eliminar.
   if (project.id === INBOX_ID) {
     items = items.filter(function(it) {
       if (!it || it === null) return true;
-      return it._id !== "archive" && it._id !== "delete";
+      return it._id !== "delete";
     });
   }
 
