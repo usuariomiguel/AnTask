@@ -103,16 +103,20 @@ describe("parseNaturalLanguage — fechas explícitas", () => {
 });
 
 describe("parseNaturalLanguage — prioridad", () => {
-  it('"p1" → high', () => {
+  it('"p1" → high (importante)', () => {
     expect(parseNaturalLanguage("Fix crítico p1").priority).toBe("high");
   });
 
-  it('"p2" → medium', () => {
-    expect(parseNaturalLanguage("Mejora p2").priority).toBe("medium");
+  it('"p2" ya no se reconoce — no hay niveles', () => {
+    const res = parseNaturalLanguage("Mejora p2");
+    expect(res.priority).toBeNull();
+    expect(res.text).toBe("Mejora p2");
   });
 
-  it('"p3" → low', () => {
-    expect(parseNaturalLanguage("Documentar p3").priority).toBe("low");
+  it('"p3" ya no se reconoce — no hay niveles', () => {
+    const res = parseNaturalLanguage("Documentar p3");
+    expect(res.priority).toBeNull();
+    expect(res.text).toBe("Documentar p3");
   });
 
   it('"p10" no se extrae (no es prioridad válida)', () => {

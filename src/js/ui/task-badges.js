@@ -11,17 +11,11 @@ import { projectColor } from "../utils/project-color.js";
 import { t } from "../i18n/index.js";
 
 // ─── PRIORIDAD ──────────────────────────────────────────────
-export const PRIORITY_CONFIG = {
-  high:   { label: () => t("priority.high"),   cls: "priority-high",   short: "H" },
-  medium: { label: () => t("priority.medium"), cls: "priority-medium", short: "M" },
-  low:    { label: () => t("priority.low"),    cls: "priority-low",    short: "L" },
-};
-
-export function applyPriorityToNode(node, task) {
-  node.classList.remove("priority-high", "priority-medium", "priority-low");
-  if (!task.priority) return;
-  node.classList.add("priority-" + task.priority);
-}
+// Ya no hay niveles (P1/P2/P3): una tarea es "importante" o no lo es.
+// `task.priority` sigue siendo el campo de datos —"high" o null— por
+// compatibilidad con backups y sync antiguos (ver sanitizeTasks), pero
+// la única etiqueta visible ahora es esta.
+export const IMPORTANT_LABEL = () => t("detail.priority_important");
 
 // ─── LISTA (proyecto) ───────────────────────────────────────
 /**

@@ -13,8 +13,20 @@ import { generateId } from "../utils/id.js";
 /** @typedef {import("./types.js").Subtask}          Subtask */
 /** @typedef {import("./types.js").Task}             Task */
 /** @typedef {import("./types.js").Project}          Project */
+/** @typedef {import("./types.js").Priority}         Priority */
 
+// La prioridad ya no tiene niveles: una tarea es "importante" o no lo es.
+// `medium`/`low` se aceptan solo para no perder datos de antes de este
+// cambio (localStorage viejo, backups, sync) — se colapsan a "high" al
+// entrar, que es el único valor que la UI puede volver a escribir.
 const VALID_PRIORITIES = ["high", "medium", "low"];
+/**
+ * @param {any} p
+ * @returns {Priority}
+ */
+function normalizePriority(p) {
+  return VALID_PRIORITIES.includes(p) ? "high" : null;
+}
 
 /**
  * @param {any} input
@@ -48,7 +60,7 @@ export function sanitizeTasks(input) {
         text:       i.text.trim().slice(0, 120),
         comment:    typeof i.comment === "string" ? i.comment.trim().slice(0, 300) : "",
         done:       Boolean(i.done),
-        priority:   VALID_PRIORITIES.includes(i.priority) ? i.priority : null,
+        priority:   normalizePriority(i.priority),
         dueDate:    typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
         dueTime:    typeof i.dueTime === "string" && /^\d{2}:\d{2}$/.test(i.dueTime) ? i.dueTime : null,
         recurDays:  (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,

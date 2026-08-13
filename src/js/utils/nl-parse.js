@@ -6,7 +6,7 @@
 //   - Fecha       ("hoy", "mañana", "pasado mañana", "viernes",
 //                  "próximo lunes", "en 3 días", "en 2 semanas",
 //                  "15/3", "15-03-2026")
-//   - Prioridad   ("p1", "p2", "p3")
+//   - Prioridad   ("p1" — sin niveles, solo marca "importante")
 //   - Recurrencia ("todos los lunes", "cada 2 días", "mensualmente"…)
 //
 // Devuelve el texto limpio de esos tokens más la metadata extraída.
@@ -177,14 +177,14 @@ function parseRecurrence(text) {
  * @returns {PriorityMatch|null}
  */
 function parsePriority(text) {
-  // p1 / p2 / p3 con boundary (no rompe palabras tipo "p10")
-  const m = text.match(/(^|\s)(p)([123])(?=\s|$)/i);
+  // "p1" marca la tarea como importante — ya no hay niveles, así que
+  // "p2"/"p3" no se reconocen como token y se quedan como texto normal
+  // (con boundary: no rompe palabras tipo "p10").
+  const m = text.match(/(^|\s)(p1)(?=\s|$)/i);
   if (!m || m.index == null) return null;
-  /** @type {{ [k: string]: Priority }} */
-  const map = { "1": "high", "2": "medium", "3": "low" };
   return {
-    priority: map[m[3]],
-    removed:  m[2] + m[3],
+    priority: /** @type {Priority} */ ("high"),
+    removed:  m[2],
     index:    m.index + m[1].length,
   };
 }

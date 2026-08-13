@@ -21,7 +21,10 @@
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Prioridad de una tarea.
+ * Prioridad de una tarea: solo existe "importante" o nada. "medium"/"low"
+ * quedan en el tipo únicamente porque `sanitizeTasks` los acepta como
+ * entrada de datos antiguos (los colapsa a "high" al cargar) — nada nuevo
+ * los vuelve a escribir.
  * @typedef {("high"|"medium"|"low"|null)} Priority
  */
 

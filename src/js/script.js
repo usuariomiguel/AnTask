@@ -40,8 +40,7 @@ import {
   loadProfile,
 } from "./state/persistence.js";
 import {
-  PRIORITY_CONFIG,
-  applyPriorityToNode,
+  IMPORTANT_LABEL,
   renderDueBadge,
   renderRecurBadge,
   renderListBadge,
@@ -261,7 +260,6 @@ let currentFilter      = "all";
 // módulo aún se está evaluando, así que todo lo que ese render lea tiene
 // que estar declarado ANTES. Si se declara más abajo, un `const` da
 // ReferenceError por TDZ y un `var` se lee como undefined.
-const PRIORITY_PNUM = { high: "P1", medium: "P2", low: "P3" };
 var _sidebarPrevCounts = {};
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
@@ -2685,10 +2683,11 @@ function renderPriorityBadge(task, container) {
   // de qué lista era y qué prioridad tenía. Lo único que cambia es que
   // el título se apaga.
   if (!task.priority) return;
+  // Ya no hay niveles: una bandera roja es "importante", sin más.
   const badge = document.createElement("span");
-  badge.className = "priority-badge priority-badge-" + task.priority;
-  badge.textContent = PRIORITY_PNUM[task.priority] || "";
-  badge.title = t("detail.priority") + ": " + PRIORITY_CONFIG[task.priority].label();
+  badge.className = "priority-badge";
+  badge.title = IMPORTANT_LABEL();
+  badge.innerHTML = '<i data-lucide="flag"></i>';
   container.appendChild(badge);
 }
 
@@ -2728,8 +2727,6 @@ function _updateTaskNode(node, task) {
   checkbox.checked    = task.done;
   text.textContent    = task.text;
   node.classList.toggle("done", task.done);
-
-  applyPriorityToNode(node, task);
 
   // Los chips se rehacen a base de vaciar y volver a crear el nodo, así que
   // repintarlos sin necesidad reinicia sus transiciones y provoca un
@@ -3495,9 +3492,11 @@ function _renderTaskDetail() {
   if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
   els.title.classList.toggle("done", task.done);
 
-  els.priority.querySelectorAll("button").forEach(function(btn) {
-    btn.classList.toggle("active", (task.priority || "") === btn.dataset.value);
-  });
+  // Sin niveles: el botón único se activa si la tarea tiene cualquier
+  // prioridad puesta (solo "high" puede llegar aquí, pero un valor
+  // heredado de datos viejos —"medium"/"low"— también debe leerse
+  // como "importante").
+  els.priority.classList.toggle("active", !!task.priority);
 
   els.dateText.textContent     = task.dueDate    ? formatDueLabel(task.dueDate)     : t("detail.no_date");
   els.timeText.textContent     = task.dueTime    || t("detail.no_time");
@@ -3515,7 +3514,7 @@ function _renderTaskDetail() {
   var nota = (task.comment || "").trim();
   _setValorAcordeon("note", nota ? (nota.length > 22 ? nota.slice(0, 22) + "…" : nota) : "", !!nota);
   _setValorAcordeon("priority",
-    task.priority ? PRIORITY_CONFIG[task.priority].label() : t("detail.priority_none"),
+    task.priority ? IMPORTANT_LABEL() : t("detail.priority_none"),
     !!task.priority);
   _setValorAcordeon("date",
     task.dueDate ? els.dateText.textContent + (task.dueTime ? " · " + task.dueTime : "") : t("detail.no_date"),
@@ -3613,11 +3612,11 @@ function _initTaskDetailPanel() {
   }
 
   if (els.priority) {
-    els.priority.addEventListener("click", function(e) {
-      const btn = e.target.closest("button[data-value]");
+    // Interruptor, no selector: cada clic alterna importante/sin marcar.
+    els.priority.addEventListener("click", function() {
       const open = _getOpenDetailTask();
-      if (!btn || !open) return;
-      open.task.priority = btn.dataset.value || null;
+      if (!open) return;
+      open.task.priority = open.task.priority ? null : "high";
       saveAndRender();
     });
   }
@@ -3725,9 +3724,9 @@ function renderTodayView() {
     });
   });
 
-  var prioRank = { high: 0, medium: 1, low: 2 };
+  // Importante primero, empatando por fecha; el resto no distingue orden.
   function prioOf(x) {
-    return prioRank[x.task.priority] != null ? prioRank[x.task.priority] : 3;
+    return x.task.priority === "high" ? 0 : 1;
   }
   function byDue(a, b) {
     if (a.task.dueDate !== b.task.dueDate) {
@@ -3978,7 +3977,6 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.className = "today-item" +
     (tone ? " today-item--" + tone : "") +
     (done ? " today-item--done" : "") +
-    (task.priority ? " today-priority-" + task.priority : "") +
     (overdue ? " today-overdue" : "");
   // Color del proyecto → el check de completar usa este acento.
   li.style.setProperty("--task-accent", _projectColor(project));
@@ -4024,11 +4022,11 @@ function renderTodayItem(task, project, todayStr, tone) {
 
   if (task.priority && !done) {
     var pEl = document.createElement("span");
-    // Mismo chip que la fila del task-list — v1 usa el mismo `PrioP` en
-    // Hoy y en Inbox, así que aquí compartimos clase, no una copia.
-    pEl.className = "priority-badge priority-badge-" + task.priority;
-    pEl.textContent = PRIORITY_PNUM[task.priority] || "";
-    pEl.title = t("detail.priority") + ": " + PRIORITY_CONFIG[task.priority].label();
+    // Mismo chip que la fila del task-list — comparten clase, no una copia.
+    // Ya no hay niveles: la bandera roja es la única marca de "importante".
+    pEl.className = "priority-badge";
+    pEl.title = IMPORTANT_LABEL();
+    pEl.innerHTML = '<i data-lucide="flag"></i>';
     meta.appendChild(pEl);
   }
 

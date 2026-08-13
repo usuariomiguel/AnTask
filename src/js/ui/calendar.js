@@ -124,8 +124,9 @@ function buildCalCell(dateStr, dayNum, isOther, taskItems, _today, isToday, onAc
     const MAX_DOTS = 5;
     taskItems.slice(0, MAX_DOTS).forEach(function (item) {
       const dot = document.createElement("span");
+      // Ya no hay niveles de prioridad: "importante" es la única marca.
       dot.className = "cal-dot" +
-        (item.task.priority ? " cal-dot-" + item.task.priority : "") +
+        (item.task.priority ? " cal-dot-important" : "") +
         (item.task.done ? " cal-dot-done" : "");
       dotsRow.appendChild(dot);
     });
@@ -145,7 +146,7 @@ function buildCalCell(dateStr, dayNum, isOther, taskItems, _today, isToday, onAc
     visible.forEach(function (item) {
       const chip = document.createElement("div");
       chip.className = "cal-task-chip";
-      if (item.task.priority) chip.classList.add("cal-chip-" + item.task.priority);
+      if (item.task.priority) chip.classList.add("cal-chip-important");
       if (item.task.done)     chip.classList.add("cal-chip-done");
       chip.textContent = item.task.text;
       chip.title = item.task.text + " — " + item.project.name;
@@ -208,7 +209,7 @@ function showCalDayDetail(dateStr, taskItems, cellEl, onActivateProject) {
   taskItems.forEach(function (item) {
     const li = document.createElement("li");
     li.className = "cal-day-detail-item";
-    if (item.task.priority) li.classList.add("cal-detail-priority-" + item.task.priority);
+    if (item.task.priority) li.classList.add("cal-detail-important");
     if (item.task.done)     li.classList.add("cal-detail-done");
 
     const left = document.createElement("div");

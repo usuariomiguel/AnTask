@@ -153,13 +153,8 @@ export const en = {
   "filter.overdue":           "Overdue",
   "filter.today":             "Today",
   "filter.nodate":            "No date",
-  "filter.high":              "High priority",
+  "filter.high":              "Important",
   "filter.note":              "With note",
-
-  // ── Priority ──────────────────────────────────────────────
-  "priority.high":            "P1",
-  "priority.medium":          "P2",
-  "priority.low":             "P3",
 
   // ── Project ───────────────────────────────────────────────
   "project.new_prompt":       "List name",
@@ -219,6 +214,7 @@ export const en = {
   "detail.note_placeholder":  "Add notes or details…",
   "detail.priority":          "Priority",
   "detail.priority_none":     "None",
+  "detail.priority_important": "Important",
   "detail.due_date":          "Date and time",
   "detail.no_date":           "No date",
   "detail.no_time":           "Time",
@@ -445,9 +441,6 @@ export const en = {
   "tpl.chip.tomorrow":        "Tomorrow",
   "tpl.chip.in_days":         "In {n}d",
   "tpl.chip.recur":           "↻ Every {n}d",
-  "tpl.prio.high":            "High",
-  "tpl.prio.medium":          "Medium",
-  "tpl.prio.low":             "Low",
 
   "tpl.moving.name":          "Moving",
   "tpl.moving.desc":          "Typical steps for a move",

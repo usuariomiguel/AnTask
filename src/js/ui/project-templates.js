@@ -19,7 +19,7 @@ import { t } from "../i18n/index.js";
 /**
  * @typedef {object} TemplateTaskSpec
  * @property {number}                       [dueOffset]   - Días desde hoy hasta el dueDate
- * @property {"high"|"medium"|"low"}        [priority]
+ * @property {"high"}        [priority]  - Único valor: "importante"
  * @property {number}                       [recurDays]
  */
 
@@ -48,7 +48,7 @@ export const PROJECT_TEMPLATES = [
       { dueOffset: 25                     },
       { dueOffset: 21, priority: "high"   },
       { dueOffset: 22                     },
-      { dueOffset: 21, priority: "medium" },
+      { dueOffset: 21, priority: "high"   },
     ],
   },
   {
@@ -237,9 +237,11 @@ export function showTemplatePreview(template) {
     box.className = "modal-box modal-box-tpl-preview";
 
     const tasksHTML = template.tasks.map(function (spec, i) {
+      // La prioridad ya no tiene niveles: solo "importante", con la misma
+      // bandera roja del resto de la app.
       const priorityChip = spec.priority
-        ? '<span class="tpl-task-prio tpl-task-prio-' + spec.priority + '">' +
-            t("tpl.prio." + spec.priority) +
+        ? '<span class="tpl-task-prio" title="' + t("detail.priority_important") + '">' +
+            '<i data-lucide="flag"></i>' +
           '</span>'
         : "";
       const dueChip = (typeof spec.dueOffset === "number")
@@ -277,6 +279,10 @@ export function showTemplatePreview(template) {
         '<button type="button" class="modal-btn modal-btn-cancel">' + t("tpl.preview.back") + '</button>' +
         '<button type="button" class="modal-btn modal-btn-confirm">' + t("tpl.preview.confirm") + '</button>' +
       '</div>';
+
+    // El chip de "importante" usa un icono de lucide, que solo se hidrata
+    // llamando a esto — sin ella el <i data-lucide> se queda vacío.
+    if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
     const input   = box.querySelector(".tpl-name-input");
     const confirm = box.querySelector(".modal-btn-confirm");

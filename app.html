@@ -371,9 +371,7 @@
                   </div>
                   <div class="settings-seg" id="settings-priority-seg">
                     <button type="button" class="settings-seg-opt active" data-priority="none" data-i18n="settings.tasks.priority_none">Ninguna</button>
-                    <button type="button" class="settings-seg-opt" data-priority="low" data-i18n="priority.low">P3</button>
-                    <button type="button" class="settings-seg-opt" data-priority="medium" data-i18n="priority.medium">P2</button>
-                    <button type="button" class="settings-seg-opt" data-priority="high" data-i18n="priority.high">P1</button>
+                    <button type="button" class="settings-seg-opt" data-priority="high" data-i18n="detail.priority_important">Importante</button>
                   </div>
                 </div>
               </section>
@@ -586,7 +584,7 @@
                   <span class="filter-panel-label" data-i18n="filter.section_attrs">Atributos</span>
                   <div class="filter-panel-opts">
                     <button type="button" class="filter-opt" data-filter="high" role="menuitemradio">
-                      <i data-lucide="flag"></i><span data-i18n="filter.high">Alta prioridad</span><i data-lucide="check" class="filter-opt-check"></i>
+                      <i data-lucide="flag"></i><span data-i18n="filter.high">Importantes</span><i data-lucide="check" class="filter-opt-check"></i>
                     </button>
                     <button type="button" class="filter-opt" data-filter="note" role="menuitemradio">
                       <i data-lucide="file-text"></i><span data-i18n="filter.note">Con nota</span><i data-lucide="check" class="filter-opt-check"></i>
@@ -680,12 +678,12 @@
 
             <div class="task-detail-field" data-acc="priority">
               <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
-              <div class="task-detail-segmented" id="task-detail-priority">
-                <button type="button" data-value="" data-i18n="detail.priority_none">Ninguna</button>
-                <button type="button" data-value="low" data-i18n="priority.low">Baja</button>
-                <button type="button" data-value="medium" data-i18n="priority.medium">Media</button>
-                <button type="button" data-value="high" data-i18n="priority.high">Alta</button>
-              </div>
+              <!-- Sin niveles: un único interruptor "Importante", marcado con
+                   bandera roja cuando está activo. -->
+              <button type="button" class="task-detail-field-btn task-detail-priority-btn" id="task-detail-priority" data-value="high">
+                <i data-lucide="flag" class="field-btn-ico"></i>
+                <span data-i18n="detail.priority_important">Importante</span>
+              </button>
             </div>
 
             <div class="task-detail-field" id="task-detail-date-field" data-acc="date">

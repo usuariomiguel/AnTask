@@ -12,9 +12,6 @@
 
 /** @typedef {import("../state/types.js").ParsedNL} ParsedNL */
 
-/** @type {{ high: string, medium: string, low: string }} */
-const PRIO_LABELS = { high: "Alta", medium: "Media", low: "Baja" };
-
 /**
  * Texto humano para una fecha ISO ("Hoy", "Mañana", "lunes", "15 mar").
  *
@@ -72,8 +69,9 @@ export function buildNLChipsHTML(parsed) {
     '</span>');
   }
   if (parsed.priority) {
-    chips.push('<span class="nl-chip nl-chip-prio nl-chip-prio-' + parsed.priority + '">' +
-      '<i data-lucide="flag"></i> ' + PRIO_LABELS[parsed.priority] +
+    // Ya no hay niveles: un único chip "Importante".
+    chips.push('<span class="nl-chip nl-chip-prio">' +
+      '<i data-lucide="flag"></i> Importante' +
     '</span>');
   }
   return chips;

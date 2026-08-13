@@ -94,7 +94,7 @@ export function showQuickCapture(deps) {
 
   // Overrides manuales: los chips pisan lo detectado en el texto.
   let dueOverride  = null;    // "hoy" | "manana" | null
-  let prioOverride = null;    // "high" | "medium" | "low" | null
+  let prioOverride = null;    // "high" | null — sin niveles, solo "importante"
   let selectedId   = project.id;
   let manualPick   = false;   // true en cuanto se elige una lista a mano
 
@@ -117,9 +117,8 @@ export function showQuickCapture(deps) {
       '<button type="button" class="qc-chip" data-due="hoy"><i data-lucide="sun"></i>' + t("date.today") + '</button>' +
       '<button type="button" class="qc-chip" data-due="manana"><i data-lucide="calendar"></i>' + t("date.tomorrow") + '</button>' +
       '<span class="qc-chip-sep"></span>' +
-      '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><span class="qc-chip-dot"></span>' + t("priority.high") + '</button>' +
-      '<button type="button" class="qc-chip qc-chip--medium" data-prio="medium"><span class="qc-chip-dot"></span>' + t("priority.medium") + '</button>' +
-      '<button type="button" class="qc-chip qc-chip--low" data-prio="low"><span class="qc-chip-dot"></span>' + t("priority.low") + '</button>' +
+      // Ya no hay niveles: un único chip que marca "importante" (bandera roja).
+      '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><i data-lucide="flag"></i>' + t("detail.priority_important") + '</button>' +
       '<span class="qc-chip-sep"></span>' +
       '<div class="qc-list-picker">' +
         '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +

@@ -153,13 +153,8 @@ export const es = {
   "filter.overdue":           "Vencidas",
   "filter.today":             "Hoy",
   "filter.nodate":            "Sin fecha",
-  "filter.high":              "Alta prioridad",
+  "filter.high":              "Importantes",
   "filter.note":              "Con nota",
-
-  // ── Prioridad ─────────────────────────────────────────────
-  "priority.high":            "P1",
-  "priority.medium":          "P2",
-  "priority.low":             "P3",
 
   // ── Proyecto ──────────────────────────────────────────────
   "project.new_prompt":       "Nombre de la lista",
@@ -219,6 +214,7 @@ export const es = {
   "detail.note_placeholder":  "Añade notas o detalles…",
   "detail.priority":          "Prioridad",
   "detail.priority_none":     "Ninguna",
+  "detail.priority_important": "Importante",
   "detail.due_date":          "Fecha y hora",
   "detail.no_date":           "Sin fecha",
   "detail.no_time":           "Hora",
@@ -446,9 +442,6 @@ export const es = {
   "tpl.chip.tomorrow":        "Mañana",
   "tpl.chip.in_days":         "En {n}d",
   "tpl.chip.recur":           "↻ Cada {n}d",
-  "tpl.prio.high":            "Alta",
-  "tpl.prio.medium":          "Media",
-  "tpl.prio.low":             "Baja",
 
   "tpl.moving.name":          "Mudanza",
   "tpl.moving.desc":          "Pasos típicos para una mudanza",

@@ -1538,41 +1538,21 @@ body {
   opacity: 0.72;
 }
 
-.task-detail-segmented {
-  display: flex;
-  gap: 6px;
+/* Interruptor de "Importante": sin niveles, un único botón que se tiñe
+   de rojo cuando la tarea está marcada. Extiende `.task-detail-field-btn`
+   (mismo look que Fecha/Repetir/Recordatorio/Lista); solo cambia el
+   estado activo. */
+.task-detail-priority-btn.active {
+  border-color: rgba(224, 122, 106, 0.45);
+  background: rgba(224, 122, 106, 0.10);
+  color: var(--c-pink);
 }
-.task-detail-segmented button {
-  flex: 1;
-  text-align: center;
-  justify-content: center;
-  padding: 8px 0;
-  border-radius: var(--r-md);
-  font-size: 12.5px;
-  font-weight: 650;
-  cursor: pointer;
-  border: 1px solid var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
-  transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
+.task-detail-priority-btn.active .lucide { color: var(--c-pink); }
+:root[data-theme="light"] .task-detail-priority-btn.active {
+  color: #9a3a33;
+  background: rgba(var(--c-overdue-rgb), 0.10);
 }
-.task-detail-segmented button:hover {
-  background: var(--row-hover);
-}
-#task-detail-priority button[data-value="high"].active {
-  border-color: var(--c-pink); background: rgba(224, 122, 106, 0.16); color: var(--c-pink);
-}
-#task-detail-priority button[data-value="medium"].active {
-  border-color: var(--c-gold); background: rgba(224, 163, 90, 0.16); color: var(--c-gold);
-}
-#task-detail-priority button[data-value="low"].active {
-  border-color: var(--c-blue); background: rgba(115, 182, 210, 0.16); color: var(--c-blue);
-}
-.task-detail-segmented button[data-value=""].active {
-  border-color: var(--border-strong); background: var(--row-hover); color: var(--text-primary);
-}
+:root[data-theme="light"] .task-detail-priority-btn.active .lucide { color: #9a3a33; }
 
 .task-detail-field-btn {
   display: flex;
@@ -4474,64 +4454,28 @@ body.project-dragging .project-item { cursor: grabbing; }
   }
 }
 
-/* ─── PRIORITY BADGE (solo lectura, en la fila) — "P1/P2/P3" ──
-   Como PrioP en el prototipo v1: etiqueta mono compacta con anillo
-   interior del mismo tono, no texto largo + icono de bandera. */
+/* ─── PRIORITY BADGE (solo lectura, en la fila) ───────────────
+   Ya no hay niveles (P1/P2/P3): una tarea es "importante" o no lo
+   es, y se marca con una única bandera roja. */
 .priority-badge {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-mono, monospace);
-  font-size: 10.5px;
-  font-weight: 400;
-  letter-spacing: 0.03em;
-  line-height: 1.5;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 7px;
-  border-radius: 50%;
+  justify-content: center;
   white-space: nowrap;
   flex-shrink: 0;
   width: 25px;
   height: 25px;
-  justify-content: center;
-}
-
-.priority-badge-high {
+  border-radius: 50%;
   color: var(--c-pink);
   background: rgba(224, 122, 106, 0.08);
   box-shadow: inset 0 0 0 1px rgba(224, 122, 106, 0.30);
 }
+.priority-badge .lucide { width: 13px; height: 13px; stroke-width: 2.4; }
 
-.priority-badge-medium {
-  color: var(--c-gold);
-  background: rgba(224, 163, 90, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(224, 163, 90, 0.30);
-}
-
-/* P3 en oliva, no en azul: v1 usa la propia familia cálida para "baja"
-   (#566030) — es también lo que ya hace la píldora de prioridad de Hoy. */
-.priority-badge-low {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.09);
-  box-shadow: inset 0 0 0 1px rgba(163, 179, 102, 0.30);
-}
-
-/* Paleta cálida de v1 sobre papel: alta #9a3a33, media #8a5e1a, baja #566030. */
-:root[data-theme="light"] .priority-badge-high {
+:root[data-theme="light"] .priority-badge {
   color: #9a3a33;
   background: rgba(var(--c-overdue-rgb), 0.13);
   box-shadow: inset 0 0 0 1px rgba(var(--c-overdue-rgb), 0.30);
-}
-
-:root[data-theme="light"] .priority-badge-medium {
-  color: #8a5e1a;
-  background: rgba(191, 134, 54, 0.15);
-  box-shadow: inset 0 0 0 1px rgba(191, 134, 54, 0.32);
-}
-
-:root[data-theme="light"] .priority-badge-low {
-  color: #566030;
-  background: rgba(111, 122, 61, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(111, 122, 61, 0.30);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -7849,10 +7793,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   flex-shrink: 0;
 }
 
-.cal-dot-high   { background: var(--c-pink); }
-.cal-dot-medium { background: var(--c-gold); }
-.cal-dot-low    { background: var(--c-green); }
-.cal-dot-done   { opacity: 0.35; }
+.cal-dot-important { background: var(--c-pink); }
+.cal-dot-done       { opacity: 0.35; }
 
 .cal-dot-extra {
   font-size: 0.58rem;
@@ -7887,31 +7829,14 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--text-primary);
 }
 
-.cal-chip-high {
+/* Sin niveles: "importante" es la única marca de prioridad. */
+.cal-chip-important {
   background: rgba(224, 122, 106, 0.10);
   border-left-color: var(--c-danger);
   color: var(--c-danger);
 }
-.cal-chip-high:hover {
+.cal-chip-important:hover {
   background: rgba(224, 122, 106, 0.18);
-}
-
-.cal-chip-medium {
-  background: rgba(224, 163, 90, 0.10);
-  border-left-color: var(--c-warning);
-  color: var(--c-warning);
-}
-.cal-chip-medium:hover {
-  background: rgba(224, 163, 90, 0.18);
-}
-
-.cal-chip-low {
-  background: rgba(95, 179, 163, 0.10);
-  border-left-color: var(--c-success);
-  color: var(--c-success);
-}
-.cal-chip-low:hover {
-  background: rgba(95, 179, 163, 0.18);
 }
 
 .cal-chip-done {
@@ -7994,9 +7919,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   flex-shrink: 0;
 }
 
-.cal-detail-priority-high   .cal-day-detail-dot { background: var(--c-danger); }
-.cal-detail-priority-medium .cal-day-detail-dot { background: var(--c-warning); }
-.cal-detail-priority-low    .cal-day-detail-dot { background: var(--c-success); }
+.cal-detail-important .cal-day-detail-dot { background: var(--c-danger); }
 
 .cal-day-detail-text {
   font-family: var(--font-sans);
@@ -9210,19 +9133,9 @@ button {
 }
 :root[data-theme="light"] .qc-chip.active { color: var(--c-primary-600); }
 
-.qc-chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0.55;
-}
+/* Sin niveles: un único chip de "importante" en rojo. */
 .qc-chip--high.active   { border-color: rgba(224, 122, 106, 0.45); color: #f2b3a8; }
-.qc-chip--medium.active { border-color: rgba(224, 163, 90, 0.45);  color: #f0bd84; }
-.qc-chip--low.active    { border-color: rgba(115, 182, 210, 0.45); color: #9dcde0; }
 :root[data-theme="light"] .qc-chip--high.active   { color: #9a3a33; }
-:root[data-theme="light"] .qc-chip--medium.active { color: #8a5e1a; }
-:root[data-theme="light"] .qc-chip--low.active    { color: #35617a; }
 
 .qc-list-picker { position: relative; }
 .qc-list-trigger.active {
@@ -9514,7 +9427,6 @@ button {
 }
 
 .tpl-task-due,
-.tpl-task-prio,
 .tpl-task-recur {
   font-size: var(--fs-xs);
   padding: 1px 7px;
@@ -9527,9 +9439,13 @@ button {
   color: var(--c-primary-300);
   border: 1px solid rgba(163, 179, 102, 0.22);
 }
-.tpl-task-prio-high   { background: rgba(224, 122, 106,0.14); color: #f2b3a8; border: 1px solid rgba(224, 122, 106,0.28); }
-.tpl-task-prio-medium { background: rgba(224, 163, 90,0.14);  color: #f0bd84; border: 1px solid rgba(224, 163, 90,0.28);  }
-.tpl-task-prio-low    { background: rgba(115, 182, 210,0.14);  color: #9dcde0; border: 1px solid rgba(115, 182, 210,0.28);  }
+/* Prioridad sin niveles: bandera roja, sin texto — icono suelto, no píldora. */
+.tpl-task-prio {
+  display: inline-flex;
+  align-items: center;
+  color: var(--c-pink);
+}
+.tpl-task-prio .lucide { width: 12px; height: 12px; }
 .tpl-task-recur {
   background: rgba(95, 179, 163,0.12);
   color: #7fd0c0;
@@ -9544,9 +9460,7 @@ button {
   box-shadow: 0 8px 24px rgba(50, 40, 24,0.10);
 }
 :root[data-theme="light"] .tpl-task-due       { color: var(--c-primary-600); }
-:root[data-theme="light"] .tpl-task-prio-high   { color: #9a3a33; }
-:root[data-theme="light"] .tpl-task-prio-medium { color: #8a5e1a; }
-:root[data-theme="light"] .tpl-task-prio-low    { color: #35617a; }
+:root[data-theme="light"] .tpl-task-prio      { color: #9a3a33; }
 :root[data-theme="light"] .tpl-task-recur      { color: #2f7163; }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -9606,9 +9520,8 @@ button {
   color: #7fd0c0;
 }
 
-.nl-chip-prio-high   { background: rgba(224, 122, 106,0.14); border-color: rgba(224, 122, 106,0.28); color: #f2b3a8; }
-.nl-chip-prio-medium { background: rgba(224, 163, 90,0.14);  border-color: rgba(224, 163, 90,0.28);  color: #f0bd84; }
-.nl-chip-prio-low    { background: rgba(115, 182, 210,0.14);  border-color: rgba(115, 182, 210,0.28);  color: #9dcde0; }
+/* Prioridad sin niveles: un único chip rojo "Importante". */
+.nl-chip-prio { background: rgba(224, 122, 106,0.14); border-color: rgba(224, 122, 106,0.28); color: #f2b3a8; }
 
 .nl-preview-rest {
   font-size: var(--fs-xs);
@@ -9622,9 +9535,7 @@ button {
 
 :root[data-theme="light"] .nl-chip-date    { color: var(--c-primary-600); }
 :root[data-theme="light"] .nl-chip-recur   { color: #2f7163; }
-:root[data-theme="light"] .nl-chip-prio-high   { color: #9a3a33; }
-:root[data-theme="light"] .nl-chip-prio-medium { color: #8a5e1a; }
-:root[data-theme="light"] .nl-chip-prio-low    { color: #35617a; }
+:root[data-theme="light"] .nl-chip-prio    { color: #9a3a33; }
 
 /* ═══════════════════════════════════════════════════════════════
    ONBOARDING (primera ejecución)
@@ -10863,12 +10774,6 @@ button {
   .task-detail-field[data-acc].detail-acc--open > *:not(.task-detail-label) {
     display: block;
     margin: 0 14px 14px;
-  }
-  /* `flex`, que es lo que ya era: forzarlo a `grid` lo apilaba en una
-     columna y la fila crecía a 222px. */
-  .task-detail-field[data-acc].detail-acc--open > .task-detail-segmented {
-    display: flex;
-    gap: 6px;
   }
   .task-detail-field[data-acc].detail-acc--open > .task-detail-date-row { display: flex; }
   .task-detail-field[data-acc].detail-acc--open > .task-detail-subtask-form {
