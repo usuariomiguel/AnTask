@@ -4062,24 +4062,12 @@ function renderTodayItem(task, project, todayStr, tone) {
     if (recurWrap.firstChild) meta.appendChild(recurWrap);
   }
 
-  // Acción contextual (aparece en hover): mover/programar a hoy
-  if (!done && (tone === "overdue" || tone === "nodate")) {
-    var act = document.createElement("button");
-    act.type = "button";
-    act.className = "today-move-btn today-move-btn--" + tone;
-    act.innerHTML = '<i data-lucide="arrow-right"></i> ';
-    act.appendChild(document.createTextNode(
-      tone === "overdue" ? t("hoy.move_one") : t("hoy.schedule_one")));
-    act.addEventListener("click", function(e) {
-      e.stopPropagation();
-      task.dueDate = todayStr;
-      saveProjects();
-      renderTasks();
-      renderSidebar();
-    });
-    meta.appendChild(act);
-  }
-
+  // Mover/programar a hoy: antes era un botón con texto ("Mover a hoy",
+  // "Programar hoy") que aparecía en hover — ocupaba más que la propia
+  // fecha que ya se estaba mostrando al lado. Ahora es la fecha misma la
+  // que actúa: una píldora compacta con flecha, pulsable en cualquier
+  // tamaño de pantalla. "Sin fecha" no tiene píldora que reaprovechar, así
+  // que la suya dice "Hoy" directamente.
   if (dateLabel) {
     // v1 cuelga la hora de la fecha con separador ("Hoy · 11:30").
     var dateText = dateLabel + (task.dueTime ? " · " + task.dueTime : "");
@@ -4088,8 +4076,6 @@ function renderTodayItem(task, project, todayStr, tone) {
       (tone === "today" ? " today-date-pill--today" : "") +
       (overdue ? " today-date-pill--overdue" : "");
     if (overdue && !done) {
-      // Como el prototipo v1: la propia píldora de fecha mueve la
-      // tarea a hoy, sin necesidad de hover (útil en móvil).
       dEl.innerHTML = '<span class="today-date-label"></span><i data-lucide="arrow-right"></i>';
       dEl.querySelector(".today-date-label").textContent = dateText;
       dEl.title = t("hoy.move_one");
@@ -4108,6 +4094,20 @@ function renderTodayItem(task, project, todayStr, tone) {
     // hermanos; en móvil, en cambio, `meta` salta a una segunda línea y la
     // fecha tiene que quedarse arriba, pegada al borde derecho.
     li.appendChild(dEl);
+  } else if (!done && tone === "nodate") {
+    var noDateEl = document.createElement("span");
+    noDateEl.className = "today-date-pill today-date-pill--action";
+    noDateEl.innerHTML = '<span class="today-date-label"></span><i data-lucide="arrow-right"></i>';
+    noDateEl.querySelector(".today-date-label").textContent = t("date.today");
+    noDateEl.title = t("hoy.schedule_one");
+    noDateEl.addEventListener("click", function(e) {
+      e.stopPropagation();
+      task.dueDate = todayStr;
+      saveProjects();
+      renderTasks();
+      renderSidebar();
+    });
+    li.appendChild(noDateEl);
   }
 
   // Clic en la fila → abre el panel de detalle, igual que en una lista, para

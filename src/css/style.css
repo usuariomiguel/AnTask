@@ -991,6 +991,11 @@ body {
 .project-item:hover {
   background: rgba(255, 238, 214, 0.05);
 }
+/* Blanco cálido al 5%: pensado para la sidebar oscura, casi invisible
+   sobre papel ahora que en claro la sidebar es clara. */
+:root[data-theme="light"] .project-item:hover {
+  background: rgba(50, 40, 24, 0.05);
+}
 
 .project-item.active {
   background: color-mix(in srgb, var(--c-primary-500) 17%, transparent);
@@ -1039,7 +1044,11 @@ body {
   margin-right: 9px;
 }
 .project-ring svg { display: block; }
+/* Blanco cálido a baja opacidad: pensado para leerse sobre la sidebar
+   oscura. Con la sidebar ya clara en tema claro, ese trazo casi
+   desaparecía contra el papel — necesita su propio tono oscuro ahí. */
 .project-ring-track { stroke: rgba(255, 238, 214, 0.13); }
+:root[data-theme="light"] .project-ring-track { stroke: rgba(50, 40, 24, 0.14); }
 .project-ring-fill {
   stroke: var(--project-color, var(--c-primary-500));
   transition: stroke-dashoffset 0.5s cubic-bezier(0.34, 1.2, 0.5, 1);
@@ -3198,7 +3207,27 @@ button:focus-visible {
 .task-list[data-row-style="compacto"] .inbox-group-list { gap: 0; }
 
 /* Las mismas variantes en la vista Hoy (.today-item dentro de #task-list),
-   para que el selector funcione igual que en las listas (como en v1). */
+   para que el selector funcione igual que en las listas (como en v1).
+   Cebra faltaba aquí: solo existía dentro del `@media (max-width: 768px)`
+   de más abajo, así que elegirla en escritorio con Hoy abierto no hacía
+   nada — las reglas de `.task-item` no alcanzan a `.today-item`. */
+.task-list[data-row-style="cebra"] .today-item {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+.task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
+  background: var(--zebra-bg);
+}
+.task-list[data-row-style="cebra"] .today-item:hover {
+  background: var(--task-hover);
+  box-shadow: none;
+  transform: none;
+}
+
 .task-list[data-row-style="limpio"] .today-item {
   background: transparent;
   border-color: transparent;
@@ -8408,41 +8437,6 @@ button {
   flex-shrink: 0;
 }
 
-/* Acción contextual en hover: mover / programar a hoy */
-.today-move-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 11px;
-  border-radius: var(--r-md);
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-  /* Visible siempre, no solo al pasar por encima: era la unica forma de
-     mover una tarea a hoy desde la fila y, escondida tras el hover, no
-     la encontraba nadie. Mismo criterio que la flecha de la fecha
-     vencida. */
-  opacity: 0.9;
-  transition: opacity 0.14s;
-}
-.today-item:hover .today-move-btn,
-.today-move-btn:focus-visible {
-  opacity: 1;
-}
-.today-move-btn .lucide { width: 13px; height: 13px; stroke-width: 2.2; }
-.today-move-btn--overdue {
-  border: 1px solid rgba(var(--c-overdue-rgb), 0.40);
-  background: rgba(var(--c-overdue-rgb), 0.10);
-  color: var(--c-overdue);
-}
-.today-move-btn--nodate {
-  border: 1px solid var(--c-primary-500);
-  background: var(--accent-tint);
-  color: var(--c-primary-300);
-}
-:root[data-theme="light"] .today-move-btn--nodate { color: var(--c-primary-600); }
-
 /* Pill de fecha a la derecha, tintada por tono */
 .today-date-pill {
   flex-shrink: 0;
@@ -8460,37 +8454,43 @@ button {
   color: var(--c-primary-300);
 }
 :root[data-theme="light"] .today-date-pill--today { color: var(--c-primary-600); }
-/* En escritorio la fecha es SOLO información, como en v1: mover a hoy es
-   cosa del botón de la fila (.today-move-btn), que aparece en hover. Sin
-   hit-testing la píldora no captura el clic ni muestra su tooltip — el
-   clic cae en la fila, que lleva a la tarea. */
+/* La propia fecha mueve la tarea a hoy — sin botón de texto aparte que
+   duplicara la acción y ocupara más sitio que la fecha misma. Pulsable
+   en cualquier tamaño de pantalla, con la flecha como pista. */
 .today-date-pill--overdue {
   background: rgba(var(--c-overdue-rgb), 0.13);
   color: var(--c-overdue);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  pointer-events: none;
+  cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
 }
-.today-date-pill--overdue .lucide { display: none; }
-
-/* Móvil: aquí no hay hover, así que el botón de fila está oculto y la
-   píldora recupera el papel de atajo (con su flecha como pista). */
-@media (max-width: 768px) {
-  .today-date-pill--overdue {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .today-date-pill--overdue .lucide {
-    display: block;
-    width: 11px;
-    height: 11px;
-    stroke-width: 2.4;
-  }
-  .today-date-pill--overdue:hover,
-  .today-date-pill--overdue:active { background: rgba(var(--c-overdue-rgb), 0.22); }
+.today-date-pill--overdue .lucide {
+  display: block;
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.4;
 }
+.today-date-pill--overdue:hover,
+.today-date-pill--overdue:active { background: rgba(var(--c-overdue-rgb), 0.22); }
+
+/* "Sin fecha": no hay píldora de fecha que reaprovechar, así que la suya
+   dice "Hoy" directamente — mismo lenguaje visual, mismo tamaño, en vez
+   del botón de texto ("Programar hoy") que llevaba antes. */
+.today-date-pill--action {
+  background: var(--accent-tint);
+  color: var(--c-primary-300);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+:root[data-theme="light"] .today-date-pill--action { color: var(--c-primary-600); }
+.today-date-pill--action .lucide { width: 11px; height: 11px; stroke-width: 2.4; }
+.today-date-pill--action:hover,
+.today-date-pill--action:active { background: color-mix(in srgb, var(--c-primary-500) 26%, transparent); }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
 /* Bloque que engloba las tareas de cada sección. Se quitó en
