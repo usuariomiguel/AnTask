@@ -1923,30 +1923,27 @@ body {
    en vez del total de tareas. En escritorio manda `.subtitle`. */
 .subtitle-mobile { display: none; }
 
+/* Antes era una píldora acentuada (fondo teñido + borde + color de
+   marca) — con Hoy enseñando la fecha e Inbox el pendiente, se leía como
+   si esos textos fueran interactivos o llevaran énfasis especial, y no
+   es un dato que necesite ese peso. Ahora es texto de metadato, del
+   mismo color que el resto de subtítulos de la app. */
 .subtitle {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  color: var(--c-primary-400);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
-  background: var(--accent-tint);
-  border: 1px solid color-mix(in srgb, var(--c-primary-400) 20%, transparent);
-  border-radius: var(--r-pill);
-  padding: 2px 9px;
+  background: none;
+  border: none;
+  padding: 0;
   line-height: 1.5;
   margin: 0;
   white-space: nowrap;
   flex-shrink: 0;
-}
-
-/* -700 y no -600: con el canvas oscurecido (#e8dfcd) la píldora compone
-   sobre un fondo más bajo y el -600 se quedaba en 4.2:1, por debajo de AA. */
-:root[data-theme="light"] .subtitle {
-  color: var(--c-primary-700);
-  border-color: color-mix(in srgb, var(--c-primary-700) 20%, transparent);
 }
 
 .header-actions {
@@ -2011,14 +2008,6 @@ h1 {
   color: var(--t-primary);
   line-height: 1.2;
   margin-bottom: 0.2rem;
-}
-
-.subtitle {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--text-tertiary);
-  letter-spacing: var(--tracking-normal);
-  margin-top: 0;
 }
 
 /* ─── TASK FORM ──────────────────────────────────────────────── */
@@ -2902,6 +2891,30 @@ button:focus-visible {
 .pmenu-new-list .lucide { width: 15px; height: 15px; stroke-width: 2.4; }
 :root[data-theme="light"] .pmenu-new-list { color: var(--c-primary-600); }
 
+.pmenu-group-head-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+/* Renombrar/eliminar grupo. Mismo target de 44px que el lápiz de lista
+   (`.pmenu-edit`), aunque el icono visible sea más pequeño. */
+.pmenu-group-menu {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.pmenu-group-menu:hover { background: var(--row-hover); color: var(--text-primary); }
+.pmenu-group-menu .lucide { width: 16px; height: 16px; stroke-width: 2; }
+
 /* La tarjeta es el grupo, no cada fila: los separadores van entre filas. */
 .pmenu-group {
   background: var(--surface-card);
@@ -3248,21 +3261,31 @@ button:focus-visible {
    abajo en la primera/última): funcionaba para el borde, pero las filas
    impares —transparentes a propósito, para que la franja de las pares
    se note— dejaban ver el canvas del panel en vez de una superficie
-   limpia, y la lista salía con un fondo beige sucio en vez de blanco. */
-.task-list--project[data-row-style="cebra"] {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: calc(var(--r-md) + 2px);
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-  /* Aquí la caja y `#task-list` son el mismo elemento, así que el
-     `padding-top` de la base (el hueco antes del bloque de tareas en
-     el resto de estilos) se colaba DENTRO de la caja, dejando una tira
-     de fondo antes de la primera fila. Se cambia por `margin-top`: el
-     mismo hueco, pero FUERA del borde — la lista queda a ras por
-     dentro, como en Hoy/Inbox. */
-  padding-top: 0;
-  margin-top: var(--sp-3);
+   limpia, y la lista salía con un fondo beige sucio en vez de blanco.
+
+   Solo escritorio: en móvil el estilo de fila está SIEMPRE forzado a
+   cebra (`_rowStyleEfectivo()`), así que sin el `@media` esta regla
+   envolvía CUALQUIER lista suelta en móvil —tuviera tareas o no— en una
+   caja de ancho completo sin el margen lateral del resto de la pantalla.
+   Con un Inbox vacío se veía como una tarjeta oscura a sangre detrás del
+   estado vacío. En móvil las filas van sueltas, sin caja que las
+   envuelva. */
+@media (min-width: 769px) {
+  .task-list--project[data-row-style="cebra"] {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: calc(var(--r-md) + 2px);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+    /* Aquí la caja y `#task-list` son el mismo elemento, así que el
+       `padding-top` de la base (el hueco antes del bloque de tareas en
+       el resto de estilos) se colaba DENTRO de la caja, dejando una
+       tira de fondo antes de la primera fila. Se cambia por
+       `margin-top`: el mismo hueco, pero FUERA del borde — la lista
+       queda a ras por dentro, como en Hoy/Inbox. */
+    padding-top: 0;
+    margin-top: var(--sp-3);
+  }
 }
 
 .task-list[data-row-style="limpio"] .today-item {
@@ -7156,6 +7179,14 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   max-width: 320px;
 }
 .settings-row-control { flex-shrink: 0; }
+
+/* "Contenedor: Pegado/Flotante" es un ajuste de la SILUETA de escritorio
+   (sidebar y panel flotando sobre el escritorio vs. pegados al borde);
+   en móvil el shell es siempre pegado — no hay nada que elegir — así
+   que la fila entera sobra ahí. */
+@media (max-width: 768px) {
+  .settings-row:has(#settings-shell-seg) { display: none; }
+}
 
 /* Cuenta: cabecera con avatar grande */
 .settings-account-row {

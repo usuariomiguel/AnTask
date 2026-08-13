@@ -81,6 +81,10 @@ export const es = {
   "settings.data.clear":               "Limpiar",
   "settings.data.clear_completed":     "Limpiar tareas completadas",
   "settings.data.clear_completed_desc":"Elimina de forma permanente las tareas ya hechas.",
+  "settings.data.delete_all":          "Eliminar todo",
+  "settings.data.delete_all_desc":     "Borra todas las listas y tareas. No se puede deshacer.",
+  "settings.data.delete_all_btn":      "Eliminar todo",
+  "settings.data.delete_all_confirm":  "Vas a eliminar TODAS tus listas y tareas de forma permanente. Esto no se puede deshacer. ¿Seguro que quieres continuar?",
 
   "settings.about.version":            "Versión",
   "settings.about.version_desc":       "Antask para escritorio.",

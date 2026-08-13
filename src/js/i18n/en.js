@@ -81,6 +81,10 @@ export const en = {
   "settings.data.clear":               "Clear",
   "settings.data.clear_completed":     "Clear completed tasks",
   "settings.data.clear_completed_desc":"Permanently deletes tasks that are already done.",
+  "settings.data.delete_all":          "Delete everything",
+  "settings.data.delete_all_desc":     "Erases every list and task. This can't be undone.",
+  "settings.data.delete_all_btn":      "Delete everything",
+  "settings.data.delete_all_confirm":  "You're about to permanently delete ALL your lists and tasks. This can't be undone. Are you sure you want to continue?",
 
   "settings.about.version":            "Version",
   "settings.about.version_desc":       "Antask for desktop.",

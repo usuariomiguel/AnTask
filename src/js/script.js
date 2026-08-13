@@ -723,6 +723,34 @@ if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function(
   activateProject(null);
 });
 
+// ─── ELIMINAR TODO (Ajustes → Datos) ─────────────────────────
+// Vacía el workspace entero: todas las listas, todas las tareas, todos
+// los grupos. Confirmación reforzada porque no hay deshacer — a
+// diferencia de borrar una tarea o una lista, no queda ningún registro
+// del que recuperarse salvo un backup exportado a mano.
+var deleteAllBtn = document.getElementById("settings-delete-all-btn");
+if (deleteAllBtn) deleteAllBtn.addEventListener("click", async function() {
+  const confirmed = await modalConfirm(
+    t("settings.data.delete_all_confirm"),
+    t("modal.delete")
+  );
+  if (!confirmed) return;
+  projects = [];
+  sections = [];
+  // Sin esto el Inbox desaparecía de la sidebar: no es un elemento
+  // virtual, es un proyecto real con `id: INBOX_ID` que normalmente crea
+  // el arranque la primera vez. "Eliminar todo" debe dejar un workspace
+  // limpio y usable, no una sidebar vacía sin ni Inbox.
+  ensureInbox();
+  saveProjects();
+  saveSections();
+  activeProjectId = null;
+  localStorage.removeItem(ACTIVE_KEY);
+  if (typeof window.closeSettingsModal === "function") window.closeSettingsModal();
+  renderSidebar();
+  activateProject(null);
+});
+
 // ─── FORMULARIO DE TAREA ─────────────────────────────────────
 
 // ─── PREVIEW DE LENGUAJE NATURAL (chips bajo el task-input) ───
@@ -1031,7 +1059,12 @@ function showProfileMenu() {
     const dentro = enSeccion(s.id);
     html += '<div class="pmenu-group-head">' +
       '<span class="pmenu-group-title">' + escHtml(s.name) + "</span>" +
-      '<button type="button" class="pmenu-new-list" data-act="new-list" data-section="' + escHtml(s.id) + '"><i data-lucide="plus"></i>' + escHtml(t("sidebar.add_list")) + "</button>" +
+      '<span class="pmenu-group-head-actions">' +
+        '<button type="button" class="pmenu-new-list" data-act="new-list" data-section="' + escHtml(s.id) + '"><i data-lucide="plus"></i>' + escHtml(t("sidebar.add_list")) + "</button>" +
+        // Renombrar/eliminar grupo: antes solo existía desde la sidebar de
+        // escritorio, así que en móvil no había forma de borrar un grupo.
+        '<button type="button" class="pmenu-group-menu" data-edit-section="' + escHtml(s.id) + '" aria-label="' + escHtml(t("section.options")) + '"><i data-lucide="ellipsis"></i></button>' +
+      "</span>" +
     "</div>";
     if (dentro.length) {
       html += "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
@@ -1054,7 +1087,7 @@ function showProfileMenu() {
   if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
 
   sheet.addEventListener("click", function(e) {
-    const btn = e.target.closest("[data-goto],[data-act],[data-edit]");
+    const btn = e.target.closest("[data-goto],[data-act],[data-edit],[data-edit-section]");
     if (!btn) return;
     if (btn.dataset.edit) {
       // El menú completo (renombrar, color, archivar, ELIMINAR) — antes
@@ -1063,6 +1096,14 @@ function showProfileMenu() {
       // el botón sale del DOM y pierde su posición en pantalla.
       const p = projects.find(function(x) { return x.id === btn.dataset.edit; });
       if (p) showProjectMenu(p, btn);
+      closeSheet(overlay);
+      return;
+    }
+    if (btn.dataset.editSection) {
+      // Mismo motivo que el lápiz de lista: sin esto, un grupo creado desde
+      // el móvil no se podía ni renombrar ni borrar desde el móvil.
+      const s = sections.find(function(x) { return x.id === btn.dataset.editSection; });
+      if (s) showSectionMenu(s, btn);
       closeSheet(overlay);
       return;
     }

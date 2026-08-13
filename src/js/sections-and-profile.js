@@ -97,6 +97,7 @@ import { loadSync } from "./sync-loader.js";
     }, { once: true });
   }
   window.openSettingsModal = openSettingsModal;
+  window.closeSettingsModal = closeSettingsModal;
 
   if (pfSettingsBtn) {
     pfSettingsBtn.addEventListener("click", function() {
