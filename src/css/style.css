@@ -6947,6 +6947,13 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .settings-content-wrap {
   flex: 1;
   min-width: 0;
+  /* Sin esto, un hijo flex no encoge por debajo de la altura de su
+     contenido: en móvil, con las 6 secciones visibles a la vez dentro
+     de un `.modal-box-settings-v1` de alto fijo, `.settings-content-body`
+     nunca llegaba a desbordar DENTRO de su propio alto — todo el wrap
+     crecía por fuera de la caja y el `overflow: hidden` del contenedor
+     se lo comía sin dejar ni rastro de scroll. */
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -10413,12 +10420,22 @@ button {
 
 @media (max-width: 768px) {
   .task-detail-body {
+    /* `flex: 1` (heredado de escritorio, donde el panel siempre va a
+       toda su altura) estiraba esta caja a rellenar el hueco entre
+       cabecera y pie aunque el contenido fuera corto — el «Eliminar
+       tarea» de abajo quedaba pegado al fondo con un hueco muerto en
+       medio. `flex: 0 1 auto` + `min-height: 0` deja que la caja mida
+       lo que pide su contenido y solo se encoja (con scroll) cuando de
+       verdad no cabe. */
+    flex: 0 1 auto;
+    min-height: 0;
     padding-top: 4px;
     gap: 0;
-    /* La pastilla de navegación flota encima del panel a pantalla
-       completa (ver .mobile-bottom-nav más abajo): sin este hueco el
-       botón «Eliminar tarea» queda debajo de ella. */
-    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
+    /* El pie (con «Eliminar») ya reserva su propio hueco para la pastilla
+       de navegación flotante (ver .task-detail-footer) y ahora siempre
+       sigue justo al body — reservarlo aquí también solo añadía un hueco
+       muerto entre la última fila y el pie. */
+    padding-bottom: 4px;
   }
 
   /* El título es lo primero que se lee al entrar: más alto que el de
@@ -10531,12 +10548,14 @@ button {
   .detail-acc--open:not([data-acc="note"]) { background: var(--surface-raised); }
 
   /* Eliminar: caja propia bajo la tarjeta, como en el prototipo — no una
-     línea suelta pegada al fondo de la pantalla. */
+     línea suelta pegada al fondo de la pantalla. `margin-top: auto` la
+     empujaba al fondo del panel aunque el contenido fuera corto, dejando
+     un hueco muerto entre la tarjeta de campos y el botón; con el body
+     ya sin `flex: 1` forzado, el footer sigue al contenido sin ayuda. */
   .task-detail-footer {
     /* Mismo hueco que el body: el footer no vive dentro del scroll, así
        que sin esto "Eliminar tarea" queda debajo de la pastilla flotante. */
     padding: 14px 0 calc(5.5rem + env(safe-area-inset-bottom, 0));
-    margin-top: auto;
     border: none;
     background: none;
   }
