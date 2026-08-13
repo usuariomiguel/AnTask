@@ -268,7 +268,6 @@ let dragSrcId          = null;
 let dropIndicator      = null;
 let dragSrcProjectId   = null;
 let projectDropIndicator = null;
-let dragSrcSectionId   = null;
 
 // ─── UNDO ESTADO ─────────────────────────────────────────────
 let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indices }
@@ -516,20 +515,6 @@ document.addEventListener("keydown", function(e) {
     return;
   }
 
-  if (e.key === "s" || e.key === "S") {
-    e.preventDefault();
-    (async function() {
-      var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
-      if (name === null) return;
-      var trimmed = name.trim();
-      if (!trimmed) return;
-      sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
-      saveSections();
-      renderSidebar();
-    })();
-    return;
-  }
-
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -658,7 +643,7 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
     name: capitalizeFirst((name || "").trim()).slice(0, 60),
     icon:  (opts && opts.icon)  || "",
     color: (opts && opts.color) || "",
-    sectionId: (opts && opts.sectionId) || null,
+    sectionId: null,
     createdAt: new Date().toISOString(),
     tasks: (taskSpecs || []).map(function (spec) {
       return {
@@ -683,15 +668,13 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
 }
 
 /* Extraído del handler del botón del drawer para que la pantalla «Perfil»
-   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla.
-   `sectionId`: desde el menú de Perfil el botón "+ Nueva lista" vive
-   dentro de un grupo concreto, así que la lista nueva nace ya en él. */
-function startNewProject(sectionId) {
+   pueda lanzarlo sin pulsar por código un botón que vive en otra pantalla. */
+function startNewProject() {
   showProjectTemplatesModal({
     onPickBlank: async function () {
       const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
       if (!name) return;
-      _createProjectWithTasks(name, [], { sectionId: sectionId || null });
+      _createProjectWithTasks(name, []);
     },
     onPickTemplate: async function (template) {
       const name = await showTemplatePreview(template);
@@ -699,7 +682,6 @@ function startNewProject(sectionId) {
       _createProjectWithTasks(name, buildTasksFromTemplate(template), {
         icon:  template.icon,
         color: template.color || "",
-        sectionId: sectionId || null,
       });
     },
   });
@@ -1032,53 +1014,19 @@ function showProfileMenu() {
       '<button type="button" class="pmenu-close" data-act="close" aria-label="' + escHtml(t("detail.close")) + '"><i data-lucide="x"></i></button>' +
     "</div>";
 
-  // Las listas se agrupan por sección, como en la sidebar: sin el drawer,
-  // este es el único sitio de móvil donde se ve a qué grupo pertenece cada
-  // una, y sin esto los grupos dejarían de existir de cara al usuario.
   const filaLista = function(p) {
     const pend = p.tasks.filter(function(x) { return !x.done; }).length;
     return fila('data-goto="' + escHtml(p.id) + '"', _projectColor(p), "list", p.name, pend, p.id);
   };
-  const enSeccion = function(id) {
-    return lists.filter(function(p) { return (p.sectionId || null) === id; });
-  };
 
-  // Todo lo que sigue —sueltas, cada grupo, "Nuevo grupo"— es una sola
-  // sección de cara al usuario: crear y editar listas y grupos. Antes no
-  // tenía rótulo propio y se leía pegado a "Ajustes" de abajo, como si
-  // fuera lo mismo.
-  html += '<p class="pmenu-section-label">' + escHtml(t("pmenu.groups_and_lists")) + "</p>";
+  html += '<p class="pmenu-section-label">' + escHtml(t("pmenu.lists")) + "</p>";
 
-  // Las sueltas (sin grupo) se editan aquí y, desde los chips del Inbox
-  // en móvil, también se crean.
-  const sueltas = enSeccion(null);
-  if (sueltas.length) {
-    html += '<p class="pmenu-group-label">' + escHtml(t("pmenu.lists")) + "</p>" +
-            "<div class='pmenu-group'>" + sueltas.map(filaLista).join("") + "</div>";
+  if (lists.length) {
+    html += "<div class='pmenu-group'>" + lists.map(filaLista).join("") + "</div>";
   }
 
-  // "+ Nueva lista" va arriba de CADA grupo, no una sola vez: crear una
-  // lista significa meterla en un grupo, así que sin grupos no hay dónde
-  // ponerla y el botón no aparece en ningún sitio — hay que crear un
-  // grupo primero.
-  sections.forEach(function(s) {
-    const dentro = enSeccion(s.id);
-    html += '<div class="pmenu-group-head">' +
-      '<span class="pmenu-group-title">' + escHtml(s.name) + "</span>" +
-      '<span class="pmenu-group-head-actions">' +
-        '<button type="button" class="pmenu-new-list" data-act="new-list" data-section="' + escHtml(s.id) + '"><i data-lucide="plus"></i>' + escHtml(t("sidebar.add_list")) + "</button>" +
-        // Renombrar/eliminar grupo: antes solo existía desde la sidebar de
-        // escritorio, así que en móvil no había forma de borrar un grupo.
-        '<button type="button" class="pmenu-group-menu" data-edit-section="' + escHtml(s.id) + '" aria-label="' + escHtml(t("section.options")) + '"><i data-lucide="ellipsis"></i></button>' +
-      "</span>" +
-    "</div>";
-    if (dentro.length) {
-      html += "<div class='pmenu-group'>" + dentro.map(filaLista).join("") + "</div>";
-    }
-  });
-
   html += "<div class='pmenu-group'>" +
-    fila('data-act="new-group"', null, "layers", t("sidebar.new_group")) +
+    fila('data-act="new-list"', null, "plus", t("sidebar.add_list")) +
   "</div>";
 
   html += "<div class='pmenu-group'>" +
@@ -1093,7 +1041,7 @@ function showProfileMenu() {
   if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
 
   sheet.addEventListener("click", function(e) {
-    const btn = e.target.closest("[data-goto],[data-act],[data-edit],[data-edit-section]");
+    const btn = e.target.closest("[data-goto],[data-act],[data-edit]");
     if (!btn) return;
     if (btn.dataset.edit) {
       // El menú completo (renombrar, color, archivar, ELIMINAR) — antes
@@ -1105,19 +1053,10 @@ function showProfileMenu() {
       closeSheet(overlay);
       return;
     }
-    if (btn.dataset.editSection) {
-      // Mismo motivo que el lápiz de lista: sin esto, un grupo creado desde
-      // el móvil no se podía ni renombrar ni borrar desde el móvil.
-      const s = sections.find(function(x) { return x.id === btn.dataset.editSection; });
-      if (s) showSectionMenu(s, btn);
-      closeSheet(overlay);
-      return;
-    }
     closeSheet(overlay);
     if (btn.dataset.goto) { activateProject(btn.dataset.goto); return; }
     switch (btn.dataset.act) {
-      case "new-list":  startNewProject(btn.dataset.section || null); break;
-      case "new-group": startNewSection(); break;
+      case "new-list":  startNewProject(); break;
       case "settings":  if (window.openSettingsModal) window.openSettingsModal(); break;
       // Sesión: se llama a la función real, no al botón del drawer. Trae la
       // carga bajo demanda del módulo de sincronización y el tratamiento de
@@ -1177,10 +1116,12 @@ function _renderListChips() {
   // Las archivadas no salen: archivar es sacar una lista de la vista, y en
   // móvil estos chips SON la navegación entre listas. Asomaban aquí aunque
   // sus tareas ya se filtraban bien del resto de vistas.
+  // El "+" tiene que verse aunque no haya ninguna lista aún: es la única
+  // forma de crear la primera desde el Inbox en móvil.
   const lists = projects.filter(function(p) {
     return p.id !== INBOX_ID && !p.archived;
   });
-  if (activeView !== "project" || lists.length === 0) {
+  if (activeView !== "project") {
     host.hidden = true;
     host.innerHTML = "";
     return;
@@ -1226,21 +1167,12 @@ function _norm(s) {
   return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-/** Nombre del grupo (sección) al que pertenece un proyecto, si tiene. */
-function _sectionNameOf(project) {
-  if (!project || !project.sectionId) return "";
-  const s = sections.find(function(x) { return x.id === project.sectionId; });
-  return s ? s.name : "";
-}
-
 function _matchesQuery(task, project) {
   if (!currentQuery) return true;
   const q = _norm(currentQuery);
   if (_norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1) return true;
-  // Como en la búsqueda global (Cmd+K): también por nombre de lista y,
-  // aquí además, de grupo — el usuario lo pidió para el buscador del Inbox.
+  // Como en la búsqueda global (Cmd+K): también por nombre de lista.
   if (project && _norm(project.name).indexOf(q) !== -1) return true;
-  if (project && _norm(_sectionNameOf(project)).indexOf(q) !== -1) return true;
   return false;
 }
 
@@ -1577,31 +1509,25 @@ function renderPinnedItems(inboxProject) {
 }
 
 
-var _sectionJustExpanded = null;
-var _sectionExpandIndex = 0;
+// ── Creación inline en la sidebar, al estilo del prototipo v1: un botón
+//    "+ Añadir lista" que se convierte en un input en línea; Enter confirma,
+//    Escape o blur cancela. ─────────────────────────────────────────────
+var _addingList = false; // input de "+ Añadir lista" activo
 
-// ── Creación inline en la sidebar (grupos = secciones, listas = proyectos),
-//    al estilo del prototipo v1: un botón "+ Añadir…" que se convierte en un
-//    input en línea; Enter confirma, Escape o blur cancela. ──────────────
-var _addingListForSection = null; // id de sección con el input de lista activo
-var _addingGroup = false;         // input de "Nuevo grupo" activo
-
-/** Botón "+ Añadir lista" / "+ Nuevo grupo". */
+/** Botón "+ Añadir lista". */
 function _sidebarAddButton(opts) {
   var li = document.createElement("li");
-  li.className = "sidebar-add-btn" +
-    (opts.indent ? " sidebar-add-btn--indent" : "") +
-    (opts.newGroup ? " sidebar-add-btn--group" : "");
+  li.className = "sidebar-add-btn sidebar-add-btn--group";
   li.innerHTML = '<i data-lucide="plus"></i><span></span>';
   li.querySelector("span").textContent = opts.label;
   li.addEventListener("click", function(e) { e.stopPropagation(); opts.onClick(); });
   return li;
 }
 
-/** Input inline para crear un grupo o una lista. */
+/** Input inline para crear una lista. */
 function _sidebarInlineInput(opts) {
   var li = document.createElement("li");
-  li.className = "sidebar-add-input" + (opts.indent ? " sidebar-add-input--indent" : "");
+  li.className = "sidebar-add-input";
   var input = document.createElement("input");
   input.type = "text";
   input.className = "sidebar-add-input-field";
@@ -1627,20 +1553,11 @@ function _sidebarInlineInput(opts) {
   return li;
 }
 
-function _commitAddList(sectionId, value) {
+function _commitAddList(value) {
   var name = (value || "").trim();
-  _addingListForSection = null;
+  _addingList = false;
   if (!name) { renderSidebar(); return; }
-  _createProjectWithTasks(name, [], { sectionId: sectionId });
-}
-
-function _commitAddGroup(value) {
-  var name = (value || "").trim();
-  _addingGroup = false;
-  if (!name) { renderSidebar(); return; }
-  sections.push({ id: "sec-" + Date.now(), name: capitalizeFirst(name).slice(0, 60), collapsed: false });
-  saveSections();
-  renderSidebar();
+  _createProjectWithTasks(name, []);
 }
 
 /**
@@ -1690,56 +1607,27 @@ function renderSidebar() {
     if (id && span) _sidebarPrevCounts[id] = span.textContent;
   });
   projectListEl.innerHTML = "";
-  _sectionExpandIndex = 0;
-  const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
   const realActive   = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
-  const archived     = projects.filter(function(p) { return p.archived; });
-  const ungrouped    = realActive.filter(function(p) { return !p.sectionId || !knownSectionIds.has(p.sectionId); });
 
   // ── Items fijados al tope: Hoy + Inbox ───────────────────────
   renderPinnedItems(inboxProject);
 
-  // Proyectos sueltos (sin sección)
-  ungrouped.forEach(function(p) { renderProjectItem(p); });
+  // Listas: lista plana, sin agrupar.
+  realActive.forEach(function(p) { renderProjectItem(p); });
 
-  // Secciones (grupos) con sus proyectos (listas) dentro
-  sections.forEach(function(section) {
-    const sectionProjects = realActive.filter(function(p) { return p.sectionId === section.id; });
-    renderSectionHeader(section, sectionProjects);
-    if (!section.collapsed) {
-      sectionProjects.forEach(function(p) { renderProjectItem(p, true); });
-      // Creación inline al estilo v1: "+ Añadir lista" (o input activo).
-      if (_addingListForSection === section.id) {
-        projectListEl.appendChild(_sidebarInlineInput({
-          indent: true,
-          placeholder: t("sidebar.list_name"),
-          onCommit: function(v) { _commitAddList(section.id, v); },
-          onCancel: function() { _addingListForSection = null; renderSidebar(); },
-        }));
-      } else {
-        projectListEl.appendChild(_sidebarAddButton({
-          indent: true,
-          label: sectionProjects.length ? t("sidebar.add_list") : t("sidebar.add_first_list"),
-          onClick: function() { _addingListForSection = section.id; _addingGroup = false; renderSidebar(); },
-        }));
-      }
-    }
-  });
-
-  // "+ Nuevo grupo" al final de la lista (o input activo), como en v1.
-  if (_addingGroup) {
+  // "+ Añadir lista" al final (o input activo), como en v1.
+  if (_addingList) {
     projectListEl.appendChild(_sidebarInlineInput({
-      placeholder: t("sidebar.group_name"),
-      onCommit: function(v) { _commitAddGroup(v); },
-      onCancel: function() { _addingGroup = false; renderSidebar(); },
+      placeholder: t("sidebar.list_name"),
+      onCommit: function(v) { _commitAddList(v); },
+      onCancel: function() { _addingList = false; renderSidebar(); },
     }));
   } else {
     projectListEl.appendChild(_sidebarAddButton({
-      newGroup: true,
-      label: t("sidebar.new_group"),
-      onClick: function() { _addingGroup = true; _addingListForSection = null; renderSidebar(); },
+      label: t("sidebar.add_list"),
+      onClick: function() { _addingList = true; renderSidebar(); },
     }));
   }
 
@@ -1782,7 +1670,7 @@ function renderArchivedWidget() {
     } else {
       var list = document.createElement("ul");
       list.className = "archived-project-list";
-      archived.forEach(function(p) { renderProjectItem(p, false, true, list); });
+      archived.forEach(function(p) { renderProjectItem(p, true, list); });
       wrap.appendChild(list);
     }
   }
@@ -1790,96 +1678,12 @@ function renderArchivedWidget() {
   if (window.lucide) lucide.createIcons({ nodes: [wrap] });
 }
 
-function renderSectionHeader(section, sectionProjects) {
-  const li = document.createElement("li");
-  li.className = "section-header";
-  li.setAttribute("data-section-id", section.id);
-
-  const chevron = document.createElement("span");
-  chevron.className = "section-chevron" +
-    (section.collapsed ? " section-chevron--collapsed" : "") +
-    (_sectionJustExpanded === section.id ? " section-chevron--just-expanded" : "");
-  chevron.innerHTML = '<i data-lucide="chevron-down"></i>';
-
-  const nameEl = document.createElement("span");
-  nameEl.className = "section-name";
-  nameEl.textContent = section.name;
-
-  const menuBtn = document.createElement("button");
-  menuBtn.type = "button";
-  menuBtn.className = "section-menu-btn";
-  menuBtn.innerHTML = '<i data-lucide="ellipsis"></i>';
-  menuBtn.title = t("section.options");
-  menuBtn.addEventListener("click", function(e) {
-    e.stopPropagation();
-    showSectionMenu(section, menuBtn);
-  });
-  
-  const countEl = document.createElement("span");
-  countEl.className = "section-count";
-  countEl.textContent = sectionProjects.length;
-
-
-  li.appendChild(chevron);
-  li.appendChild(nameEl);
-  li.appendChild(countEl);
-  li.appendChild(menuBtn);
-  li.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    showSectionMenu(section, menuBtn);
-  });
-  li.addEventListener("click", function(e) {
-    if (e.target.closest(".section-menu-btn")) return;
-    if (section.collapsed) {
-      // Expandir — el render aplica la animación de entrada.
-      section.collapsed = false;
-      _sectionJustExpanded = section.id;
-      saveSections();
-      renderSidebar();
-      _sectionJustExpanded = null;
-    } else {
-      // Colapsar — animar la salida antes de re-renderizar.
-      const childItems = projectListEl.querySelectorAll(
-        '.project-item-indented[data-section-id="' + section.id + '"]'
-      );
-      if (chevron) chevron.classList.add("section-chevron--collapsed");
-      if (childItems.length === 0) {
-        section.collapsed = true;
-        saveSections();
-        renderSidebar();
-        return;
-      }
-      const total = childItems.length;
-      childItems.forEach(function(el, idx) {
-        el.style.setProperty("--leave-delay", ((total - 1 - idx) * 0.022) + "s");
-        el.classList.add("section-child-leaving");
-      });
-      setTimeout(function() {
-        section.collapsed = true;
-        saveSections();
-        renderSidebar();
-      }, 200);
-    }
-  });
-
-  initSectionDropTarget(li, section);
-  initSectionDragDrop(li, section.id);
-  projectListEl.appendChild(li);
-}
-
-function renderProjectItem(project, indented, isArchived, parentEl) {
+function renderProjectItem(project, isArchived, parentEl) {
   const target = parentEl || projectListEl;
   const li = document.createElement("li");
-  li.className = "project-item" + (indented ? " project-item-indented" : "") + (isArchived ? " project-item-archived" : "");
+  li.className = "project-item" + (isArchived ? " project-item-archived" : "");
   li.dataset.projectId = project.id;
-  if (indented && project.sectionId) li.dataset.sectionId = project.sectionId;
   if (project.id === activeProjectId) li.classList.add("active");
-  if (indented && _sectionJustExpanded && project.sectionId === _sectionJustExpanded) {
-    li.classList.add("section-child-entering");
-    li.style.setProperty("--enter-delay", (_sectionExpandIndex * 0.035) + "s");
-    _sectionExpandIndex++;
-  }
 
   const done  = project.tasks.filter(function(t) { return t.done; }).length;
   const total = project.tasks.length;
@@ -1989,7 +1793,7 @@ function renderProjectItem(project, indented, isArchived, parentEl) {
   target.appendChild(li);
 }
 
-// ── Context menus for sections and projects ─────────────────────────────────
+// ── Context menu for projects ────────────────────────────────────────────────
 
 var _ctxMenu = null;
 var _ctxCloseHandler = null;
@@ -2080,69 +1884,6 @@ function _buildCtxMenu(items) {
   return menu;
 }
 
-async function showSectionMenu(section, anchor) {
-  closeCtxMenu();
-
-  var items = [
-    {
-      label: t("section.rename"),
-      action: async function() {
-        var newName = await modalPrompt(t("section.rename_prompt"), section.name, section.name);
-        if (newName === null) return;
-        var trimmed = capitalizeFirst(newName.trim());
-        if (!trimmed || trimmed === section.name) return;
-        section.name = trimmed;
-        saveSections();
-        renderSidebar();
-      }
-    },
-    null,
-    {
-      label: t("section.delete"),
-      danger: true,
-      action: async function() {
-        var inSection = projects.filter(function(p) { return p.sectionId === section.id; });
-        var count     = inSection.length;
-        var safeName  = escHtml(section.name);
-        var message   = count === 0
-          ? t("section.confirm_delete").replace("{name}", safeName)
-          : (count === 1
-              ? t("section.confirm_delete_cascade_one").replace("{name}", safeName)
-              : t("section.confirm_delete_cascade").replace("{name}", safeName).replace("{count}", String(count)));
-        var ok = await modalConfirm(message, t("modal.delete"));
-        if (!ok) return;
-
-        // Borrar también todos los proyectos de la sección (cascada).
-        var deletedIds = new Set(inSection.map(function(p) { return p.id; }));
-        projects = projects.filter(function(p) { return !deletedIds.has(p.id); });
-        sections = sections.filter(function(s) { return s.id !== section.id; });
-
-        // Si el proyecto activo era uno de los borrados, saltamos al primer proyecto restante (o ninguno).
-        if (deletedIds.has(activeProjectId)) {
-          var stillActive = projects.filter(function(p) { return !p.archived; });
-          activeProjectId = stillActive.length > 0 ? stillActive[0].id : null;
-        }
-
-        saveProjects();
-        saveSections();
-        renderSidebar();
-        activateProject(activeProjectId);
-      }
-    }
-  ];
-
-  var menu = _buildCtxMenu(items);
-  positionCtxMenu(menu, anchor);
-  _ctxMenu = menu;
-
-  requestAnimationFrame(function() {
-    _ctxCloseHandler = function(e) {
-      if (!menu.contains(e.target)) closeCtxMenu();
-    };
-    document.addEventListener("mousedown", _ctxCloseHandler);
-  });
-}
-
 /* Renombrar una lista. Extraído del menú de proyecto porque el lápiz de la
    pantalla «Perfil» hace exactamente lo mismo (handoff móvil v1: cada lista
    del usuario lleva su botón de editar). */
@@ -2159,21 +1900,6 @@ async function renameProject(project) {
 
 async function showProjectMenu(project, anchor) {
   closeCtxMenu();
-
-  var sectionOptions = sections.map(function(s) {
-    return {
-      label: (project.sectionId === s.id ? "• " : "  ") + s.name,
-      action: function() {
-        project.sectionId = project.sectionId === s.id ? null : s.id;
-        saveProjects();
-        renderSidebar();
-      }
-    };
-  });
-
-  var assignGroup = sectionOptions.length > 0
-    ? [{ _id: "move-to-section", label: t("project.move_to_section"), header: true }].concat(sectionOptions).concat([null])
-    : [];
 
   var archiveItems = project.archived
     ? [
@@ -2223,7 +1949,6 @@ async function showProjectMenu(project, anchor) {
           label: t("project.archive"),
           action: function() {
             project.archived = true;
-            project.sectionId = null;
             if (activeProjectId === project.id) {
               var active = projects.filter(function(p) { return !p.archived; });
               activeProjectId = active.length > 0 ? active[0].id : null;
@@ -2256,15 +1981,13 @@ async function showProjectMenu(project, anchor) {
         }
       ];
 
-  var items = assignGroup.concat(archiveItems);
+  var items = archiveItems;
 
   // El proyecto Inbox no se puede archivar ni eliminar.
   if (project.id === INBOX_ID) {
     items = items.filter(function(it) {
       if (!it || it === null) return true;
-      return it._id !== "archive" &&
-             it._id !== "delete" &&
-             it._id !== "move-to-section";
+      return it._id !== "archive" && it._id !== "delete";
     });
   }
 
@@ -2406,23 +2129,6 @@ async function showInboxMenu(inboxProject, x, y) {
     };
     document.addEventListener("mousedown", _ctxCloseHandler);
   });
-}
-
-// New section button
-(function() {
-  var newSectionBtn = document.getElementById("new-section-btn");
-  if (newSectionBtn) newSectionBtn.addEventListener("click", startNewSection);
-})();
-
-/* Igual que startNewProject: con nombre para que «Perfil» lo llame directo. */
-async function startNewSection() {
-  var name = await modalPrompt(t("section.new_prompt"), "", t("section.new_placeholder"));
-  if (name === null) return;
-  var trimmed = name.trim();
-  if (!trimmed) return;
-  sections.push({ id: "sec-" + Date.now(), name: trimmed, collapsed: false });
-  saveSections();
-  renderSidebar();
 }
 
 // ── End context menus ────────────────────────────────────────────────────────
@@ -4630,9 +4336,6 @@ function initProjectDragDrop(li, projectId) {
     removeProjectDropIndicator();
     dragSrcProjectId = null;
     document.body.classList.remove("project-dragging");
-    document.querySelectorAll(".section-drop-target").forEach(function(el) {
-      el.classList.remove("section-drop-target");
-    });
   });
 
   li.addEventListener("dragover", function(e) {
@@ -4657,11 +4360,6 @@ function initProjectDragDrop(li, projectId) {
     const destIdx = projects.findIndex(function(p) { return p.id === projectId; });
     if (srcIdx === -1 || destIdx === -1) { removeProjectDropIndicator(); return; }
 
-    // Inherit section membership from drop target (handles move in/out of sections)
-    const knownSectionIds = new Set(sections.map(function(s) { return s.id; }));
-    const destSection = projects[destIdx].sectionId;
-    projects[srcIdx].sectionId = (destSection && knownSectionIds.has(destSection)) ? destSection : null;
-
     const rect = li.getBoundingClientRect();
     const isAfter = e.clientY > rect.top + rect.height / 2;
 
@@ -4672,86 +4370,6 @@ function initProjectDragDrop(li, projectId) {
 
     removeProjectDropIndicator();
     saveProjects();
-    renderSidebar();
-    if (window.lucide) lucide.createIcons();
-  });
-}
-
-function initSectionDropTarget(li, section) {
-  li.addEventListener("dragover", function(e) {
-    if (!dragSrcProjectId) return;
-    e.preventDefault();
-    li.classList.add("section-drop-target");
-  });
-  li.addEventListener("dragleave", function(e) {
-    if (!e.relatedTarget || !projectListEl.contains(e.relatedTarget)) {
-      li.classList.remove("section-drop-target");
-    }
-  });
-  li.addEventListener("drop", function(e) {
-    e.preventDefault();
-    li.classList.remove("section-drop-target");
-    if (!dragSrcProjectId) return;
-    const srcIdx = projects.findIndex(function(p) { return p.id === dragSrcProjectId; });
-    if (srcIdx === -1) return;
-    projects[srcIdx].sectionId = section.id;
-    // Move to end of this section's block in the array
-    const [moved] = projects.splice(srcIdx, 1);
-    var insertAt = projects.reduce(function(last, p, i) {
-      return p.sectionId === section.id ? i + 1 : last;
-    }, projects.length);
-    projects.splice(insertAt, 0, moved);
-    removeProjectDropIndicator();
-    saveProjects();
-    renderSidebar();
-    if (window.lucide) lucide.createIcons();
-  });
-}
-
-function initSectionDragDrop(li, sectionId) {
-  li.setAttribute("draggable", "true");
-
-  li.addEventListener("dragstart", function(e) {
-    if (dragSrcProjectId) return; // project drag takes priority
-    if (e.target.closest(".section-menu-btn")) {
-      e.preventDefault();
-      return;
-    }
-    dragSrcSectionId = sectionId;
-    e.dataTransfer.effectAllowed = "move";
-    setTimeout(function() { li.classList.add("drag-ghost"); }, 0);
-  });
-
-  li.addEventListener("dragend", function() {
-    li.classList.remove("drag-ghost");
-    removeProjectDropIndicator();
-    dragSrcSectionId = null;
-  });
-
-  li.addEventListener("dragover", function(e) {
-    if (!dragSrcSectionId || dragSrcSectionId === sectionId) return;
-    e.preventDefault();
-    showProjectDropIndicator(li, e.clientY);
-  });
-
-  li.addEventListener("drop", function(e) {
-    e.preventDefault();
-    li.classList.remove("section-drop-target");
-    if (!dragSrcSectionId || dragSrcSectionId === sectionId) { removeProjectDropIndicator(); return; }
-
-    const srcIdx  = sections.findIndex(function(s) { return s.id === dragSrcSectionId; });
-    const destIdx = sections.findIndex(function(s) { return s.id === sectionId; });
-    if (srcIdx === -1 || destIdx === -1) { removeProjectDropIndicator(); return; }
-
-    const rect = li.getBoundingClientRect();
-    const isAfter = e.clientY > rect.top + rect.height / 2;
-    const [moved] = sections.splice(srcIdx, 1);
-    var newIdx = destIdx > srcIdx ? destIdx - 1 : destIdx;
-    if (isAfter) newIdx += 1;
-    sections.splice(Math.max(0, Math.min(newIdx, sections.length)), 0, moved);
-
-    removeProjectDropIndicator();
-    saveSections();
     renderSidebar();
     if (window.lucide) lucide.createIcons();
   });
@@ -5003,7 +4621,7 @@ async function bulkMoveToProject() {
   var listChips = document.getElementById("list-chips");
   if (listChips) {
     listChips.addEventListener("click", function(e) {
-      if (e.target.closest("[data-chip-add]")) { startNewProject(null); return; }
+      if (e.target.closest("[data-chip-add]")) { startNewProject(); return; }
       var chip = e.target.closest("[data-chip-target]");
       if (chip) activateProject(chip.dataset.chipTarget);
     });
@@ -5247,7 +4865,6 @@ function showShortcutsHelp() {
     '<p class="modal-label">Atajos de teclado</p>' +
     '<div class="shortcuts-cols">' +
       group("General",
-        row('<kbd>S</kbd>', 'Nueva sección') +
         row('<kbd>Ctrl</kbd>+<kbd>B</kbd>', 'Mostrar / ocultar sidebar') +
         row('<kbd>Ctrl</kbd>+<kbd>K</kbd>', 'Búsqueda global') +
         row('<kbd>Ctrl</kbd>+<kbd>,</kbd>', 'Ajustes') +

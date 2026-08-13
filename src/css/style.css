@@ -2845,21 +2845,9 @@ button:focus-visible {
 }
 .pmenu-sub { font-size: var(--fs-sm); color: var(--text-secondary); }
 
-.pmenu-group-label {
-  margin: 4px 10px 6px;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-/* Rótulo de más alto nivel: envuelve sueltas + cada grupo + "Nuevo
-   grupo" como una sola sección, distinta de "Ajustes"/"Cerrar sesión"
-   de más abajo. Un filete en vez de fondo o borde, para no competir con
-   las cabeceras de grupo (`.pmenu-group-label`), que van un nivel por
-   debajo. */
+/* Rótulo de más alto nivel: envuelve la lista de listas y "+ Añadir
+   lista" como una sola sección, distinta de "Ajustes"/"Cerrar sesión"
+   de más abajo. Un filete en vez de fondo o borde. */
 .pmenu-section-label {
   display: flex;
   align-items: center;
@@ -2874,66 +2862,6 @@ button:focus-visible {
   text-transform: uppercase;
   color: var(--text-tertiary);
 }
-
-/* Cabecera de "Listas": el rótulo y "+ Nueva lista" en la misma fila,
-   como MMenu en el prototipo v1 — crear una lista está a un toque desde
-   arriba, no al final del menú. */
-.pmenu-group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 4px 6px 9px;
-}
-.pmenu-group-title {
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-.pmenu-new-list {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 4px 8px;
-  border: none;
-  border-radius: var(--r-md);
-  background: transparent;
-  color: var(--c-primary-300);
-  font-family: var(--font-sans);
-  font-size: 13.5px;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-}
-.pmenu-new-list:hover { background: var(--row-hover); }
-.pmenu-new-list .lucide { width: 15px; height: 15px; stroke-width: 2.4; }
-:root[data-theme="light"] .pmenu-new-list { color: var(--c-primary-600); }
-
-.pmenu-group-head-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-/* Renombrar/eliminar grupo. Mismo target de 44px que el lápiz de lista
-   (`.pmenu-edit`), aunque el icono visible sea más pequeño. */
-.pmenu-group-menu {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
-}
-.pmenu-group-menu:hover { background: var(--row-hover); color: var(--text-primary); }
-.pmenu-group-menu .lucide { width: 16px; height: 16px; stroke-width: 2; }
 
 /* La tarjeta es el grupo, no cada fila: los separadores van entre filas. */
 .pmenu-group {
@@ -5270,12 +5198,6 @@ body.project-dragging .project-item { cursor: grabbing; }
     justify-content: space-between;
     gap: 8px;
   }
-  /* Botón "+ sección" (layers icon) — oculto en móvil. La creación
-     de secciones vive en el menú de cada sección o sin acceso rápido
-     en este viewport (la mayoría de usuarios no crean secciones aquí). */
-  #new-section-btn {
-    display: none;
-  }
   /* Botón sidebar-collapse-btn — no aplica en móvil (drawer no colapsa) */
   #sidebar-collapse-btn {
     display: none;
@@ -6435,52 +6357,6 @@ kbd {
   opacity: 0.80;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SECCIONES DE PROYECTOS
-   ═══════════════════════════════════════════════════════════════ */
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 7px 10px;
-  /* Altura fija: en hover el contador se sustituye por el botón «…», que
-     es más alto. Sin esto la fila del grupo crecería ~1px al pasar el ratón. */
-  min-height: 30px;
-  margin-top: 2px;
-  cursor: pointer;
-  border-radius: var(--r-xs);
-  user-select: none;
-  transition: background var(--dur-fast) var(--ease-out);
-  list-style: none;
-}
-
-.section-header:first-child { margin-top: var(--sp-1); }
-
-.section-header:hover { background: rgba(163, 179, 102, 0.06); }
-
-/* Sección arrastrable desde la cabecera completa, sin handle visible. */
-.section-header:active { cursor: grabbing; }
-
-.section-header.drag-ghost {
-  opacity: 0.30;
-  background: rgba(163, 179, 102, 0.06) !important;
-}
-
-/* Project drag → section drop targets */
-body.project-dragging .section-header {
-  outline: 1px dashed rgba(163, 179, 102, 0.30);
-  outline-offset: -1px;
-}
-
-.section-header.section-drop-target {
-  background: rgba(163, 179, 102, 0.14) !important;
-  outline: 2px dashed rgba(163, 179, 102, 0.60) !important;
-  outline-offset: -2px;
-  scale: 1.01;
-  transition: background 0.1s, scale 0.1s;
-}
-
 /* Task drag → project sidebar drop targets */
 body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   outline: 1px dashed rgba(163, 179, 102, 0.30);
@@ -6495,122 +6371,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   transition: background 0.1s, scale 0.1s;
 }
 
-.section-chevron {
-  display: flex;
-  align-items: center;
-  color: var(--t-muted);
-  flex-shrink: 0;
-  width: 14px;
-  transition: opacity 0.18s;
-}
-.section-chevron .lucide {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2;
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: center;
-}
-.section-chevron--collapsed .lucide { transform: rotate(-90deg); }
-
-@keyframes chevronExpand {
-  from { transform: rotate(-90deg); }
-  to   { transform: rotate(0); }
-}
-.section-chevron--just-expanded .lucide {
-  animation: chevronExpand 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-/* ── Animación expand / collapse de la sección ────────────────── */
-@keyframes sectionItemIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes sectionItemOut {
-  from { opacity: 1; transform: translateY(0) scale(1); max-height: 60px; margin-bottom: 0; }
-  to   { opacity: 0; transform: translateY(-6px) scale(0.985); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-}
-
-.project-item.section-child-entering {
-  animation: sectionItemIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--enter-delay, 0s);
-  transform-origin: top center;
-}
-.project-item.section-child-leaving {
-  animation: sectionItemOut 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
-  animation-delay: var(--leave-delay, 0s);
-  overflow: hidden;
-  transform-origin: top center;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .project-item.section-child-entering,
-  .project-item.section-child-leaving { animation: none; }
-  .section-chevron .lucide { transition: none; }
-}
-
-.section-name {
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  font-weight: var(--fw-semibold);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text-tertiary);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.section-count {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  color: var(--text-tertiary);
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
-}
-
-.section-menu-btn {
-  /* Oculto por defecto: en hover reemplaza al contador del grupo. */
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--t-muted);
-  cursor: pointer;
-  /* Caja fija que cabe en el alto de la fila: evita que aparecer en hover
-     empuje la altura del grupo. */
-  width: 20px;
-  height: 16px;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  transition: background 0.13s;
-  flex-shrink: 0;
-}
-.section-menu-btn .lucide {
-  width: 13px;
-  height: 13px;
-  stroke-width: 2;
-}
-
-/* Hover: el contador del grupo se sustituye por el menú «…» en su sitio. */
-.section-header:hover .section-count { display: none; }
-.section-header:hover .section-menu-btn { display: flex; }
-.section-menu-btn:hover { background: rgba(163, 179, 102, 0.10); color: var(--t-soft); }
-
-/* Listas dentro de un grupo — sangría 24px como en v1. */
-.project-item-indented {
-  padding-left: 24px;
-}
-
-/* ─── Creación inline (v1): + Añadir lista / + Nuevo grupo ────── */
+/* ─── Creación inline (v1): + Añadir lista ────────────────────── */
 .sidebar-add-btn {
   list-style: none;
   display: flex;
@@ -6640,7 +6401,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .sidebar-add-btn--group:hover { color: var(--text-primary); }
 
 .sidebar-add-input { list-style: none; padding: 2px 8px; }
-.sidebar-add-input--indent { padding-left: 24px; }
 .sidebar-add-input-field {
   width: 100%;
   box-sizing: border-box;
@@ -6655,9 +6415,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   box-shadow: 0 0 0 3px var(--accent-tint);
 }
 .sidebar-add-input-field::placeholder { color: var(--text-tertiary); }
-
-/* El botón de crear grupo del header no se usa (creación inline como v1). */
-#new-section-btn { display: none !important; }
 
 /* Project icon button */
 .project-item-icon {
@@ -6835,9 +6592,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   .project-item .project-kebab-btn { display: flex; }
   .project-item-pinned .project-item-count { display: inline-block; }
 }
-
-/* (legacy) .new-section-btn retirado — el botón ahora vive en
- * .sidebar-header-actions con clase .sidebar-icon-btn. */
 
 /* ── Context menu (shared) ────────────────────────────────────── */
 .ctx-menu {
@@ -9964,8 +9718,7 @@ button {
    resto de la UI que no forma parte de v1 (antes tras "modo simple").
    ═══════════════════════════════════════════════════════════════ */
 
-/* — Sidebar: fuera secciones y archivados — */
-#new-section-btn,
+/* — Sidebar: fuera archivados — */
 .sidebar-section-empty,
 #sidebar-more-group { display: none !important; }
 
