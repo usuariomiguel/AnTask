@@ -305,9 +305,11 @@
   --glow-primary:       0 4px 14px rgba(111, 122, 61, 0.28);
   --ring-primary:       0 0 0 3px rgba(111, 122, 61, 0.20);
 
-  /* Surfaces — papel cálido. OJO: la sidebar sigue oscura (ver .sidebar) */
+  /* Surfaces — papel cálido. `--surface-deep` la usan solo la sidebar y
+     el panel de detalle: en claro es el mismo papel que el panel central
+     (`--surface-canvas`), no una capa oscura aparte. */
   --surface-desk:    #d6c9b0;
-  --surface-deep:    #221d16;
+  --surface-deep:    var(--surface-canvas);
   --surface-canvas:  #e8dfcd;
   --surface-card:    #fffdf6;
   --surface-raised:  #efe6d4;
@@ -359,71 +361,16 @@
   --glow-pink: 0 0 0 3px rgba(176, 82, 74, 0.15);
 }
 
-/* ─── SIDEBAR OSCURA EN TEMA CLARO ───────────────────────────────
-   Rasgo distintivo del rediseño "Tierra": la sidebar permanece oscura
-   (#221d16) mientras el resto de la app es clara. Tokens propios
-   re-declarados en el ámbito de .sidebar para que todo su contenido
-   (texto, bordes, inputs, item activo) cascadee correctamente.
-
-   El panel de detalle de tarea comparte el mismo lenguaje de color que
-   la sidebar (en v1 su `DetailPanel` se pinta con los tokens `sb.*`),
-   por eso entra en el mismo ámbito. */
-:root[data-theme="light"] .sidebar,
-:root[data-theme="light"] .task-detail-wrap {
-  --text-primary:   #f2ece0;
-  --text-secondary: #b3a892;
-  --text-tertiary:  #a3967c;  /* ≥4.5:1 sobre #221d16 (AA) */
-  --text-disabled:  #55492f;
-  --border-subtle:  rgba(255, 245, 225, 0.06);
-  --border-default: rgba(255, 245, 225, 0.08);
-  --border-strong:  rgba(255, 245, 225, 0.15);
-  --surface-input:  rgba(255, 250, 240, 0.05);
-  --surface-overlay: rgba(38, 30, 22, 0.96);   /* dropdowns internos (perfil) */
-  --surface-raised:  #332b20;
-  /* Popovers internos (calendario, repetición…) — un punto por encima del
-     fondo del panel, no la superficie clara del tema. */
-  --surface-canvas:  #2b241b;
-  --surface-card:    #2b241b;
-  --accent-tint:    rgba(138, 154, 91, 0.20);  /* item activo */
-  --c-primary-400:  #a3b366;                    /* acento aclarado sobre oscuro */
-  --c-primary-500:  #a3b366;
-  --accent-on:      #241910;
-  --row-hover:      rgba(255, 245, 225, 0.05);
-  --kbd-bg:         rgba(255, 245, 230, 0.07);
-
-  /* Semánticos en variante oscura: los popovers de la sidebar (perfil)
-     van sobre fondo oscuro también en tema claro. */
-  --c-success: #5fb3a3;
-  --c-warning: #e0a35a;
-  --c-danger:  #e07a6a;
-  --c-info:    #73b6d2;
-  /* Vuelve al rojo oscuro: aquí el fondo es oscuro aunque el tema sea claro. */
-  --c-overdue: #e89a90;
-
-  /* Los aliases legacy (--t-*, --b-*, --bg-*) se computan en :root con
-     los valores light globales y se heredan ya resueltos; hay que
-     re-declararlos aquí para que se re-horneen con los tokens oscuros
-     de este ámbito. */
-  --t-primary: var(--text-primary);
-  --t-soft:    var(--text-secondary);
-  --t-muted:   var(--text-tertiary);
-  --b-subtle:  var(--border-default);
-  --bg-deep:   var(--surface-deep);
-  --bg-panel:  var(--surface-card);
-  --bg-glass:  var(--surface-overlay);
-  --bg-item:   var(--surface-input);
-  --c-green:   var(--c-success);
-  --c-gold:    var(--c-warning);
-  --c-pink:    var(--c-danger);
-  --c-blue:    var(--c-info);
-}
+/* Hasta aquí vivía "SIDEBAR OSCURA EN TEMA CLARO": la sidebar y el panel
+   de detalle re-declaraban aquí un set completo de tokens oscuros para
+   permanecer oscuros incluso con el tema claro activo. Se quitó a
+   petición del usuario — ahora los dos toman los mismos tokens que el
+   panel central, sin ámbito propio. Ver `--surface-deep` más arriba. */
 
 /* ─── ACENTOS ALTERNATIVOS (Ajustes → Apariencia → Color de acento) ──
    Oliva es el valor por defecto (sin atributo, usa los tokens de
    arriba). Cada acento redefine solo lo que determina el color de
-   marca; superficies, texto y semánticos no cambian. La sidebar (y el
-   panel de detalle) son siempre oscuros incluso en tema claro, así que
-   necesitan su propio matiz — igual que ya hacía oliva antes de esto. */
+   marca; superficies, texto y semánticos no cambian. */
 /* Arcilla — el acento por defecto del handoff. Antes no existía como tal:
    `terracota` llevaba el hex de arcilla (#ad5230) en claro, así que los dos
    habrían salido idénticos. Arcilla recupera su valor y terracota baja al
@@ -453,12 +400,6 @@
   --glow-primary:       0 4px 14px rgba(173, 82, 48, 0.28);
   --ring-primary:       0 0 0 3px rgba(173, 82, 48, 0.20);
 }
-:root[data-theme="light"][data-accent="arcilla"] .sidebar,
-:root[data-theme="light"][data-accent="arcilla"] .task-detail-wrap {
-  --c-primary-400: #c0673a;
-  --c-primary-500: #c0673a;
-  --accent-tint:   rgba(192, 103, 58, 0.20);
-}
 
 :root[data-accent="terracota"] {
   --c-primary-300: #f2b795;
@@ -484,12 +425,6 @@
   --b-active:           rgba(194, 94, 58, 0.45);
   --glow-primary:       0 4px 14px rgba(194, 94, 58, 0.28);
   --ring-primary:       0 0 0 3px rgba(194, 94, 58, 0.20);
-}
-:root[data-theme="light"][data-accent="terracota"] .sidebar,
-:root[data-theme="light"][data-accent="terracota"] .task-detail-wrap {
-  --c-primary-400: #d4703f;
-  --c-primary-500: #d4703f;
-  --accent-tint:   rgba(212, 112, 63, 0.20);
 }
 
 :root[data-accent="miel"] {
@@ -517,12 +452,6 @@
   --glow-primary:       0 4px 14px rgba(181, 130, 54, 0.28);
   --ring-primary:       0 0 0 3px rgba(181, 130, 54, 0.20);
 }
-:root[data-theme="light"][data-accent="miel"] .sidebar,
-:root[data-theme="light"][data-accent="miel"] .task-detail-wrap {
-  --c-primary-400: #e0a35a;
-  --c-primary-500: #e0a35a;
-  --accent-tint:   rgba(224, 163, 90, 0.20);
-}
 
 :root[data-accent="marea"] {
   --c-primary-300: #a8d8e8;
@@ -549,12 +478,6 @@
   --glow-primary:       0 4px 14px rgba(61, 110, 133, 0.28);
   --ring-primary:       0 0 0 3px rgba(61, 110, 133, 0.20);
 }
-:root[data-theme="light"][data-accent="marea"] .sidebar,
-:root[data-theme="light"][data-accent="marea"] .task-detail-wrap {
-  --c-primary-400: #73b6d2;
-  --c-primary-500: #73b6d2;
-  --accent-tint:   rgba(115, 182, 210, 0.20);
-}
 
 :root[data-accent="vino"] {
   --c-primary-300: #e8a8ae;
@@ -580,12 +503,6 @@
   --b-active:           rgba(150, 50, 58, 0.45);
   --glow-primary:       0 4px 14px rgba(150, 50, 58, 0.28);
   --ring-primary:       0 0 0 3px rgba(150, 50, 58, 0.20);
-}
-:root[data-theme="light"][data-accent="vino"] .sidebar,
-:root[data-theme="light"][data-accent="vino"] .task-detail-wrap {
-  --c-primary-400: #d98a90;
-  --c-primary-500: #d98a90;
-  --accent-tint:   rgba(217, 138, 144, 0.20);
 }
 
 /* ─── LUCIDE ICONS ───────────────────────────────────────────── */
@@ -689,11 +606,6 @@ body {
 :root[data-theme="light"] .brand-logo--light {
   display: block;
 }
-
-/* La sidebar permanece oscura en ambos temas (rediseño Tierra):
-   dentro de ella se usa siempre la variante oscura del logo. */
-:root[data-theme="light"] .sidebar .brand-logo--dark { display: block; }
-:root[data-theme="light"] .sidebar .brand-logo--light { display: none; }
 
 /* ─── THEME TOGGLE ───────────────────────────────────────────── */
 .theme-toggle {
@@ -886,8 +798,11 @@ body {
   transition: width var(--shell-collapse);
 }
 
+/* Borde algo más marcado en claro: a baja opacidad se leía menos nítido
+   sobre papel que sobre fondo oscuro. El fondo ya sale correcto de
+   `background: var(--surface-deep)` de la regla base — en claro
+   `--surface-deep` es el mismo papel que el panel central. */
 :root[data-theme="light"] .sidebar {
-  background: var(--surface-deep);
   border-right-color: var(--border-default);
 }
 
@@ -1291,9 +1206,9 @@ body {
    elemento que anima el ancho, igual que .sidebar. Si viviera en el
    panel interior, este entraría ya a 340px y el wrap solo lo recortaría:
    se vería deslizarse tras un corte recto, con las esquinas y la sombra
-   del lado derecho comidas, en vez de una caja que crece. Mismo color
-   que la sidebar en ambos temas (en v1 el DetailPanel se pinta con los
-   tokens `sb.*`). */
+   del lado derecho comidas, en vez de una caja que crece. Mismo fondo
+   que la sidebar vía `--surface-deep` — en claro, el papel del panel
+   central; en oscuro, la capa más profunda. */
 .task-detail-wrap {
   width: 62px;
   flex-shrink: 0;
