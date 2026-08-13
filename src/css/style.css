@@ -2770,12 +2770,13 @@ button:focus-visible {
    se activan con data-row-style en #task-list y ganan por orden de
    cascada tanto en tema claro como oscuro. */
 
-/* Limpio — filas planas sin tarjeta, sólo realce en hover. */
+/* Limpio — filas planas sin tarjeta, sólo realce en hover, sin hueco
+   entre una fila y la siguiente. */
 .task-list[data-row-style="limpio"] .task-item {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .task-list[data-row-style="limpio"] .task-item:hover {
   background: var(--task-hover);
@@ -2783,6 +2784,7 @@ button:focus-visible {
   box-shadow: none;
   transform: none;
 }
+.task-list[data-row-style="limpio"] .inbox-group-list { gap: 0; }
 
 /* Líneas — separador inferior, sin tarjeta ni esquinas redondeadas. */
 .task-list[data-row-style="lineas"] .task-item {
@@ -3219,6 +3221,11 @@ button:focus-visible {
   margin-bottom: 0;
   margin-top: 0;
 }
+/* El `margin-top: 0` de arriba pesa igual que el `margin-top: 6px` base
+   (`.hoy-section-list .today-item + .today-item`, más abajo en el
+   archivo) — a igual especificidad gana el que viene después en la
+   cascada. Repetir el mismo selector aquí es lo que de verdad lo gana. */
+.task-list[data-row-style="cebra"] .hoy-section-list .today-item + .today-item { margin-top: 0; }
 .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
   background: var(--zebra-bg);
 }
@@ -3228,11 +3235,29 @@ button:focus-visible {
   transform: none;
 }
 
+/* Cebra en una lista suelta (sin sección que la envuelva): aquí
+   `#task-list` ES la lista de filas —a diferencia de Hoy/Inbox, donde
+   `.hoy-section-list`/`.inbox-group-list` son un elemento aparte del
+   bloque—, así que la caja va directamente en ella. Antes esto se
+   resolvía con un borde por fila (izquierda/derecha en todas, arriba/
+   abajo en la primera/última): funcionaba para el borde, pero las filas
+   impares —transparentes a propósito, para que la franja de las pares
+   se note— dejaban ver el canvas del panel en vez de una superficie
+   limpia, y la lista salía con un fondo beige sucio en vez de blanco. */
+.task-list--project[data-row-style="cebra"] {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: calc(var(--r-md) + 2px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+}
+
 .task-list[data-row-style="limpio"] .today-item {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
 }
+.task-list[data-row-style="limpio"] .hoy-section-list .today-item + .today-item { margin-top: 0; }
 .task-list[data-row-style="limpio"] .today-item:hover {
   background: var(--task-hover);
   border-color: transparent;
@@ -8248,6 +8273,13 @@ button {
 .project-item-pinned.active .project-item-icon {
   color: var(--c-primary-300);
 }
+/* El 300 es el tono más pálido de la escala — pensado para leerse claro
+   sobre fondo oscuro. Sobre papel se lava; en claro toca el 600, más
+   saturado, que es lo que ya usan el resto de acentos activos (fecha de
+   "Hoy", chips de captura rápida…). */
+:root[data-theme="light"] .project-item-pinned.active .project-item-icon {
+  color: var(--c-primary-600);
+}
 
 /* Separador entre pinned y resto */
 .project-pinned-sep {
@@ -8493,25 +8525,22 @@ button {
 .today-date-pill--action:active { background: color-mix(in srgb, var(--c-primary-500) 26%, transparent); }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
-/* Bloque que engloba las tareas de cada sección. Se quitó en
-   `293493d` (empty states) y se restaura tal cual estaba: es lo que
-   separa visualmente "Vencidas" de "Para hoy" y da a cada grupo del
-   Inbox su propia caja. */
+/* La cabecera va suelta sobre el lienzo, como en el prototipo: la caja ya
+   no es el bloque entero (así se hacía antes, restaurado en `293493d`),
+   es la LISTA de filas — ver `.hoy-section-list` / `.inbox-group-list` un
+   poco más abajo. Esto ya se había hecho en móvil; ahora es igual en
+   escritorio, sin distinción de tamaño de pantalla. */
 .hoy-section {
   list-style: none;
-  margin-bottom: 14px;
-  background: var(--block-bg);
-  border: 1px solid var(--border-default);
-  border-radius: calc(var(--r-md) + 8px);
-  padding: 11px 11px 10px;
+  margin-bottom: 18px;
 }
 
 .hoy-section-head {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-bottom: 10px;
-  padding: 0 3px;
+  margin-bottom: 9px;
+  padding: 0 4px;
 }
 .hoy-section-dot {
   width: 7px;
@@ -8604,6 +8633,13 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
+  /* La lista es la caja ahora, no la sección entera — ver el bloque de
+     arriba. */
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: calc(var(--r-md) + 2px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 .hoy-section-list .today-item { margin-bottom: 0; }
 .hoy-section-list .today-item + .today-item,
@@ -8624,7 +8660,10 @@ button {
      salto de 8px al mostrarlo. Los 21px de contenido (45 − borde − padding)
      son justo lo que mide el botón. */
   min-height: 45px;
-  margin-top: 2px;
+  /* Separación de la tarjeta de filas que tiene justo encima: desde que
+     esa tarjeta es la lista y no la sección entera, quedaban casi
+     pegadas. */
+  margin-top: 10px;
   cursor: text;
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
   transition: border-color 0.12s, box-shadow 150ms;
@@ -8824,7 +8863,8 @@ button {
   .task-list { padding-top: var(--sp-3); padding-bottom: 0; }
 }
 
-/* Lista anidada dentro de cada bloque de grupo del Inbox */
+/* Lista anidada dentro de cada bloque de grupo del Inbox — la caja es
+   ella, no `.inbox-group-block`: ver el comentario en `.hoy-section`. */
 .inbox-group-list {
   list-style: none;
   margin: 0;
@@ -8832,6 +8872,11 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: calc(var(--r-md) + 2px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 .inbox-group-list .task-item { margin-bottom: 0; }
 /* El bloque de hechas no lleva cabecera: compensa el padding superior. */
@@ -9873,25 +9918,11 @@ button {
   }
 }
 
-/* ─── Bloque sobrio de la lista de proyecto (prototipo Inbox) ────
-   Compañero del bloque de `.hoy-section`: cuando se abre una lista
-   concreta, sus tareas van dentro de la misma caja. Se retiró junto
-   con el otro en `293493d` y se restaura igual.
-
-   Solo en escritorio: en móvil las filas ocupan el ancho completo y
-   una caja alrededor solo restaría sitio.                          */
-@media (min-width: 769px) {
-  .task-list--project {
-    background: var(--block-bg);
-    border: 1px solid var(--border-default);
-    border-radius: calc(var(--r-md) + 8px);
-    padding: 11px 11px 4px;
-    margin-bottom: 14px;
-  }
-  /* En "Compacto" las filas forman un bloque continuo: el hueco inferior
-     sobra, así que el bloque queda casi a ras del contenedor. */
-  .task-list--project[data-row-style="compacto"] { padding-bottom: 4px; }
-}
+/* La vista de una lista concreta ya NO lleva una caja envolviendo todas
+   sus tareas — iba en `.task-list--project` (solo escritorio) y se quitó
+   a petición del usuario, igual que la de `.hoy-section`. "Tarjetas" no
+   la necesita (cada fila es su propia caja) y "cebra" arma su propio
+   borde por fila; ver el bloque de más abajo. */
 
 /* ═══════════════════════════════════════════════════════════════
    FILTROS A LA VISTA (solo escritorio)
@@ -10241,18 +10272,10 @@ button {
     justify-self: end;
   }
 
-  /* ── Sin tarjeta de sección ──────────────────────────────────
-     En el prototipo la cabecera va suelta sobre el lienzo y la tarjeta
-     es la LISTA de filas, no el bloque entero. Así el redondeado lo pone
-     la lista y la cebra corre de lado a lado. `.hoy-section` es la clase
-     común de las secciones de Hoy y de los grupos del Inbox. */
-  .hoy-section {
-    background: none;
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    margin-bottom: 18px;
-  }
+  /* La sección sin tarjeta y la lista como caja son ya la base (ver
+     `.hoy-section` / `.hoy-section-list` / `.inbox-group-list` más
+     arriba, sin `@media`); aquí solo quedan los ajustes propios de
+     390px. */
   .inbox-group-head,
   .hoy-section-head { padding: 0 4px 9px; margin-bottom: 0; }
 
@@ -10300,37 +10323,20 @@ button {
   }
   .hoy-section-action-label { display: none; }
   .hoy-section-action .lucide { width: 15px; height: 15px; }
-  .inbox-group-list,
-  .hoy-section-list {
-    background: var(--surface-card);
-    border: 1px solid var(--border-default);
-    border-radius: calc(var(--r-md) + 2px);
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-  }
 
-  /* El quick-add cuelga del bloque, debajo de la tarjeta de la lista:
-     caja propia con su borde y un hueco de separación. */
-  .hoy-section > .hoy-quickadd { margin-top: 8px; }
+  /* La caja de una lista suelta en cebra ya es la base, sin `@media`
+     — ver `.task-list--project[data-row-style="cebra"]` más arriba.
 
-  /* En la vista de una lista no hay sección que envuelva: las filas
-     cuelgan de `#task-list` junto al pie y al estado vacío, así que no
-     se puede rodear el bloque con una caja. El marco lo forman las
-     propias filas: laterales en todas, y la primera y la última ponen
-     el borde de arriba/abajo con sus esquinas.
-     El selector lleva el atributo de estilo de fila para empatar en
-     especificidad con las reglas de cebra y ganarles por orden. */
-  .task-list--project[data-row-style="cebra"] .task-item {
-    border-left: 1px solid var(--border-default);
-    border-right: 1px solid var(--border-default);
-  }
-  /* ── Cebra sólida, igual en las tres pantallas ───────────────
-     Medido: la misma regla rendía Δ10 en Inbox, Δ5 en Hoy y Δ0 en una
-     lista. La culpa es de `.task-swipe-content { background-color:
-     inherit }`, que repinta el fondo de la fila encima: un tinte con
-     alfa se componía dos veces donde la fila lo llevaba como color, y
-     desaparecía donde el color era la tarjeta opaca. Con un color
-     sólido en la fila el resultado no depende de cuántas capas haya. */
+     ── Cebra sólida, solo en móvil ───────────────────────────────
+     Medido: la misma regla traslúcida rendía Δ10 en Inbox, Δ5 en Hoy y
+     Δ0 en una lista. La culpa es de `.task-swipe-content {
+     background-color: inherit }` —el envoltorio del gesto de deslizar,
+     que solo existe en móvil— que repinta el fondo de la fila encima:
+     un tinte con alfa se componía dos veces donde la fila lo llevaba
+     como color, y desaparecía donde el color ya era la tarjeta opaca.
+     Con un color sólido el resultado no depende de cuántas capas haya.
+     En escritorio no hay swipe, así que la regla base (`var(--zebra-bg)`,
+     traslúcida) ya rinde igual en las tres vistas sin este parche. */
   .task-list[data-row-style="cebra"] .task-item,
   .task-list[data-row-style="cebra"] .today-item {
     background: var(--surface-card);
@@ -10339,19 +10345,6 @@ button {
   .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even),
   .task-list--project[data-row-style="cebra"] .task-item:nth-child(even) {
     background: var(--zebra-solid);
-  }
-  .task-list--project[data-row-style="cebra"] .task-item:first-child {
-    border-top: 1px solid var(--border-default);
-    border-radius: calc(var(--r-md) + 2px) calc(var(--r-md) + 2px) 0 0;
-  }
-  .task-list--project[data-row-style="cebra"] .task-item:not(:has(+ .task-item)) {
-    border-bottom: 1px solid var(--border-default);
-    border-radius: 0 0 calc(var(--r-md) + 2px) calc(var(--r-md) + 2px);
-    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-  }
-  /* Lista de una sola tarea: las cuatro esquinas. */
-  .task-list--project[data-row-style="cebra"] .task-item:first-child:not(:has(+ .task-item)) {
-    border-radius: calc(var(--r-md) + 2px);
   }
 
   /* ── Márgenes de pantalla ────────────────────────────────────
