@@ -237,6 +237,7 @@
               <!-- ── Cuenta ── -->
               <section class="settings-section-panel" id="settings-panel-cuenta" data-settings-panel="cuenta">
                 <h3 class="settings-section-title" data-i18n="settings.nav.account">Cuenta</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-account-row">
                   <span class="profile-avatar" id="settings-avatar" style="width:60px;height:60px;font-size:22px;border-radius:17px;">A</span>
                   <div class="settings-account-meta">
@@ -247,8 +248,8 @@
                     <i data-lucide="user-round"></i><span data-i18n="profile.edit">Editar perfil</span>
                   </button>
                 </div>
-                <div class="profile-sep"></div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="cloud"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.account.sync">Sincronización con Google</div>
                     <div class="settings-row-desc" data-i18n="settings.account.sync_desc">Tus tareas se guardan en la nube.</div>
@@ -262,18 +263,22 @@
                   </div>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="languages"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.account.language">Idioma</div>
                     <div class="settings-row-desc" data-i18n="settings.account.language_desc">Idioma de la interfaz.</div>
                   </div>
                   <button type="button" class="settings-btn" id="pf-lang-btn"><i data-lucide="languages"></i> <span data-i18n="profile.lang_switch">Switch to English</span></button>
                 </div>
+                </div>
               </section>
 
               <!-- ── Apariencia ── -->
               <section class="settings-section-panel" id="settings-panel-apariencia" data-settings-panel="apariencia" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.appearance">Apariencia</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="sun"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.appearance.theme">Tema</div>
                     <div class="settings-row-desc" data-i18n="settings.appearance.theme_desc">Claro para el día, oscuro para la noche.</div>
@@ -284,6 +289,7 @@
                   </div>
                 </div>
                 <div class="settings-row settings-row--top">
+                  <span class="settings-row-ico"><i data-lucide="palette"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.appearance.accent">Color de acento</div>
                     <div class="settings-row-desc" data-i18n="settings.appearance.accent_desc">Define el carácter de la interfaz.</div>
@@ -301,6 +307,7 @@
                   </div>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="layout-panel-left"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.appearance.container">Contenedor</div>
                     <div class="settings-row-desc" data-i18n="settings.appearance.container_desc">Paneles pegados o flotando sobre el lienzo.</div>
@@ -310,12 +317,15 @@
                     <button type="button" class="settings-seg-opt active" data-shell="flotante" data-i18n="settings.appearance.shell_floating">Flotante</button>
                   </div>
                 </div>
+                </div>
               </section>
 
               <!-- ── Notificaciones ── -->
               <section class="settings-section-panel" id="settings-panel-notif" data-settings-panel="notif" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.notifications">Notificaciones</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="bell"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.notifications.tasks">Avisos de tareas</div>
                     <div class="settings-row-desc" id="pf-notif-label" data-i18n="settings.notifications.tasks_desc">Recordatorios cuando una tarea vence.</div>
@@ -340,7 +350,10 @@
                   </button>
                 </div>
                 <span class="profile-toggle-pill" id="pf-notif-pill" hidden>OFF</span>
+                </div>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="mail"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.notifications.digest">Resumen diario</div>
                     <div class="settings-row-desc" data-i18n="settings.notifications.digest_desc">Un correo cada mañana con el plan del día.</div>
@@ -349,12 +362,15 @@
                     <span class="settings-switch-knob"></span>
                   </button>
                 </div>
+                </div>
               </section>
 
               <!-- ── Tareas ── -->
               <section class="settings-section-panel" id="settings-panel-tareas" data-settings-panel="tareas" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.tasks">Tareas</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="calendar"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.tasks.monday">La semana empieza el lunes</div>
                     <div class="settings-row-desc" data-i18n="settings.tasks.monday_desc">Afecta al orden de los días en las fechas.</div>
@@ -364,6 +380,7 @@
                   </button>
                 </div>
                 <div class="settings-row settings-row--top">
+                  <span class="settings-row-ico"><i data-lucide="flag"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.tasks.default_priority">Prioridad por defecto</div>
                     <div class="settings-row-desc" data-i18n="settings.tasks.default_priority_desc">Se aplica a las tareas nuevas sin prioridad.</div>
@@ -373,12 +390,15 @@
                     <button type="button" class="settings-seg-opt" data-priority="high" data-i18n="detail.priority_important">Importante</button>
                   </div>
                 </div>
+                </div>
               </section>
 
               <!-- ── Datos ── -->
               <section class="settings-section-panel" id="settings-panel-datos" data-settings-panel="datos" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.data">Datos</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="upload"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="profile.export">Exportar workspace</div>
                     <div class="settings-row-desc" data-i18n="settings.data.export_desc">Descarga todas tus tareas en un archivo.</div>
@@ -386,6 +406,7 @@
                   <button type="button" class="settings-btn" id="pf-export-btn"><i data-lucide="upload"></i> <span data-i18n="settings.data.export">Exportar</span></button>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="download"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="profile.import">Importar workspace</div>
                     <div class="settings-row-desc" data-i18n="settings.data.import_desc">Restaura desde un archivo exportado previamente.</div>
@@ -394,6 +415,7 @@
                   <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="trash-2"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.data.clear_completed">Limpiar tareas completadas</div>
                     <div class="settings-row-desc" data-i18n="settings.data.clear_completed_desc">Elimina de forma permanente las tareas ya hechas.</div>
@@ -401,18 +423,22 @@
                   <button type="button" class="settings-btn settings-btn--danger" id="settings-clear-completed-btn"><i data-lucide="trash-2"></i> <span data-i18n="settings.data.clear">Limpiar</span></button>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="trash-2"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.data.delete_all">Eliminar todo</div>
                     <div class="settings-row-desc" data-i18n="settings.data.delete_all_desc">Borra todas las listas y tareas. No se puede deshacer.</div>
                   </div>
                   <button type="button" class="settings-btn settings-btn--danger" id="settings-delete-all-btn"><i data-lucide="trash-2"></i> <span data-i18n="settings.data.delete_all_btn">Eliminar todo</span></button>
                 </div>
+                </div>
               </section>
 
               <!-- ── Acerca de ── -->
               <section class="settings-section-panel" id="settings-panel-acerca" data-settings-panel="acerca" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.about">Acerca de</h3>
+                <div class="settings-mobile-card">
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="info"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.about.version">Versión</div>
                     <div class="settings-row-desc" data-i18n="settings.about.version_desc">Antask para escritorio.</div>
@@ -420,15 +446,18 @@
                   <span class="settings-mono-value">1.0</span>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="keyboard"></i></span>
                   <div class="settings-row-label" data-i18n="profile.shortcuts">Atajos de teclado</div>
                   <button type="button" class="settings-mono-value settings-mono-value--btn" id="settings-shortcuts-link">?</button>
                 </div>
                 <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="log-out"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.about.session">Sesión</div>
                     <div class="settings-row-desc" data-i18n="settings.about.session_desc">Cierra la sesión en este dispositivo.</div>
                   </div>
                   <button type="button" class="settings-btn settings-btn--danger" id="settings-signout-about-btn"><i data-lucide="log-out"></i> <span data-i18n="profile.signout">Cerrar sesión</span></button>
+                </div>
                 </div>
               </section>
 

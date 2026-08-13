@@ -522,27 +522,30 @@ document.addEventListener("keydown", function(e) {
 // (los modales genéricos viven en ./ui/modal.js)
 // ═══════════════════════════════════════════════════════════════
 
+/* Paleta cerrada de colores de lista, compartida por el selector de
+   "Cambiar color" y por la hoja móvil de "Nueva lista". */
+var LIST_COLORS = [
+  { key: "color.red",      hex: "#ef4444" },
+  { key: "color.orange",   hex: "#f97316" },
+  { key: "color.amber",    hex: "#f59e0b" },
+  { key: "color.gold",     hex: "#d97706" },
+  { key: "color.lime",     hex: "#84cc16" },
+  { key: "color.green",    hex: "#22c55e" },
+  { key: "color.emerald",  hex: "#10b981" },
+  { key: "color.cyan",     hex: "#06b6d4" },
+  { key: "color.blue",     hex: "#3b82f6" },
+  { key: "color.indigo",   hex: "#6d7ab0" },
+  { key: "color.violet",   hex: "#8a6fb0" },
+  { key: "color.purple",   hex: "#a855f7" },
+  { key: "color.pink",     hex: "#ec4899" },
+  { key: "color.brown",    hex: "#78716c" },
+  { key: "color.gray",     hex: "#64748b" },
+  { key: "color.silver",   hex: "#94a3b8" },
+];
+
 function showColorPicker(project) {
   var { overlay, box } = createModalBase();
-
-  var colors = [
-    { key: "color.red",      hex: "#ef4444" },
-    { key: "color.orange",   hex: "#f97316" },
-    { key: "color.amber",    hex: "#f59e0b" },
-    { key: "color.gold",     hex: "#d97706" },
-    { key: "color.lime",     hex: "#84cc16" },
-    { key: "color.green",    hex: "#22c55e" },
-    { key: "color.emerald",  hex: "#10b981" },
-    { key: "color.cyan",     hex: "#06b6d4" },
-    { key: "color.blue",     hex: "#3b82f6" },
-    { key: "color.indigo",   hex: "#6d7ab0" },
-    { key: "color.violet",   hex: "#8a6fb0" },
-    { key: "color.purple",   hex: "#a855f7" },
-    { key: "color.pink",     hex: "#ec4899" },
-    { key: "color.brown",    hex: "#78716c" },
-    { key: "color.gray",     hex: "#64748b" },
-    { key: "color.silver",   hex: "#94a3b8" },
-  ];
+  var colors = LIST_COLORS;
 
   var swatchesHtml = colors.map(function(c) {
     return '<button type="button" class="color-picker-swatch' +
@@ -583,6 +586,82 @@ function showColorPicker(project) {
 
   document.addEventListener("keydown", function handler(e) {
     if (e.key === "Escape") { closeModal(overlay); document.removeEventListener("keydown", handler); }
+  });
+}
+
+/**
+ * Hoja móvil "Nueva lista": nombre + color, al estilo del handoff móvil
+ * (design_handoff_antask_movil/referencia/settings.jsx no cubre esto, pero
+ * el patrón nombre+color+crear es el mismo "Nueva/editar lista" de las hojas
+ * modales descrito en su README). Sin selector de icono: no es un dato que
+ * guardemos hoy, así que se descarta esa fila del prototipo.
+ *
+ * Sustituye al `modalPrompt` genérico solo en móvil — ahí crear una lista
+ * es la vía principal desde el chip "+" del Inbox y "Perfil", no un caso de
+ * borde de escritorio con plantillas.
+ *
+ * @returns {Promise<{name: string, color: string}|null>}
+ */
+function showNewListSheet() {
+  return new Promise(function(resolve) {
+    const { overlay, sheet } = createSheetBase();
+
+    const swatchesHtml = LIST_COLORS.map(function(c, i) {
+      return '<button type="button" class="color-picker-swatch' + (i === 0 ? " color-picker-swatch--active" : "") +
+        '" data-color="' + c.hex + '" title="' + escHtml(t(c.key)) +
+        '" style="background:' + c.hex + '"></button>';
+    }).join("");
+    let selected = LIST_COLORS[0].hex;
+
+    sheet.insertAdjacentHTML("beforeend",
+      '<p class="modal-sheet-title">' + escHtml(t("sheet.new_list.title")) + '</p>' +
+      '<div class="modal-sheet-body">' +
+        '<input type="text" class="modal-input new-list-sheet-input" maxlength="60" placeholder="' +
+          escHtml(t("project.new_prompt")) + '">' +
+        '<p class="modal-sheet-heading">' + escHtml(t("sheet.new_list.color")) + '</p>' +
+        '<div class="color-picker-grid">' + swatchesHtml + '</div>' +
+        '<div class="modal-actions">' +
+          '<button type="button" class="modal-btn modal-btn-cancel">' + escHtml(t("modal.cancel")) + '</button>' +
+          '<button type="button" class="modal-btn modal-btn-confirm" disabled>' + escHtml(t("sheet.new_list.confirm")) + '</button>' +
+        '</div>' +
+      '</div>'
+    );
+
+    const input   = sheet.querySelector(".new-list-sheet-input");
+    const confirm = sheet.querySelector(".modal-btn-confirm");
+    const cancel  = sheet.querySelector(".modal-btn-cancel");
+
+    input.addEventListener("input", function() { confirm.disabled = !input.value.trim(); });
+
+    sheet.querySelectorAll(".color-picker-swatch").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        selected = btn.dataset.color;
+        sheet.querySelectorAll(".color-picker-swatch").forEach(function(b) {
+          b.classList.toggle("color-picker-swatch--active", b === btn);
+        });
+      });
+    });
+
+    let settled = false;
+    function finish(value) {
+      if (settled) return;
+      settled = true;
+      closeSheet(overlay);
+      resolve(value);
+    }
+
+    overlay._cancel = function() { finish(null); };
+    cancel.addEventListener("click", function() { finish(null); });
+    confirm.addEventListener("click", function() {
+      const name = input.value.trim();
+      if (!name) return;
+      finish({ name: name, color: selected });
+    });
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && input.value.trim()) { e.preventDefault(); confirm.click(); }
+    });
+
+    setTimeout(function() { input.focus(); }, 50);
   });
 }
 
@@ -672,6 +751,14 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
 function startNewProject() {
   showProjectTemplatesModal({
     onPickBlank: async function () {
+      // En móvil, hoja con nombre + color (handoff móvil); en escritorio,
+      // el prompt genérico sigue bastando para este caso de borde.
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        const picked = await showNewListSheet();
+        if (!picked) return;
+        _createProjectWithTasks(picked.name, [], { color: picked.color });
+        return;
+      }
       const name = await modalPrompt(t("project.new_prompt"), "", t("project.new_placeholder"));
       if (!name) return;
       _createProjectWithTasks(name, []);
@@ -2389,8 +2476,9 @@ function renderTasks() {
         '<p class="empty-illustrated-title">' + t("empty.inbox.title") + '</p>' +
         '<p class="empty-illustrated-sub">' + t("empty.inbox.sub") + '</p>';
     } else if (!hasAnyTask) {
-      empty.className = "empty-illustrated";
+      empty.className = "empty-illustrated empty-illustrated--badge";
       empty.innerHTML =
+        '<div class="empty-illustrated-badge"><i data-lucide="list-todo"></i></div>' +
         '<p class="empty-illustrated-title">' + t("empty.tasks.title_new").replace("{list}", project.name) + '</p>' +
         '<p class="empty-illustrated-sub">' + t("empty.tasks.sub_default") + '</p>' +
         '<button type="button" class="empty-illustrated-cta" data-empty-action="add">' +
@@ -3464,10 +3552,16 @@ function _wireEmptyStateCTA(emptyNode) {
     e.preventDefault();
     var fab = document.getElementById("mobile-fab");
     var taskInput = document.getElementById("task-input");
+    var captureBarEl = document.getElementById("capture-bar");
     if (taskInput && taskInput.offsetParent !== null) {
       taskInput.focus();
     } else if (fab && fab.offsetParent !== null) {
       fab.click();
+    } else if (captureBarEl && captureBarEl.offsetParent !== null) {
+      // En escritorio la creación va por la barra de captura flotante: el
+      // form de #task-input está oculto ahí (ver .task-form en CSS), así
+      // que sin este fallback el CTA no hacía nada.
+      captureBarEl.click();
     }
   });
 }
@@ -3559,12 +3653,15 @@ function renderTodayView() {
   // El aviso de "todo al día" va debajo de las secciones (Para hoy sigue
   // siendo el sitio para añadir algo nuevo), no por delante tapándolas.
   if (allClear) {
+    // Mismas clases que el resto de empty states (Inbox / lista): antes
+    // era su propio bloque (.hoy-allclear) con otra escala de badge y
+    // tipografía, y las tres vistas no se veían relacionadas entre sí.
     var clearLi = document.createElement("li");
-    clearLi.className = "hoy-allclear";
+    clearLi.className = "empty-illustrated empty-illustrated--badge";
     clearLi.innerHTML =
-      '<span class="hoy-allclear-badge"><i data-lucide="check"></i></span>' +
-      '<p class="hoy-allclear-title">' + t("today.empty_title_full") + '</p>' +
-      '<p class="hoy-allclear-sub">' + t("today.empty_sub_full") + '</p>';
+      '<div class="empty-illustrated-badge"><i data-lucide="check"></i></div>' +
+      '<p class="empty-illustrated-title">' + t("today.empty_title_full") + '</p>' +
+      '<p class="empty-illustrated-sub">' + t("today.empty_sub_full") + '</p>';
     taskList.appendChild(clearLi);
   }
 
@@ -3682,7 +3779,7 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     el.className = "hoy-header-extra";
     host.insertBefore(el, host.firstChild);
   }
-  var pct = total > 0 ? Math.round((done / total) * 100) : 100;
+  var pct = total > 0 ? Math.round((done / total) * 100) : 0;
   // Anillo de 44 con r=18 (handoff móvil v1). A 42/17 el «100%» centrado
   // llegaba a rozar el trazo; dos píxeles más de diámetro le dan sitio sin
   // engordar el stroke.

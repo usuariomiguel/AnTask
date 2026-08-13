@@ -5324,7 +5324,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    justify-content: space-around;
+    justify-content: space-evenly;
     /* La pastilla ocupa TODO el ancho hasta el FAB (en v1 es `flex: 1`), no
        solo lo que miden sus tres pestañas: por eso quedaban apiñadas a la
        izquierda. 54 del FAB + 11 de separación + 14 de margen. */
@@ -5332,7 +5332,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     left: 14px;
     right: calc(14px + 54px + 11px);
     /* Altura natural: padding 8/12 más los 44px mínimos de la pestaña. */
-    padding: 8px 12px;
+    padding: 8px 6px;
     bottom: max(22px, env(safe-area-inset-bottom, 0px));
     background: var(--surface-card);
     border: 1px solid var(--border-default);
@@ -5381,7 +5381,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .mobile-bottom-btn svg { width: 23px; height: 23px; stroke-width: 1.9; flex-shrink: 0; }
+  .mobile-bottom-btn svg { width: 20px; height: 20px; stroke-width: 1.9; flex-shrink: 0; }
   .mobile-bottom-btn > span {
     max-width: 100%;
     overflow: hidden;
@@ -5393,8 +5393,8 @@ body.project-dragging .project-item { cursor: grabbing; }
      con `outline` y no con `border` para que no altere la caja y el avatar
      mantenga sus 26px al pasar a activo (el anillo engorda de 1.5 a 2.5). */
   .bnav-avatar {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
@@ -5447,7 +5447,7 @@ body.project-dragging .project-item { cursor: grabbing; }
     /* Comparte eje con la pastilla: esta apoya en max(22px, safe) y mide 65px
        medidos (8 + 47 de pestaña + 8 + 2 de borde), así que el FAB de 54 sube
        (65-54)/2 ≈ 5px. */
-    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) + 5px);
+    bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 5px);
     /* Mismo motivo que la barra de navegación (z-index 510): por encima
        del panel de detalle a pantalla completa, para poder capturar una
        tarea nueva sin salir primero de la que se está viendo. */
@@ -7149,6 +7149,63 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   .settings-nav-title { display: none; }
 }
 
+/* ─── Ajustes en móvil: pantalla continua de tarjetas agrupadas por
+   sección (handoff móvil: GLabel + Card + Row), no el panel de pestañas
+   de escritorio — todas las secciones se muestran a la vez (ver
+   openSettingsModal en sections-and-profile.js). ────────────────── */
+@media (max-width: 768px) {
+  .settings-nav { display: none; }
+  .settings-content-header { padding: 10px 14px 0; }
+  .settings-content-body { padding: 4px 16px 28px; }
+
+  .settings-section-title {
+    margin: 22px 6px 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .settings-section-panel:first-of-type .settings-section-title { margin-top: 6px; }
+
+  .settings-mobile-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+  }
+
+  /* Filas de ancho fijo (desktop) vs. tarjeta angosta de móvil: la
+     etiqueta/descripción y el control (botón, segmentado, switch) no
+     siempre caben en una línea aquí, así que la fila envuelve y el
+     control pasa a su propia línea en vez de recortarse contra el borde
+     de la tarjeta. */
+  .settings-row {
+    padding: 13px 15px;
+    gap: 13px;
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .settings-row > div:has(.settings-row-label) { flex: 1 1 170px; min-width: 0; }
+  .settings-account-row { padding: 15px; flex-wrap: wrap; row-gap: 10px; }
+  .settings-account-meta { flex: 1 1 170px; min-width: 0; }
+
+  .settings-row-ico {
+    width: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+  }
+  .settings-row-ico .lucide { width: 18px; height: 18px; stroke-width: 1.9; }
+
+  .settings-accent-row { flex-wrap: wrap; row-gap: 8px; }
+}
+
 /* ─── Notif toggle item ─────────────────────────────────────── */
 
 .profile-toggle-pill {
@@ -8573,37 +8630,6 @@ button {
   line-height: 1;
 }
 .hoy-quickadd-btn .lucide { width: 13px; height: 13px; stroke-width: 2.4; }
-
-/* Bloque "Todo al día" */
-.hoy-allclear {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 52px 0 30px;
-  color: var(--text-tertiary);
-  text-align: center;
-}
-.hoy-allclear-badge {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent-tint);
-  display: grid;
-  place-items: center;
-  color: var(--c-primary-300);
-}
-:root[data-theme="light"] .hoy-allclear-badge { color: var(--c-primary-600); }
-.hoy-allclear-badge .lucide { width: 28px; height: 28px; }
-.hoy-allclear-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-semibold);
-  font-size: 20px;
-  color: var(--text-secondary);
-}
-.hoy-allclear-sub { margin: 0; font-size: 14px; max-width: 320px; }
 
 /* Stats + anillo de progreso en la cabecera de Hoy */
 .hoy-header-extra {

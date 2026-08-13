@@ -85,6 +85,12 @@ import { loadSync } from "./sync-loader.js";
     if (!settingsOverlay) return;
     syncThemeSeg();
     syncAccentDots();
+    // En móvil no hay pestañas de navegación (todo va en una sola pantalla
+    // con tarjetas, al estilo del handoff): las secciones se muestran todas
+    // a la vez en vez de una por pestaña activa.
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      settingsPanels.forEach(function(p) { p.hidden = false; });
+    }
     settingsOverlay.hidden = false;
     requestAnimationFrame(function() { settingsOverlay.classList.add("modal-visible"); });
   }
