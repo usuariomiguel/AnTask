@@ -15,11 +15,6 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
-      // Multi-page: landing (/) y la app (/app).
-      input: {
-        main: "index.html",
-        app: "app.html",
-      },
       output: {
         manualChunks(id) {
           if (

@@ -29,8 +29,7 @@ function writeReport(name, results) {
 }
 
 async function loadFresh(page, seed) {
-  // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
-  await page.goto("/app.html");
+  await page.goto("/");
   await page.evaluate((seed) => {
     localStorage.clear();
     localStorage.setItem("antask_consent", "essential");
@@ -51,7 +50,7 @@ async function loadFresh(page, seed) {
       ]));
     }
   }, seed);
-  await page.goto("/app.html");
+  await page.goto("/");
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
   await page.evaluate(() => {
     const b = document.getElementById("consent-banner");

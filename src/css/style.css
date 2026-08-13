@@ -144,12 +144,13 @@
   --sp-10: 64px;
 
   /* ─── RADII ─────────────────────────────────────────────────── */
-  --r-xs:   4px;
-  --r-sm:   6px;
-  --r-md:   8px;
-  --r-lg:   10px;
-  --r-xl:   14px;
-  --r-2xl:  18px;
+  /* +18px a cada uno, a petición del usuario tras probarlo él mismo. */
+  --r-xs:   22px;
+  --r-sm:   24px;
+  --r-md:   26px;
+  --r-lg:   28px;
+  --r-xl:   32px;
+  --r-2xl:  36px;
   --r-pill: 999px;
 
   /* ─── SHADOWS ───────────────────────────────────────────────── */
@@ -560,7 +561,7 @@ body {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 26px;
   display: grid;
   place-items: center;
   background: linear-gradient(150deg, #a3b366 0%, #8a9a5b 50%, #566030 100%);
@@ -763,7 +764,7 @@ body {
   width: 20px;
   height: 20px;
   padding: 0;
-  border-radius: 2px;
+  border-radius: 20px;
   background: transparent;
   border: 1px solid rgba(255, 238, 214, 0.08);
   color: var(--t-muted);
@@ -836,7 +837,7 @@ body {
   flex-shrink: 0;
   margin-bottom: 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 26px;
   background: linear-gradient(150deg, #a3b366 0%, #8a9a5b 50%, #566030 100%);
   color: #fff;
   font-family: var(--font-display);
@@ -867,7 +868,7 @@ body {
   place-items: center;
   padding: 0;
   border: none;
-  border-radius: 9px;
+  border-radius: 27px;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
@@ -1011,7 +1012,7 @@ body {
   transform: none;
   opacity: 1;
   background: var(--c-primary-500);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 21px 21px 0;
   box-shadow: none;
 }
 
@@ -1194,6 +1195,29 @@ body {
   background: var(--surface-canvas);
 }
 
+/* Difuminado al pie del panel: la lista sigue deslizándose por debajo
+   de la barra de captura (escritorio) / del menú inferior y el FAB
+   (móvil), pero llega desenfocada en vez de cortada en seco. Esos
+   controles tienen su propio fondo sólido y z-index por encima —
+   quedan nítidos y destacan sobre el fondo borroso, no se confunden
+   con las filas. `pointer-events: none` para no robarle el toque a lo
+   que hay debajo; el degradado en la máscara evita un corte duro
+   arriba del todo. */
+.main-panel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 110px;
+  pointer-events: none;
+  z-index: 20;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  mask-image: linear-gradient(to top, black, transparent);
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+}
+
 /* El panel central usa `--surface-canvas` en ambos temas: es la capa
    hundida sobre la que flotan los bloques de sección (--block-bg) y, sobre
    éstos, las tarjetas de tarea (--surface-card). En claro llegó a pintarse
@@ -1274,7 +1298,7 @@ body {
   height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 9px;
+  border-radius: 27px;
   flex-shrink: 0;
 }
 .task-detail-rail-top { color: var(--text-secondary); }
@@ -1613,7 +1637,7 @@ body {
   height: 26px;
   display: grid;
   place-items: center;
-  border-radius: 7px;
+  border-radius: 25px;
   cursor: pointer;
   color: var(--text-secondary);
   border: none;
@@ -1637,7 +1661,7 @@ body {
   padding: 5px 0;
   font-size: 12px;
   font-weight: 450;
-  border-radius: 7px;
+  border-radius: 25px;
   cursor: pointer;
   color: var(--text-secondary);
   border: 1px solid transparent;
@@ -1686,7 +1710,7 @@ body {
   align-items: center;
   gap: 9px;
   padding: 8px 10px;
-  border-radius: 7px;
+  border-radius: 25px;
   font-size: 12.5px;
   font-weight: 450;
   cursor: pointer;
@@ -2063,7 +2087,7 @@ h1 {
   padding: 2px 5px;
   background: var(--kbd-bg);
   border: 1px solid var(--border-default);
-  border-radius: 4px;
+  border-radius: 22px;
   color: var(--text-secondary);
 }
 /* En móvil no hay atajo de teclado ni sitio para el chip. */
@@ -2501,7 +2525,7 @@ button:focus-visible {
   width: 30px;
   height: 30px;
   color: var(--text-tertiary);
-  background: transparent;
+  background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
@@ -2783,6 +2807,23 @@ button:focus-visible {
 }
 .task-list[data-row-style="limpio"] .inbox-group-list { gap: 0; }
 
+/* Tarjetas — cada tarea flota como su propia tarjeta, agrupada o no.
+   `.inbox-group-list` y `.hoy-section-list` traen de fábrica una caja
+   compartida (fondo + borde + sombra) pensada para Cebra/Compacto/
+   Líneas, donde las filas van pegadas — aquí sobra: se veía como un
+   fondo de sección detrás de tarjetas que ya se pintan solas.
+   Sin margin-bottom añadido a propósito: `.inbox-group-list` ya separa
+   con `gap: 6px` (flex) y `.hoy-section-list` con `margin-top` entre
+   filas — sumarle margin-bottom encima doblaba el hueco a 12px. */
+.task-list[data-row-style="tarjetas"] .inbox-group-list,
+.task-list[data-row-style="tarjetas"] .hoy-section-list {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
 /* Líneas — separador inferior, sin tarjeta ni esquinas redondeadas. */
 .task-list[data-row-style="lineas"] .task-item {
   background: transparent;
@@ -2798,7 +2839,9 @@ button:focus-visible {
   box-shadow: none;
   transform: none;
 }
-.task-list[data-row-style="lineas"] .task-item:last-child { border-bottom-color: transparent; }
+/* `:last-child`, no: mismo motivo que en "Compacto" — el `<li>` de
+   "Editar lista" (solo visible en móvil) sigue detrás en el DOM. */
+.task-list[data-row-style="lineas"] .task-item:not(:has(~ .task-item)) { border-bottom-color: transparent; }
 
 /* ─── PANTALLA «PERFIL» (menú móvil) ────────────────────────────
    Grupos de filas sobre tarjeta, como el handoff móvil v1. Se apoya en la
@@ -2939,7 +2982,7 @@ button:focus-visible {
   width: 30px;
   height: 30px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 26px;
   background: var(--surface-raised);
   color: var(--text-secondary);
 }
@@ -3208,7 +3251,11 @@ button:focus-visible {
   border-top-left-radius: var(--r-md);
   border-top-right-radius: var(--r-md);
 }
-.task-list[data-row-style="compacto"] .task-item:last-child {
+/* `:last-child`, no: toda lista real trae detrás un `<li class="task-list-
+   edit-row">` ("Editar lista") que solo se ve en móvil, pero sigue en el
+   DOM en escritorio — `:last-child` caía ahí y la tarjeta se quedaba sin
+   redondear por abajo. Esto comprueba "sin ninguna `.task-item` detrás". */
+.task-list[data-row-style="compacto"] .task-item:not(:has(~ .task-item)) {
   border-bottom-left-radius: var(--r-md);
   border-bottom-right-radius: var(--r-md);
 }
@@ -3322,7 +3369,12 @@ button:focus-visible {
   border-top-left-radius: var(--r-md);
   border-top-right-radius: var(--r-md);
 }
-.task-list[data-row-style="compacto"] .hoy-section-list .today-item:last-child {
+/* `:last-child`, no: en «Para hoy» cada tarea va seguida del `<li>` del
+   quick-add (`.hoy-quickadd`), así que la ÚLTIMA tarea real nunca es el
+   último hijo — el selector caía en el quick-add y la tarjeta se quedaba
+   sin redondear por abajo. Esto comprueba "sin ninguna `.today-item`
+   detrás", que da igual lo que venga después. */
+.task-list[data-row-style="compacto"] .hoy-section-list .today-item:not(:has(~ .today-item)) {
   border-bottom-left-radius: var(--r-md);
   border-bottom-right-radius: var(--r-md);
 }
@@ -3533,12 +3585,20 @@ button:focus-visible {
 }
 
 /* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
+/* Mismo patrón que `.filter-segments`: una barra compartida con 3px de
+   relleno y borde propio; cada etiqueta de dentro solo pone fondo
+   cuando tiene un estado que contar (hoy, vencida, prioridad) — el
+   resto vive del fondo de la barra, no del suyo propio. */
 .task-meta {
   display: flex;
   align-items: center;
-  gap: 10px;   /* v1: los chips de la fila respiran a 10px */
+  gap: 3px;
   flex-shrink: 0;
   flex-wrap: nowrap;
+  padding: 3px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
 }
 
 /* Los contenedores vacíos no deben abrir hueco entre chips. */
@@ -3872,7 +3932,7 @@ input.inline-edit {
   position: relative;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
-  border-radius: 20px;
+  border-radius: 38px;
   /* Los modales con cabecera propia (`.modal-box-v1`) reparten el
      espaciado entre head/body/foot y anulan este padding; los que
      todavía vuelcan su HTML suelto en la caja lo siguen necesitando. */
@@ -3930,7 +3990,7 @@ input.inline-edit {
   width: 100%;
   max-width: none;
   border: none;
-  border-radius: 22px 22px 0 0;
+  border-radius: 40px 40px 0 0;
   padding: 0 12px max(22px, env(safe-area-inset-bottom, 0px));
   background: var(--surface-canvas);
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
@@ -4058,7 +4118,7 @@ input.inline-edit {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 26px;
   background: var(--accent-tint);
   color: var(--c-primary-300);
 }
@@ -4090,7 +4150,7 @@ input.inline-edit {
   height: 26px;
   flex-shrink: 0;
   border: none;
-  border-radius: 7px;
+  border-radius: 25px;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
@@ -4304,8 +4364,14 @@ display: inline-flex;
     white-space: nowrap;
     flex-shrink: 0;
     padding: 0px 10px;
-    border-radius: 7px;
-    background: var(--surface-input);
+    border-radius: 25px;
+    /* `--surface-input` era casi invisible en oscuro (4.5% opacidad) e
+       IDÉNTICO a la tarjeta en claro (0% de contraste) — la píldora solo
+       se veía en "Hoy"/vencida, que tienen su propio tinte. Mismo criterio
+       que en los filtros: la píldora se ve siempre, el color cuenta el
+       estado. */
+    background: var(--row-hover);
+    border: 1px solid var(--border-default);
     height: 25px;
 }
 .due-badge .lucide {
@@ -4318,8 +4384,8 @@ display: inline-flex;
 
 .due-future,
 .due-soon  { color: var(--text-secondary); }
-.due-today { background: var(--accent-tint); color: var(--c-primary-300); }
-.due-overdue { background: rgba(var(--c-overdue-rgb), 0.13); color: var(--c-overdue); }
+.due-today { background: var(--accent-tint); border-color: transparent; color: var(--c-primary-300); }
+.due-overdue { background: rgba(var(--c-overdue-rgb), 0.13); border-color: transparent; color: var(--c-overdue); }
 
 .due-badge--action {
   cursor: pointer;
@@ -4358,7 +4424,7 @@ display: inline-flex;
   letter-spacing: 0.01em;
   line-height: 1.5;
   padding: 3px 9px;
-  border-radius: 5px;
+  border-radius: 23px;
   color: var(--proj-color, var(--text-secondary));
   background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 13%, transparent);
   border: 1px solid color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 30%, transparent);
@@ -4368,7 +4434,10 @@ display: inline-flex;
 }
 
 /* ─── RECURRENCE CHIP & BUTTON ──────────────────────────────────
-   Mismo lenguaje que la fecha: icono + texto mono, sin píldora.     */
+   Misma píldora que `.due-badge` — antes iba sin caja ("icono + texto
+   mono, sin píldora") y quedaba desigual al lado de una fecha que sí
+   la lleva; ahora todas las etiquetas de la fila comparten el mismo
+   lenguaje visual. */
 .recur-badge {
   display: inline-flex;
   align-items: center;
@@ -4381,6 +4450,10 @@ display: inline-flex;
   color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
+  padding: 0 10px;
+  border-radius: 25px;
+  background: var(--row-hover);
+  border: 1px solid var(--border-default);
   height: 25px;
 }
 
@@ -5338,12 +5411,15 @@ body.project-dragging .project-item { cursor: grabbing; }
     position: fixed;
     left: 14px;
     right: calc(14px + 54px + 11px);
-    /* Altura natural: padding 8/12 más los 44px mínimos de la pestaña. */
-    padding: 8px 6px;
+    /* Mismo criterio que `.filter-segments`: 3px de relleno y el resto lo
+       ocupan las pestañas, con `align-items: stretch` llenando el alto
+       entero — no un padding grande dejando la píldora activa suelta
+       en medio. */
+    padding: 3px;
     bottom: max(22px, env(safe-area-inset-bottom, 0px));
     background: var(--surface-card);
     border: 1px solid var(--border-default);
-    border-radius: 28px;
+    border-radius: 46px;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
     /* Por encima del panel de detalle a pantalla completa (z-index 500):
        en v1 la barra de navegación se queda visible incluso dentro del
@@ -5436,8 +5512,10 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: none;
     align-items: center;
     justify-content: center;
-    width: 54px;
-    height: 54px;
+    /* Más grande que la pastilla (52px) a propósito: así destaca y
+       sobresale un poco por arriba, en vez de quedar a ras. */
+    width: 60px;
+    height: 60px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -5451,17 +5529,19 @@ body.project-dragging .project-item { cursor: grabbing; }
     display: inline-flex;
     position: fixed;
     right: 14px;
-    /* Comparte eje con la pastilla: esta apoya en max(22px, safe) y mide 65px
-       medidos (8 + 47 de pestaña + 8 + 2 de borde), así que el FAB de 54 sube
-       (65-54)/2 ≈ 5px. */
-    bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 5px);
+    /* Comparte eje con la pastilla: misma base (`max(22px, safe)`) que
+       su `bottom`, con la resta que compensa la diferencia de alto
+       (60 del FAB frente a 52 de la pastilla) para que los centros
+       coincidan. Con bases distintas el ajuste se habría desalineado en
+       dispositivos con área segura grande (notch/home indicator). */
+    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) - 4px);
     /* Mismo motivo que la barra de navegación (z-index 510): por encima
        del panel de detalle a pantalla completa, para poder capturar una
        tarea nueva sin salir primero de la que se está viendo. */
     z-index: 510;
   }
   .mobile-fab:active { transform: scale(0.94); }
-  .mobile-fab svg { width: 24px; height: 24px; stroke-width: 2.4; }
+  .mobile-fab svg { width: 26px; height: 26px; stroke-width: 2.4; }
 
   :root[data-theme="light"] .mobile-fab {
     box-shadow: 0 8px 18px -6px rgba(111, 122, 61, 0.55);
@@ -5478,6 +5558,11 @@ body.project-dragging .project-item { cursor: grabbing; }
   .mobile-bottom-btn.active {
     color: var(--c-primary-500);
     font-weight: var(--fw-bold);
+    /* Píldora rellena tras el icono+texto activos, como la referencia
+       que mandó el usuario (nav inferior con blur) — antes solo cambiaba
+       el color, sin ningún fondo. */
+    background: var(--accent-tint);
+    border-radius: var(--r-pill);
   }
   .mobile-bottom-btn.active svg { stroke-width: 2.4; }
   :root[data-theme="light"] .mobile-bottom-btn:hover,
@@ -5538,7 +5623,7 @@ body.project-dragging .project-item { cursor: grabbing; }
   font-size: 10px;
   font-weight: 600;
   padding: 1px 6px;
-  border-radius: 5px;
+  border-radius: 23px;
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
   letter-spacing: 0.02em;
@@ -5595,7 +5680,7 @@ body.project-dragging .project-item { cursor: grabbing; }
   color: var(--text-tertiary);
   background: transparent;
   border: 1px solid var(--b-subtle);
-  border-radius: 5px;
+  border-radius: 23px;
   padding: 2px 7px;
   cursor: pointer;
   transition: color 0.12s, background 0.12s, border-color 0.12s;
@@ -5736,7 +5821,7 @@ body.project-dragging .project-item { cursor: grabbing; }
 mark.search-hl {
   background: color-mix(in srgb, var(--c-gold) 30%, transparent);
   color: var(--c-gold);
-  border-radius: 2px;
+  border-radius: 20px;
   padding: 0 1px;
 }
 
@@ -5769,7 +5854,7 @@ mark.search-hl {
   transform: translateX(-50%) translateY(120%);
   background: #332b20;
   border: 1px solid rgba(163, 179, 102, 0.32);
-  border-radius: 9px;
+  border-radius: 27px;
   padding: 0.65rem 1rem 0.55rem;
   display: flex;
   align-items: center;
@@ -5802,7 +5887,7 @@ mark.search-hl {
   border: 1px solid rgba(163, 179, 102, 0.40);
   color: var(--c-cyan);
   padding: 0.24rem 0.62rem;
-  border-radius: 5px;
+  border-radius: 23px;
   font-size: 0.78rem;
   font-weight: 600;
   font-family: inherit;
@@ -5986,7 +6071,7 @@ mark.search-hl {
   background: transparent;
   border: 1px solid var(--b-subtle);
   color: var(--t-soft);
-  border-radius: 5px;
+  border-radius: 23px;
   padding: 0.20rem 0.55rem;
   font-size: 0.76rem;
   font-family: var(--font-body);
@@ -6040,7 +6125,7 @@ mark.search-hl {
   padding: 0.5rem 0.75rem;
   background: transparent;
   border: 1px solid var(--b-subtle);
-  border-radius: 6px;
+  border-radius: 24px;
   cursor: pointer;
   text-align: left;
   transition: background 0.12s, border-color 0.12s;
@@ -6082,7 +6167,7 @@ kbd {
   background: var(--kbd-bg);
   border: 1px solid var(--b-subtle);
   border-bottom-width: 2px;
-  border-radius: 4px;
+  border-radius: 22px;
   padding: 0.10rem 0.38rem;
   line-height: 1.5;
   white-space: nowrap;
@@ -6434,7 +6519,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   background: transparent;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 22px;
   font-size: 14px;
   line-height: 1;
   padding: 0;
@@ -6484,7 +6569,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-size: 18px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 24px;
   cursor: pointer;
   transition: background 0.10s, border-color 0.10s, transform 0.10s;
   padding: 0;
@@ -6607,7 +6692,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: 0.30rem 0;
   background: #2c241b;
   border: 1px solid rgba(255, 238, 214, 0.13);
-  border-radius: 8px;
+  border-radius: 26px;
   box-shadow: 0 8px 36px rgba(0,0,0,0.60);
   min-width: 170px;
   max-width: 230px;
@@ -6933,7 +7018,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   width: 100%;
   text-align: left;
   padding: 8px 9px;
-  border-radius: 7px;
+  border-radius: 25px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -6984,17 +7069,30 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--text-primary);
 }
 
-/* Fila de ajuste: etiqueta + descripción a la izquierda, control a la derecha */
+/* Fila de ajuste: icono + etiqueta/descripción a la izquierda, control a
+   la derecha. `.settings-row-ico` no tenía NINGÚN estilo en escritorio
+   —solo existía en el bloque móvil de más abajo—, así que el icono caía
+   como un `<span>` sin ancho ni tamaño propios y el `gap: 24px` de la
+   fila (pensado para separar el bloque de texto del control) se aplicaba
+   igual entre icono y texto, dejándolo descolgado a la izquierda. */
 .settings-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 12px;
   padding: 15px 0;
   border-bottom: 1px solid var(--border-default);
 }
 .settings-row:last-child { border-bottom: none; }
 .settings-row--top { align-items: flex-start; }
+.settings-row-ico {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+}
+.settings-row-ico .lucide { width: 18px; height: 18px; stroke-width: 1.8; }
 .settings-row-label {
   font-size: 13.5px;
   font-weight: 600;
@@ -7008,7 +7106,10 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   line-height: 1.45;
   max-width: 320px;
 }
-.settings-row-control { flex-shrink: 0; }
+/* `margin-left: auto`, no `justify-content: space-between` en la fila:
+   así el hueco extra lo absorbe SOLO este margen, y el `gap` de 12px
+   entre icono y texto no se ve inflado por el espacio sobrante. */
+.settings-row-control { flex-shrink: 0; margin-left: auto; }
 
 /* "Contenedor: Pegado/Flotante" es un ajuste de la SILUETA de escritorio
    (sidebar y panel flotando sobre el escritorio vs. pegados al borde);
@@ -7057,11 +7158,11 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: 3px;
   background: var(--surface-canvas);
   border: 1px solid var(--border-default);
-  border-radius: 9px;
+  border-radius: 27px;
 }
 .settings-seg-opt {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 24px;
   border: none;
   background: transparent;
   font-size: 12.5px;
@@ -7151,7 +7252,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 .settings-mono-value--btn {
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 24px;
   border: 1px solid var(--border-default);
   background: var(--surface-input);
   cursor: pointer;
@@ -7186,7 +7287,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   .settings-mobile-card {
     background: var(--surface-card);
     border: 1px solid var(--border-default);
-    border-radius: 14px;
+    border-radius: 32px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     margin-bottom: 14px;
@@ -7292,7 +7393,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   height: 16px;
   background: transparent;
   border: none;
-  border-radius: 3px;
+  border-radius: 21px;
   color: var(--t-muted);
   cursor: pointer;
   padding: 0;
@@ -7382,7 +7483,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   visibility: hidden;
   background: #332b20;
   border: 1px solid rgba(163, 179, 102, 0.32);
-  border-radius: 9px;
+  border-radius: 27px;
   padding: 0.60rem 0.85rem 0.50rem;
   display: flex;
   align-items: center;
@@ -7419,7 +7520,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border: 1px solid rgba(163, 179, 102, 0.35);
   color: var(--t-soft);
   padding: 0.26rem 0.70rem;
-  border-radius: 5px;
+  border-radius: 23px;
   font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
@@ -7466,7 +7567,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   outline-offset: 1px;
   pointer-events: none;
   z-index: 800;
-  border-radius: 1px;
+  border-radius: 19px;
 }
 
 .img-resize-visible {
@@ -7479,7 +7580,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   height: 12px;
   background: var(--c-cyan);
   border: 2px solid #fff;
-  border-radius: 3px;
+  border-radius: 21px;
   pointer-events: all;
   touch-action: none;
 }
@@ -7885,7 +7986,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
     min-height: 56px;
     padding: 0.28rem 0.2rem 0.22rem;
     gap: 0.1rem;
-    border-radius: 3px;
+    border-radius: 21px;
   }
 
   /* ── Touch targets 44px+ (HIG / Material) ──────────────────────
@@ -8284,7 +8385,7 @@ button {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 3px;
   padding: 10px 14px;
   margin-bottom: 6px;
   background: var(--surface-card);
@@ -8364,15 +8465,27 @@ button {
 }
 
 /* Chips/acciones de la fila: misma línea en escritorio, segunda línea
- * con sangría en móvil (donde no caben junto al texto). */
-.today-meta { display: contents; }
+ * con sangría en móvil (donde no caben junto al texto).
+ * En escritorio, misma barra compartida que `.task-meta` y los
+ * filtros: 3px de relleno y borde propio, cada etiqueta de dentro con
+ * su fondo y 3px entre ellas. */
+.today-meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  padding: 3px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+}
 @media (max-width: 768px) {
   .today-item { flex-wrap: wrap; row-gap: 7px; padding: 10px 12px; }
   .today-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 3px;
     flex-basis: 100%;
     margin-left: 33px;  /* checkbox 20px + gap 13px */
   }
@@ -8406,7 +8519,7 @@ button {
   font-size: 12px;
   font-weight: var(--fw-semibold);
   padding: 4px 10px;
-  border-radius: 7px;
+  border-radius: 25px;
   background: var(--surface-input);
   color: var(--text-tertiary);
   white-space: nowrap;
@@ -8701,7 +8814,7 @@ button {
   align-items: center;
   gap: 12px;
   padding: 11px 14px 11px 16px;
-  border-radius: 15px;
+  border-radius: 33px;
   cursor: text;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -8718,7 +8831,7 @@ button {
 .capture-bar-ico {
   width: 25px;
   height: 25px;
-  border-radius: 8px;
+  border-radius: 26px;
   background: var(--grad-primary);
   display: grid;
   place-items: center;
@@ -8739,7 +8852,7 @@ button {
   /* --text-secondary y no tertiary: AA 4.5:1 sobre --kbd-bg en claro */
   color: var(--text-secondary);
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 24px;
   background: var(--kbd-bg);
   border: 1px solid var(--border-default);
   flex-shrink: 0;
@@ -8842,7 +8955,7 @@ button {
   width: min(620px, calc(100vw - 40px));
   padding: 0;
   max-height: 90vh;
-  border-radius: 20px;
+  border-radius: 38px;
   background: var(--surface-card);
   overflow: hidden auto;
 }
@@ -8861,7 +8974,7 @@ button {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 26px;
   background: var(--accent-tint);
   color: var(--c-primary-300);
 }
@@ -8899,7 +9012,7 @@ button {
   color: var(--text-secondary);
   background: var(--surface-input);
   border: 1px solid var(--border-default);
-  border-radius: 6px;
+  border-radius: 24px;
   box-shadow: 0 1.5px 0 var(--border-default);
   line-height: 1;
 }
@@ -8919,7 +9032,7 @@ button {
   height: 30px;
   flex-shrink: 0;
   margin-left: 6px;
-  border-radius: 8px;
+  border-radius: 26px;
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-tertiary);
@@ -9046,7 +9159,7 @@ button {
   font-family: var(--font-mono);
   font-size: 11px;
   padding: 2px 6px;
-  border-radius: 5px;
+  border-radius: 23px;
   background: var(--surface-input);
   color: var(--text-secondary);
 }
@@ -9725,7 +9838,7 @@ button {
 
 .consent-btn {
   padding: 7px 14px;
-  border-radius: 8px;
+  border-radius: 26px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -9808,17 +9921,29 @@ button {
     font-weight: var(--fw-medium);
     letter-spacing: var(--tracking-tight);
     color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid transparent;
+    /* Antes solo se veía en :hover, así que un segmento sin tocar no
+       enseñaba su propia píldora — al lado de uno hecho de acento (el
+       activo) o en hover (fondo tenue), parecía más pequeño aunque
+       compartiera el mismo padding. Con la píldora siempre puesta, los
+       tres miden igual se toquen o no. */
+    background: var(--row-hover);
+    border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
     padding: var(--sp-2) var(--sp-3);
     min-height: 30px;
     cursor: pointer;
     white-space: nowrap;
     transition: color var(--dur-fast) var(--ease-out),
-                background var(--dur-fast) var(--ease-out);
+                background var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
   }
-  .filter-segment:hover { color: var(--text-primary); background: var(--row-hover); }
+  /* El hover real anticipa el color de "activo" — tocarlo enseña cómo
+     quedaría si se eligiera, en vez del tenue gris de antes. */
+  .filter-segment:hover {
+    color: var(--accent-on);
+    background: var(--c-primary-500);
+    border-color: transparent;
+  }
 
   /* El activo va con el color de acento. El texto NO es blanco fijo:
      `--accent-on` es el tono pensado para ir sobre ese relleno y cambia
@@ -10053,8 +10178,20 @@ button {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 3px;
     margin-top: 6px;
+    /* Misma barra compartida que en escritorio: el chip de fecha se
+       queda fuera (vive en su propia columna, a la derecha, centrado
+       sobre las dos filas) porque fundirlo aquí rompería esa rejilla.
+       `justify-self: start`: la columna es `1fr` y por defecto un
+       grid item se estira a ocuparla entera —la píldora saldría tan
+       ancha como la fila en vez de ceñida a su contenido. */
+    justify-self: start;
+    max-width: 100%;
+    padding: 3px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-pill);
   }
   /* Sin chips no hay segunda línea que separar. Con el chip punteado de
      abajo esto ya casi nunca se dispara —solo si la tarea tiene fecha
@@ -10068,7 +10205,7 @@ button {
     display: inline-flex;
     align-items: center;
     padding: 3px 9px;
-    border-radius: 5px;
+    border-radius: 23px;
     border: 1px dashed var(--border-default);
     color: var(--text-tertiary);
     font-family: var(--font-mono);
@@ -10114,6 +10251,10 @@ button {
        contenido ya empieza donde toca, así que ese margen sobra y se veía
        como un hueco antes del primer chip. */
     margin-left: 0;
+    /* La columna es `1fr`: sin esto un grid item se estira a ocuparla
+       entera y la píldora saldría tan ancha como la fila. */
+    justify-self: start;
+    max-width: 100%;
   }
   .today-meta:empty { display: none; }
   .today-date-pill {
@@ -10313,7 +10454,7 @@ button {
     width: 100%;
     max-width: none;
     max-height: 88vh;
-    border-radius: 22px 22px 0 0;
+    border-radius: 40px 40px 0 0;
     background: var(--surface-canvas);
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
     padding-bottom: max(22px, env(safe-area-inset-bottom, 0px));
@@ -10616,4 +10757,13 @@ button {
    ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 1440px) {
   html { zoom: 1.15; }
+
+  /* `body`/`.layout` miden 100vh/100dvh — contra el viewport REAL, sin
+     escalar. El `zoom` sí escala su contenido, así que a partir de aquí
+     el layout medía un 15% más alto que la ventana y lo pegado al fondo
+     (perfil del sidebar, barra de captura) quedaba fuera, cortado. Con
+     una cadena de 100% en vez de vh/dvh, el porcentaje se resuelve DENTRO
+     del espacio ya escalado por zoom y encaja de nuevo. Solo aquí: móvil
+     necesita el dvh real por la barra dinámica del navegador. */
+  html, body, .layout { height: 100%; }
 }

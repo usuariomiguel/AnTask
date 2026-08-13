@@ -301,12 +301,13 @@ let currentRowStyle = (function() {
 })();
 
 /**
- * Estilo que se pinta de verdad. En móvil solo hay cebra —así lo pide el
- * handoff móvil— y por eso allí no se ofrece el selector. La preferencia
- * del usuario se conserva intacta para cuando vuelva al escritorio.
+ * Estilo que se pinta de verdad. En móvil solo hay compacto —la misma
+ * vista de tarjetas pegadas que en escritorio— y por eso allí no se
+ * ofrece el selector. La preferencia del usuario se conserva intacta
+ * para cuando vuelva al escritorio.
  */
 function _rowStyleEfectivo() {
-  return window.matchMedia("(max-width: 768px)").matches ? "cebra" : currentRowStyle;
+  return window.matchMedia("(max-width: 768px)").matches ? "compacto" : currentRowStyle;
 }
 
 function applyRowStyle(style, persist) {
@@ -1284,7 +1285,7 @@ const TASK_FILTERS = {
 
 /* Iconos de las opciones de filtro. Van en un mapa porque lucide borra
    `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
-   Debe seguir a los `data-lucide` de #filter-panel en app.html. */
+   Debe seguir a los `data-lucide` de #filter-panel en index.html. */
 const FILTER_OPT_ICON = {
   "filter:all":     "list",
   "filter:pending": "circle-dashed",

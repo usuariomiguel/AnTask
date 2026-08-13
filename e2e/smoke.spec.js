@@ -8,8 +8,7 @@ import { test, expect } from "@playwright/test";
  * existe en móvil.
  */
 async function freshLoad(page) {
-  // La raíz "/" sirve la landing desde el split landing/app: la app vive en /app.html
-  await page.goto("/app.html");
+  await page.goto("/");
   await page.evaluate(() => {
     localStorage.clear();
     // Evita que el tour de onboarding y el banner de consentimiento
@@ -17,7 +16,7 @@ async function freshLoad(page) {
     localStorage.setItem("antask-onboarded", "1");
     localStorage.setItem("antask_consent", "essential");
   });
-  await page.goto("/app.html");
+  await page.goto("/");
 
   // Espera a que la sidebar cargue (el splash tiene un fallback de 500ms).
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
@@ -70,7 +69,7 @@ test("las tareas persisten tras recargar la página", async ({ page }) => {
   ).toBeVisible();
 
   // Recarga sin borrar localStorage — verifica persistencia real.
-  await page.goto("/app.html");
+  await page.goto("/");
   await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
   await page.click(".project-item-inbox");
   await expect(
