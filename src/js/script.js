@@ -1188,7 +1188,6 @@ const TASK_FILTERS = {
   today:   function(t) { return t.dueDate === _localDateISO(new Date()); },
   nodate:  function(t) { return !t.dueDate; },
   high:    function(t) { return t.priority === "high"; },
-  note:    function(t) { return !!(t.comment && t.comment.trim()); },
 };
 
 /* Iconos de las opciones de filtro. Van en un mapa porque lucide borra
@@ -1202,7 +1201,6 @@ const FILTER_OPT_ICON = {
   "filter:today":   "sun",
   "filter:nodate":  "calendar",
   "filter:high":    "flag",
-  "filter:note":    "file-text",
 };
 
 /**
@@ -3527,16 +3525,6 @@ function renderTodayView() {
 
   var allClear = overdue.length === 0 && todays.length === 0;
 
-  if (allClear) {
-    var clearLi = document.createElement("li");
-    clearLi.className = "hoy-allclear";
-    clearLi.innerHTML =
-      '<span class="hoy-allclear-badge"><i data-lucide="check"></i></span>' +
-      '<p class="hoy-allclear-title">' + t("today.empty_title_full") + '</p>' +
-      '<p class="hoy-allclear-sub">' + t("today.empty_sub_full") + '</p>';
-    taskList.appendChild(clearLi);
-  }
-
   // ── Vencidas ──
   if (overdue.length > 0) {
     var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
@@ -3566,6 +3554,18 @@ function renderTodayView() {
       secN.list.appendChild(renderTodayItem(it.task, it.project, today, "nodate"));
     });
     taskList.appendChild(secN.li);
+  }
+
+  // El aviso de "todo al día" va debajo de las secciones (Para hoy sigue
+  // siendo el sitio para añadir algo nuevo), no por delante tapándolas.
+  if (allClear) {
+    var clearLi = document.createElement("li");
+    clearLi.className = "hoy-allclear";
+    clearLi.innerHTML =
+      '<span class="hoy-allclear-badge"><i data-lucide="check"></i></span>' +
+      '<p class="hoy-allclear-title">' + t("today.empty_title_full") + '</p>' +
+      '<p class="hoy-allclear-sub">' + t("today.empty_sub_full") + '</p>';
+    taskList.appendChild(clearLi);
   }
 
   if (window.lucide) lucide.createIcons();

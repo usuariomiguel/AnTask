@@ -154,7 +154,6 @@ export const en = {
   "filter.today":             "Today",
   "filter.nodate":            "No date",
   "filter.high":              "Important",
-  "filter.note":              "With note",
 
   // ── Project ───────────────────────────────────────────────
   "project.new_prompt":       "List name",
