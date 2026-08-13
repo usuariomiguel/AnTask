@@ -2968,6 +2968,8 @@ function _openDatePopover(fieldEl, anchorBtn) {
       const todayISO = _localDateISO(new Date());
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowISO = _localDateISO(tomorrow);
+      const inWeek = new Date(); inWeek.setDate(inWeek.getDate() + 7);
+      const inWeekISO = _localDateISO(inWeek);
       const first = new Date(vy, vm, 1);
       const monthTitle = first.toLocaleDateString(localeD, { month: "long", year: "numeric" });
       const offset = (first.getDay() + 6) % 7; // lunes = 0
@@ -2992,6 +2994,7 @@ function _openDatePopover(fieldEl, anchorBtn) {
         '<div class="field-popover-chips">' +
           '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
           '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
+          '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
           (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
         '</div>' +
         '<div class="field-popover-cal-head">' +
@@ -3015,7 +3018,7 @@ function _openDatePopover(fieldEl, anchorBtn) {
       pop.querySelectorAll("[data-quick]").forEach(function(btn) {
         btn.addEventListener("click", function() {
           const q = btn.dataset.quick;
-          task.dueDate = q === "today" ? todayISO : q === "tomorrow" ? tomorrowISO : null;
+          task.dueDate = q === "today" ? todayISO : q === "tomorrow" ? tomorrowISO : q === "week" ? inWeekISO : null;
           saveAndRender();
           close();
         });
@@ -3330,6 +3333,16 @@ function _formatReminderLabel(iso) {
   return d.toLocaleString(localeR, { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+/** Ajusta el alto del textarea del título a su contenido — sin esto un
+ *  título largo quedaba en una caja de 2 líneas con scroll interno en
+ *  vez de crecer, y no se podía leer entero. */
+function _autoGrowTitle() {
+  var el = _detailPanelEls.title;
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
 /** Pinta el panel con el estado actual de la tarea abierta (si hay alguna). */
 function _renderTaskDetail() {
   const open = _getOpenDetailTask();
@@ -3341,6 +3354,7 @@ function _renderTaskDetail() {
   if (document.activeElement !== els.title)   els.title.value   = task.text;
   if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
   els.title.classList.toggle("done", task.done);
+  _autoGrowTitle();
 
   // Sin niveles: el botón único se activa si la tarea tiene cualquier
   // prioridad puesta (solo "high" puede llegar aquí, pero un valor
@@ -3435,6 +3449,7 @@ function _initTaskDetailPanel() {
 
   if (els.title) {
     els.title.addEventListener("input", function() {
+      _autoGrowTitle();
       const open = _getOpenDetailTask();
       if (!open) return;
       open.task.text = els.title.value.slice(0, 120);

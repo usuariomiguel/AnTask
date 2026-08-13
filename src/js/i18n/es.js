@@ -242,6 +242,7 @@ export const es = {
   // ── Fecha / modal fecha ───────────────────────────────────
   "date.today":               "Hoy",
   "date.tomorrow":            "Mañana",
+  "date.in_week":             "En 1 semana",
   "date.yesterday":           "Ayer",
 
   // ── Recordatorio ──────────────────────────────────────────
