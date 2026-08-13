@@ -169,7 +169,13 @@ export function showQuickCapture(deps) {
     closeListPopover();
     listTrigger.setAttribute("aria-expanded", "true");
     const pop = document.createElement("div");
-    pop.className = "field-popover field-popover--up field-popover--narrow";
+    // Hacia abajo, no hacia arriba: el modal de captura rápida es bajo y
+    // el disparador vive a media altura, así que un popover largo (muchas
+    // listas) abriendo hacia arriba se salía por encima del propio modal
+    // —zona que su `overflow-y: auto` no puede alcanzar, al no haber
+    // scroll negativo— y quedaba inalcanzable. Hacia abajo, en cambio, el
+    // propio scroll del modal lo deja a la vista.
+    pop.className = "field-popover field-popover--narrow";
     pop.innerHTML = '<div class="field-popover-list">' +
       lists.map(function (p) {
         const active = p.id === selectedId;
@@ -182,6 +188,11 @@ export function showQuickCapture(deps) {
       }).join("") +
     '</div>';
     listPicker.appendChild(pop);
+    // Con muchas listas el popover puede sobrar por debajo del propio
+    // modal (que hace scroll, no recorta); sin esto quedaba técnicamente
+    // alcanzable pero fuera de la vista hasta que el usuario adivinara
+    // que tenía que desplazar el modal a mano.
+    pop.scrollIntoView({ block: "nearest" });
     if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
     pop.querySelectorAll("[data-list-id]").forEach(function (btn) {
       btn.addEventListener("click", function () {

@@ -80,13 +80,13 @@
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --row-hover: rgba(255, 238, 214, 0.055);  /* hover de fila */
-  --zebra-bg:  rgba(255, 240, 220, 0.028);  /* franja alterna del modo cebra */
+  --zebra-bg:  rgba(255, 240, 220, 0.06);  /* franja alterna del modo cebra */
   /* Versión OPACA de la franja. La translúcida no vale en las filas:
      `.task-swipe-content` hereda el `background-color` y lo vuelve a
      pintar encima, así que un tinte con alfa se aplicaba dos veces en
      unas vistas y ninguna en otras. Con un color sólido, las tres
      pantallas rinden el mismo escalón. */
-  --zebra-solid: color-mix(in srgb, #fff0dc 6%, var(--surface-card));
+  --zebra-solid: color-mix(in srgb, #fff0dc 11%, var(--surface-card));
   --kbd-bg:    rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
   --task-hover:        rgba(163, 179, 102, 0.10);
@@ -341,8 +341,8 @@
 
   /* Interacción */
   --row-hover: #efe6d4;
-  --zebra-bg:  rgba(50, 42, 28, 0.025);
-  --zebra-solid: color-mix(in srgb, #322a1c 5%, var(--surface-card));
+  --zebra-bg:  rgba(50, 42, 28, 0.055);
+  --zebra-solid: color-mix(in srgb, #322a1c 9%, var(--surface-card));
   --kbd-bg:    #e7dfcf;
   --task-hover:        rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
@@ -1005,7 +1005,7 @@ body {
    lateral (left:-8), casi de la altura de la fila (5px arriba/abajo). */
 .project-item.active::before {
   left: -9px;
-  top: 3px;
+  top: 5px;
   bottom: 5px;
   height: 24px;
   transform: none;
@@ -1736,6 +1736,7 @@ body {
   border: 1px solid var(--border-default);
   background: var(--surface-input);
   color: var(--text-primary);
+  font-family: inherit;
   font-size: 0.82rem;
   outline: none;
 }
@@ -3172,6 +3173,10 @@ button:focus-visible {
   box-shadow: none;
   margin-bottom: 0;
 }
+/* `.inbox-group-list` separa sus filas con `gap: 6px` (no con margin,
+   como `.task-item` suelto) — sin esto quedaba el único hueco visible
+   entre tareas de un mismo grupo en cebra dentro del Inbox. */
+.task-list[data-row-style="cebra"] .inbox-group-list { gap: 0; }
 .task-list[data-row-style="cebra"] .task-item:nth-child(even) {
   background: var(--zebra-bg);
 }
@@ -3250,6 +3255,14 @@ button:focus-visible {
   border-radius: calc(var(--r-md) + 2px);
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+  /* Aquí la caja y `#task-list` son el mismo elemento, así que el
+     `padding-top` de la base (el hueco antes del bloque de tareas en
+     el resto de estilos) se colaba DENTRO de la caja, dejando una tira
+     de fondo antes de la primera fila. Se cambia por `margin-top`: el
+     mismo hueco, pero FUERA del borde — la lista queda a ras por
+     dentro, como en Hoy/Inbox. */
+  padding-top: 0;
+  margin-top: var(--sp-3);
 }
 
 .task-list[data-row-style="limpio"] .today-item {
@@ -8850,14 +8863,16 @@ button {
 }
 
 /* Hueco al pie para la barra de captura flotante. Va en el contenedor de
- * scroll y no en `.task-list`, porque en vista de proyecto
- * `.task-list--project` reescribe su propio padding (4px) y la última fila
- * acababa 30px por debajo de la barra, tapada.
- * 56px dejan 15px de aire entre el borde inferior del contenedor de tareas y
- * el borde superior de la barra — medido con la lista desplazada al fondo en
- * Inbox, proyecto y Hoy, que con esto separan igual. */
+ * scroll y no en `.task-list`, para que el hueco sea el mismo pase lo
+ * que pase con el padding de la lista.
+ * 72px dejan ~15px de aire entre el borde inferior de la última fila y
+ * el borde superior de la barra — medido con la lista desplazada al
+ * fondo, en cebra, que es la variante con menos margen propio (era 56px
+ * cuando `.task-list--project` aportaba su propio padding inferior; al
+ * quitárselo —ver el bloque de "sin tarjeta de sección"— la última fila
+ * pasó a tapar 10px por debajo de la barra). */
 @media (min-width: 769px) {
-  .task-list-scroll { padding-bottom: 56px; }
+  .task-list-scroll { padding-bottom: 82px; }
   /* El hueco lo pone el contenedor de scroll: la lista no añade el suyo, o
      cada vista acabaría con una separación distinta. */
   .task-list { padding-top: var(--sp-3); padding-bottom: 0; }
