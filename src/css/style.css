@@ -9754,57 +9754,6 @@ button {
 
 /* — Menú de perfil: fuera el tour (ruido) — */
 
-/* ═══════════════════════════════════════════════════════════════
-   DOS COLUMNAS EN PANTALLAS ANCHAS — Hoy e Inbox por bloques
-
-   Fuera del handoff: v1 apila las secciones en vertical y no
-   contempla esta partición. Se añade a petición.
-
-   CONTAINER QUERY, no @media. El ancho útil no depende solo de la
-   ventana: con la barra lateral plegada se ganan 164px. Medido a
-   1440 de ventana, las columnas pasan de 519px a 601px y los títulos
-   de 7 líneas a 4. Un @media no ve ese estado y partiría en dos
-   justo cuando no cabe.
-
-   El umbral son 1200px de contenedor —unos 592px por columna—.
-   Por debajo, la lectura se degrada rápido: a 439px por columna,
-   8 de cada 12 filas se iban a tres líneas o más, cuando en una
-   sola columna solo 2 de 11 pasaban de una línea.
-
-   Multicolumna y no rejilla a propósito: con `grid` y colocación
-   explícita, un bloque que abarca varias filas reparte su altura
-   entre ellas y empuja hacia abajo al bloque vecino. `columns`
-   reparte por altura y no deja huecos, sea cual sea el número de
-   bloques (el Inbox tiene uno por lista, no tres fijos).
-
-   Solo en las vistas por bloques. La lista plana de filas se queda
-   en una columna: partir filas sueltas no ayuda a leer.
-   ═══════════════════════════════════════════════════════════════ */
-.task-list-scroll {
-  container-type: inline-size;
-  container-name: listado;
-}
-
-@container listado (min-width: 1200px) {
-  .task-list--hoy,
-  .task-list--grupos {
-    /* El tope de 932px de v1 da por hecha una columna. Solo se sube
-       aquí dentro: en una columna el ancho de lectura sigue siendo
-       el de v1. */
-    max-width: 1440px;
-    columns: 2;
-    column-gap: var(--sp-4);
-  }
-
-  /* Un bloque no se parte entre columnas: la cabecera se quedaría en
-     una y sus tareas en la otra. */
-  .task-list--hoy > li,
-  .task-list--grupos > li {
-    -webkit-column-break-inside: avoid;
-    break-inside: avoid;
-  }
-}
-
 /* La vista de una lista concreta ya NO lleva una caja envolviendo todas
    sus tareas — iba en `.task-list--project` (solo escritorio) y se quitó
    a petición del usuario, igual que la de `.hoy-section`. "Tarjetas" no
@@ -10601,4 +10550,19 @@ button {
     font-size: 14.5px;
     font-weight: 650;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANTALLAS GRANDES — todo un poco más grande a partir de ~1440px
+
+   Los tokens de tamaño/espaciado (`--fs-*`, `--sp-*`) están en px fijos,
+   no en rem, así que no hay un valor central que subir para escalar toda
+   la app. En vez de reescribir miles de reglas, se usa `zoom` sobre
+   `html`: reescala layout, texto e iconos igual que el zoom manual del
+   navegador que el usuario ya usa en su monitor grande (110–125%), sin
+   los problemas de `transform: scale` (hit-testing y overlays fijos
+   quedan mal con scale; con zoom, no).
+   ═══════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  html { zoom: 1.15; }
 }
