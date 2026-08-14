@@ -3820,7 +3820,7 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     '<span class="hoy-stats">' + statsHtml + "</span>" +
     '<span class="hoy-ring" title="' + t("hoy.ring_title") + '">' +
       '<svg width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '" aria-hidden="true">' +
-        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="4.5"></circle>' +
+        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="1.5"></circle>' +
         '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-bar" stroke-width="4.5" stroke-linecap="round" ' +
           'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '"></circle>' +
       "</svg>" +
