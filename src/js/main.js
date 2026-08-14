@@ -33,6 +33,7 @@ import "./sections-and-profile.js";
 import { analyticsAllowed, showConsentBannerIfNeeded } from "./consent.js";
 import { initAnalytics } from "./analytics.js";
 import { hasSyncHistory, loadSync } from "./sync-loader.js";
+import { registerSW } from "virtual:pwa-register";
 
 // Expone t() globalmente para código legado que no puede usar imports.
 window.t = t;
@@ -58,3 +59,19 @@ document.getElementById("pf-lang-btn")?.addEventListener("click", function () {
 // Quien no ha iniciado sesión nunca no paga ese peso: el módulo se
 // carga bajo demanda desde el botón "Sincronizar con Google".
 if (hasSyncHistory()) loadSync();
+
+// Registro del service worker. `injectRegister: false` en vite.config.js
+// apaga el script de registro desnudo que Vite inyecta por defecto — sin
+// esto, un SW nuevo se activaba en segundo plano (skipWaiting + claim en
+// src/sw.js) pero la pestaña ya abierta se quedaba con el HTML/CSS/JS
+// viejo hasta un refresco manual: la causa de que cambios ya en
+// producción tardaran en verse.
+const updateSW = registerSW({
+  onNeedRefresh() {
+    // En dev el registerType es "prompt" a propósito (cada rebuild del
+    // SW no debe forzar un reload); en build es "autoUpdate", así que
+    // ahí sí recargamos en cuanto el SW nuevo está listo.
+    if (import.meta.env.PROD) updateSW(true);
+  },
+  onOfflineReady() {},
+});

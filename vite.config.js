@@ -51,6 +51,17 @@ export default defineConfig(({ command }) => ({
       // (cada regeneración del SW provocaba reloads molestos).
       registerType: command === "build" ? "autoUpdate" : "prompt",
 
+      // El script de registro auto-inyectado (injectRegister: "auto",
+      // el valor por defecto) es solo `navigator.serviceWorker.register()`
+      // desnudo — no trae ninguna lógica de "hay una versión nueva,
+      // recarga". Eso hacía que `registerType: "autoUpdate"` no sirviera
+      // de nada en producción: el SW nuevo se activaba (skipWaiting +
+      // clients.claim en src/sw.js) pero la pestaña ya abierta se quedaba
+      // con el HTML/CSS/JS que ya había cargado hasta un refresco manual.
+      // Se registra a mano en main.js vía `virtual:pwa-register`, que sí
+      // trae el ciclo de detección de actualización.
+      injectRegister: false,
+
       // Activo también en dev para que las notificaciones funcionen.
       devOptions: {
         enabled: true,

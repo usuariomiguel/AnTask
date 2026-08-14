@@ -683,8 +683,8 @@ body {
 
 @media (min-width: 769px) {
   .mobile-body {
-    padding: 3px;
-    gap: 3px;
+    padding: 6px;
+    gap: 6px;
   }
 
   .sidebar {
@@ -9940,7 +9940,7 @@ button {
     align-items: center;
     gap: 2px;
     flex-shrink: 0;
-    padding: 3px;
+    padding: 6px;
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
