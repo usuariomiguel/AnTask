@@ -8808,7 +8808,7 @@ button {
   transform: translateX(-50%);
   bottom: var(--sp-3);
   z-index: 30;
-  width: min(932px, calc(60% - 52px));
+  width: min(932px, calc(70% - 52px));
   height: 55px;
   display: flex;
   align-items: center;
