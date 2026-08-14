@@ -669,6 +669,11 @@ body {
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 8px 20px -6px rgba(0, 0, 0, 0.5),
     0 24px 48px -14px rgba(0, 0, 0, 0.6);
+  /* Sidebar y panel de detalle no tienen sombra propia en oscuro: su
+     fondo (desk, casi negro) ya está tan pegado al negro que una sombra
+     no se distinguiría. Ahí la sensación de "detrás" la da solo el
+     salto de luminosidad hacia el canvas, más claro. */
+  --recede-shadow: none;
 }
 
 :root[data-theme="light"] {
@@ -676,6 +681,10 @@ body {
     0 1px 2px rgba(50, 40, 24, 0.05),
     0 6px 14px -4px rgba(50, 40, 24, 0.10),
     0 18px 36px -12px rgba(50, 40, 24, 0.18);
+  /* Sombra hacia dentro en sidebar/detalle: sugiere que el canvas (que
+     sí tiene sombra propia hacia fuera) flota por delante y la proyecta
+     sobre ellos, en vez de que las tres cajas estén al mismo nivel. */
+  --recede-shadow: inset 0 0 18px rgba(50, 40, 24, 0.14);
 }
 
 @media (min-width: 769px) {
@@ -685,9 +694,7 @@ body {
   }
 
   .sidebar {
-    border: 1px solid var(--border-subtle);
     border-radius: var(--r-xl);
-    box-shadow: var(--shell-shadow);
   }
 
   /* Colapsada conserva la cápsula flotante: ahora sigue siendo un rail
@@ -797,17 +804,17 @@ body {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface-deep);
-  border-right: 1px solid var(--border-subtle);
   overflow: hidden;
   transition: width var(--shell-collapse);
 }
 
-/* Borde algo más marcado en claro: a baja opacidad se leía menos nítido
-   sobre papel que sobre fondo oscuro. El fondo ya sale correcto de
-   `background: var(--surface-deep)` de la regla base. */
-:root[data-theme="light"] .sidebar {
-  border-right-color: var(--border-default);
+/* Sin fondo, borde ni sombra propios: la sidebar se funde con el desk
+   (fondo del body) para leerse como la MISMA capa hundida, con el
+   canvas flotando por delante. `--recede-shadow` (ver más abajo) es lo
+   que vende esa sensación — una sombra tenue hacia dentro, como si el
+   canvas la proyectara sobre la sidebar al estar por delante. */
+.sidebar {
+  box-shadow: var(--recede-shadow);
 }
 
 /* `--text-tertiary` y `--text-secondary` estaban afinados para dar AA
@@ -1251,20 +1258,18 @@ body {
 /* La columna de detalle nunca desaparece: en reposo mide 62px y muestra el
    rail de iconos; al abrir una tarea se expande a 340px, igual que la
    sidebar (v1 anima el mismo `width` con esta curva). */
-/* La caja visible (fondo, borde, radio y sombra) vive en el MISMO
-   elemento que anima el ancho, igual que .sidebar. Si viviera en el
-   panel interior, este entraría ya a 340px y el wrap solo lo recortaría:
-   se vería deslizarse tras un corte recto, con las esquinas y la sombra
-   del lado derecho comidas, en vez de una caja que crece. Mismo fondo
-   que la sidebar vía `--surface-deep` — en claro, el papel del panel
-   central; en oscuro, la capa más profunda. */
+/* El radio de esquina vive en el MISMO elemento que anima el ancho,
+   igual que .sidebar. Si viviera en el panel interior, este entraría ya
+   a 340px y el wrap solo lo recortaría: se vería deslizarse tras un
+   corte recto, con las esquinas comidas, en vez de una caja que crece.
+   Sin fondo propio, como la sidebar: se funde con el desk y solo
+   `--recede-shadow` sugiere que el canvas flota por delante. */
 .task-detail-wrap {
   width: 62px;
   flex-shrink: 0;
   overflow: hidden;
-  background: var(--surface-deep);
   color: var(--text-primary);
-  border: 1px solid var(--border-default);
+  box-shadow: var(--recede-shadow);
   transition: width var(--shell-collapse);
 }
 
@@ -1275,7 +1280,6 @@ body {
 @media (min-width: 769px) {
   .task-detail-wrap {
     border-radius: var(--r-xl);
-    box-shadow: var(--shell-shadow);
   }
 }
 
@@ -8845,7 +8849,7 @@ button {
   bottom: var(--sp-2);
   z-index: 30;
   width: min(880px, calc(70% - 52px));
-  height: 55px;
+  height: 50px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -8865,7 +8869,7 @@ button {
   transform: translateX(-50%) translateY(-1px);
 }
 .capture-bar-ico {
-  width: 50px;
+  width: 45px;
   height: 100%;
   border-radius: 26px;
   background: var(--grad-primary);
