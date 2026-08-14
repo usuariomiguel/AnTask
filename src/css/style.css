@@ -307,14 +307,14 @@
   --ring-primary:       0 0 0 3px rgba(111, 122, 61, 0.20);
 
   /* Surfaces — papel cálido. `--surface-deep` la usan solo la sidebar y
-     el panel de detalle. Antes era un alias de `--surface-canvas` (mismo
-     papel que el panel central) y las tres superficies —sidebar, canvas
-     y tarjeta— quedaban casi indistinguibles. Recupera aquí la jerarquía
-     de tres tonos que ya existe en oscuro (deep < canvas < card), con el
-     mismo tono cálido que `--surface-desk`. */
+     el panel de detalle: cargan el tono cálido y marcan el marco de la
+     app. `--surface-canvas` ya no es un beige intermedio entre deep y
+     card — se aclara casi a blanco para que canvas y tarjeta se lean
+     como una única zona de trabajo luminosa, y el contraste real quede
+     entre esa zona y el marco cálido de sidebar/detalle. */
   --surface-desk:    #d6c9b0;
   --surface-deep:    #d6c9b0;
-  --surface-canvas:  #e8dfcd;
+  --surface-canvas:  #f8f4ea;
   --surface-card:    #fffdf6;
   --surface-raised:  #efe6d4;
   --block-bg:        rgba(255, 253, 246, 0.66);
@@ -329,7 +329,7 @@
   /* Text */
   --text-primary:   #2a251d;
   --text-secondary: #6a6151;
-  --text-tertiary:  #665c4c;  /* ≥4.5:1 sobre canvas #e8dfcd (AA) — 4.96:1 */
+  --text-tertiary:  #665c4c;  /* ≥4.5:1 sobre canvas #f8f4ea (AA) — 5.97:1 */
   --text-disabled:  #b3a892;
   --text-inverse:   #f2ece0;
 
@@ -680,8 +680,8 @@ body {
 
 @media (min-width: 769px) {
   .mobile-body {
-    padding: 10px;
-    gap: 10px;
+    padding: 3px;
+    gap: 3px;
   }
 
   .sidebar {
