@@ -10787,7 +10787,7 @@ button {
    quedan mal con scale; con zoom, no).
    ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 1600px) {
-  html { zoom: 1.15; }
+  html { zoom: 1.1; }
 
   /* `body`/`.layout` miden 100vh/100dvh — contra el viewport REAL, sin
      escalar. El `zoom` sí escala su contenido, así que a partir de aquí
