@@ -45,7 +45,10 @@
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
   --surface-desk:    #080605;   /* escritorio detrás del panel flotante */
   --surface-deep:    #100c08;   /* sidebar, capa más profunda */
-  --surface-canvas:  #12100c;   /* canvas principal (panel central hundido) */
+  /* Antes #12100c — casi el mismo negro que desk/deep, así que el canvas
+     apenas se distinguía del marco. Se aclara para que canvas y tarjeta
+     se lean como la misma zona de trabajo, igual que en claro. */
+  --surface-canvas:  #201a13;   /* canvas principal (panel central hundido) */
   --surface-card:    #251e16;   /* tarjetas / paneles */
   --surface-raised:  #2c241b;   /* hover, raised, segmento activo */
   --block-bg:        rgba(255, 240, 220, 0.045); /* bloque de sección */
@@ -312,8 +315,8 @@
      card — se aclara casi a blanco para que canvas y tarjeta se lean
      como una única zona de trabajo luminosa, y el contraste real quede
      entre esa zona y el marco cálido de sidebar/detalle. */
-  --surface-desk:    #d6c9b0;
-  --surface-deep:    #d6c9b0;
+  --surface-desk:    #dcd1bc;
+  --surface-deep:    #dcd1bc;
   --surface-canvas:  #f8f4ea;
   --surface-card:    #fffdf6;
   --surface-raised:  #efe6d4;
@@ -669,11 +672,6 @@ body {
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 8px 20px -6px rgba(0, 0, 0, 0.5),
     0 24px 48px -14px rgba(0, 0, 0, 0.6);
-  /* Sidebar y panel de detalle no tienen sombra propia en oscuro: su
-     fondo (desk, casi negro) ya está tan pegado al negro que una sombra
-     no se distinguiría. Ahí la sensación de "detrás" la da solo el
-     salto de luminosidad hacia el canvas, más claro. */
-  --recede-shadow: none;
 }
 
 :root[data-theme="light"] {
@@ -681,10 +679,6 @@ body {
     0 1px 2px rgba(50, 40, 24, 0.05),
     0 6px 14px -4px rgba(50, 40, 24, 0.10),
     0 18px 36px -12px rgba(50, 40, 24, 0.18);
-  /* Sombra hacia dentro en sidebar/detalle: sugiere que el canvas (que
-     sí tiene sombra propia hacia fuera) flota por delante y la proyecta
-     sobre ellos, en vez de que las tres cajas estén al mismo nivel. */
-  --recede-shadow: inset 0 0 18px rgba(50, 40, 24, 0.14);
 }
 
 @media (min-width: 769px) {
@@ -810,20 +804,15 @@ body {
 
 /* Sin fondo, borde ni sombra propios: la sidebar se funde con el desk
    (fondo del body) para leerse como la MISMA capa hundida, con el
-   canvas flotando por delante. `--recede-shadow` (ver más abajo) es lo
-   que vende esa sensación — una sombra tenue hacia dentro, como si el
-   canvas la proyectara sobre la sidebar al estar por delante. */
-.sidebar {
-  box-shadow: var(--recede-shadow);
-}
+   canvas flotando por delante — el único con sombra propia. */
 
 /* `--text-tertiary` y `--text-secondary` estaban afinados para dar AA
-   justo sobre el canvas (4.96:1 / bien por encima) — al separar
-   `--surface-deep` del canvas para que sidebar y panel de detalle se
-   distingan (más oscuro, #d6c9b0), ese mismo texto cae a 4.01:1 y
-   3.73:1 sobre el nuevo fondo (p.ej. el nombre "Inbox" de la sidebar).
-   Valores propios, solo aquí, recuperan AA sin aclarar el fondo y
-   perder la separación que era el objetivo del cambio. */
+   justo sobre el canvas — al separar `--surface-deep` del canvas para
+   que sidebar y panel de detalle se distingan (más oscuro que el
+   canvas), ese mismo texto perdía AA sobre el nuevo fondo (p.ej. el
+   nombre "Inbox" de la sidebar). Valores propios, solo aquí, recuperan
+   AA sin aclarar el fondo y perder la separación que era el objetivo
+   del cambio. */
 :root[data-theme="light"] .sidebar,
 :root[data-theme="light"] .task-detail-wrap {
   --text-tertiary: #574f40;
@@ -1262,14 +1251,13 @@ body {
    igual que .sidebar. Si viviera en el panel interior, este entraría ya
    a 340px y el wrap solo lo recortaría: se vería deslizarse tras un
    corte recto, con las esquinas comidas, en vez de una caja que crece.
-   Sin fondo propio, como la sidebar: se funde con el desk y solo
-   `--recede-shadow` sugiere que el canvas flota por delante. */
+   Sin fondo propio, como la sidebar: se funde con el desk, sin sombra
+   — el canvas es el único que flota con sombra propia. */
 .task-detail-wrap {
   width: 62px;
   flex-shrink: 0;
   overflow: hidden;
   color: var(--text-primary);
-  box-shadow: var(--recede-shadow);
   transition: width var(--shell-collapse);
 }
 
