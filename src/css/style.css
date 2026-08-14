@@ -307,10 +307,13 @@
   --ring-primary:       0 0 0 3px rgba(111, 122, 61, 0.20);
 
   /* Surfaces — papel cálido. `--surface-deep` la usan solo la sidebar y
-     el panel de detalle: en claro es el mismo papel que el panel central
-     (`--surface-canvas`), no una capa oscura aparte. */
+     el panel de detalle. Antes era un alias de `--surface-canvas` (mismo
+     papel que el panel central) y las tres superficies —sidebar, canvas
+     y tarjeta— quedaban casi indistinguibles. Recupera aquí la jerarquía
+     de tres tonos que ya existe en oscuro (deep < canvas < card), con el
+     mismo tono cálido que `--surface-desk`. */
   --surface-desk:    #d6c9b0;
-  --surface-deep:    var(--surface-canvas);
+  --surface-deep:    #d6c9b0;
   --surface-canvas:  #e8dfcd;
   --surface-card:    #fffdf6;
   --surface-raised:  #efe6d4;
@@ -366,7 +369,8 @@
    de detalle re-declaraban aquí un set completo de tokens oscuros para
    permanecer oscuros incluso con el tema claro activo. Se quitó a
    petición del usuario — ahora los dos toman los mismos tokens que el
-   panel central, sin ámbito propio. Ver `--surface-deep` más arriba. */
+   panel central salvo el fondo, propio vía `--surface-deep` (ver más
+   arriba). */
 
 /* ─── ACENTOS ALTERNATIVOS (Ajustes → Apariencia → Color de acento) ──
    Oliva es el valor por defecto (sin atributo, usa los tokens de
@@ -801,10 +805,22 @@ body {
 
 /* Borde algo más marcado en claro: a baja opacidad se leía menos nítido
    sobre papel que sobre fondo oscuro. El fondo ya sale correcto de
-   `background: var(--surface-deep)` de la regla base — en claro
-   `--surface-deep` es el mismo papel que el panel central. */
+   `background: var(--surface-deep)` de la regla base. */
 :root[data-theme="light"] .sidebar {
   border-right-color: var(--border-default);
+}
+
+/* `--text-tertiary` y `--text-secondary` estaban afinados para dar AA
+   justo sobre el canvas (4.96:1 / bien por encima) — al separar
+   `--surface-deep` del canvas para que sidebar y panel de detalle se
+   distingan (más oscuro, #d6c9b0), ese mismo texto cae a 4.01:1 y
+   3.73:1 sobre el nuevo fondo (p.ej. el nombre "Inbox" de la sidebar).
+   Valores propios, solo aquí, recuperan AA sin aclarar el fondo y
+   perder la separación que era el objetivo del cambio. */
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .task-detail-wrap {
+  --text-tertiary: #574f40;
+  --text-secondary: #4c4436;
 }
 
 /* Colapsado = rail de 62px, no desaparecer (v1). Misma anchura y curva
@@ -1900,9 +1916,9 @@ body {
   gap: var(--sp-4);
   flex-wrap: wrap;
   flex-shrink: 0;
-  /* Contenido centrado a 932px como en v1. */
+  /* Contenido centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 932px;
+  max-width: 880px;
   margin-inline: auto;
 }
 
@@ -2048,9 +2064,9 @@ h1 {
   gap: var(--sp-2);
   margin: 0 auto var(--sp-2);
   flex-shrink: 0;
-  /* Centrado a 932px como en v1. */
+  /* Centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 932px;
+  max-width: 880px;
 }
 
 /* "+" en acento dentro de la fila de añadir (prototipo Inbox) */
@@ -2365,9 +2381,9 @@ button:focus-visible {
   gap: var(--sp-2);
   flex-shrink: 0;
   padding: var(--sp-3) 0 var(--sp-3);
-  /* Alineado con la lista, centrado a 932px como en v1. */
+  /* Alineado con la lista, centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 932px;
+  max-width: 880px;
   margin-inline: auto;
 }
 .list-filter-row .filter-wrap { position: relative; }
@@ -2697,9 +2713,10 @@ button:focus-visible {
   list-style: none;
   overflow-x: hidden;
   padding-bottom: 2rem;
-  /* Contenido centrado a 932px como en v1 (el scroll vive en el wrapper). */
+  /* Contenido centrado a 880px (v1 traía 932, reducido a petición; el
+     scroll vive en el wrapper). */
   width: 100%;
-  max-width: 932px;
+  max-width: 880px;
   margin-inline: auto;
 }
 
@@ -8825,9 +8842,9 @@ button {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: var(--sp-3);
+  bottom: var(--sp-2);
   z-index: 30;
-  width: min(932px, calc(70% - 52px));
+  width: min(880px, calc(70% - 52px));
   height: 55px;
   display: flex;
   align-items: center;
