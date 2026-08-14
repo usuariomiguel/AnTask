@@ -2709,7 +2709,7 @@ button:focus-visible {
 .task-item {
   display: grid;
   gap: 0;
-  padding: 9px var(--sp-3) 9px var(--sp-4);
+  padding: 6px;
   min-height: 47px;
   align-content: center;
   background: var(--surface-card);
@@ -2816,7 +2816,14 @@ button:focus-visible {
    con `gap: 6px` (flex) y `.hoy-section-list` con `margin-top` entre
    filas — sumarle margin-bottom encima doblaba el hueco a 12px. */
 .task-list[data-row-style="tarjetas"] .inbox-group-list,
-.task-list[data-row-style="tarjetas"] .hoy-section-list {
+.task-list[data-row-style="tarjetas"] .hoy-section-list,
+/* Limpio y Líneas pintan la fila plana (ver más abajo), pero sin esto el
+   grupo entero seguía detrás como una tarjeta — algo que no pasa dentro
+   de una lista suelta, que no usa `.inbox-group-list`/`.hoy-section-list`. */
+.task-list[data-row-style="limpio"] .inbox-group-list,
+.task-list[data-row-style="limpio"] .hoy-section-list,
+.task-list[data-row-style="lineas"] .inbox-group-list,
+.task-list[data-row-style="lineas"] .hoy-section-list {
   background: none;
   border: none;
   box-shadow: none;
@@ -3428,6 +3435,7 @@ button:focus-visible {
      `.task-text` (overflow + ellipsis) apoyado en este `min-width: 0`, y
      `.task-item` sigue recortando por fuera como red de seguridad. */
   min-width: 0;
+  height: 100%;
 }
 
 .task-summary .task-toggle-wrap {
@@ -3466,8 +3474,8 @@ button:focus-visible {
   -webkit-appearance: none;
   /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
      la de Hoy son el mismo control y no deben verse distintas. */
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   border: 1.8px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
@@ -7110,6 +7118,15 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
    así el hueco extra lo absorbe SOLO este margen, y el `gap` de 12px
    entre icono y texto no se ve inflado por el espacio sobrante. */
 .settings-row-control { flex-shrink: 0; margin-left: auto; }
+/* La mayoría de filas no envuelve su control en `.settings-row-control`
+   (solo lo hace la de sincronización) — el segmentado, el switch, el
+   botón o los puntos de acento cuelgan sueltos como último hijo. En
+   escritorio, ese último hijo va siempre pegado al borde derecho. En
+   móvil no: la fila envuelve (`flex-wrap`) y el control pasa a su
+   propia línea, donde no debe pegarse a la derecha. */
+@media (min-width: 769px) {
+  .settings-row > *:last-child { flex-shrink: 0; margin-left: auto; }
+}
 
 /* "Contenedor: Pegado/Flotante" es un ajuste de la SILUETA de escritorio
    (sidebar y panel flotando sobre el escritorio vs. pegados al borde);
@@ -8448,6 +8465,7 @@ button {
   min-width: 0;
   font-size: 14.5px;
   font-weight: 550;
+  padding-left: 9px;
   color: var(--text-primary);
   letter-spacing: -0.006em;
   line-height: 1.4;
@@ -8813,7 +8831,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px 11px 16px;
+  padding: 3px;
   border-radius: 33px;
   cursor: text;
   background: var(--surface-card);
@@ -8829,8 +8847,8 @@ button {
   transform: translateX(-50%) translateY(-1px);
 }
 .capture-bar-ico {
-  width: 25px;
-  height: 25px;
+  width: 50px;
+  height: 100%;
   border-radius: 26px;
   background: var(--grad-primary);
   display: grid;
@@ -8846,12 +8864,15 @@ button {
 }
 .capture-bar:hover .capture-bar-text { color: var(--text-secondary); }
 .capture-bar-kbd {
+  display: grid;
+  place-items: center;
+  height: 100%;
   margin-left: auto;
   font-family: var(--font-mono, monospace);
   font-size: 10.5px;
   /* --text-secondary y no tertiary: AA 4.5:1 sobre --kbd-bg en claro */
   color: var(--text-secondary);
-  padding: 3px 8px;
+  padding: 3px 12px;
   border-radius: 24px;
   background: var(--kbd-bg);
   border: 1px solid var(--border-default);
@@ -10755,7 +10776,7 @@ button {
    los problemas de `transform: scale` (hit-testing y overlays fijos
    quedan mal con scale; con zoom, no).
    ═══════════════════════════════════════════════════════════════ */
-@media (min-width: 1440px) {
+@media (min-width: 1600px) {
   html { zoom: 1.15; }
 
   /* `body`/`.layout` miden 100vh/100dvh — contra el viewport REAL, sin
