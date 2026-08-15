@@ -132,7 +132,7 @@
           </button>
           <!-- Buscador de escritorio — arriba, bajo el brand (prototipo Tierra) -->
           <button type="button" id="global-search-btn" class="global-search-btn">
-            <span class="global-search-btn-main"><i data-lucide="search"></i> <span data-i18n="sidebar.search_short">Buscar</span></span>
+            <span class="global-search-btn-main"><span class="global-search-ico"><i data-lucide="search"></i></span> <span data-i18n="sidebar.search_short">Buscar</span></span>
             <kbd class="global-search-kbd">Ctrl + K</kbd>
           </button>
         </div>
@@ -306,17 +306,6 @@
                     <button type="button" class="settings-accent-dot" data-accent="vino" style="background:#96323a;color:#96323a" title="Vino"></button>
                   </div>
                 </div>
-                <div class="settings-row">
-                  <span class="settings-row-ico"><i data-lucide="layout-panel-left"></i></span>
-                  <div>
-                    <div class="settings-row-label" data-i18n="settings.appearance.container">Contenedor</div>
-                    <div class="settings-row-desc" data-i18n="settings.appearance.container_desc">Paneles pegados o flotando sobre el lienzo.</div>
-                  </div>
-                  <div class="settings-seg" id="settings-shell-seg">
-                    <button type="button" class="settings-seg-opt" data-shell="pegado" data-i18n="settings.appearance.shell_attached">Pegado</button>
-                    <button type="button" class="settings-seg-opt active" data-shell="flotante" data-i18n="settings.appearance.shell_floating">Flotante</button>
-                  </div>
-                </div>
                 </div>
               </section>
 
@@ -411,8 +400,8 @@
                     <div class="settings-row-label" data-i18n="profile.import">Importar workspace</div>
                     <div class="settings-row-desc" data-i18n="settings.data.import_desc">Restaura desde un archivo exportado previamente.</div>
                   </div>
-                  <label class="settings-btn" for="pf-import-input"><i data-lucide="download"></i> <span data-i18n="settings.data.import">Importar</span></label>
                   <input type="file" id="pf-import-input" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+                  <label class="settings-btn" for="pf-import-input"><i data-lucide="download"></i> <span data-i18n="settings.data.import">Importar</span></label>
                 </div>
                 <div class="settings-row">
                   <span class="settings-row-ico"><i data-lucide="trash-2"></i></span>
@@ -499,6 +488,12 @@
                 </button>
               </div> -->
               <div class="view-nav-right">
+                <!-- Claro/Oscuro: mismo tamaño e icono único que .row-style-btn,
+                     con animación de View Transition (irradia desde el botón). -->
+                <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="Cambiar tema" data-i18n-title="theme.toggle" aria-label="Cambiar tema" data-i18n-aria="theme.toggle">
+                  <i data-lucide="sun" class="theme-toggle-ico theme-toggle-ico--sun"></i>
+                  <i data-lucide="moon" class="theme-toggle-ico theme-toggle-ico--moon"></i>
+                </button>
                 <!-- Estilo de fila (como el prototipo v1): Limpio · Líneas · Tarjetas · Compacto -->
                 <div class="row-style-wrap" id="row-style-wrap" style="position:relative">
                   <button type="button" class="row-style-btn" id="row-style-btn" title="Estilo de filas" data-i18n-title="rowstyle.trigger" aria-haspopup="true" aria-expanded="false">
@@ -577,50 +572,49 @@
               <button type="button" class="filter-segment" data-filter="done" aria-pressed="false">
                 <span data-i18n="filter.done">Hechas</span>
               </button>
-            </div>
-            <div class="filter-wrap" id="filter-wrap" style="position:relative">
-              <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
-                <svg class="filter-trigger-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z"/></svg>
-                <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
-                <i data-lucide="chevron-down" class="filter-caret"></i>
-              </button>
-              <div class="filter-panel" id="filter-panel" hidden role="menu">
-                <div class="filter-panel-section">
-                  <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
-                  <div class="filter-panel-opts">
-                    <button type="button" class="filter-opt filter-opt--active" data-filter="all" role="menuitemradio">
-                      <i data-lucide="list"></i><span data-i18n="filter.all">Todas</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
-                    <button type="button" class="filter-opt" data-filter="pending" role="menuitemradio">
-                      <i data-lucide="circle-dashed"></i><span data-i18n="filter.pending">Pendientes</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
-                    <button type="button" class="filter-opt" data-filter="done" role="menuitemradio">
-                      <i data-lucide="check-circle-2"></i><span data-i18n="filter.done">Hechas</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
+              <div class="filter-wrap" id="filter-wrap" style="position:relative">
+                <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
+                  <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
+                  <i data-lucide="chevron-down" class="filter-caret"></i>
+                </button>
+                <div class="filter-panel" id="filter-panel" hidden role="menu">
+                  <div class="filter-panel-section">
+                    <span class="filter-panel-label" data-i18n="filter.section_show">Mostrar</span>
+                    <div class="filter-panel-opts">
+                      <button type="button" class="filter-opt filter-opt--active" data-filter="all" role="menuitemradio">
+                        <i data-lucide="list"></i><span data-i18n="filter.all">Todas</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                      <button type="button" class="filter-opt" data-filter="pending" role="menuitemradio">
+                        <i data-lucide="circle-dashed"></i><span data-i18n="filter.pending">Pendientes</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                      <button type="button" class="filter-opt" data-filter="done" role="menuitemradio">
+                        <i data-lucide="check-circle-2"></i><span data-i18n="filter.done">Hechas</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div class="filter-panel-sep"></div>
-                <div class="filter-panel-section">
-                  <span class="filter-panel-label" data-i18n="filter.section_when">Cuándo</span>
-                  <div class="filter-panel-opts">
-                    <button type="button" class="filter-opt" data-filter="overdue" role="menuitemradio">
-                      <i data-lucide="triangle-alert"></i><span data-i18n="filter.overdue">Vencidas</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
-                    <button type="button" class="filter-opt" data-filter="today" role="menuitemradio">
-                      <i data-lucide="sun"></i><span data-i18n="filter.today">Hoy</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
-                    <button type="button" class="filter-opt" data-filter="nodate" role="menuitemradio">
-                      <i data-lucide="calendar"></i><span data-i18n="filter.nodate">Sin fecha</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
+                  <div class="filter-panel-sep"></div>
+                  <div class="filter-panel-section">
+                    <span class="filter-panel-label" data-i18n="filter.section_when">Cuándo</span>
+                    <div class="filter-panel-opts">
+                      <button type="button" class="filter-opt" data-filter="overdue" role="menuitemradio">
+                        <i data-lucide="triangle-alert"></i><span data-i18n="filter.overdue">Vencidas</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                      <button type="button" class="filter-opt" data-filter="today" role="menuitemradio">
+                        <i data-lucide="sun"></i><span data-i18n="filter.today">Hoy</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                      <button type="button" class="filter-opt" data-filter="nodate" role="menuitemradio">
+                        <i data-lucide="calendar"></i><span data-i18n="filter.nodate">Sin fecha</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div class="filter-panel-sep"></div>
-                <div class="filter-panel-section">
-                  <span class="filter-panel-label" data-i18n="filter.section_attrs">Atributos</span>
-                  <div class="filter-panel-opts">
-                    <button type="button" class="filter-opt" data-filter="high" role="menuitemradio">
-                      <i data-lucide="flag"></i><span data-i18n="filter.high">Importantes</span><i data-lucide="check" class="filter-opt-check"></i>
-                    </button>
+                  <div class="filter-panel-sep"></div>
+                  <div class="filter-panel-section">
+                    <span class="filter-panel-label" data-i18n="filter.section_attrs">Atributos</span>
+                    <div class="filter-panel-opts">
+                      <button type="button" class="filter-opt" data-filter="high" role="menuitemradio">
+                        <i data-lucide="flag"></i><span data-i18n="filter.high">Importantes</span><i data-lucide="check" class="filter-opt-check"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -659,8 +653,8 @@
         <!-- Barra de captura rápida flotante (solo escritorio, prototipo Tierra) -->
         <button type="button" id="capture-bar" class="capture-bar" aria-label="Abrir captura rápida" data-i18n-aria="capture.open">
           <span class="capture-bar-ico"><i data-lucide="plus"></i></span>
-          <span class="capture-bar-text" data-i18n="capture.bar_hint">Captura rápida — pulsa para escribir…</span>
-          <kbd class="capture-bar-kbd">Ctrl ⇧ Espacio</kbd>
+          <span class="capture-bar-text" data-i18n="capture.bar_hint">Pulsa para escribir</span>
+          <kbd class="capture-bar-kbd">Ctrl + ⇧ + Espacio</kbd>
         </button>
 
       </main>

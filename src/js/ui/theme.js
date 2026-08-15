@@ -74,9 +74,16 @@ export function initializeAccent() {
  * está disponible, irradiando desde la posición del elemento que
  * disparó el evento (típicamente el botón clickado).
  *
+ * El callback del View Transition NO es síncrono (el navegador lo
+ * difiere), así que quien necesite reaccionar al tema ya aplicado
+ * (p. ej. resincronizar un control que lo refleja) debe pasar
+ * `onApplied` en vez de leer el estado justo después de llamar a
+ * esta función — si no, lee el valor viejo.
+ *
  * @param {HTMLElement|null} sourceEl
+ * @param {() => void} [onApplied]
  */
-export function toggleThemeWithTransition(sourceEl) {
+export function toggleThemeWithTransition(sourceEl, onApplied) {
   const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   const root = document.documentElement;
   const rect = sourceEl && sourceEl.getBoundingClientRect ? sourceEl.getBoundingClientRect() : null;
@@ -88,10 +95,12 @@ export function toggleThemeWithTransition(sourceEl) {
 
   if (!document.startViewTransition) {
     setTheme(next);
+    if (onApplied) onApplied();
     return;
   }
 
   document.startViewTransition(function () {
     setTheme(next);
+    if (onApplied) onApplied();
   });
 }

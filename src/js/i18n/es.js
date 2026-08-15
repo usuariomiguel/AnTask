@@ -140,13 +140,13 @@ export const es = {
   "hoy.overdue_other":        "vencidas",
   "hoy.ring_title":           "Progreso del día",
   "hoy.reopen":               "Reabrir tarea",
-  "capture.bar_hint":         "Captura rápida — pulsa para escribir…",
+  "capture.bar_hint":         "Pulsa para escribir",
   "capture.open":             "Abrir captura rápida",
   "inbox.group_none":         "Sin lista",
 
 
   // ── Filtros ───────────────────────────────────────────────
-  "filter.trigger_label":     "Filtrar",
+  "filter.trigger_label":     "Otros",
   "filter.all":               "Todas",
   "filter.pending":           "Pendientes",
   "filter.done":              "Hechas",
@@ -387,6 +387,7 @@ export const es = {
   "filter.section_show":      "Mostrar",
   "filter.section_when":      "Cuándo",
   "filter.section_attrs":     "Atributos",
+  "theme.toggle":             "Cambiar tema",
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
   "rowstyle.lineas":          "Líneas",

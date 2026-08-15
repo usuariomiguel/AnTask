@@ -100,13 +100,12 @@ export function showQuickCapture(deps) {
 
   box.innerHTML =
     '<div class="quick-capture-header">' +
-      '<span class="quick-capture-badge"><i data-lucide="sparkles"></i></span>' +
       '<span class="quick-capture-title">' + t("quick_capture.title") + '</span>' +
       '<span class="quick-capture-spacer"></span>' +
       '<span class="quick-capture-kbd-hint">' +
         '<span class="qc-kbd">Ctrl</span><span class="qc-kbd-plus">+</span>' +
         '<span class="qc-kbd">⇧</span><span class="qc-kbd-plus">+</span>' +
-        '<span class="qc-kbd qc-kbd--wide">' + t("quick_capture.key_space") + '</span>' +
+        '<span class="qc-kbd qc-kbd--wide">Espacio</span>' +
       '</span>' +
       '<button type="button" class="quick-capture-close" aria-label="' + t("modal.close") + '"><i data-lucide="x"></i></button>' +
     '</div>' +

@@ -186,7 +186,7 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 238, 214, 0.04);
 
   /* ─── MOTION ────────────────────────────────────────────────── */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 120ms;
   --dur-base: 200ms;
@@ -302,7 +302,7 @@
 
 @keyframes theme-reveal {
   to {
-    clip-path: circle(150vmax at var(--vt-x) var(--vt-y));
+    clip-path: circle(120vmax at var(--vt-x) var(--vt-y));
   }
 }
 
@@ -1015,7 +1015,7 @@ body {
 }
 
 .sidebar-header {
-  padding: 15px 14px 14px;
+  padding: 15px 8px;
 }
 
 .sidebar-header-top {
@@ -1035,7 +1035,7 @@ body {
   list-style: none;
   flex: 1;
   overflow-y: auto;
-  padding: 2px var(--sp-2) var(--sp-3);
+  padding: 7px var(--sp-2) var(--sp-3);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -1055,7 +1055,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 6px 10px;
+  padding: 6px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   cursor: pointer;
@@ -2609,7 +2609,7 @@ button:focus-visible {
   font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-tight);
   color: var(--text-secondary);
-  background: var(--surface-card);
+  background: var(--row-hover);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   padding: var(--sp-2) var(--sp-3);
@@ -2937,6 +2937,62 @@ button:focus-visible {
 :root[data-theme="light"] .row-style-btn:hover,
 :root[data-theme="light"] .row-style-btn[aria-expanded="true"] {
   background: rgba(50, 40, 24, 0.03);
+}
+
+/* ── Claro/Oscuro: mismo tamaño/caja que .row-style-btn, un solo botón. Los
+   dos iconos van superpuestos (grid con una única celda) y se cruzan con
+   rotación + fundido según `data-theme`, en vez de sustituir el nodo. ── */
+.theme-toggle-btn {
+  display: inline-grid;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-tertiary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.theme-toggle-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 238, 214, 0.04);
+  border-color: var(--border-strong);
+}
+
+:root[data-theme="light"] .theme-toggle-btn:hover {
+  background: rgba(50, 40, 24, 0.03);
+}
+
+.theme-toggle-ico {
+  grid-area: 1 / 1;
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+  transition: opacity 320ms var(--ease-out), transform 420ms var(--ease-out);
+}
+
+.theme-toggle-ico--sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.theme-toggle-ico--moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+:root[data-theme="dark"] .theme-toggle-ico--sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+:root[data-theme="dark"] .theme-toggle-ico--moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 .row-style-panel {
@@ -3738,6 +3794,12 @@ button:focus-visible {
     gap: 9px;
     padding: 0 16px;
     margin-bottom: 11px;
+  }
+
+  /* En móvil el tema se cambia desde Ajustes; el botón de escritorio sobra
+     junto al de estilo de fila, que aquí ya es una píldora ancha. */
+  .theme-toggle-btn {
+    display: none;
   }
 
   /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
@@ -5172,7 +5234,7 @@ input.inline-edit {
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: var(--fw-regular);
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
@@ -6470,13 +6532,13 @@ body.project-dragging .project-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 9px;
+  gap: 6px;
   width: 100%;
-  margin-top: 0.55rem;
+  margin-top: 22px;
   background: var(--surface-input);
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
-  padding: 9px 11px;
+  padding: 6px; 
   border-radius: var(--r-lg);
   font-size: 13px;
   font-weight: 500;
@@ -6496,11 +6558,24 @@ body.project-dragging .project-item {
   gap: 9px;
 }
 
+/* Mismo tratamiento que .capture-bar-ico (el "+" de la captura rápida):
+   caja propia, redondeada a círculo, con el degradado de acento. */
+.global-search-ico {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: var(--grad-primary);
+  color: var(--accent-on);
+  flex-shrink: 0;
+}
+
 .global-search-kbd {
   font-family: var(--font-mono, monospace);
   font-size: 10px;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 8px 12px;
   border-radius: 23px;
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
@@ -8222,16 +8297,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   }
 }
 
-/* "Contenedor: Pegado/Flotante" es un ajuste de la SILUETA de escritorio
-   (sidebar y panel flotando sobre el escritorio vs. pegados al borde);
-   en móvil el shell es siempre pegado — no hay nada que elegir — así
-   que la fila entera sobra ahí. */
-@media (max-width: 768px) {
-  .settings-row:has(#settings-shell-seg) {
-    display: none;
-  }
-}
-
 /* Cuenta: cabecera con avatar grande */
 .settings-account-row {
   display: flex;
@@ -9577,7 +9642,7 @@ button {
 /* ── Items fijados al tope ──────────────────────────────────── */
 .project-item-pinned {
   font-weight: var(--fw-semibold);
-  padding: 7px 10px;
+  padding: 6px;
 }
 
 /* Iconos de Hoy/Inbox como en v1: líneas lucide a 17px, color secundario
@@ -9854,7 +9919,7 @@ button {
 /* Pill de fecha a la derecha, tintada por tono */
 .today-date-pill {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: var(--fw-semiregular);
   padding: 10px 10px;
   border-radius: 25px;
@@ -9959,6 +10024,7 @@ button {
   font-size: 15px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
+  text-transform: capitalize;
 }
 
 .hoy-section-count {
@@ -10300,8 +10366,8 @@ button {
 }
 
 .capture-bar-ico .lucide {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   stroke-width: 2.6;
 }
 
@@ -10407,10 +10473,11 @@ button {
 }
 
 .inbox-group-name {
-  /* Fuente display, como en el prototipo: la cabecera de grupo es un título,
-     no metadato. Iba en Inter por herencia. */
+  /* Mismo estilo que .hoy-section-title (Vencidas / Para hoy en Hoy):
+     la cabecera de grupo es un título, no metadato. Iba en Inter por
+     herencia y a 14.5px, medio punto por debajo del de Hoy. */
   font-family: var(--font-display);
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
   color: var(--text-primary);
@@ -10462,28 +10529,6 @@ button {
   gap: var(--sp-2);
   padding: 13px 18px;
   border-bottom: 1px solid var(--border-default);
-}
-
-/* Distintivo (chip con destello) + título, estilo captura v1. */
-.quick-capture-badge {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: 26px;
-  background: var(--accent-tint);
-  color: var(--c-primary-300);
-}
-
-.quick-capture-badge .lucide {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2;
-}
-
-:root[data-theme="light"] .quick-capture-badge {
-  color: var(--c-primary-500);
 }
 
 .quick-capture-title {
@@ -10541,7 +10586,6 @@ button {
 }
 
 .quick-capture-close {
-  display: grid;
   justify-content: center;
   align-items: center;
   width: 30px;
@@ -11673,21 +11717,6 @@ button {
     color: var(--accent-on);
   }
 
-  /* Separador fino entre el segmentado y «Filtrar». */
-  .list-filter-row .filter-wrap {
-    margin-left: var(--sp-2);
-  }
-
-  .list-filter-row .filter-wrap::before {
-    content: "";
-    position: absolute;
-    left: calc(var(--sp-2) * -1);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 18px;
-    background: var(--border-default);
-  }
 
   /* En el panel sobra la sección «Mostrar»: ya está fuera. Se oculta en
      vez de borrarse para no romper la hoja de móvil, que lee este DOM. */
@@ -11737,7 +11766,7 @@ button {
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: capitalize;
   letter-spacing: 0.08em;
 }
 

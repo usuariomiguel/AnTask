@@ -31,7 +31,7 @@ const STEPS = [
     icon:    "⚡",
     title:   "Captura más rápida que pensar",
     bodyHTML:
-      '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd> + <kbd>⇧</kbd> + <kbd>Espacio</kbd> desde cualquier sitio.</p>' +
+      '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd> desde cualquier sitio.</p>' +
       '<p class="onb-muted" style="margin-top:0">Y al escribir, usa <strong>sintaxis natural</strong>:</p>' +
       '<div class="onb-syntax-demo">' +
         '<code class="onb-syntax-input">Llamar al banco mañana p1</code>' +

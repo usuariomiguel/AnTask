@@ -163,22 +163,41 @@ import { loadSync } from "./sync-loader.js";
         var next = btn.dataset.themeValue;
         if (document.documentElement.dataset.theme === next) return;
         if (window.toggleThemeWithTransition) {
-          toggleThemeWithTransition(btn);
+          // El callback del View Transition es asíncrono: syncThemeSeg()
+          // debe correr cuando el tema YA está aplicado, no justo después
+          // de disparar el cambio (si no, resincroniza con el valor viejo
+          // y el segmentado queda marcando la opción contraria).
+          window.toggleThemeWithTransition(btn, syncThemeSeg);
         } else {
           document.documentElement.dataset.theme = next;
           localStorage.setItem(THEME_KEY, next);
+          syncThemeSeg();
         }
-        syncThemeSeg();
       });
     });
     syncThemeSeg();
   }
 
+  // ─── Botón claro/oscuro de la barra de tareas (escritorio) ────
+  var toolbarThemeBtn = document.getElementById("theme-toggle-btn");
+  if (toolbarThemeBtn) {
+    toolbarThemeBtn.addEventListener("click", function() {
+      if (window.toggleThemeWithTransition) {
+        window.toggleThemeWithTransition(toolbarThemeBtn, syncThemeSeg);
+      } else {
+        var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem(THEME_KEY, next);
+        syncThemeSeg();
+      }
+    });
+  }
+
   // ─── Controles de Apariencia/Tareas/Notificaciones que aún no
-  // tienen función real (acento, tipografía, contenedor, prioridad
-  // por defecto, resumen diario, semana en lunes): solo reflejan la
-  // selección en la sesión actual, igual que hace el propio prototipo
-  // v1 cuando no está conectado a un ajuste real. ───────────────
+  // tienen función real (prioridad por defecto, resumen diario, semana
+  // en lunes): solo reflejan la selección en la sesión actual, igual
+  // que hace el propio prototipo v1 cuando no está conectado a un
+  // ajuste real. ───────────────
   function wireInertSeg(containerId) {
     var el = document.getElementById(containerId);
     if (!el) return;
@@ -189,7 +208,6 @@ import { loadSync } from "./sync-loader.js";
       });
     });
   }
-  wireInertSeg("settings-shell-seg");
   wireInertSeg("settings-priority-seg");
 
   function wireInertToggle(id) {

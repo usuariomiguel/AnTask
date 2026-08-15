@@ -59,10 +59,10 @@ export function renderDueBadge(task, container) {
     badge.classList.add("due-badge--action");
     badge.dataset.dueAction = "move-today";
     badge.title = t("hoy.move_one");
-    badge.innerHTML = '<i data-lucide="calendar"></i><span class="due-badge-label"></span>' +
+    badge.innerHTML = '<span class="due-badge-label"></span>' +
                       '<i data-lucide="arrow-right" class="due-badge-arrow"></i>';
   } else {
-    badge.innerHTML = '<i data-lucide="calendar"></i><span class="due-badge-label"></span>';
+    badge.innerHTML = '<span class="due-badge-label"></span>';
   }
   const lab = badge.querySelector(".due-badge-label");
   if (state.parts) {

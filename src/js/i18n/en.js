@@ -140,13 +140,13 @@ export const en = {
   "hoy.overdue_other":        "overdue",
   "hoy.ring_title":           "Today's progress",
   "hoy.reopen":               "Reopen task",
-  "capture.bar_hint":         "Quick capture — press to type…",
+  "capture.bar_hint":         "Press to type",
   "capture.open":             "Open quick capture",
   "inbox.group_none":         "No list",
 
 
   // ── Filters ───────────────────────────────────────────────
-  "filter.trigger_label":     "Filter",
+  "filter.trigger_label":     "Other",
   "filter.all":               "All",
   "filter.pending":           "Pending",
   "filter.done":              "Done",
@@ -386,6 +386,7 @@ export const en = {
   "filter.section_show":      "Show",
   "filter.section_when":      "When",
   "filter.section_attrs":     "Attributes",
+  "theme.toggle":             "Toggle theme",
   "rowstyle.trigger":         "Row style",
   "rowstyle.limpio":          "Clean",
   "rowstyle.lineas":          "Lines",

@@ -1363,10 +1363,17 @@ function _updateFilterTriggerLabel() {
   var labelEl    = document.getElementById("filter-trigger-label");
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (!labelEl) return;
+  // En escritorio Todas/Pendientes/Hechas ya se leen en el segmentado de al
+  // lado: repetirlas aquí es redundante, así que el botón ("Otros") solo
+  // cambia de texto para los filtros que NO están en ese segmentado (Hoy,
+  // Vencidas, Sin fecha, Importantes). En móvil, sin el segmentado siempre
+  // visible, sigue reflejando cualquier filtro activo.
+  var isDesktop  = window.matchMedia("(min-width: 769px)").matches;
+  var inSegments = currentFilter === "all" || currentFilter === "pending" || currentFilter === "done";
   var parts = [];
   // Antes era un ternario pending/done: con ocho filtros, cualquier otro
   // habría rotulado «Hechas». La clave se deriva del propio valor.
-  if (currentFilter !== "all") parts.push(t("filter." + currentFilter));
+  if (currentFilter !== "all" && !(isDesktop && inSegments)) parts.push(t("filter." + currentFilter));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
   labelEl.textContent = parts.length > 0 ? parts.join(", ") : t("filter.trigger_label");
 }
@@ -3897,7 +3904,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   meta.className = "today-meta";
   li.appendChild(meta);
 
-  if (task.priority && !done) {
+  if (task.priority) {
     var pEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     // Ya no hay niveles: la bandera roja es la única marca de "importante".
@@ -3931,8 +3938,9 @@ function renderTodayItem(task, project, todayStr, tone) {
     meta.appendChild(projBadge);
   }
 
-  // Repetición: mismo chip mono que en el task-list.
-  if (!done) {
+  // Repetición: mismo chip mono que en el task-list. Completar no lo
+  // esconde —igual que la prioridad y la fecha— solo apaga el título.
+  {
     var recurWrap = document.createElement("span");
     recurWrap.className = "today-recur";
     renderRecurBadge(task, recurWrap);
@@ -4975,11 +4983,11 @@ function showShortcutsHelp() {
       ) +
       group("En una tarea",
         row('<kbd>↑</kbd> <kbd>↓</kbd>', 'Navegar entre tareas') +
-        row('<kbd>Enter</kbd> / <kbd>Esp.</kbd>', 'Expandir / colapsar tarea') +
+        row('<kbd>⏎</kbd> / <kbd>Espacio</kbd>', 'Expandir / colapsar tarea') +
         row('<kbd>E</kbd>', 'Editar texto de la tarea') +
         row('<kbd>D</kbd>', 'Marcar hecha / pendiente') +
-        row('<kbd>Supr</kbd>', 'Eliminar tarea (con deshacer)') +
-        row('<kbd>Esc</kbd>', 'Cerrar modal abierto')
+        row('<kbd>⌫</kbd>', 'Eliminar tarea (con deshacer)') +
+        row('<kbd>⎋</kbd>', 'Cerrar modal abierto')
       ) +
       group("Al crear tarea — sintaxis natural",
         row('<kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd>', 'Fecha límite') +
