@@ -790,12 +790,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border-radius: var(--r-xs);
   background: transparent;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-subtle);
   color: var(--text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
@@ -814,8 +814,8 @@ body {
 
 .sidebar-icon-btn .lucide,
 .sidebar-collapse-btn .lucide {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   stroke-width: 2;
 }
 
@@ -1015,7 +1015,7 @@ body {
 }
 
 .sidebar-header {
-  padding: 15px 8px;
+  padding: 21px 8px 15px 8px;
 }
 
 .sidebar-header-top {
@@ -1405,8 +1405,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 14px 0 12px;
+  gap: 3px;
+  padding: 21px 0 12px;
   overflow: hidden;
 }
 
@@ -1443,7 +1443,7 @@ body {
 .task-detail-rail-sep {
   width: 26px;
   height: 1px;
-  margin: 7px 0;
+  margin: 13px 0;
   background: var(--border-default);
   flex-shrink: 0;
 }
@@ -1478,8 +1478,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: none;
   border-radius: var(--r-sm);
@@ -1488,6 +1488,12 @@ body {
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
+}
+
+.task-detail-close .lucide {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
 }
 
 .task-detail-close:hover {
@@ -1561,6 +1567,18 @@ body {
 
 .task-detail-toggle-wrap {
   margin-top: 2px;
+}
+
+.task-detail-toggle-wrap .task-toggle {
+  width: 28px;
+  height: 28px;
+}
+
+/* El tick (25px) estaba pensado para el círculo de 38px de las filas;
+   a 28px se salía casi hasta el borde. Misma proporción, escalado. */
+.task-detail-toggle-wrap .task-check {
+  width: 18px;
+  height: 18px;
 }
 
 .task-detail-title {
@@ -3005,6 +3023,74 @@ button:focus-visible {
   transform: rotate(0deg) scale(1);
 }
 
+/* ── Dos columnas: mismo patrón que el toggle de tema, pero el cruce de
+   iconos lo dispara `aria-pressed` del propio botón en vez de `data-theme`
+   en :root. ── */
+.columns-toggle-btn {
+  display: inline-grid;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-tertiary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.columns-toggle-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 238, 214, 0.04);
+  border-color: var(--border-strong);
+}
+
+:root[data-theme="light"] .columns-toggle-btn:hover {
+  background: rgba(50, 40, 24, 0.03);
+}
+
+.columns-toggle-btn[aria-pressed="true"] {
+  color: var(--c-primary-300);
+  background: rgba(163, 179, 102, 0.10);
+  border-color: rgba(163, 179, 102, 0.30);
+}
+
+:root[data-theme="light"] .columns-toggle-btn[aria-pressed="true"] {
+  color: var(--c-primary-500);
+  background: rgba(111, 122, 61, 0.08);
+  border-color: rgba(111, 122, 61, 0.25);
+}
+
+.columns-toggle-ico {
+  grid-area: 1 / 1;
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+  transition: opacity 320ms var(--ease-out), transform 420ms var(--ease-out);
+}
+
+.columns-toggle-ico--one {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.columns-toggle-ico--two {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.columns-toggle-btn[aria-pressed="true"] .columns-toggle-ico--one {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+.columns-toggle-btn[aria-pressed="true"] .columns-toggle-ico--two {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
 .row-style-panel {
   position: absolute;
   top: calc(100% + 7px);
@@ -3023,13 +3109,6 @@ button:focus-visible {
   background: #fffdf6;
   border-color: rgba(50, 40, 24, 0.10);
   box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
-}
-
-/* "Dos columnas" solo tiene sentido con el ancho de escritorio. */
-@media (max-width: 768px) {
-  .row-style-opt--desktop-only {
-    display: none;
-  }
 }
 
 .row-style-panel button {
@@ -3211,7 +3290,12 @@ button:focus-visible {
   display: grid;
   gap: 0;
   padding: 6px;
-  min-height: 47px;
+  /* Antes 47px: por debajo de lo que ocupa una fila con badge de fecha
+     (54px), así que esas filas quedaban 2px más altas que una sin
+     ningún chip. Subido para que TODAS midan igual siempre, tengan o
+     no fecha/prioridad/repetición — también entre estilos de fila
+     (ver el footprint de borde igualado más abajo) y en dos columnas. */
+  min-height: 54px;
   align-content: center;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -3326,6 +3410,19 @@ button:focus-visible {
    Sin margin-bottom añadido a propósito: `.inbox-group-list` ya separa
    con `gap: 6px` (flex) y `.hoy-section-list` con `margin-top` entre
    filas — sumarle margin-bottom encima doblaba el hueco a 12px. */
+.task-list[data-row-style="tarjetas"] .inbox-group-list {
+  gap: 6px;
+}
+
+.task-list[data-row-style="tarjetas"] .hoy-section-list .today-item {
+  margin-bottom: 6px;
+}
+
+.task-list[data-row-style="tarjetas"] .hoy-section-list .today-item+.today-item,
+.task-list[data-row-style="tarjetas"] .hoy-section-list .today-item+.hoy-quickadd {
+  margin-top: 0;
+}
+
 .task-list[data-row-style="tarjetas"] .inbox-group-list,
 .task-list[data-row-style="tarjetas"] .hoy-section-list,
 /* Limpio y Líneas pintan la fila plana (ver más abajo), pero sin esto el
@@ -3334,9 +3431,7 @@ button:focus-visible {
 .task-list[data-row-style="limpio"] .inbox-group-list,
 .task-list[data-row-style="limpio"] .hoy-section-list,
 .task-list[data-row-style="lineas"] .inbox-group-list,
-.task-list[data-row-style="lineas"] .hoy-section-list,
-.task-list[data-row-style="columnas"] .inbox-group-list,
-.task-list[data-row-style="columnas"] .hoy-section-list {
+.task-list[data-row-style="lineas"] .hoy-section-list {
   background: none;
   border: none;
   box-shadow: none;
@@ -3348,6 +3443,11 @@ button:focus-visible {
 .task-list[data-row-style="lineas"] .task-item {
   background: transparent;
   border: none;
+  /* Borde superior transparente: reserva el mismo 1px que el inferior
+     (visible) ocupa, para que la fila mida igual que en el resto de
+     estilos — todos parten de un borde de 2px (arriba+abajo) en la
+     regla base de .task-item, y aquí solo uno de los dos se ve. */
+  border-top: 1px solid transparent;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
   box-shadow: none;
@@ -3387,8 +3487,8 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   margin-left: auto;
   flex-shrink: 0;
   padding: 0;
@@ -3405,8 +3505,8 @@ button:focus-visible {
 }
 
 .pmenu-close .lucide {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   stroke-width: 2;
 }
 
@@ -3818,6 +3918,11 @@ button:focus-visible {
     display: none;
   }
 
+  /* Dos columnas solo tiene sentido con el ancho de escritorio. */
+  .columns-toggle-btn {
+    display: none;
+  }
+
   /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
   .row-style-btn {
     display: inline-flex;
@@ -3869,14 +3974,17 @@ button:focus-visible {
   }
 }
 
-/* Cebra — sin tarjeta; la lectura la da una franja alterna. Del handoff
-   móvil v1, donde es el cuarto modo; aquí es el quinto, porque «compacto»
-   viene del handoff de escritorio y se conserva.
+/* Cebra — sin tarjeta; la lectura la da una franja alterna. Estilo fijo
+   de móvil (ver _rowStyleEfectivo en script.js), disponible también en
+   escritorio como opción del selector.
    La franja va en las filas PARES (2ª, 4ª…): empezar por la primera pintaría
    una banda justo bajo la cabecera de sección y se leería como parte de ella. */
 .task-list[data-row-style="cebra"] .task-item {
   background: transparent;
-  border: none;
+  /* Mismo footprint de 2px (arriba+abajo) que el resto de estilos: solo
+     se quita el COLOR del borde, no el grosor — si no, la fila mide 2px
+     menos que en Limpio/Líneas/Tarjetas. */
+  border: 1px solid transparent;
   border-radius: 0;
   box-shadow: none;
   margin-bottom: 0;
@@ -3899,22 +4007,21 @@ button:focus-visible {
   transform: none;
 }
 
-/* Dos columnas — solo escritorio (forzado por JS a "compacto" en móvil,
-   ver _rowStyleEfectivo()). Las tarjetas quedan igual que en Tarjetas
-   (estilo por defecto de .task-item); lo único que cambia es que #task-list
-   pasa de columna única a una rejilla de 2 columnas, en vez de deducirlo
-   con CSS multicolumna: así cada tarjeta mantiene su alto natural.
-   Los hijos que no son tareas sueltas (cabeceras de grupo con su lista,
-   fila "Editar lista", estado vacío) ocupan las dos columnas para no
-   quedar recortados a la mitad del ancho. */
-.task-list[data-row-style="columnas"] {
+/* Dos columnas — toggle independiente del estilo de fila (#columns-toggle-btn),
+   no una opción más de #row-style-panel: combina con Limpio/Líneas/Tarjetas/
+   Compacto/Cebra. Solo escritorio (el botón se oculta en móvil y el JS
+   nunca escribe data-columns ahí). Las cajas compartidas de grupo
+   (.inbox-group-list/.hoy-section-list) se quitan siempre que esto está
+   activo: una caja de fondo detrás de una rejilla de 2 columnas se leía
+   como un bloque roto, se vea mejor con cada tarea ya "tarjeta" suelta. */
+.task-list[data-columns="2"] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 0 14px;
 }
 
-.task-list[data-row-style="columnas"] .task-item {
+.task-list[data-columns="2"] .task-item {
   margin-bottom: 10px;
 }
 
@@ -3923,56 +4030,24 @@ button:focus-visible {
    la lista de DENTRO se convierte en su propia rejilla de 2 columnas
    (anidada), así que las tareas de cada grupo también se reparten en
    dos columnas en vez de quedarse en una sola bajo una cabecera ancha. */
-.task-list[data-row-style="columnas"] .inbox-group-block,
-.task-list[data-row-style="columnas"] .hoy-section,
-.task-list[data-row-style="columnas"] .task-list-edit-row,
-.task-list[data-row-style="columnas"] .empty-illustrated {
+.task-list[data-columns="2"] .inbox-group-block,
+.task-list[data-columns="2"] .hoy-section,
+.task-list[data-columns="2"] .task-list-edit-row,
+.task-list[data-columns="2"] .empty-illustrated {
   grid-column: 1 / -1;
 }
 
-.task-list[data-row-style="columnas"] .inbox-group-list,
-.task-list[data-row-style="columnas"] .hoy-section-list {
+.task-list[data-columns="2"] .inbox-group-list,
+.task-list[data-columns="2"] .hoy-section-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 0 14px;
-}
-
-/* Compacto — tarjetas pegadas que comparten bordes (stacked). */
-.task-list[data-row-style="compacto"] .task-item {
-  margin-top: -1px;
-  margin-bottom: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
   border-radius: 0;
-  box-shadow: none;
-}
-
-.task-list[data-row-style="compacto"] .task-item:first-child {
-  margin-top: 0;
-  border-top-left-radius: var(--r-md);
-  border-top-right-radius: var(--r-md);
-}
-
-/* `:last-child`, no: toda lista real trae detrás un `<li class="task-list-
-   edit-row">` ("Editar lista") que solo se ve en móvil, pero sigue en el
-   DOM en escritorio — `:last-child` caía ahí y la tarjeta se quedaba sin
-   redondear por abajo. Esto comprueba "sin ninguna `.task-item` detrás". */
-.task-list[data-row-style="compacto"] .task-item:not(:has(~ .task-item)) {
-  border-bottom-left-radius: var(--r-md);
-  border-bottom-right-radius: var(--r-md);
-}
-
-.task-list[data-row-style="compacto"] .task-item:hover {
-  box-shadow: none;
-  transform: none;
-  z-index: 1;
-}
-
-/* Inbox agrupado: cada grupo apila sus tareas con flex `gap: 6px`, que el
-   margin negativo de compacto no colapsa → quedaban huecos tipo "tarjetas".
-   En compacto anulamos el gap para que se peguen igual que en Hoy (que usa
-   margin, no gap). Las esquinas y el solape ya los aporta la regla general. */
-.task-list[data-row-style="compacto"] .inbox-group-list {
-  gap: 0;
+  overflow: visible;
 }
 
 /* Las mismas variantes en la vista Hoy (.today-item dentro de #task-list),
@@ -3982,7 +4057,7 @@ button:focus-visible {
    nada — las reglas de `.task-item` no alcanzan a `.today-item`. */
 .task-list[data-row-style="cebra"] .today-item {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 0;
   box-shadow: none;
   margin-bottom: 0;
@@ -4062,6 +4137,7 @@ button:focus-visible {
 .task-list[data-row-style="lineas"] .today-item {
   background: transparent;
   border: none;
+  border-top: 1px solid transparent;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
   box-shadow: none;
@@ -4076,36 +4152,6 @@ button:focus-visible {
   border-bottom-color: var(--task-hover-border);
   box-shadow: none;
   transform: none;
-}
-
-.task-list[data-row-style="compacto"] .today-item {
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.task-list[data-row-style="compacto"] .hoy-section-list .today-item+.today-item {
-  margin-top: -1px;
-}
-
-.task-list[data-row-style="compacto"] .hoy-section-list .today-item:first-child {
-  border-top-left-radius: var(--r-md);
-  border-top-right-radius: var(--r-md);
-}
-
-/* `:last-child`, no: en «Para hoy» cada tarea va seguida del `<li>` del
-   quick-add (`.hoy-quickadd`), así que la ÚLTIMA tarea real nunca es el
-   último hijo — el selector caía en el quick-add y la tarjeta se quedaba
-   sin redondear por abajo. Esto comprueba "sin ninguna `.today-item`
-   detrás", que da igual lo que venga después. */
-.task-list[data-row-style="compacto"] .hoy-section-list .today-item:not(:has(~ .today-item)) {
-  border-bottom-left-radius: var(--r-md);
-  border-bottom-right-radius: var(--r-md);
-}
-
-.task-list[data-row-style="compacto"] .today-item:hover {
-  box-shadow: none;
-  transform: none;
-  z-index: 1;
 }
 
 @keyframes itemIn {
@@ -4955,8 +5001,8 @@ input.inline-edit {
 .modal-head-close {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border: none;
   border-radius: 25px;
@@ -4968,8 +5014,8 @@ input.inline-edit {
 }
 
 .modal-head-close .lucide {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
   stroke-width: 2;
 }
 
@@ -6228,8 +6274,9 @@ body.project-dragging .project-item {
   }
 
   .sidebar-close-btn .lucide {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
+    stroke-width: 2;
   }
 
   /* Search inline arriba del drawer (reemplaza el search del footer) */
@@ -7930,7 +7977,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(163, 179, 102, 0.30);
 }
 
 .profile-meta {
@@ -8502,8 +8548,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 .settings-accent-dot {
-  width: 26px;
-  height: 26px;
+  width: 29px;
+  height: 29px;
   justify-content: center;
   border-radius: 50%;
   border: none;
@@ -9824,7 +9870,8 @@ button {
   align-items: center;
   gap: 3px;
   padding: 6px;
-  min-height: 47px;
+  /* Mismo valor que .task-item — ver el porqué ahí. */
+  min-height: 54px;
   margin-bottom: 6px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -10390,7 +10437,7 @@ button {
   height: 50px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   padding: 6px;
   border-radius: 33px;
   cursor: text;
@@ -10401,6 +10448,8 @@ button {
   transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
   text-align: left;
 }
+
+
 
 .capture-bar:hover {
   border-color: color-mix(in srgb, var(--c-primary-400) 40%, transparent);
@@ -10643,8 +10692,8 @@ button {
 .quick-capture-close {
   justify-content: center;
   align-items: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   margin-left: 6px;
   border-radius: 26px;
@@ -10661,9 +10710,9 @@ button {
 }
 
 .quick-capture-close .lucide {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.2;
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
 }
 
 .quick-capture-input {

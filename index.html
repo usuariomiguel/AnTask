@@ -509,17 +509,18 @@
                     <button type="button" data-row-style="tarjetas" role="menuitemradio">
                       <i data-lucide="rows-3"></i><span data-i18n="rowstyle.tarjetas">Tarjetas</span><i data-lucide="check" class="row-style-check"></i>
                     </button>
-                    <button type="button" data-row-style="compacto" role="menuitemradio">
-                      <i data-lucide="layers"></i><span data-i18n="rowstyle.compacto">Compacto</span><i data-lucide="check" class="row-style-check"></i>
-                    </button>
                     <button type="button" data-row-style="cebra" role="menuitemradio">
                       <i data-lucide="rows-4"></i><span data-i18n="rowstyle.cebra">Cebra</span><i data-lucide="check" class="row-style-check"></i>
                     </button>
-                    <button type="button" data-row-style="columnas" class="row-style-opt--desktop-only" role="menuitemradio">
-                      <i data-lucide="columns-2"></i><span data-i18n="rowstyle.columnas">Dos columnas</span><i data-lucide="check" class="row-style-check"></i>
-                    </button>
                   </div>
                 </div>
+                <!-- Dos columnas: toggle independiente del estilo de fila, mismo
+                     patrón que el de claro/oscuro (dos iconos superpuestos que
+                     se cruzan con rotación + fundido). Solo escritorio. -->
+                <button type="button" class="columns-toggle-btn" id="columns-toggle-btn" title="Dos columnas" data-i18n-title="columns.toggle" aria-label="Dos columnas" data-i18n-aria="columns.toggle" aria-pressed="false">
+                  <i data-lucide="square" class="columns-toggle-ico columns-toggle-ico--one"></i>
+                  <i data-lucide="columns-2" class="columns-toggle-ico columns-toggle-ico--two"></i>
+                </button>
                 <!-- Refs ocultas que el JS necesita. Como en el prototipo v1, el
                      header de una lista es sólo título + contador: el filtro vive
                      ahora en el cuerpo (#list-filter-row) y la gestión del

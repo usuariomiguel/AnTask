@@ -10,6 +10,7 @@ export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";
 export const PROFILE_KEY      = "antask-profile";
 export const ROW_STYLE_KEY    = "antask-row-style";
+export const TWO_COLUMNS_KEY  = "antask-two-columns";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

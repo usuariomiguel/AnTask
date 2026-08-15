@@ -25,6 +25,7 @@ import {
   SECTIONS_KEY,
   PROFILE_KEY,
   ROW_STYLE_KEY,
+  TWO_COLUMNS_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -290,24 +291,22 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // El estilo elegido se refleja como atributo data-row-style en #task-list
 // y sólo cambia el aspecto de las filas (puro CSS). Se persiste aparte.
 // ═══════════════════════════════════════════════════════════════
-/* «cebra» viene del handoff móvil v1. Se AÑADE como quinto en vez de sustituir
-   a «compacto», que es del handoff de escritorio y ya lo usa gente. */
-const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto", "cebra", "columnas"];
+/* «cebra» viene del handoff móvil v1: es el estilo fijo de móvil. */
+const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "cebra"];
 const DEFAULT_ROW_STYLE = "tarjetas";
-const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers", cebra: "rows-4", columnas: "columns-2" };
+const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", cebra: "rows-4" };
 let currentRowStyle = (function() {
   try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
   catch (e) { return DEFAULT_ROW_STYLE; }
 })();
 
 /**
- * Estilo que se pinta de verdad. En móvil solo hay compacto —la misma
- * vista de tarjetas pegadas que en escritorio— y por eso allí no se
- * ofrece el selector. La preferencia del usuario se conserva intacta
- * para cuando vuelva al escritorio.
+ * Estilo que se pinta de verdad. En móvil solo hay cebra —franja alterna,
+ * sin tarjeta— y por eso allí no se ofrece el selector. La preferencia
+ * del usuario se conserva intacta para cuando vuelva al escritorio.
  */
 function _rowStyleEfectivo() {
-  return window.matchMedia("(max-width: 768px)").matches ? "compacto" : currentRowStyle;
+  return window.matchMedia("(max-width: 768px)").matches ? "cebra" : currentRowStyle;
 }
 
 function applyRowStyle(style, persist) {
@@ -340,11 +339,39 @@ function _syncRowStylePicker() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DOS COLUMNAS — toggle independiente del estilo de fila (combina con
+// cualquiera de ellos). Solo tiene efecto en escritorio: en móvil el
+// botón está oculto por CSS y aquí simplemente no se escribe el atributo.
+// ═══════════════════════════════════════════════════════════════
+let twoColumnsOn = (function() {
+  try { return localStorage.getItem(TWO_COLUMNS_KEY) === "1"; }
+  catch (e) { return false; }
+})();
+
+function applyTwoColumns(on, persist) {
+  twoColumnsOn = !!on;
+  const efectivo = twoColumnsOn && !window.matchMedia("(max-width: 768px)").matches;
+  if (taskList) {
+    if (efectivo) taskList.dataset.columns = "2";
+    else delete taskList.dataset.columns;
+  }
+  if (persist !== false) { try { localStorage.setItem(TWO_COLUMNS_KEY, twoColumnsOn ? "1" : "0"); } catch (e) {} }
+  const btn = document.getElementById("columns-toggle-btn");
+  if (btn) btn.setAttribute("aria-pressed", twoColumnsOn ? "true" : "false");
+}
+
+const columnsToggleBtn = document.getElementById("columns-toggle-btn");
+if (columnsToggleBtn) {
+  columnsToggleBtn.addEventListener("click", function() { applyTwoColumns(!twoColumnsOn); });
+}
+
 // ─── ARRANQUE ────────────────────────────────────────────────
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
 try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
+try { applyTwoColumns(twoColumnsOn, false); } catch(e) { console.error("applyTwoColumns error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 // Vista por defecto: "Hoy" (ya no se muestra la pantalla de estado vacío).
 // Sólo se restaura una lista/proyecto si fue abierto explícitamente (hay una
@@ -1185,6 +1212,7 @@ function _placeRowStyleControl() {
   // Al cruzar el breakpoint cambia el estilo efectivo (móvil = cebra fija),
   // así que hay que repintar el atributo además de recolocar el control.
   if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
+  applyTwoColumns(twoColumnsOn, false);
   const wrap = document.getElementById("row-style-wrap");
   const filterRow = document.getElementById("list-filter-row");
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
