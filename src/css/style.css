@@ -1051,6 +1051,23 @@ body {
   border-radius: var(--r-pill);
 }
 
+/* Título de cada grupo dentro del sidebar (Vistas, Listas) — mismo mono
+   uppercase que .profile-section-label, para que el patrón de "etiqueta
+   de sección" se lea igual en toda la app. */
+.sidebar-section-label {
+  padding: 10px 10px 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.sidebar-section-label:first-child {
+  padding-top: 2px;
+}
+
 .project-item {
   display: flex;
   flex-direction: column;
@@ -1217,8 +1234,7 @@ body {
 
 
 .sidebar-footer {
-  padding: var(--sp-3) var(--sp-3) var(--sp-3);
-  border-top: 1px solid var(--border-subtle);
+  padding: 15px 8px;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
@@ -2148,9 +2164,7 @@ body {
   gap: var(--sp-4);
   flex-wrap: wrap;
   flex-shrink: 0;
-  /* Contenido centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 800px;
   margin-inline: auto;
 }
 
@@ -2306,9 +2320,7 @@ h1 {
   gap: var(--sp-2);
   margin: 0 auto var(--sp-2);
   flex-shrink: 0;
-  /* Centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 800px;
 }
 
 /* "+" en acento dentro de la fila de añadir (prototipo Inbox) */
@@ -2673,9 +2685,7 @@ button:focus-visible {
   gap: var(--sp-2);
   flex-shrink: 0;
   padding: var(--sp-3) 0 var(--sp-3);
-  /* Alineado con la lista, centrado a 880px (v1 traía 932, reducido a petición). */
   width: 100%;
-  max-width: 800px;
   margin-inline: auto;
 }
 
@@ -3015,6 +3025,13 @@ button:focus-visible {
   box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
 }
 
+/* "Dos columnas" solo tiene sentido con el ancho de escritorio. */
+@media (max-width: 768px) {
+  .row-style-opt--desktop-only {
+    display: none;
+  }
+}
+
 .row-style-panel button {
   display: flex;
   align-items: center;
@@ -3183,10 +3200,7 @@ button:focus-visible {
   list-style: none;
   overflow-x: hidden;
   padding-bottom: 2rem;
-  /* Contenido centrado a 880px (v1 traía 932, reducido a petición; el
-     scroll vive en el wrapper). */
   width: 100%;
-  max-width: 800px;
   margin-inline: auto;
 }
 
@@ -3320,7 +3334,9 @@ button:focus-visible {
 .task-list[data-row-style="limpio"] .inbox-group-list,
 .task-list[data-row-style="limpio"] .hoy-section-list,
 .task-list[data-row-style="lineas"] .inbox-group-list,
-.task-list[data-row-style="lineas"] .hoy-section-list {
+.task-list[data-row-style="lineas"] .hoy-section-list,
+.task-list[data-row-style="columnas"] .inbox-group-list,
+.task-list[data-row-style="columnas"] .hoy-section-list {
   background: none;
   border: none;
   box-shadow: none;
@@ -3883,6 +3899,45 @@ button:focus-visible {
   transform: none;
 }
 
+/* Dos columnas — solo escritorio (forzado por JS a "compacto" en móvil,
+   ver _rowStyleEfectivo()). Las tarjetas quedan igual que en Tarjetas
+   (estilo por defecto de .task-item); lo único que cambia es que #task-list
+   pasa de columna única a una rejilla de 2 columnas, en vez de deducirlo
+   con CSS multicolumna: así cada tarjeta mantiene su alto natural.
+   Los hijos que no son tareas sueltas (cabeceras de grupo con su lista,
+   fila "Editar lista", estado vacío) ocupan las dos columnas para no
+   quedar recortados a la mitad del ancho. */
+.task-list[data-row-style="columnas"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0 14px;
+}
+
+.task-list[data-row-style="columnas"] .task-item {
+  margin-bottom: 10px;
+}
+
+/* El bloque entero (cabecera + su lista) ocupa las dos columnas de la
+   rejilla exterior, para que la cabecera se lea a todo el ancho — pero
+   la lista de DENTRO se convierte en su propia rejilla de 2 columnas
+   (anidada), así que las tareas de cada grupo también se reparten en
+   dos columnas en vez de quedarse en una sola bajo una cabecera ancha. */
+.task-list[data-row-style="columnas"] .inbox-group-block,
+.task-list[data-row-style="columnas"] .hoy-section,
+.task-list[data-row-style="columnas"] .task-list-edit-row,
+.task-list[data-row-style="columnas"] .empty-illustrated {
+  grid-column: 1 / -1;
+}
+
+.task-list[data-row-style="columnas"] .inbox-group-list,
+.task-list[data-row-style="columnas"] .hoy-section-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0 14px;
+}
+
 /* Compacto — tarjetas pegadas que comparten bordes (stacked). */
 .task-list[data-row-style="compacto"] .task-item {
   margin-top: -1px;
@@ -4140,8 +4195,8 @@ button:focus-visible {
   -webkit-appearance: none;
   /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
      la de Hoy son el mismo control y no deben verse distintas. */
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   border: 1.8px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
@@ -4172,7 +4227,6 @@ button:focus-visible {
   background: var(--c-primary-500);
   border-color: var(--c-primary-500);
   opacity: 1;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--c-primary-500) 40%, transparent);
 }
 
 /* Tick dibujado con un path SVG (stroke-dashoffset). El SVG es hermano del
@@ -4183,12 +4237,12 @@ button:focus-visible {
   margin: auto;
   /* El tick vive dentro del círculo de 20px: 10px es lo que ocupa la
      marca en Hoy, donde se dibuja con máscara. */
-  width: 10px;
-  height: 10px;
+  width: 25px;
+  height: 25px;
   pointer-events: none;
   fill: none;
   stroke: var(--accent-on);
-  stroke-width: 3;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -4228,7 +4282,6 @@ button:focus-visible {
   font-weight: var(--fw-semiregular);
   padding-left: 9px;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -6538,7 +6591,7 @@ body.project-dragging .project-item {
   background: var(--surface-input);
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
-  padding: 6px; 
+  padding: 6px;
   border-radius: var(--r-lg);
   font-size: 13px;
   font-weight: 500;
@@ -7848,7 +7901,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   align-items: center;
   gap: var(--sp-3);
   width: 100%;
-  padding: var(--sp-2) var(--sp-3);
+  padding: 6px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--r-md);
@@ -7856,6 +7909,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   text-align: left;
   transition: background var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
+  background: var(--surface-input);
 }
 
 .profile-btn:hover {
@@ -9798,8 +9852,8 @@ button {
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   margin: 0;
   border-radius: 50%;
   border: 1.8px solid var(--text-tertiary);
@@ -9826,11 +9880,11 @@ button {
 
 .today-check:checked::after {
   content: "";
-  width: 10px;
-  height: 10px;
+  width: 25px;
+  height: 25px;
   background: var(--accent-on);
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
-  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
 }
 
 .today-text {
@@ -10024,7 +10078,7 @@ button {
   font-size: 15px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
-  text-transform: capitalize;
+  text-transform: uppercase;
 }
 
 .hoy-section-count {
@@ -10480,6 +10534,7 @@ button {
   font-size: 15px;
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
+  text-transform: uppercase;
   color: var(--text-primary);
 }
 
@@ -11766,7 +11821,7 @@ button {
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  text-transform: capitalize;
+  text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 

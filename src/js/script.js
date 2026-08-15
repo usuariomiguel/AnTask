@@ -292,9 +292,9 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // ═══════════════════════════════════════════════════════════════
 /* «cebra» viene del handoff móvil v1. Se AÑADE como quinto en vez de sustituir
    a «compacto», que es del handoff de escritorio y ya lo usa gente. */
-const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto", "cebra"];
+const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "compacto", "cebra", "columnas"];
 const DEFAULT_ROW_STYLE = "tarjetas";
-const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers", cebra: "rows-4" };
+const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", compacto: "layers", cebra: "rows-4", columnas: "columns-2" };
 let currentRowStyle = (function() {
   try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
   catch (e) { return DEFAULT_ROW_STYLE; }
@@ -1612,6 +1612,14 @@ function renderPinnedItems(inboxProject) {
 //    Escape o blur cancela. ─────────────────────────────────────────────
 var _addingList = false; // input de "+ Añadir lista" activo
 
+/** Título de sección dentro de #project-list (Vistas, Listas...). */
+function _sidebarSectionLabel(text) {
+  var li = document.createElement("li");
+  li.className = "sidebar-section-label";
+  li.textContent = text;
+  return li;
+}
+
 /** Botón "+ Añadir lista". */
 function _sidebarAddButton(opts) {
   var li = document.createElement("li");
@@ -1710,9 +1718,11 @@ function renderSidebar() {
   const realActive   = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
 
   // ── Items fijados al tope: Hoy + Inbox ───────────────────────
+  projectListEl.appendChild(_sidebarSectionLabel(t("sidebar.pinned_section")));
   renderPinnedItems(inboxProject);
 
   // Listas: lista plana, sin agrupar.
+  projectListEl.appendChild(_sidebarSectionLabel(t("sidebar.lists_section")));
   realActive.forEach(function(p) { renderProjectItem(p); });
 
   // "+ Añadir lista" al final (o input activo), como en v1.
