@@ -392,7 +392,6 @@ export const en = {
   "columns.toggle":           "Two columns",
   "rowstyle.trigger":         "Row style",
   "rowstyle.limpio":          "Clean",
-  "rowstyle.lineas":          "Lines",
   "rowstyle.tarjetas":        "Cards",
   "rowstyle.cebra":           "Zebra",
   "list.search_placeholder":  "Search tasks…",

@@ -168,13 +168,15 @@ export function showQuickCapture(deps) {
     closeListPopover();
     listTrigger.setAttribute("aria-expanded", "true");
     const pop = document.createElement("div");
-    // Hacia abajo, no hacia arriba: el modal de captura rápida es bajo y
-    // el disparador vive a media altura, así que un popover largo (muchas
-    // listas) abriendo hacia arriba se salía por encima del propio modal
-    // —zona que su `overflow-y: auto` no puede alcanzar, al no haber
-    // scroll negativo— y quedaba inalcanzable. Hacia abajo, en cambio, el
-    // propio scroll del modal lo deja a la vista.
-    pop.className = "field-popover field-popover--narrow";
+    // El modal de captura rápida es bajo y el disparador vive a media
+    // altura: anclado con `position: absolute` dentro del modal (como el
+    // resto de popovers de campo), un listado largo se salía por arriba
+    // o por abajo de esa caja pequeña y quedaba cortado o tapando el
+    // input/el botón de enviar. Aquí va con `position: fixed` sobre todo
+    // el documento, colocado a mano según el hueco real del viewport
+    // (abre hacia abajo si cabe, si no hacia arriba) y con su propio
+    // scroll interno tope, así nunca depende del tamaño del modal.
+    pop.className = "field-popover field-popover--narrow field-popover--fixed";
     pop.innerHTML = '<div class="field-popover-list">' +
       lists.map(function (p) {
         const active = p.id === selectedId;
@@ -186,12 +188,8 @@ export function showQuickCapture(deps) {
         '</button>';
       }).join("") +
     '</div>';
-    listPicker.appendChild(pop);
-    // Con muchas listas el popover puede sobrar por debajo del propio
-    // modal (que hace scroll, no recorta); sin esto quedaba técnicamente
-    // alcanzable pero fuera de la vista hasta que el usuario adivinara
-    // que tenía que desplazar el modal a mano.
-    pop.scrollIntoView({ block: "nearest" });
+    document.body.appendChild(pop);
+    _placeFixedPopover(pop, listTrigger);
     if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
     pop.querySelectorAll("[data-list-id]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -202,6 +200,36 @@ export function showQuickCapture(deps) {
       });
     });
     listPopoverEl = pop;
+  }
+
+  /** Coloca un popover `position: fixed` bajo (o, si no cabe, sobre) su
+   *  disparador, con margen de seguridad al borde del viewport. */
+  function _placeFixedPopover(pop, trigger) {
+    const MARGIN = 8;
+    const r = trigger.getBoundingClientRect();
+    const maxH = Math.min(320, window.innerHeight - MARGIN * 2);
+    pop.style.maxHeight = maxH + "px";
+    pop.style.overflowY = "auto";
+    // Ancho fijo (240px, ver .field-popover--narrow): se alinea al borde
+    // derecho del disparador sin salirse por la izquierda del viewport.
+    const width = pop.offsetWidth || 240;
+    let left = r.right - width;
+    left = Math.max(MARGIN, Math.min(left, window.innerWidth - width - MARGIN));
+    const spaceBelow = window.innerHeight - r.bottom - MARGIN;
+    const spaceAbove = r.top - MARGIN;
+    const openDown = spaceBelow >= Math.min(maxH, pop.scrollHeight) || spaceBelow >= spaceAbove;
+    pop.style.position = "fixed";
+    pop.style.left = left + "px";
+    pop.style.right = "auto";
+    if (openDown) {
+      pop.style.top = (r.bottom + 6) + "px";
+      pop.style.bottom = "auto";
+      pop.style.maxHeight = Math.min(maxH, spaceBelow) + "px";
+    } else {
+      pop.style.bottom = (window.innerHeight - r.top + 6) + "px";
+      pop.style.top = "auto";
+      pop.style.maxHeight = Math.min(maxH, spaceAbove) + "px";
+    }
   }
 
   listTrigger.addEventListener("click", function () {
@@ -268,6 +296,9 @@ export function showQuickCapture(deps) {
   function close() {
     _isOpen = false;
     document.removeEventListener("mousedown", onDocMouseDown, true);
+    // El popover de lista ya no vive dentro de `box` (ver openListPopover),
+    // así que cerrar el modal no se lo lleva por delante solo.
+    closeListPopover();
     closeModal(overlay);
   }
 
@@ -313,7 +344,12 @@ export function showQuickCapture(deps) {
   });
 
   function onDocMouseDown(e) {
-    if (listPopoverEl && !listPicker.contains(e.target)) closeListPopover();
+    // El popover ya no cuelga de `listPicker` (ver openListPopover: va en
+    // `document.body` con `position: fixed`), así que un clic dentro de
+    // él también cuenta como "dentro".
+    if (listPopoverEl && !listPicker.contains(e.target) && !listPopoverEl.contains(e.target)) {
+      closeListPopover();
+    }
   }
   document.addEventListener("mousedown", onDocMouseDown, true);
 

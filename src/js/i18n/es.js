@@ -393,7 +393,6 @@ export const es = {
   "columns.toggle":           "Dos columnas",
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
-  "rowstyle.lineas":          "Líneas",
   "rowstyle.tarjetas":        "Tarjetas",
   "rowstyle.cebra":           "Cebra",
   "list.search_placeholder":  "Buscar tareas…",

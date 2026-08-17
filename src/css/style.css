@@ -81,6 +81,7 @@
   --c-warning: #e0a35a;
   --c-danger: #e07a6a;
   --c-info: #73b6d2;
+  --c-recur: #b18cf0;
 
   /* Vencido — rojo de estado, distinto de --c-danger (que significa
      "acción destructiva"). Lo usan Hoy, las píldoras de fecha y el swipe.
@@ -358,6 +359,7 @@
   --c-warning: #b58236;
   --c-danger: #b0524a;
   --c-info: #3d6e85;
+  --c-recur: #7c4fd6;
 
   /* Vencido — en claro el rojo baja de tono para leer sobre papel.
      El canal RGB no cambia: el tinte ya era este en ambos temas. */
@@ -1060,7 +1062,7 @@ body {
   left: -9px;
   top: 5px;
   bottom: 5px;
-  height: 24px;
+  height: 20px;
   transform: none;
   opacity: 1;
   background: var(--c-primary-500);
@@ -1508,24 +1510,30 @@ body {
   display: flex;
   flex-direction: column;
   gap: 9px;
-}
-
-/* Solo móvil: rellena el hueco bajo la tarjeta de campos, en vez de
-   dejarlo en blanco — mismo lenguaje que `.task-chips-empty-hint` en
-   las filas de tarea. */
-.task-detail-add-hint {
-  display: none;
+  padding: 11px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
 }
 
 .task-detail-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  align-self: flex-start;
+  gap: 5px;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
 
 .task-detail-label .lucide {
@@ -1533,18 +1541,65 @@ body {
   height: 13px;
 }
 
+/* El campo tiñe su propia etiqueta del mismo color que su valor cuando
+   tiene algo que contar — mismo lenguaje que ya usan .task-detail-field-btn
+   --has-value/--due-today/--due-overdue/--reminder-set y .active de
+   prioridad, pero también en la píldora de arriba, no solo en el botón. */
+.task-detail-field:has(.task-detail-priority-btn.active) > .task-detail-label {
+  border-color: rgba(224, 122, 106, 0.45);
+  background: rgba(224, 122, 106, 0.10);
+  color: var(--c-pink);
+}
+
+:root[data-theme="light"] .task-detail-field:has(.task-detail-priority-btn.active) > .task-detail-label {
+  color: #9a3a33;
+}
+
+.task-detail-field:has(.task-detail-field-btn--has-value) > .task-detail-label {
+  border-color: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 35%, transparent);
+  background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 10%, var(--surface-card));
+  color: var(--proj-color, var(--text-primary));
+}
+
+.task-detail-field:has(.task-detail-field-btn--due-today) > .task-detail-label {
+  background: var(--accent-tint);
+  border-color: transparent;
+  color: var(--c-primary-300);
+}
+
+:root[data-theme="light"] .task-detail-field:has(.task-detail-field-btn--due-today) > .task-detail-label {
+  color: var(--c-primary-600);
+}
+
+.task-detail-field:has(.task-detail-field-btn--due-overdue) > .task-detail-label {
+  background: rgba(var(--c-overdue-rgb), 0.13);
+  border-color: transparent;
+  color: var(--c-overdue);
+}
+
+.task-detail-field:has(.task-detail-field-btn--reminder-set) > .task-detail-label {
+  border-color: color-mix(in srgb, var(--c-info) 35%, transparent);
+  background: color-mix(in srgb, var(--c-info) 10%, var(--surface-card));
+  color: var(--c-info);
+}
+
+.task-detail-field:has(.task-detail-field-btn--recur-set) > .task-detail-label {
+  border-color: color-mix(in srgb, var(--c-recur) 35%, transparent);
+  background: color-mix(in srgb, var(--c-recur) 10%, var(--surface-card));
+  color: var(--c-recur);
+}
+
 .task-detail-textarea {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border-default);
-  background: var(--surface-input);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--text-primary);
   font-size: 0.875rem;
   font-family: var(--font-sans);
   outline: none;
   resize: vertical;
-  min-height: 84px;
+  min-height: 68px;
   line-height: 1.5;
 }
 
@@ -1566,6 +1621,19 @@ body {
 .task-detail-textarea::placeholder {
   color: var(--text-tertiary);
   opacity: 0.72;
+}
+
+/* Interruptor de "Importante": es un simple on/off, no un valor que abra
+   un selector (Fecha/Repetir/Recordatorio/Lista) — de ahí a lo ancho
+   completo le sobraba tamaño para lo que hace. Chip del ancho de su
+   contenido, como el resto de píldoras del panel. */
+.task-detail-field-btn.task-detail-priority-btn {
+  width: auto;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  align-self: flex-start;
 }
 
 /* Interruptor de "Importante": sin niveles, un único botón que se tiñe
@@ -1596,10 +1664,10 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border-default);
-  background: var(--surface-input);
+  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: var(--row-hover);
   color: var(--text-primary);
   font-size: 0.875rem;
   /* Explícito: sin esto heredaba el 600 de la regla base de `button`,
@@ -1666,6 +1734,19 @@ body {
 
 .task-detail-field-btn--reminder-set .lucide {
   color: var(--c-info);
+}
+
+/* Repetir: morado — mismo lenguaje que usan otras apps de tareas para la
+   recurrencia, y queda claramente distinto del resto (rosa=prioridad,
+   verde=fecha, azul=recordatorio, color de lista=lista). */
+.task-detail-field-btn--recur-set {
+  border-color: color-mix(in srgb, var(--c-recur) 35%, transparent);
+  background: color-mix(in srgb, var(--c-recur) 10%, var(--surface-input));
+  color: var(--c-recur);
+}
+
+.task-detail-field-btn--recur-set .lucide {
+  color: var(--c-recur);
 }
 
 .field-btn-ico {
@@ -1736,6 +1817,14 @@ body {
 
 :root[data-theme="light"] .field-popover {
   background: var(--surface-card);
+}
+
+/* El popover de lista de la captura rápida vive en document.body con
+   position:fixed (ver quick-capture.js), no dentro del modal — sin
+   z-index propio se quedaba con el 40 de la base, muy por debajo del
+   1000 de .modal-overlay, y quedaba invisible detrás del propio modal. */
+.field-popover--fixed {
+  z-index: 1100;
 }
 
 .field-popover--up {
@@ -2009,7 +2098,7 @@ body {
   width: 37px;
   height: 100%;
   border-radius: 26px;
-  background: var(--grad-primary);
+  background: var(--c-danger);
   flex-shrink: 0;
   color: var(--accent-on);
 }
@@ -3095,24 +3184,6 @@ button:focus-visible {
   animation: none;
 }
 
-/* Left accent bar — solo visible cuando la fila está seleccionada
- * (multi-selección). Centrada verticalmente. */
-.task-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 100%;
-  background: var(--task-accent, var(--c-primary-500));
-  border-radius: 0 var(--r-pill) var(--r-pill) 0;
-  opacity: 0;
-  /* Por encima de .task-swipe-content (z-index 3), que desde que es una caja
-     real lleva fondo propio y si no la taparía en multi-selección. */
-  z-index: 4;
-}
-
 /* Mismo hover que la vista Hoy (.today-item): realce, sombra proyectada
    y una elevación de 1px. El tema claro no lo redeclara —Hoy tampoco—
    porque los tokens ya se encargan del color. */
@@ -3171,39 +3242,16 @@ button:focus-visible {
 
 .task-list[data-row-style="tarjetas"] .inbox-group-list,
 .task-list[data-row-style="tarjetas"] .hoy-section-list,
-/* Limpio y Líneas pintan la fila plana (ver más abajo), pero sin esto el
-   grupo entero seguía detrás como una tarjeta — algo que no pasa dentro
-   de una lista suelta, que no usa `.inbox-group-list`/`.hoy-section-list`. */
+/* Limpio pinta la fila plana (ver más abajo), pero sin esto el grupo
+   entero seguía detrás como una tarjeta — algo que no pasa dentro de
+   una lista suelta, que no usa `.inbox-group-list`/`.hoy-section-list`. */
 .task-list[data-row-style="limpio"] .inbox-group-list,
-.task-list[data-row-style="limpio"] .hoy-section-list,
-.task-list[data-row-style="lineas"] .inbox-group-list,
-.task-list[data-row-style="lineas"] .hoy-section-list {
+.task-list[data-row-style="limpio"] .hoy-section-list {
   background: none;
   border: none;
   box-shadow: none;
   border-radius: 0;
   overflow: visible;
-}
-
-/* Líneas — separador inferior, sin tarjeta ni esquinas redondeadas. */
-.task-list[data-row-style="lineas"] .task-item {
-  background: transparent;
-  border: none;
-  /* Borde superior transparente: reserva el mismo 1px que el inferior
-     (visible) ocupa, para que la fila mida igual que en el resto de
-     estilos — todos parten de un borde de 2px (arriba+abajo) en la
-     regla base de .task-item, y aquí solo uno de los dos se ve. */
-  border-top: 1px solid transparent;
-  border-bottom: 1px solid var(--border-subtle);
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
-}
-
-/* `:last-child`, no: mismo motivo que en "Compacto" — el `<li>` de
-   "Editar lista" (solo visible en móvil) sigue detrás en el DOM. */
-.task-list[data-row-style="lineas"] .task-item:not(:has(~ .task-item)) {
-  border-bottom-color: transparent;
 }
 
 /* ─── PANTALLA «PERFIL» (menú móvil) ────────────────────────────
@@ -3720,6 +3768,20 @@ button:focus-visible {
   background: var(--zebra-bg);
 }
 
+/* Cebra + dos columnas: `nth-child(even)` tiñe SIEMPRE la misma columna
+   entera (2, 4, 6... caen todas en la columna derecha de la rejilla),
+   así que la franja alterna se veía como una columna entera coloreada
+   en vez de alternar — aquí se repite `:nth-child(even)` para anularla
+   y se tiñe por PAREJA de fila (3-4, 7-8...) en su lugar. */
+.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(even) {
+  background: transparent;
+}
+
+.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(4n+3),
+.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(4n+4) {
+  background: var(--zebra-bg);
+}
+
 /* Dos columnas — toggle independiente del estilo de fila (#columns-toggle-btn),
    no una opción más de #row-style-panel: combina con Limpio/Líneas/Tarjetas/
    Compacto/Cebra. Solo escritorio (el botón se oculta en móvil y el JS
@@ -3789,6 +3851,17 @@ button:focus-visible {
   background: var(--zebra-bg);
 }
 
+/* Mismo arreglo que en .task-item: en dos columnas, `nth-child(even)`
+   tiñe una columna entera en vez de alternar. */
+.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(even) {
+  background: transparent;
+}
+
+.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(4n+3),
+.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(4n+4) {
+  background: var(--zebra-bg);
+}
+
 /* Cebra en una lista suelta (sin sección que la envuelva): aquí
    `#task-list` ES la lista de filas —a diferencia de Hoy/Inbox, donde
    `.hoy-section-list`/`.inbox-group-list` son un elemento aparte del
@@ -3831,19 +3904,6 @@ button:focus-visible {
 }
 
 .task-list[data-row-style="limpio"] .hoy-section-list .today-item+.today-item {
-  margin-top: 0;
-}
-
-.task-list[data-row-style="lineas"] .today-item {
-  background: transparent;
-  border: none;
-  border-top: 1px solid transparent;
-  border-bottom: 1px solid var(--border-subtle);
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.task-list[data-row-style="lineas"] .hoy-section-list .today-item+.today-item {
   margin-top: 0;
 }
 
@@ -4929,13 +4989,15 @@ input.inline-edit {
   font-weight: var(--fw-regular);
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
+  /* Mismo morado que .task-detail-field-btn--recur-set en el panel de
+     detalle — la recurrencia se lee igual en la fila que en el panel. */
+  color: var(--c-recur);
   white-space: nowrap;
   flex-shrink: 0;
   padding: 0 10px;
   border-radius: 25px;
-  background: var(--row-hover);
-  border: 1px solid var(--border-default);
+  background: color-mix(in srgb, var(--c-recur) 10%, var(--row-hover));
+  border: 1px solid color-mix(in srgb, var(--c-recur) 35%, transparent);
   height: 25px;
 }
 
@@ -6691,8 +6753,11 @@ mark.search-hl {
   opacity: 1 !important;
 }
 
-/* Fila con el panel de detalle abierto — mismo acento que "seleccionada". */
+/* Fila con el panel de detalle abierto — mismo acento que "seleccionada",
+   con el mismo tinte de fondo (antes solo llevaba el borde, y con la
+   lista llena costaba distinguir cuál era la fila abierta de verdad). */
 .task-item.detail-open {
+  background: rgba(163, 179, 102, 0.09);
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
@@ -9163,6 +9228,14 @@ button {
   user-select: none;
 }
 
+/* Fila con el panel de detalle abierto — mismo trato que .task-item en
+   Inbox/listas (antes esta marca no existía aquí: abrir una tarea desde
+   Hoy no resaltaba su fila). */
+.today-item.detail-open {
+  background: rgba(163, 179, 102, 0.09);
+  border-color: rgba(163, 179, 102, 0.38) !important;
+}
+
 /* Checkbox circular como el prototipo (20px, borde 1.8px) */
 .today-check {
   appearance: none;
@@ -9275,6 +9348,10 @@ button {
 /* Pill de fecha a la derecha, tintada por tono */
 .today-date-pill {
   flex-shrink: 0;
+  /* Mismo mono que el resto de tags de la fila (.recur-badge, .due-badge...) —
+     antes solo lo llevaba en móvil (ver @media más abajo) y en escritorio
+     heredaba la fuente de texto normal, desentonando con sus vecinos. */
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: var(--fw-semiregular);
   padding: 10px 10px;
@@ -9352,7 +9429,7 @@ button {
    escritorio, sin distinción de tamaño de pantalla. */
 .hoy-section {
   list-style: none;
-  margin-bottom: 18px;
+  margin-bottom: 32px;
 }
 
 .hoy-section-head {
@@ -9772,6 +9849,15 @@ button {
   padding-top: 2px;
 }
 
+/* Mismo hueco entre grupos que entre secciones de Hoy (.hoy-section). */
+.inbox-group-block {
+  margin-bottom: 32px;
+}
+
+.inbox-group-block:last-child {
+  margin-bottom: 0;
+}
+
 /* Cabecera de grupo por proyecto en el Inbox (las "listas" del prototipo) */
 .inbox-group-head {
   list-style: none;
@@ -9993,7 +10079,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 11px;
   border-radius: var(--r-pill);
   font-size: 12.5px;
   font-weight: 600;
@@ -11663,21 +11749,12 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MÓVIL — detalle de tarea como acordeón
+   MÓVIL — panel de detalle de tarea
 
-   El panel salía con las siete características desplegadas y había que
-   hacer scroll para ver una tarea entera. El prototipo v1 lo resuelve al
-   revés: una fila por característica con su valor a la derecha, y se
-   despliega la que toques. Solo una abierta a la vez.
-
-   Escritorio no entra aquí: allí caben todas y verlas de golpe es la
-   gracia del panel.
+   Mismo campo por campo que escritorio (etiqueta en píldora + valor
+   debajo), sin el acordeón plegable que traía antes: todas las
+   características van siempre visibles.
    ═══════════════════════════════════════════════════════════════ */
-.detail-acc-value,
-.detail-acc-caret {
-  display: none;
-}
-
 @media (max-width: 768px) {
   .task-detail-body {
     /* `flex: 1` (heredado de escritorio, donde el panel siempre va a
@@ -11689,8 +11766,7 @@ button {
        verdad no cabe. */
     flex: 0 1 auto;
     min-height: 0;
-    padding-top: 4px;
-    gap: 0;
+    padding-top: 18px;
     /* El pie (con «Eliminar») ya reserva su propio hueco para la pastilla
        de navegación flotante (ver .task-detail-footer) y ahora siempre
        sigue justo al body — reservarlo aquí también solo añadía un hueco
@@ -11703,148 +11779,6 @@ button {
   .task-detail-title {
     font-size: 22px;
     line-height: 1.28;
-  }
-
-  /* Las características van juntas en una tarjeta, con filete entre ellas
-     — el mismo lenguaje que los bloques de lista. */
-  .task-detail-field[data-acc] {
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-bottom: 1px solid var(--border-default);
-    background: var(--surface-card);
-  }
-
-  .task-detail-field[data-acc]:first-of-type {
-    border-radius: calc(var(--r-md) + 2px) calc(var(--r-md) + 2px) 0 0;
-    border-top: 1px solid var(--border-default);
-  }
-
-  .task-detail-field[data-acc]:last-of-type {
-    border-radius: 0 0 calc(var(--r-md) + 2px) calc(var(--r-md) + 2px);
-  }
-
-  .task-detail-field[data-acc]:first-of-type,
-  .task-detail-field[data-acc]:last-of-type,
-  .task-detail-field[data-acc] {
-    border-left: 1px solid var(--border-default);
-    border-right: 1px solid var(--border-default);
-  }
-
-  /* La etiqueta pasa a ser la fila pulsable: icono, nombre, valor y
-     chevron. 48px de alto — por encima del mínimo táctil. */
-  /* Etiqueta apagada a propósito (t.ink2 del prototipo): es el nombre
-     del campo, no el valor — el color fuerte se lo queda el chip de la
-     derecha (fecha vencida, prioridad…), no el rótulo. */
-  .task-detail-field[data-acc]>.task-detail-label {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    min-height: 48px;
-    margin: 0;
-    padding: 0 14px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 14.5px;
-    font-weight: 500;
-    letter-spacing: normal;
-    text-transform: none;
-    color: var(--text-secondary);
-  }
-
-  .task-detail-field[data-acc]>.task-detail-label .lucide {
-    width: 17px;
-    height: 17px;
-    color: var(--text-tertiary);
-    flex-shrink: 0;
-  }
-
-  .task-detail-field[data-acc]>.task-detail-label:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: -2px;
-  }
-
-  /* La nota no se pliega, así que su cabecera no es un botón: nada de
-     cursor de mano ni de foco de teclado en ella. */
-  .task-detail-field[data-acc="note"]>.task-detail-label {
-    cursor: default;
-  }
-
-  .detail-acc-value {
-    display: block;
-    margin-left: auto;
-    max-width: 45%;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 650;
-    color: var(--text-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: right;
-  }
-
-  .detail-acc-value--set {
-    color: var(--c-primary-500);
-  }
-
-  .detail-acc-caret {
-    display: block;
-  }
-
-  .detail-acc--open>.task-detail-label .detail-acc-caret {
-    transform: rotate(180deg);
-  }
-
-  /* Plegado: fuera todo lo que no sea la cabecera.
-     Las reglas de abierto repiten `[data-acc]` a propósito: sin él pierden
-     en especificidad contra la de plegado y el chevron giraba sin que
-     apareciera nada debajo. */
-  .task-detail-field[data-acc]>*:not(.task-detail-label) {
-    display: none;
-  }
-
-  .task-detail-field[data-acc].detail-acc--open>*:not(.task-detail-label) {
-    display: block;
-    /* Los botones de campo y la nota ya llevan `width: 100%` (compartido
-       con escritorio): sin `width: auto` aquí, ese 100% se calcula ANTES
-       del margen y el margen se suma en vez de restar — el contenido se
-       salía por la derecha de la tarjeta (visible al abrir "Repetir",
-       "Recordatorio", "Lista"...). */
-    width: auto;
-    margin: 0 14px 14px;
-  }
-
-  .task-detail-field[data-acc].detail-acc--open>.task-detail-date-row {
-    display: flex;
-  }
-
-  .task-detail-field[data-acc].detail-acc--open>.task-detail-subtask-form {
-    display: flex;
-    margin-top: 8px;
-  }
-
-  /* La abierta se tiñe para que se vea de un vistazo cuál es — salvo la
-     nota, que lleva la clase de forma permanente y no es una selección,
-     así que no debe leerse como si lo fuera. */
-  .detail-acc--open:not([data-acc="note"]) {
-    background: var(--surface-raised);
-  }
-
-  .task-detail-add-hint {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    align-self: flex-start;
-    margin: 14px 0 0;
-    padding: 5px 11px;
-    border-radius: 999px;
-    border: 1px dashed var(--border-default);
-    color: var(--text-tertiary);
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
   }
 
   /* Eliminar: caja propia bajo la tarjeta, como en el prototipo — no una

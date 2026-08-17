@@ -292,9 +292,9 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // y sólo cambia el aspecto de las filas (puro CSS). Se persiste aparte.
 // ═══════════════════════════════════════════════════════════════
 /* «cebra» viene del handoff móvil v1: es el estilo fijo de móvil. */
-const ROW_STYLES        = ["limpio", "lineas", "tarjetas", "cebra"];
+const ROW_STYLES        = ["limpio", "tarjetas", "cebra"];
 const DEFAULT_ROW_STYLE = "tarjetas";
-const ROW_STYLE_ICON    = { limpio: "list", lineas: "menu", tarjetas: "rows-3", cebra: "rows-4" };
+const ROW_STYLE_ICON    = { limpio: "list", tarjetas: "rows-3", cebra: "rows-4" };
 let currentRowStyle = (function() {
   try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
   catch (e) { return DEFAULT_ROW_STYLE; }
@@ -2946,17 +2946,26 @@ function _getOpenDetailTask() {
 
 function openTaskDetail(taskId, projectId) {
   if (selectMode) return;
-  const cambioDeTarea = openDetailTaskId !== taskId;
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
   document.body.classList.add("task-detail-active");
-  // El acordeón móvil no se reinicia solo: sin esto, un campo que se dejó
-  // abierto en OTRA tarea (p. ej. "Repetir") aparecía ya desplegado al
-  // entrar en una que no tiene nada que mostrar ahí.
-  if (cambioDeTarea) _cerrarAcordeon(null);
   _renderTaskDetail();
   renderTasks(); // refresca la barra de acento en la fila abierta
+  // .task-detail-wrap anima su ancho (62px → 100%/340px) durante
+  // --shell-collapse (320ms). _renderTaskDetail() ya llamó a
+  // _autoGrowTitle() en ese mismo instante, con el textarea todavía
+  // estrecho a mitad de esa transición — el título se envolvía en un
+  // montón de líneas y esa altura enorme se quedaba fijada para
+  // siempre (en móvil, literalmente toda la pantalla). Al terminar la
+  // transición de ancho, se vuelve a medir con el layout ya asentado.
+  if (_detailPanelEls.wrap) {
+    _detailPanelEls.wrap.addEventListener("transitionend", function onEnd(e) {
+      if (e.propertyName !== "width" || e.target !== _detailPanelEls.wrap) return;
+      _detailPanelEls.wrap.removeEventListener("transitionend", onEnd);
+      _autoGrowTitle();
+    });
+  }
 }
 
 function closeTaskDetail() {
@@ -3106,14 +3115,33 @@ function _openTimePopover(fieldEl, anchorBtn) {
   const openTask = _getOpenDetailTask();
   if (!openTask) return;
   const task = openTask.task;
+  // Horas típicas de agenda: cubren mañana/mediodía/tarde/noche sin
+  // obligar a tocar el <input type="time"> nativo para el caso común.
+  const presets = ["09:00", "12:00", "15:00", "18:00", "20:00"];
 
   _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
     pop.classList.add("field-popover--narrow");
+    const presetsHtml = presets.map(function(hhmm) {
+      const active = task.dueTime === hhmm;
+      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-time="' + hhmm + '">' +
+        '<span class="field-popover-row-label">' + hhmm + '</span>' +
+        (active ? '<i data-lucide="check"></i>' : "") +
+      '</button>';
+    }).join("");
     pop.innerHTML =
+      '<div class="field-popover-list">' + presetsHtml + '</div>' +
+      '<div class="field-popover-sep"></div>' +
       '<div class="field-popover-input-row">' +
         '<input type="time" value="' + (task.dueTime || "") + '" />' +
         (task.dueTime ? '<button type="button" class="field-popover-chip field-popover-chip--clear">' + t("modal.clear") + '</button>' : "") +
       '</div>';
+    pop.querySelectorAll("[data-time]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        task.dueTime = btn.dataset.time;
+        saveAndRender();
+        close();
+      });
+    });
     const input = pop.querySelector('input[type="time"]');
     input.addEventListener("change", function() {
       task.dueTime = input.value || null;
@@ -3126,7 +3154,7 @@ function _openTimePopover(fieldEl, anchorBtn) {
       saveAndRender();
       close();
     });
-    setTimeout(function() { input.focus(); }, 10);
+    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
   });
 }
 
@@ -3293,106 +3321,6 @@ function _openProjectPopover(fieldEl, anchorBtn) {
   });
 }
 
-// ── Detalle de tarea en móvil: acordeón ──────────────────────
-//
-// En móvil el panel salía con las siete características desplegadas a la
-// vez y había que hacer scroll para ver una tarea entera. El prototipo
-// v1 lo resuelve al revés: una fila compacta por característica, con su
-// valor a la derecha, y se despliega la que toques. Solo una abierta a
-// la vez — dos abiertas ya obligan a hacer scroll otra vez.
-//
-// El panel de escritorio no se toca: allí caben todas y verlas de golpe
-// es la gracia.
-
-var _mqDetalleMovil = window.matchMedia("(max-width: 768px)");
-
-function _camposDetalle() {
-  // La nota queda fuera del acordeón: es el campo más largo y el que
-  // más se usa, así que se pidió que estuviera siempre abierta en vez
-  // de exigir un toque extra para verla.
-  return document.querySelectorAll("#task-detail-body .task-detail-field[data-acc]:not([data-acc='note'])");
-}
-
-function _cerrarAcordeon(salvo) {
-  _camposDetalle().forEach(function(f) {
-    if (f === salvo) return;
-    f.classList.remove("detail-acc--open");
-    var l = f.querySelector(".task-detail-label");
-    if (l) l.setAttribute("aria-expanded", "false");
-  });
-}
-
-function _alternarAcordeon(field) {
-  if (!_mqDetalleMovil.matches) return;
-  var abierto = field.classList.contains("detail-acc--open");
-  _cerrarAcordeon(null);
-  if (abierto) return;
-  field.classList.add("detail-acc--open");
-  var l = field.querySelector(".task-detail-label");
-  if (l) l.setAttribute("aria-expanded", "true");
-  // Al abrir «Nota» o «Subtareas» el foco va al campo: si no, hay que dar
-  // dos toques para escribir.
-  var foco = field.querySelector("textarea, input[type='text']");
-  if (foco) foco.focus();
-}
-
-/** Marca las cabeceras como pulsables solo cuando el acordeón está activo. */
-function _sincronizarRolesAcordeon() {
-  var movil = _mqDetalleMovil.matches;
-  _camposDetalle().forEach(function(f) {
-    var l = f.querySelector(".task-detail-label");
-    if (!l) return;
-    if (movil) {
-      l.setAttribute("role", "button");
-      l.setAttribute("tabindex", "0");
-      l.setAttribute("aria-expanded", f.classList.contains("detail-acc--open") ? "true" : "false");
-    } else {
-      l.removeAttribute("role");
-      l.removeAttribute("tabindex");
-      l.removeAttribute("aria-expanded");
-      f.classList.remove("detail-acc--open");
-    }
-  });
-}
-
-function _initDetailAccordion() {
-  _camposDetalle().forEach(function(f) {
-    var label = f.querySelector(".task-detail-label");
-    if (!label || label.querySelector(".detail-acc-value")) return;
-    var val = document.createElement("span");
-    val.className = "detail-acc-value";
-    label.appendChild(val);
-    var caret = document.createElement("i");
-    caret.className = "detail-acc-caret";
-    caret.setAttribute("data-lucide", "chevron-down");
-    label.appendChild(caret);
-    label.addEventListener("click", function() { _alternarAcordeon(f); });
-    label.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); _alternarAcordeon(f); }
-    });
-  });
-  _sincronizarRolesAcordeon();
-  if (_mqDetalleMovil.addEventListener) {
-    _mqDetalleMovil.addEventListener("change", _sincronizarRolesAcordeon);
-  }
-  // La nota está fuera de `_camposDetalle()` (no se pliega), pero su
-  // tarjeta usa el mismo CSS de "abierta" que las demás — así que se
-  // marca abierta una vez y para siempre.
-  var notaField = document.querySelector('#task-detail-body .task-detail-field[data-acc="note"]');
-  if (notaField) notaField.classList.add("detail-acc--open");
-  if (window.lucide) window.lucide.createIcons({ nodes: [document.getElementById("task-detail-body")] });
-}
-
-/** Escribe el resumen que se ve con la fila plegada. */
-function _setValorAcordeon(clave, texto, puesto) {
-  var f = document.querySelector('#task-detail-body .task-detail-field[data-acc="' + clave + '"]');
-  if (!f) return;
-  var v = f.querySelector(".detail-acc-value");
-  if (!v) return;
-  v.textContent = texto || "";
-  v.classList.toggle("detail-acc-value--set", !!puesto);
-}
-
 function _formatReminderLabel(iso) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return t("detail.no_reminder");
@@ -3439,37 +3367,32 @@ function _renderTaskDetail() {
   // fila (hoy / vencida / con el color de la lista) — sin esto el panel
   // no reflejaba ninguna de las señales de urgencia que sí se ven fuera.
   var dueState = task.dueDate ? getDueDateState(task.dueDate) : null;
+  // `--proj-color` se pone en el CAMPO (el contenedor), no en el botón:
+  // la etiqueta en píldora de arriba (.task-detail-label) también lo
+  // necesita para teñirse a juego (ver :has() en CSS), y una custom
+  // property en el estilo inline del botón no la heredan sus hermanos.
+  if (els.dateField) {
+    if (task.dueDate) els.dateField.style.setProperty("--proj-color", _projectColor(project));
+    else els.dateField.style.removeProperty("--proj-color");
+  }
   [[els.dateBtn, !!task.dueDate], [els.timeBtn, !!task.dueTime]].forEach(function(pair) {
     var btn = pair[0], active = pair[1];
     btn.classList.toggle("task-detail-field-btn--has-value", active);
     btn.classList.toggle("task-detail-field-btn--due-today", active && !!dueState && dueState.cls === "due-today");
     btn.classList.toggle("task-detail-field-btn--due-overdue", active && !!dueState && dueState.cls === "due-overdue");
-    if (active) btn.style.setProperty("--proj-color", _projectColor(project));
-    else btn.style.removeProperty("--proj-color");
   });
   els.reminderBtn.classList.toggle("task-detail-field-btn--reminder-set", !!task.reminderAt);
+  els.recurBtn.classList.toggle("task-detail-field-btn--recur-set", !!task.recurDays);
+  // Lista: siempre tiene una (Inbox si no hay otra), así que siempre se
+  // tiñe de su color — igual que el punto de la fila en la sidebar.
+  if (els.projectField) els.projectField.style.setProperty("--proj-color", _projectColor(project));
+  if (els.projectBtn) els.projectBtn.classList.add("task-detail-field-btn--has-value");
   if (els.backLabel) els.backLabel.textContent = project.name;
 
   renderSubtasks(task, els.subtasks, {
     onMutation:  saveAndRenderDetail,
     onEditStart: startSubtaskInlineEdit,
   });
-
-  // Resúmenes de las filas plegadas del acordeón (solo se ven en móvil).
-  var nota = (task.comment || "").trim();
-  _setValorAcordeon("note", nota ? (nota.length > 22 ? nota.slice(0, 22) + "…" : nota) : "", !!nota);
-  _setValorAcordeon("priority",
-    task.priority ? IMPORTANT_LABEL() : t("detail.priority_none"),
-    !!task.priority);
-  _setValorAcordeon("date",
-    task.dueDate ? els.dateText.textContent + (task.dueTime ? " · " + task.dueTime : "") : t("detail.no_date"),
-    !!task.dueDate);
-  _setValorAcordeon("recur", els.recurText.textContent, !!task.recurDays);
-  _setValorAcordeon("reminder", els.reminderText.textContent, !!task.reminderAt);
-  var subs = (task.subtasks || []);
-  var hechas = subs.filter(function(x) { return x.done; }).length;
-  _setValorAcordeon("subtasks", subs.length ? hechas + "/" + subs.length : "", subs.length > 0);
-  _setValorAcordeon("list", project.name, true);
 
   if (window.lucide) window.lucide.createIcons({ nodes: [els.priority, els.subtasks] });
 }
@@ -3623,7 +3546,6 @@ function _initTaskDetailPanel() {
   }
 }
 _initTaskDetailPanel();
-_initDetailAccordion();
 
 /**
  * Wirea el CTA "Añadir tarea" de un empty state. En móvil dispara
@@ -3934,7 +3856,10 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.className = "today-item" +
     (tone ? " today-item--" + tone : "") +
     (done ? " today-item--done" : "") +
-    (overdue ? " today-overdue" : "");
+    (overdue ? " today-overdue" : "") +
+    // Misma marca que .task-item en Inbox/listas: sin esto, abrir el
+    // panel de detalle de una tarea desde Hoy no resaltaba su fila.
+    (openDetailTaskId === task.id ? " detail-open" : "");
   // Color del proyecto → el check de completar usa este acento.
   li.style.setProperty("--task-accent", _projectColor(project));
 
@@ -4022,11 +3947,24 @@ function renderTodayItem(task, project, todayStr, tone) {
 
   // Repetición: mismo chip mono que en el task-list. Completar no lo
   // esconde —igual que la prioridad y la fecha— solo apaga el título.
+  var tieneRecur = false;
   {
     var recurWrap = document.createElement("span");
     recurWrap.className = "today-recur";
     renderRecurBadge(task, recurWrap);
-    if (recurWrap.firstChild) meta.appendChild(recurWrap);
+    tieneRecur = !!recurWrap.firstChild;
+    if (tieneRecur) meta.appendChild(recurWrap);
+  }
+
+  // Misma pista que en Inbox/listas (.task-chips-empty-hint, solo móvil):
+  // sin ningún chip la fila quedaba con un hueco muerto abajo. La fecha
+  // no cuenta como "hay algo" — vive en su propia píldora, no en `meta`.
+  var sinNadaHoy = !task.priority && !task.reminderAt && !tieneRecur && project.id === INBOX_ID;
+  if (sinNadaHoy) {
+    var hoyHint = document.createElement("span");
+    hoyHint.className = "task-chips-empty-hint";
+    hoyHint.textContent = t("task.add_details_hint");
+    meta.appendChild(hoyHint);
   }
 
   // Mover/programar a hoy: antes era un botón con texto ("Mover a hoy",
