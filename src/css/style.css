@@ -265,16 +265,8 @@
   border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 238, 214, 0.30);
-}
-
 :root[data-theme="light"] ::-webkit-scrollbar-thumb {
   background: rgba(74, 58, 38, 0.24);
-}
-
-:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(74, 58, 38, 0.42);
 }
 
 /* ─── TEXT SELECTION ─────────────────────────────────────────── */
@@ -688,15 +680,8 @@ body {
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: border-color 0.2s, color 0.2s, transform 0.2s;
   font-family: inherit;
   justify-content: center;
-}
-
-.theme-toggle:hover {
-  border-color: var(--b-active);
-  color: var(--c-cyan);
-  transform: rotate(20deg) scale(1.08);
 }
 
 /* ─── LAYOUT ─────────────────────────────────────────────────── */
@@ -799,17 +784,7 @@ body {
   color: var(--text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
   line-height: 1;
-}
-
-.sidebar-icon-btn:hover,
-.sidebar-collapse-btn:hover {
-  background: rgba(163, 179, 102, 0.08);
-  border-color: var(--border-subtle);
-  color: var(--c-primary-300);
 }
 
 .sidebar-icon-btn .lucide,
@@ -833,14 +808,7 @@ body {
   font-size: 0.60rem;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.13s, border-color 0.13s, color 0.13s;
   line-height: 1;
-}
-
-.sidebar-expand-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  border-color: rgba(163, 179, 102, 0.35);
-  color: var(--c-cyan);
 }
 
 /* El expandir vive ahora en el rail de la sidebar (v1), así que este botón
@@ -921,12 +889,7 @@ body {
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: box-shadow 0.13s;
   justify-content: center;
-}
-
-.sidebar-rail-brand:hover {
-  box-shadow: 0 0 0 2px rgba(163, 179, 102, 0.55);
 }
 
 .sidebar-rail-sep {
@@ -950,18 +913,12 @@ body {
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: background 0.13s, color 0.13s;
   border: 1px solid var(--border-subtle);
 }
 
 .sidebar-rail-btn .lucide {
   width: 18px;
   height: 18px;
-}
-
-.sidebar-rail-btn:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 .sidebar-rail-btn.active {
@@ -1002,11 +959,6 @@ body {
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: box-shadow 0.13s;
-}
-
-.sidebar-rail-avatar:hover {
-  box-shadow: 0 0 0 2px rgba(163, 179, 102, 0.55);
 }
 
 /* En esta versión Notas y Archivados no están disponibles (como en v1). */
@@ -1076,8 +1028,6 @@ body {
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
   position: relative;
 }
 
@@ -1091,22 +1041,14 @@ body {
   height: 0;
   background: var(--project-color, var(--c-primary-500));
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
-  transition: height var(--dur-base) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
   opacity: 0;
 }
 
 /* Hover neutro y activo con acento olivo, como en el prototipo v1 (sin
    shimmer ni glow, y sin barra lateral en hover: solo en el activo). */
-.project-item:hover {
-  background: rgba(255, 238, 214, 0.05);
-}
 
 /* Blanco cálido al 5%: pensado para la sidebar oscura, casi invisible
    sobre papel ahora que en claro la sidebar es clara. */
-:root[data-theme="light"] .project-item:hover {
-  background: rgba(50, 40, 24, 0.05);
-}
 
 .project-item.active {
   background: color-mix(in srgb, var(--c-primary-500) 17%, transparent);
@@ -1139,7 +1081,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease-out);
   cursor: pointer;
 }
 
@@ -1172,11 +1113,6 @@ body {
 
 .project-ring-fill {
   stroke: var(--project-color, var(--c-primary-500));
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.34, 1.2, 0.5, 1);
-}
-
-.project-item:hover .project-item-name {
-  color: var(--text-primary);
 }
 
 .project-item.active .project-item-name {
@@ -1253,20 +1189,6 @@ body {
     inset 0 1px 0 rgba(255, 238, 214, 0.12),
     0 0 0 1px rgba(163, 179, 102, 0.30),
     0 4px 16px rgba(163, 179, 102, 0.42);
-  transition: transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
-}
-
-.new-project-btn:hover {
-  background: var(--grad-primary-hover);
-  border-color: transparent;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 238, 214, 0.18),
-    0 0 0 1px rgba(163, 179, 102, 0.50),
-    0 6px 24px rgba(163, 179, 102, 0.55),
-    0 2px 8px rgba(138, 154, 91, 0.28);
-  transform: translateY(-1px);
 }
 
 .new-project-btn:active {
@@ -1290,15 +1212,6 @@ body {
     inset 0 1px 0 rgba(255, 238, 214, 0.18),
     0 0 0 1px rgba(111, 122, 61, 0.28),
     0 4px 16px rgba(111, 122, 61, 0.32);
-}
-
-:root[data-theme="light"] .new-project-btn:hover,
-:root[data-theme="light"] .task-form button[type="submit"]:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 238, 214, 0.22),
-    0 0 0 1px rgba(111, 122, 61, 0.45),
-    0 6px 24px rgba(111, 122, 61, 0.45),
-    0 2px 8px rgba(111, 122, 61, 0.25);
 }
 
 /* ─── MAIN PANEL ─────────────────────────────────────────────── */
@@ -1483,19 +1396,12 @@ body {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
 }
 
 .task-detail-close .lucide {
   width: 17px;
   height: 17px;
   stroke-width: 2;
-}
-
-.task-detail-close:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 /* Cabecera tipo "atrás" + menú ⋯ — solo móvil (ver media query abajo).
@@ -1540,11 +1446,6 @@ body {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-}
-
-.task-detail-menu:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 .task-detail-body {
@@ -1645,10 +1546,8 @@ body {
   resize: vertical;
   min-height: 84px;
   line-height: 1.5;
-  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
-.task-detail-textarea:hover,
 .task-detail-textarea:focus {
   border-color: var(--c-primary-500);
 }
@@ -1708,11 +1607,8 @@ body {
      son el valor actual de un campo. */
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
 }
 
-.task-detail-field-btn:hover,
 .task-detail-field-btn.field-btn-open {
   border-color: var(--c-primary-500);
 }
@@ -1785,10 +1681,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.task-detail-field-btn svg.lucide-chevron-right {
-  transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .task-detail-field-btn.field-btn-open svg.lucide-chevron-right {
@@ -1875,12 +1767,6 @@ body {
   border: 1px solid var(--border-default);
   background: transparent;
   color: var(--text-secondary);
-  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-}
-
-.field-popover-chip:hover {
-  border-color: var(--c-primary-500);
-  color: var(--text-primary);
 }
 
 .field-popover-chip.active {
@@ -1919,11 +1805,6 @@ body {
   background: transparent;
 }
 
-.field-popover-cal-nav:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
-}
-
 .field-popover-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -1948,10 +1829,6 @@ body {
   border: 1px solid transparent;
 }
 
-.field-popover-cal-day:hover {
-  background: var(--row-hover);
-}
-
 .field-popover-cal-day--today {
   font-weight: 700;
   color: var(--c-primary-300);
@@ -1963,10 +1840,6 @@ body {
   background: var(--c-primary-500);
   color: var(--accent-on);
   border-color: transparent;
-}
-
-.field-popover-cal-day--selected:hover {
-  background: var(--c-primary-500);
 }
 
 .field-popover-cal-empty {
@@ -2016,10 +1889,6 @@ body {
   border: none;
   text-align: left;
   width: 100%;
-}
-
-.field-popover-row:hover {
-  background: var(--row-hover);
 }
 
 .field-popover-row.active {
@@ -2106,11 +1975,6 @@ body {
   cursor: pointer;
 }
 
-.task-detail-subtask-form button:hover {
-  border-color: var(--c-primary-500);
-  color: var(--c-primary-500);
-}
-
 .task-detail-footer {
   padding: 15px 8px 8px 8px;
   border-top: 1px solid var(--border-default);
@@ -2128,8 +1992,6 @@ body {
   color: var(--text-tertiary);
   font-size: 0.82rem;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
   height: 50px;
 }
 
@@ -2138,11 +2000,9 @@ body {
   height: 14px;
 }
 
-/* Mismo tratamiento que .capture-bar-ico: el icono va en su propio
-   círculo teñido, no suelto junto al texto. Tinte en vez de relleno
-   sólido (a diferencia del + de captura, en gradiente) — un icono
-   blanco sobre el rojo de --c-danger no llega al contraste mínimo
-   en tema oscuro. */
+/* Mismo tratamiento que .capture-bar-ico/.global-search-ico/
+   .profile-avatar: el icono va en su propio círculo con la gradiente
+   de acento, no suelto junto al texto. */
 .task-detail-delete-ico {
   display: grid;
   place-items: center;
@@ -2151,7 +2011,6 @@ body {
   border-radius: 26px;
   background: var(--grad-primary);
   flex-shrink: 0;
-  transition: background var(--dur-fast) var(--ease-out);
   color: var(--accent-on);
 }
 
@@ -2164,7 +2023,6 @@ body {
     position: fixed;
     inset: 0;
     z-index: 500;
-    transition: none;
     /* A pantalla completa la caja no tiene marco. */
     border: none;
     border-radius: 0;
@@ -2359,19 +2217,6 @@ body {
   color: var(--text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
-}
-
-.close-panel-btn:hover {
-  background: rgba(255, 238, 214, 0.05);
-  color: var(--text-primary);
-  border-color: var(--border-subtle);
-}
-
-:root[data-theme="light"] .close-panel-btn:hover {
-  background: rgba(50, 40, 24, 0.04);
 }
 
 .close-panel-btn svg {
@@ -2388,13 +2233,6 @@ body {
   border: 1px solid rgba(224, 122, 106, 0.20);
   border-radius: var(--radius-sm);
   box-shadow: none;
-}
-
-.delete-project-btn:hover {
-  background: rgba(224, 122, 106, 0.13);
-  border-color: rgba(224, 122, 106, 0.40);
-  box-shadow: none;
-  transform: none;
 }
 
 /* ─── TYPOGRAPHY ─────────────────────────────────────────────── */
@@ -2485,9 +2323,6 @@ h1 {
   border-radius: var(--r-lg);
   padding: 13px 150px 13px 40px;
   outline: none;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 @media (max-width: 768px) {
@@ -2526,17 +2361,9 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
-}
-
-button:hover {
-  border-color: rgba(255, 238, 214, 0.15);
-  color: var(--t-primary);
-  transform: none;
-  box-shadow: none;
 }
 
 button:active {
@@ -2574,21 +2401,6 @@ button:focus-visible {
     0 4px 16px rgba(163, 179, 102, 0.42);
   white-space: nowrap;
   flex-shrink: 0;
-  transition: transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
-}
-
-.task-form button[type="submit"]:hover {
-  background: var(--grad-primary-hover);
-  border-color: transparent;
-  color: #fff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 238, 214, 0.18),
-    0 0 0 1px rgba(163, 179, 102, 0.50),
-    0 6px 24px rgba(163, 179, 102, 0.55),
-    0 2px 8px rgba(138, 154, 91, 0.28);
-  transform: translateY(-1px);
 }
 
 .task-form button[type="submit"]:active {
@@ -2653,8 +2465,6 @@ button:focus-visible {
   min-height: 30px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
   flex-shrink: 0;
 }
 
@@ -2665,11 +2475,6 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
-.view-tab:hover {
-  color: var(--text-secondary);
-  background: rgba(255, 238, 214, 0.05);
-}
-
 .view-tab--active {
   color: var(--c-primary-500);
   background: var(--surface-raised);
@@ -2677,22 +2482,12 @@ button:focus-visible {
   box-shadow: var(--shadow-sm);
 }
 
-.view-tab--active:hover {
-  color: var(--c-primary-400);
-  background: var(--surface-raised);
-}
-
-:root[data-theme="light"] .view-tab:hover {
-  background: rgba(50, 40, 24, 0.05);
-}
-
 :root[data-theme="light"] .view-nav-tabs {
   background: var(--kbd-bg);
   /* pista #e7dfcf (segBg del prototipo) */
 }
 
-:root[data-theme="light"] .view-tab--active,
-:root[data-theme="light"] .view-tab--active:hover {
+:root[data-theme="light"] .view-tab--active {
   background: var(--surface-card);
   /* segOn claro = papel */
   color: var(--c-primary-600);
@@ -2723,9 +2518,6 @@ button:focus-visible {
   min-height: 30px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
 }
 
 .filter-trigger-btn svg {
@@ -2735,15 +2527,10 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
-.filter-caret {
-  transition: transform var(--dur-base) var(--ease-out);
-}
-
 .filter-trigger-btn.open .filter-caret {
   transform: rotate(180deg);
 }
 
-.filter-trigger-btn:hover,
 .filter-trigger-btn.open {
   color: var(--text-primary);
   background: rgba(255, 238, 214, 0.04);
@@ -2756,11 +2543,6 @@ button:focus-visible {
   border-color: rgba(163, 179, 102, 0.30);
 }
 
-.filter-trigger-btn--active:hover {
-  background: rgba(163, 179, 102, 0.16);
-}
-
-:root[data-theme="light"] .filter-trigger-btn:hover,
 :root[data-theme="light"] .filter-trigger-btn.open {
   background: rgba(50, 40, 24, 0.03);
 }
@@ -2864,7 +2646,6 @@ button:focus-visible {
   padding: 0.5rem 0.6rem;
   cursor: pointer;
   text-align: left;
-  transition: color 0.12s, background 0.12s;
 }
 
 .filter-opt>span {
@@ -2879,25 +2660,11 @@ button:focus-visible {
 
 .filter-opt>svg:first-child {
   color: var(--text-tertiary);
-  transition: color 0.12s;
 }
 
 .filter-opt-check {
   opacity: 0;
   color: var(--c-primary-300);
-}
-
-.filter-opt:hover {
-  color: var(--t-primary);
-  background: rgba(255, 238, 214, 0.05);
-}
-
-.filter-opt:hover>svg:first-child {
-  color: var(--c-primary-300);
-}
-
-:root[data-theme="light"] .filter-opt:hover {
-  background: rgba(50, 40, 24, 0.04);
 }
 
 :root[data-theme="light"] .filter-opt-check {
@@ -2924,25 +2691,12 @@ button:focus-visible {
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
 }
 
 .more-actions-btn svg {
   width: 14px;
   height: 14px;
   stroke-width: 2;
-}
-
-.more-actions-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 238, 214, 0.04);
-  border-color: var(--border-strong);
-}
-
-:root[data-theme="light"] .more-actions-btn:hover {
-  background: rgba(50, 40, 24, 0.03);
 }
 
 .more-actions-panel {
@@ -2980,7 +2734,6 @@ button:focus-visible {
   padding: 0.6rem 0.85rem;
   cursor: pointer;
   text-align: left;
-  transition: background 0.13s, color 0.13s;
 }
 
 .more-actions-panel button svg {
@@ -2989,17 +2742,8 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
-.more-actions-panel button:hover {
-  background: rgba(255, 238, 214, 0.05);
-  color: var(--t-primary);
-}
-
 .more-actions-panel button.danger {
   color: var(--c-pink);
-}
-
-.more-actions-panel button.danger:hover {
-  background: rgba(224, 122, 106, 0.08);
 }
 
 /* ── Selector de estilo de fila (header) — Limpio·Líneas·Tarjetas·Compacto ── */
@@ -3021,9 +2765,6 @@ button:focus-visible {
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
 }
 
 .row-style-btn svg {
@@ -3032,14 +2773,12 @@ button:focus-visible {
   stroke-width: 2;
 }
 
-.row-style-btn:hover,
 .row-style-btn[aria-expanded="true"] {
   color: var(--text-primary);
   background: rgba(255, 238, 214, 0.04);
   border-color: var(--border-strong);
 }
 
-:root[data-theme="light"] .row-style-btn:hover,
 :root[data-theme="light"] .row-style-btn[aria-expanded="true"] {
   background: rgba(50, 40, 24, 0.03);
 }
@@ -3057,19 +2796,6 @@ button:focus-visible {
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
-}
-
-.theme-toggle-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 238, 214, 0.04);
-  border-color: var(--border-strong);
-}
-
-:root[data-theme="light"] .theme-toggle-btn:hover {
-  background: rgba(50, 40, 24, 0.03);
 }
 
 .theme-toggle-ico {
@@ -3113,19 +2839,6 @@ button:focus-visible {
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
-}
-
-.columns-toggle-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 238, 214, 0.04);
-  border-color: var(--border-strong);
-}
-
-:root[data-theme="light"] .columns-toggle-btn:hover {
-  background: rgba(50, 40, 24, 0.03);
 }
 
 .columns-toggle-btn[aria-pressed="true"] {
@@ -3145,7 +2858,6 @@ button:focus-visible {
   width: 15px;
   height: 15px;
   stroke-width: 2;
-  transition: opacity 320ms var(--ease-out), transform 420ms var(--ease-out);
 }
 
 .columns-toggle-ico--one {
@@ -3214,15 +2926,6 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
-.row-style-panel button:hover {
-  background: rgba(255, 238, 214, 0.05);
-  color: var(--t-primary);
-}
-
-:root[data-theme="light"] .row-style-panel button:hover {
-  background: rgba(50, 40, 24, 0.04);
-}
-
 .row-style-check {
   opacity: 0;
   color: var(--c-primary-300);
@@ -3272,12 +2975,6 @@ button:focus-visible {
   padding: 0.32rem 0.75rem;
 }
 
-.toolbar button:hover {
-  color: var(--t-soft);
-  background: rgba(255, 238, 214, 0.04);
-  border-color: rgba(255, 238, 214, 0.12);
-}
-
 .toolbar button.active {
   background: rgba(163, 179, 102, 0.10);
   color: var(--c-cyan);
@@ -3305,12 +3002,6 @@ button:focus-visible {
   color: var(--c-pink);
   background: rgba(224, 122, 106, 0.06);
   border-color: rgba(224, 122, 106, 0.20);
-}
-
-#clear-done:hover {
-  background: rgba(224, 122, 106, 0.12);
-  border-color: rgba(224, 122, 106, 0.40);
-  color: var(--c-pink);
 }
 
 /* ─── BACKUP TOOLS ───────────────────────────────────────────── */
@@ -3385,11 +3076,6 @@ button:focus-visible {
      tocarla (doble clic, arrastrar) molestaba más que ayudaba. El campo
      de renombrar (`input.inline-edit`) se excluye explícitamente. */
   user-select: none;
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow 150ms var(--ease-out),
-    transform var(--dur-fast) var(--ease-out),
-    opacity var(--dur-base) var(--ease-out);
   position: relative;
   /* `backwards`, no `both`: con `both` la animación conserva su fotograma
      final para siempre y —las animaciones ganan a las reglas normales—
@@ -3422,7 +3108,6 @@ button:focus-visible {
   background: var(--task-accent, var(--c-primary-500));
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
   opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease-out);
   /* Por encima de .task-swipe-content (z-index 3), que desde que es una caja
      real lleva fondo propio y si no la taparía en multi-selección. */
   z-index: 4;
@@ -3431,12 +3116,6 @@ button:focus-visible {
 /* Mismo hover que la vista Hoy (.today-item): realce, sombra proyectada
    y una elevación de 1px. El tema claro no lo redeclara —Hoy tampoco—
    porque los tokens ya se encargan del color. */
-.task-item:hover {
-  background: var(--task-hover);
-  border-color: var(--task-hover-border);
-  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
-  transform: translateY(-1px);
-}
 
 .task-item:focus-visible {
   outline: none;
@@ -3450,9 +3129,6 @@ button:focus-visible {
 
 /* En claro hay que repetir la sombra del hover: la regla de reposo de
    arriba es más específica que `.task-item:hover` y si no, gana ella. */
-:root[data-theme="light"] .task-item:hover {
-  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
-}
 
 /* ─── ESTILOS DE FILA (como el prototipo v1) ───────────────────
    El estilo por defecto de .task-item es "Tarjetas". Estas variantes
@@ -3466,13 +3142,6 @@ button:focus-visible {
   border-color: transparent;
   box-shadow: none;
   margin-bottom: 0;
-}
-
-.task-list[data-row-style="limpio"] .task-item:hover {
-  background: var(--task-hover);
-  border-color: transparent;
-  box-shadow: none;
-  transform: none;
 }
 
 .task-list[data-row-style="limpio"] .inbox-group-list {
@@ -3531,13 +3200,6 @@ button:focus-visible {
   margin-bottom: 0;
 }
 
-.task-list[data-row-style="lineas"] .task-item:hover {
-  background: var(--task-hover);
-  border-bottom-color: var(--task-hover-border);
-  box-shadow: none;
-  transform: none;
-}
-
 /* `:last-child`, no: mismo motivo que en "Compacto" — el `<li>` de
    "Editar lista" (solo visible en móvil) sigue detrás en el DOM. */
 .task-list[data-row-style="lineas"] .task-item:not(:has(~ .task-item)) {
@@ -3574,11 +3236,6 @@ button:focus-visible {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-}
-
-.pmenu-close:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 .pmenu-close .lucide {
@@ -3666,15 +3323,10 @@ button:focus-visible {
   font-weight: var(--fw-medium);
   text-align: left;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .pmenu-row:last-child {
   border-bottom: none;
-}
-
-.pmenu-row:hover {
-  background: var(--row-hover);
 }
 
 /* Fila con lápiz: el botón de editar no puede ir DENTRO del de la fila
@@ -3708,13 +3360,6 @@ button:focus-visible {
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
-}
-
-.pmenu-edit:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 .pmenu-edit .lucide {
@@ -3860,9 +3505,6 @@ button:focus-visible {
   font-weight: var(--fw-semibold);
   white-space: nowrap;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
 }
 
 .list-chip:active {
@@ -4078,12 +3720,6 @@ button:focus-visible {
   background: var(--zebra-bg);
 }
 
-.task-list[data-row-style="cebra"] .task-item:hover {
-  background: var(--task-hover);
-  box-shadow: none;
-  transform: none;
-}
-
 /* Dos columnas — toggle independiente del estilo de fila (#columns-toggle-btn),
    no una opción más de #row-style-panel: combina con Limpio/Líneas/Tarjetas/
    Compacto/Cebra. Solo escritorio (el botón se oculta en móvil y el JS
@@ -4153,12 +3789,6 @@ button:focus-visible {
   background: var(--zebra-bg);
 }
 
-.task-list[data-row-style="cebra"] .today-item:hover {
-  background: var(--task-hover);
-  box-shadow: none;
-  transform: none;
-}
-
 /* Cebra en una lista suelta (sin sección que la envuelva): aquí
    `#task-list` ES la lista de filas —a diferencia de Hoy/Inbox, donde
    `.hoy-section-list`/`.inbox-group-list` son un elemento aparte del
@@ -4204,13 +3834,6 @@ button:focus-visible {
   margin-top: 0;
 }
 
-.task-list[data-row-style="limpio"] .today-item:hover {
-  background: var(--task-hover);
-  border-color: transparent;
-  box-shadow: none;
-  transform: none;
-}
-
 .task-list[data-row-style="lineas"] .today-item {
   background: transparent;
   border: none;
@@ -4222,13 +3845,6 @@ button:focus-visible {
 
 .task-list[data-row-style="lineas"] .hoy-section-list .today-item+.today-item {
   margin-top: 0;
-}
-
-.task-list[data-row-style="lineas"] .today-item:hover {
-  background: var(--task-hover);
-  border-bottom-color: var(--task-hover-border);
-  box-shadow: none;
-  transform: none;
 }
 
 @keyframes itemIn {
@@ -4326,10 +3942,6 @@ button:focus-visible {
   cursor: pointer;
   position: relative;
   opacity: 0.7;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out),
-    box-shadow 150ms var(--ease-out);
   flex-shrink: 0;
 }
 
@@ -4337,14 +3949,6 @@ button:focus-visible {
    .today-check en la vista Hoy: opacidad completa, color de acento y un
    anillo alrededor. El anillo se reserva al estado sin marcar para no
    pisar el resplandor y la animación que ya tiene el marcado. */
-.task-item:hover .task-toggle {
-  opacity: 1;
-}
-
-.task-item:hover .task-toggle:not(:checked) {
-  border-color: var(--c-primary-500);
-  box-shadow: 0 0 0 3px var(--accent-tint);
-}
 
 .task-toggle:checked {
   background: var(--c-primary-500);
@@ -4385,11 +3989,6 @@ button:focus-visible {
 
 .task-toggle:checked~.task-check {
   opacity: 1;
-}
-
-.task-toggle:hover {
-  border-color: var(--c-primary-500);
-  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
 :root[data-theme="light"] .task-toggle:checked {
@@ -4489,19 +4088,13 @@ button:focus-visible {
   color: var(--text-tertiary);
   cursor: pointer;
   opacity: 0;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
 }
 
-.task-item:hover .task-kebab-btn,
 .task-kebab-btn:focus,
 .task-kebab-btn:focus-visible {
   opacity: 1;
 }
 
-.task-kebab-btn:hover,
 .task-kebab-btn:focus-visible {
   color: var(--text-primary);
   background: rgba(163, 179, 102, 0.08);
@@ -4541,15 +4134,6 @@ body.tasks-compact .task-text {
   padding: 9px 10px;
   cursor: pointer;
   border-radius: var(--r-sm);
-  transition: background var(--dur-fast) var(--ease-out);
-}
-
-.task-pref-row:hover {
-  background: rgba(163, 179, 102, 0.07);
-}
-
-:root[data-theme="light"] .task-pref-row:hover {
-  background: rgba(111, 122, 61, 0.06);
 }
 
 .task-pref-icon {
@@ -4580,7 +4164,6 @@ body.tasks-compact .task-text {
   border: 1px solid rgba(255, 238, 214, 0.10);
   position: relative;
   cursor: pointer;
-  transition: background 0.2s var(--ease-out), border-color 0.2s;
   flex-shrink: 0;
 }
 
@@ -4603,7 +4186,6 @@ body.tasks-compact .task-text {
   height: 14px;
   border-radius: 50%;
   background: #fff;
-  transition: left 0.2s var(--ease-out);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
 }
 
@@ -4634,26 +4216,11 @@ body.tasks-compact .task-text {
   border-radius: var(--r-md);
   padding: 7px 10px;
   background: var(--surface-input);
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
-}
-
-.subtask-item:hover {
-  background: var(--task-hover);
-  border-color: var(--task-hover-border);
-  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
-  transform: translateY(-1px);
 }
 
 :root[data-theme="light"] .subtask-item {
   background: rgba(50, 40, 24, 0.02);
   border-color: rgba(50, 40, 24, 0.07);
-}
-
-:root[data-theme="light"] .subtask-item:hover {
-  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
 }
 
 /* Misma casilla circular que .task-toggle, un punto más pequeña por
@@ -4672,16 +4239,6 @@ body.tasks-compact .task-text {
   display: grid;
   place-items: center;
   opacity: 0.7;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out),
-    box-shadow 150ms var(--ease-out);
-}
-
-.subtask-item:hover .subtask-checkbox:not(:checked) {
-  border-color: var(--c-primary-500);
-  box-shadow: 0 0 0 3px var(--accent-tint);
-  opacity: 1;
 }
 
 .subtask-checkbox:checked {
@@ -4708,7 +4265,6 @@ body.tasks-compact .task-text {
   flex: 1;
   min-width: 0;
   cursor: text;
-  transition: color var(--dur-fast) var(--ease-out);
 }
 
 /* Sin tachado, como las tareas: completar atenúa, no raya. */
@@ -4733,17 +4289,6 @@ body.tasks-compact .task-text {
   background: transparent;
   border-color: transparent;
   opacity: 0.6;
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
-}
-
-.subtask-delete-btn:hover {
-  color: var(--c-danger);
-  background: color-mix(in srgb, var(--c-danger) 10%, transparent);
-  opacity: 1;
-  transform: none;
-  box-shadow: none;
 }
 
 .subtask-empty {
@@ -4801,7 +4346,6 @@ input.inline-edit {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   opacity: 0;
-  transition: opacity 0.18s ease;
   padding: 1rem;
 }
 
@@ -4835,8 +4379,6 @@ input.inline-edit {
     0 24px 64px -12px rgba(0, 0, 0, 0.55);
   transform: scale(0.97) translateY(8px);
   opacity: 0;
-  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.18s ease;
   overflow: hidden auto;
   /* recorta en X, permite scroll en Y si no cabe */
   max-height: 90vh;
@@ -4889,7 +4431,6 @@ input.inline-edit {
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
   /* Sube desde abajo; la caja centrada escala y aquí eso no aplica. */
   transform: translateY(100%);
-  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
   max-height: 86vh;
   overflow: hidden auto;
 }
@@ -4951,11 +4492,6 @@ input.inline-edit {
   font-weight: var(--fw-medium);
   text-align: left;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
-}
-
-.modal-sheet-opt:hover {
-  background: var(--row-hover);
 }
 
 .modal-sheet-opt--active {
@@ -5012,7 +4548,6 @@ input.inline-edit {
    de arriba: si no, la hoja seguiría deslizándose con reduced-motion. */
 @media (prefers-reduced-motion: reduce) {
   .modal-box.modal-sheet {
-    transition: opacity 0.18s ease;
     transform: none;
     opacity: 0;
   }
@@ -5086,19 +4621,12 @@ input.inline-edit {
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
 }
 
 .modal-head-close .lucide {
   width: 17px;
   height: 17px;
   stroke-width: 2;
-}
-
-.modal-head-close:hover {
-  background: var(--row-hover);
-  color: var(--text-primary);
 }
 
 /* ── Cuerpo y pie ───────────────────────────────────────────── */
@@ -5166,7 +4694,6 @@ input.inline-edit {
   border-radius: var(--r-md);
   padding: 0.65rem 0.9rem;
   outline: none;
-  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
   margin-bottom: 1.25rem;
   caret-color: var(--c-primary-400);
 }
@@ -5235,7 +4762,6 @@ input.inline-edit {
   padding: 0.55rem 1.1rem;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.13s, border-color 0.13s, box-shadow 0.13s, transform 0.13s;
   position: relative;
   overflow: hidden;
 }
@@ -5246,21 +4772,9 @@ input.inline-edit {
   border-color: rgba(255, 238, 214, 0.08);
 }
 
-.modal-btn-cancel:hover {
-  color: var(--text-secondary);
-  border-color: rgba(255, 238, 214, 0.15);
-  background: rgba(255, 238, 214, 0.05);
-}
-
 :root[data-theme="light"] .modal-btn-cancel {
   border-color: rgba(50, 40, 24, 0.10);
   color: var(--text-tertiary);
-}
-
-:root[data-theme="light"] .modal-btn-cancel:hover {
-  border-color: rgba(50, 40, 24, 0.18);
-  background: rgba(50, 40, 24, 0.04);
-  color: var(--text-secondary);
 }
 
 /* v1: acción sólida y mate. Ni degradado ni halo de color —el mismo
@@ -5274,10 +4788,6 @@ input.inline-edit {
 /* El hover OSCURECE, no aclara. Subir por la rampa (700 → 600) dejaba
    el blanco en 3.06:1 sobre el oliva claro del tema oscuro, por debajo
    del 4.5:1 de AA: el estado hover también tiene que cumplir.        */
-.modal-btn-confirm:hover {
-  background: color-mix(in srgb, var(--c-primary-700) 85%, #000);
-  color: #fff;
-}
 
 /* No usa `--c-danger` directamente: en oscuro vale #e07a6a y el blanco
    encima se queda en 2.93:1. Este rojo —el mismo que ya usaba el tramo
@@ -5286,11 +4796,6 @@ input.inline-edit {
   color: #fff;
   background: #b0524a;
   border-color: transparent;
-}
-
-.modal-btn-danger:hover {
-  background: #9a3a33;
-  color: #fff;
 }
 
 /* Sin bloque aparte para el tema claro: `--c-primary-700` ya se
@@ -5351,7 +4856,6 @@ input.inline-edit {
 
 .due-badge--action {
   cursor: pointer;
-  transition: opacity var(--dur-fast) var(--ease-out);
 }
 
 /* La flecha se ve SIEMPRE, no solo al pasar por encima: es la única pista
@@ -5361,11 +4865,6 @@ input.inline-edit {
   width: 12px;
   height: 12px;
   opacity: 0.9;
-  transition: opacity var(--dur-fast) var(--ease-out);
-}
-
-.due-badge--action:hover {
-  opacity: 0.75;
 }
 
 :root[data-theme="light"] .due-today {
@@ -5450,7 +4949,6 @@ input.inline-edit {
   backdrop-filter: blur(12px);
   z-index: 9999;
   pointer-events: none;
-  transition: opacity 0.22s, transform 0.22s;
   white-space: nowrap;
 }
 
@@ -5630,7 +5128,6 @@ body.project-dragging .project-item {
     height: 100dvh;
     z-index: 450;
     transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: none;
     padding-bottom: env(safe-area-inset-bottom, 0);
     display: flex;
@@ -5662,7 +5159,6 @@ body.project-dragging .project-item {
   body.drawer-open .mobile-bottom-nav {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s var(--ease-out);
   }
 
   @keyframes fadeIn {
@@ -5693,9 +5189,6 @@ body.project-dragging .project-item {
     width: 100%;
     overflow: hidden;
     opacity: 1;
-    transition: max-height 0.24s var(--ease-out),
-      opacity 0.18s var(--ease-out),
-      border-color 0.18s var(--ease-out);
     will-change: max-height;
   }
 
@@ -5890,8 +5383,6 @@ body.project-dragging .project-item {
     cursor: pointer;
     display: grid;
     place-items: center;
-    transition: background var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
     flex-shrink: 0;
     padding: 0;
     letter-spacing: 0;
@@ -6289,8 +5780,6 @@ body.project-dragging .project-item {
     cursor: pointer;
     padding: 0;
     margin-right: -8px;
-    transition: background var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
     flex-shrink: 0;
   }
 
@@ -6395,8 +5884,6 @@ body.project-dragging .project-item {
     font-family: inherit;
     cursor: pointer;
     text-align: left;
-    transition: background var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
   }
 
   .sidebar-search-mobile .lucide {
@@ -6484,7 +5971,6 @@ body.project-dragging .project-item {
   .sidebar-more-chevron {
     width: 12px;
     height: 12px;
-    transition: transform 0.18s var(--ease-out);
   }
 
   .sidebar-more-group[open] .sidebar-more-chevron {
@@ -6568,7 +6054,6 @@ body.project-dragging .project-item {
     line-height: 1.15;
     text-transform: none;
     border-radius: 0;
-    transition: color var(--dur-fast) var(--ease-out);
     position: relative;
     z-index: 1;
     overflow: hidden;
@@ -6608,8 +6093,6 @@ body.project-dragging .project-item {
     outline: 1.5px solid var(--text-tertiary);
     outline-offset: 1.5px;
     opacity: 0.65;
-    transition: outline-color var(--dur-fast) var(--ease-out),
-      opacity var(--dur-fast) var(--ease-out);
   }
 
   :root[data-theme="light"] .bnav-avatar {
@@ -6648,7 +6131,6 @@ body.project-dragging .project-item {
     color: var(--accent-on);
     cursor: pointer;
     box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.7);
-    transition: transform var(--dur-fast) var(--ease-out);
   }
 
   .mobile-fab.visible {
@@ -6704,9 +6186,8 @@ body.project-dragging .project-item {
     stroke-width: 2.4;
   }
 
-  :root[data-theme="light"] .mobile-bottom-btn:hover,
   :root[data-theme="light"] .mobile-bottom-btn:active,
-  :root[data-theme="light"] .mobile-bottom-btn.active {
+:root[data-theme="light"] .mobile-bottom-btn.active {
     color: var(--c-primary-600);
   }
 
@@ -6749,9 +6230,6 @@ body.project-dragging .project-item {
   text-align: left;
   letter-spacing: 0;
   text-transform: none;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
 }
 
 .global-search-btn-main {
@@ -6783,11 +6261,6 @@ body.project-dragging .project-item {
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
   letter-spacing: 0.02em;
-}
-
-.global-search-btn:hover {
-  border-color: color-mix(in srgb, var(--c-primary-500) 55%, transparent);
-  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
@@ -6851,12 +6324,6 @@ body.project-dragging .project-item {
   border-radius: 23px;
   padding: 2px 7px;
   cursor: pointer;
-  transition: color 0.12s, background 0.12s, border-color 0.12s;
-}
-
-.search-esc:hover {
-  color: var(--t-soft);
-  background: var(--row-hover);
 }
 
 .search-results {
@@ -6923,7 +6390,6 @@ body.project-dragging .project-item {
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
-  transition: background var(--dur-fast) var(--ease-out);
   box-shadow: none;
 }
 
@@ -7050,7 +6516,6 @@ mark.search-hl {
   z-index: 9999;
   font-size: 0.84rem;
   min-width: 240px;
-  transition: transform 0.24s cubic-bezier(.34, 1.56, .64, 1);
   overflow: hidden;
 }
 
@@ -7079,16 +6544,9 @@ mark.search-hl {
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.12s;
   white-space: nowrap;
   letter-spacing: 0;
   text-transform: none;
-}
-
-.undo-toast-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  box-shadow: none;
-  transform: none;
 }
 
 .undo-toast-bar {
@@ -7148,7 +6606,6 @@ mark.search-hl {
   opacity: 0;
   pointer-events: none;
   z-index: 2;
-  transition: opacity 0.14s ease, filter 0.12s ease;
   line-height: 1;
   font-size: 14.5px;
   font-weight: var(--fw-bold);
@@ -7275,34 +6732,14 @@ mark.search-hl {
   font-size: 0.76rem;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: color 0.14s, background 0.14s, border-color 0.14s;
   white-space: nowrap;
-}
-
-.bulk-action-bar button:hover {
-  color: var(--c-cyan);
-  border-color: var(--b-active);
-  background: rgba(163, 179, 102, 0.08);
-  box-shadow: none;
-  transform: none;
 }
 
 /* .bulk-action-bar button.X — sube especificidad para vencer
  * a `.bulk-action-bar button:hover` sin !important. */
-.bulk-action-bar button.bulk-delete-btn:hover {
-  color: var(--c-pink);
-  border-color: rgba(224, 122, 106, 0.45);
-  background: rgba(224, 122, 106, 0.08);
-}
 
 .bulk-action-bar button.bulk-cancel-btn {
   color: var(--t-muted);
-}
-
-.bulk-action-bar button.bulk-move-btn:hover {
-  color: var(--c-primary);
-  border-color: var(--b-active);
-  background: rgba(163, 179, 102, 0.12);
 }
 
 /* ─── MODAL PROJECT PICKER ──────────────────────────────────── */
@@ -7327,12 +6764,10 @@ mark.search-hl {
   border-radius: 24px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.12s, border-color 0.12s;
   font-family: var(--font-body);
   width: 100%;
 }
 
-.modal-project-item:hover,
 .modal-project-item:focus {
   background: rgba(163, 179, 102, 0.10);
   border-color: var(--b-active);
@@ -7453,8 +6888,6 @@ kbd {
   justify-content: center;
   background: var(--bg-void);
   background-image: radial-gradient(ellipse 80% 60% at 50% -5%, rgba(138, 154, 91, 0.14) 0%, transparent 68%);
-  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root[data-theme="light"] #splash {
@@ -7632,12 +7065,7 @@ kbd {
   padding: var(--sp-3) var(--sp-3) var(--sp-2);
   border-radius: var(--r-xs);
   user-select: none;
-  transition: background var(--dur-fast) var(--ease-out);
   font-family: var(--font-sans);
-}
-
-.archived-section-toggle:hover {
-  background: rgba(163, 179, 102, 0.06);
 }
 
 .archived-section-toggle i {
@@ -7682,10 +7110,6 @@ kbd {
   opacity: 0.50;
 }
 
-.project-item-archived:hover {
-  opacity: 0.80;
-}
-
 /* Task drag → project sidebar drop targets */
 body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   outline: 1px dashed rgba(163, 179, 102, 0.30);
@@ -7697,7 +7121,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   outline: 2px dashed rgba(163, 179, 102, 0.60) !important;
   outline-offset: -2px;
   scale: 1.01;
-  transition: background 0.1s, scale 0.1s;
 }
 
 /* ─── Creación inline (v1): + Añadir lista ────────────────────── */
@@ -7715,8 +7138,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
      llega a AA. Usamos el token, que es ese mismo gris ya aclarado por el
      proyecto justo para esto (5.34:1 en oscuro, 5.74:1 en claro). */
   color: var(--text-tertiary);
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
 }
 
 .sidebar-add-btn .lucide {
@@ -7724,11 +7145,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   height: 13px;
   stroke-width: 2;
   flex-shrink: 0;
-}
-
-.sidebar-add-btn:hover {
-  background: rgba(163, 179, 102, 0.06);
-  color: var(--text-secondary);
 }
 
 .sidebar-add-btn--group {
@@ -7741,10 +7157,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .sidebar-add-btn--group .lucide {
   width: 15px;
   height: 15px;
-}
-
-.sidebar-add-btn--group:hover {
-  color: var(--text-primary);
 }
 
 .sidebar-add-input {
@@ -7785,13 +7197,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-size: 14px;
   line-height: 1;
   padding: 0;
-  transition: background 0.13s, transform 0.10s;
   user-select: none;
-}
-
-.project-item-icon:hover {
-  background: rgba(163, 179, 102, 0.12);
-  transform: scale(1.15);
 }
 
 /* ── OpenMoji ── emojis renderizados como SVG (ver src/js/utils/openmoji.js).
@@ -7833,15 +7239,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border: 1px solid transparent;
   border-radius: 24px;
   cursor: pointer;
-  transition: background 0.10s, border-color 0.10s, transform 0.10s;
   padding: 0;
   line-height: 1;
-}
-
-.icon-picker-emoji:hover {
-  background: rgba(163, 179, 102, 0.12);
-  border-color: var(--b-active);
-  transform: scale(1.18);
 }
 
 .icon-picker-emoji--active {
@@ -7875,13 +7274,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: transform 0.14s var(--ease-out), box-shadow 0.14s;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.30);
-}
-
-.color-picker-swatch:hover {
-  transform: scale(1.20);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .color-picker-swatch--active {
@@ -7913,7 +7306,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: 0.08rem 0.28rem;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  transition: background 0.13s;
   flex-shrink: 0;
   position: relative;
 }
@@ -7932,24 +7324,9 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 /* Hover: el contador de tareas se sustituye por el menú «…» en su sitio. */
-.project-item:hover .project-item-count {
-  display: none;
-}
-
-.project-item:hover .project-kebab-btn {
-  display: flex;
-}
-
-.project-kebab-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  color: var(--t-soft);
-}
 
 /* Hoy/Inbox fijados no tienen kebab: mantener el contador visible en hover
    (si no, el número desaparecía dejando un hueco). */
-.project-item-pinned:hover .project-item-count {
-  display: inline-block;
-}
 
 /* En táctil no hay hover, así que el kebab quedaba inalcanzable y no había
    forma de renombrar ni borrar una lista desde el móvil. Se muestra fijo, y
@@ -8009,24 +7386,13 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-family: inherit;
   color: var(--t-soft);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   box-sizing: border-box;
 }
 
-.ctx-item:hover {
-  background: rgba(163, 179, 102, 0.08);
-  color: var(--t-primary);
-}
-
 .ctx-item-danger {
-  color: var(--c-pink);
-}
-
-.ctx-item-danger:hover {
-  background: rgba(224, 122, 106, 0.08);
   color: var(--c-pink);
 }
 
@@ -8056,15 +7422,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-radius: var(--r-md);
   cursor: pointer;
   text-align: left;
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
   background: var(--surface-input);
   height: 50px;
-}
-
-.profile-btn:hover {
-  background: rgba(163, 179, 102, 0.06);
-  border-color: var(--border-subtle);
 }
 
 .profile-avatar {
@@ -8147,7 +7506,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   flex-shrink: 0;
   color: var(--text-tertiary);
   transform: rotate(180deg);
-  transition: transform 0.18s var(--ease-out);
 }
 
 .profile-chevron .lucide {
@@ -8264,17 +7622,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--t-soft);
   cursor: pointer;
   text-align: left;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
   text-decoration: none;
   white-space: nowrap;
-}
-
-.profile-item:hover {
-  background: color-mix(in srgb, var(--c-primary-500) 8%, transparent);
-  color: var(--text-primary);
-  transform: translateX(2px);
 }
 
 .profile-section-label {
@@ -8296,10 +7645,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 .profile-item-danger {
   color: var(--c-pink);
-}
-
-.profile-item-danger:hover {
-  background: rgba(224, 122, 106, 0.08);
 }
 
 /* Ítems con atajo de teclado a la derecha (Ajustes, Atajos de teclado) */
@@ -8364,7 +7709,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-size: 12.5px;
   font-weight: 550;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
 }
 
 .settings-nav-item .lucide {
@@ -8372,10 +7716,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   height: 15px;
   stroke-width: 1.9;
   flex-shrink: 0;
-}
-
-.settings-nav-item:hover {
-  background: var(--row-hover);
 }
 
 .settings-nav-item.active {
@@ -8560,7 +7900,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, color 0.12s;
 }
 
 .settings-seg-opt.active {
@@ -8586,7 +7925,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   background: rgba(50, 40, 24, 0.17);
   display: flex;
   justify-content: flex-start;
-  transition: background 0.16s;
 }
 
 :root[data-theme="dark"] .settings-switch {
@@ -8599,7 +7937,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
-  transition: transform 0.16s;
 }
 
 .settings-switch.on {
@@ -8621,7 +7958,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border: 1px solid var(--border-default);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
 .settings-btn .lucide {
@@ -8630,17 +7966,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   stroke-width: 2;
 }
 
-.settings-btn:hover {
-  background: var(--row-hover);
-}
-
 .settings-btn--danger {
   color: var(--c-pink);
-}
-
-.settings-btn--danger:hover {
-  background: rgba(224, 122, 106, 0.10);
-  border-color: var(--c-pink);
 }
 
 /* Color de acento: puntos */
@@ -8657,7 +7984,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: box-shadow 0.12s;
 }
 
 .settings-accent-dot.active {
@@ -8872,12 +8198,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--t-muted);
   cursor: pointer;
   padding: 0;
-  transition: background 0.12s, color 0.12s;
-}
-
-.profile-notif-time-del:hover {
-  background: rgba(224, 122, 106, 0.20);
-  color: var(--c-pink);
 }
 
 .profile-notif-time-del .lucide {
@@ -8916,12 +8236,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-weight: 600;
   padding: 0.26rem 0.45rem;
   cursor: pointer;
-  transition: background 0.13s, border-color 0.13s;
-}
-
-.profile-notif-add-btn:hover {
-  background: rgba(163, 179, 102, 0.16);
-  border-color: rgba(163, 179, 102, 0.55);
 }
 
 .profile-notif-add-btn .lucide {
@@ -8943,13 +8257,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-weight: 500;
   padding: 0.32rem 0.55rem;
   cursor: pointer;
-  transition: color 0.13s, border-color 0.13s, background 0.13s;
-}
-
-.profile-notif-test-btn:hover {
-  color: var(--c-primary-300);
-  border-color: rgba(163, 179, 102, 0.32);
-  background: rgba(163, 179, 102, 0.07);
 }
 
 .profile-notif-test-btn .lucide {
@@ -8984,8 +8291,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
   z-index: 9999;
   font-size: 0.82rem;
-  transition: transform 0.24s cubic-bezier(.34, 1.56, .64, 1),
-    visibility 0s 0.24s;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -8999,8 +8304,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 .paste-toast-visible {
   transform: translateX(-50%) translateY(0);
   visibility: visible;
-  transition: transform 0.24s cubic-bezier(.34, 1.56, .64, 1),
-    visibility 0s 0s;
 }
 
 .paste-toast-msg {
@@ -9017,24 +8320,13 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
   white-space: nowrap;
-}
-
-.paste-toast-btn:hover {
-  background: rgba(163, 179, 102, 0.10);
-  box-shadow: none;
-  transform: none;
 }
 
 .paste-toast-btn-fmt {
   border-color: rgba(163, 179, 102, 0.55);
   color: var(--c-cyan);
   font-weight: 600;
-}
-
-.paste-toast-btn-fmt:hover {
-  background: rgba(163, 179, 102, 0.14);
 }
 
 .paste-toast-bar {
@@ -9152,20 +8444,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--text-secondary);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
   flex-shrink: 0;
-}
-
-.cal-nav-btn:hover {
-  background: rgba(163, 179, 102, 0.12);
-  border-color: var(--c-primary-500);
-  color: var(--c-primary-300);
-  box-shadow: 0 0 0 1px rgba(163, 179, 102, 0.20), var(--shadow-sm);
-  transform: translateY(-1px);
 }
 
 .cal-nav-btn:active {
@@ -9230,26 +8509,12 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
   cursor: default;
   overflow: hidden;
 }
 
-.cal-cell:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-
 .cal-cell-has-tasks {
   cursor: pointer;
-}
-
-.cal-cell-has-tasks:hover {
-  border-color: rgba(163, 179, 102, 0.35);
-  background: rgba(163, 179, 102, 0.025);
-  box-shadow: var(--shadow-md);
 }
 
 .cal-cell-other {
@@ -9263,11 +8528,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-color: var(--c-primary-500);
   background: rgba(163, 179, 102, 0.08);
   box-shadow: 0 0 0 1px rgba(163, 179, 102, 0.15) inset;
-}
-
-.cal-cell-today:hover {
-  background: rgba(163, 179, 102, 0.12);
-  box-shadow: 0 0 0 1px rgba(163, 179, 102, 0.20) inset, var(--shadow-md);
 }
 
 .cal-cell-selected {
@@ -9347,14 +8607,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
   flex-shrink: 0;
-}
-
-.cal-task-chip:hover {
-  background: rgba(163, 179, 102, 0.18);
-  color: var(--text-primary);
 }
 
 /* Sin niveles: "importante" es la única marca de prioridad. */
@@ -9362,10 +8615,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   background: rgba(224, 122, 106, 0.10);
   border-left-color: var(--c-danger);
   color: var(--c-danger);
-}
-
-.cal-chip-important:hover {
-  background: rgba(224, 122, 106, 0.18);
 }
 
 .cal-chip-done {
@@ -9421,15 +8670,10 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   padding: var(--sp-3) var(--sp-4);
   border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .cal-day-detail-item:last-child {
   border-bottom: none;
-}
-
-.cal-day-detail-item:hover {
-  background: var(--surface-raised);
 }
 
 .cal-day-detail-left {
@@ -9675,14 +8919,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   box-shadow: var(--shadow-sm);
 }
 
-:root[data-theme="light"] .cal-cell:hover {
-  border-color: var(--border-strong);
-}
-
-:root[data-theme="light"] .cal-cell-has-tasks:hover {
-  border-color: rgba(111, 122, 61, 0.30);
-}
-
 :root[data-theme="light"] .cal-cell-today {
   border-color: rgba(111, 122, 61, 0.50);
   background: rgba(111, 122, 61, 0.05);
@@ -9703,12 +8939,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   border-color: var(--border-default);
 }
 
-:root[data-theme="light"] .cal-nav-btn:hover {
-  background: rgba(111, 122, 61, 0.08);
-  border-color: var(--c-primary-500);
-  color: var(--c-primary-500);
-}
-
 :root[data-theme="light"] .cal-day-detail {
   border-color: rgba(111, 122, 61, 0.22);
   background: rgba(111, 122, 61, 0.03);
@@ -9719,51 +8949,13 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--c-primary-500);
 }
 
-:root[data-theme="light"] .cal-day-detail-item:hover {
-  background: var(--surface-raised);
-}
-
 :root[data-theme="light"] .cal-task-chip {
   background: rgba(111, 122, 61, 0.08);
   border-left-color: rgba(111, 122, 61, 0.40);
   color: var(--text-secondary);
 }
 
-:root[data-theme="light"] .cal-task-chip:hover {
-  background: rgba(111, 122, 61, 0.14);
-  color: var(--text-primary);
-}
-
 /* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
-@media (hover: none) {
-
-  .task-item:hover,
-  .today-item:hover {
-    transform: none;
-  }
-
-  .task-item:hover::before {
-    transform: none;
-    width: 3px;
-  }
-
-  .subtask-item:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .profile-item:hover {
-    transform: none;
-  }
-
-  .search-result-item:hover {
-    transform: none;
-  }
-
-  .modal-btn-confirm:hover {
-    transform: none;
-  }
-}
 
 /* ─── BUTTON RIPPLE ──────────────────────────────────────────── */
 button {
@@ -9833,7 +9025,6 @@ button {
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }
@@ -9853,11 +9044,6 @@ button {
 .project-item-pinned .project-item-icon {
   color: var(--text-secondary);
   cursor: inherit;
-}
-
-.project-item-pinned .project-item-icon:hover {
-  background: transparent;
-  transform: none;
 }
 
 .project-item-pinned .project-item-icon .lucide {
@@ -9948,17 +9134,12 @@ button {
   font-weight: 650;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .empty-illustrated-cta .lucide {
   width: 15px;
   height: 15px;
   stroke-width: 2.4;
-}
-
-.empty-illustrated-cta:hover {
-  background: var(--c-primary-600);
 }
 
 .empty-illustrated-line {
@@ -9984,17 +9165,6 @@ button {
   /* Mismo motivo que .task-item: la fila es un objetivo clicable, no
      texto para seleccionar. */
   user-select: none;
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow 150ms var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-
-.today-item:hover {
-  border-color: var(--task-hover-border);
-  background: var(--task-hover);
-  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.30);
-  transform: translateY(-1px);
 }
 
 /* Checkbox circular como el prototipo (20px, borde 1.8px) */
@@ -10012,14 +9182,6 @@ button {
   display: grid;
   place-items: center;
   opacity: 0.7;
-  transition: border-color var(--dur-fast), opacity var(--dur-fast),
-    background var(--dur-fast), box-shadow 150ms;
-}
-
-.today-item:hover .today-check {
-  border-color: var(--c-primary-500);
-  opacity: 1;
-  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
 .today-check:checked {
@@ -10105,12 +9267,6 @@ button {
    solo añadimos que es pulsable y lleva a su proyecto.              */
 .today-project-badge {
   cursor: pointer;
-  transition: box-shadow var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
-}
-
-.today-project-badge:hover {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--proj-color, var(--c-primary-500)) 55%, transparent);
 }
 
 /* Repetición: mismo chip mono que en el task-list (.recur-badge). */
@@ -10153,7 +9309,6 @@ button {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .today-date-pill--overdue .lucide {
@@ -10163,7 +9318,6 @@ button {
   stroke-width: 2.4;
 }
 
-.today-date-pill--overdue:hover,
 .today-date-pill--overdue:active {
   background: rgba(var(--c-overdue-rgb), 0.22);
 }
@@ -10178,7 +9332,6 @@ button {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 
 :root[data-theme="light"] .today-date-pill--action {
@@ -10191,7 +9344,6 @@ button {
   stroke-width: 2.4;
 }
 
-.today-date-pill--action:hover,
 .today-date-pill--action:active {
   background: color-mix(in srgb, var(--c-primary-500) 26%, transparent);
 }
@@ -10309,7 +9461,6 @@ button {
   cursor: pointer;
   font-size: 12.5px;
   font-weight: 650;
-  transition: background 0.12s, border-color 0.12s;
 }
 
 .hoy-section-action .lucide {
@@ -10324,31 +9475,16 @@ button {
   color: var(--c-overdue);
 }
 
-.hoy-section--overdue .hoy-section-action:hover {
-  background: rgba(var(--c-overdue-rgb), 0.17);
-  border-color: rgba(var(--c-overdue-rgb), 0.52);
-}
-
 .hoy-section--nodate .hoy-section-action {
   border: 1px solid rgba(143, 174, 116, 0.40);
   background: rgba(143, 174, 116, 0.10);
   color: #a9c48e;
 }
 
-.hoy-section--nodate .hoy-section-action:hover {
-  background: rgba(143, 174, 116, 0.18);
-  border-color: rgba(143, 174, 116, 0.60);
-}
-
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-action {
   border-color: rgba(74, 118, 68, 0.32);
   background: rgba(74, 118, 68, 0.08);
   color: #4a7644;
-}
-
-:root[data-theme="light"] .hoy-section--nodate .hoy-section-action:hover {
-  background: rgba(74, 118, 68, 0.15);
-  border-color: rgba(74, 118, 68, 0.50);
 }
 
 .hoy-section-list {
@@ -10396,7 +9532,6 @@ button {
   margin-top: 10px;
   cursor: text;
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-  transition: border-color 0.12s, box-shadow 150ms;
 }
 
 .hoy-quickadd:focus-within {
@@ -10512,7 +9647,6 @@ button {
 
 .hoy-ring-bar {
   stroke: var(--c-primary-500);
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.45, 0.05, 0.2, 1);
 }
 
 .hoy-ring-pct {
@@ -10548,16 +9682,7 @@ button {
   border: 1px solid var(--border-default);
   font-family: var(--font-body);
   box-shadow: 0 20px 50px -18px rgba(40, 30, 15, 0.34);
-  transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
   text-align: left;
-}
-
-
-
-.capture-bar:hover {
-  border-color: color-mix(in srgb, var(--c-primary-400) 40%, transparent);
-  box-shadow: 0 24px 56px -18px rgba(40, 30, 15, 0.40);
-  transform: translateX(-50%) translateY(-1px);
 }
 
 .capture-bar-ico {
@@ -10580,11 +9705,6 @@ button {
 .capture-bar-text {
   font-size: 13.5px;
   color: var(--text-tertiary);
-  transition: color 0.16s;
-}
-
-.capture-bar:hover .capture-bar-text {
-  color: var(--text-secondary);
 }
 
 .capture-bar-kbd {
@@ -10804,12 +9924,6 @@ button {
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: color 0.12s, background 0.12s;
-}
-
-.quick-capture-close:hover {
-  color: var(--text-primary);
-  background: var(--row-hover);
 }
 
 .quick-capture-close .lucide {
@@ -10892,12 +10006,6 @@ button {
   background: transparent;
   color: var(--text-secondary);
   white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-
-.qc-chip:hover {
-  border-color: var(--c-primary-500);
-  color: var(--text-primary);
 }
 
 .qc-chip .lucide {
@@ -10959,10 +10067,6 @@ button {
   text-overflow: ellipsis;
 }
 
-.qc-list-caret {
-  transition: transform 0.15s;
-}
-
 .qc-list-trigger[aria-expanded="true"] .qc-list-caret {
   transform: rotate(180deg);
 }
@@ -11017,15 +10121,10 @@ button {
   cursor: pointer;
   background: var(--c-primary-500);
   color: var(--accent-on);
-  transition: opacity 0.12s;
 }
 
 .quick-capture-submit .qc-kbd {
   color: var(--accent-on);
-}
-
-.quick-capture-submit:hover {
-  opacity: 0.92;
 }
 
 .quick-capture-submit:disabled {
@@ -11056,8 +10155,6 @@ button {
   box-shadow: var(--shadow-lg);
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity var(--dur-base) var(--ease-out),
-    transform var(--dur-base) var(--ease-out);
   pointer-events: none;
 }
 
@@ -11134,10 +10231,6 @@ button {
   border-radius: var(--r-lg);
   cursor: pointer;
   text-align: center;
-  transition: transform var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
   position: relative;
   overflow: hidden;
   min-height: 110px;
@@ -11149,18 +10242,7 @@ button {
   inset: 0;
   background: linear-gradient(135deg, var(--tpl-color) 0%, transparent 70%);
   opacity: 0;
-  transition: opacity var(--dur-fast);
   pointer-events: none;
-}
-
-.tpl-card:hover {
-  border-color: var(--tpl-color);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
-}
-
-.tpl-card:hover::before {
-  opacity: 0.10;
 }
 
 .tpl-card-blank {
@@ -11295,10 +10377,6 @@ button {
 :root[data-theme="light"] .tpl-card {
   background: #fffdf6;
   border-color: rgba(50, 40, 24, 0.08);
-}
-
-:root[data-theme="light"] .tpl-card:hover {
-  box-shadow: 0 8px 24px rgba(50, 40, 24, 0.10);
 }
 
 :root[data-theme="light"] .tpl-task-due {
@@ -11617,8 +10695,6 @@ button {
   height: 8px;
   border-radius: 50%;
   background: var(--border-default);
-  transition: width var(--dur-base) var(--ease-out),
-    background var(--dur-base) var(--ease-out);
 }
 
 .onb-dot-active {
@@ -11642,11 +10718,6 @@ button {
   font-size: var(--fs-sm);
   cursor: pointer;
   padding: var(--sp-2) var(--sp-3);
-  transition: color var(--dur-fast);
-}
-
-.onb-skip:hover {
-  color: var(--text-secondary);
 }
 
 .onb-nav {
@@ -11662,7 +10733,6 @@ button {
   border-radius: var(--r-md);
   padding: var(--sp-2) var(--sp-5);
   cursor: pointer;
-  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
 }
 
 .onb-prev {
@@ -11671,21 +10741,11 @@ button {
   border: 1px solid var(--border-default);
 }
 
-.onb-prev:hover {
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-}
-
 .onb-next {
   background: var(--grad-primary);
   color: #fff;
   border: none;
   box-shadow: var(--glow-primary);
-}
-
-.onb-next:hover {
-  background: var(--grad-primary-hover);
-  transform: translateY(-1px);
 }
 
 .onb-next:focus-visible {
@@ -11740,7 +10800,6 @@ button {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   transform: translateY(0);
-  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .consent-banner--out {
@@ -11772,10 +10831,6 @@ button {
   white-space: nowrap;
 }
 
-.consent-banner__link:hover {
-  text-decoration: underline;
-}
-
 .consent-banner__actions {
   display: flex;
   gap: 8px;
@@ -11789,12 +10844,7 @@ button {
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: opacity 0.15s;
   white-space: nowrap;
-}
-
-.consent-btn:hover {
-  opacity: 0.85;
 }
 
 .consent-btn--secondary {
@@ -11895,18 +10945,10 @@ button {
     min-height: 30px;
     cursor: pointer;
     white-space: nowrap;
-    transition: color var(--dur-fast) var(--ease-out),
-      background var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
   }
 
   /* El hover real anticipa el color de "activo" — tocarlo enseña cómo
      quedaría si se eligiera, en vez del tenue gris de antes. */
-  .filter-segment:hover {
-    color: var(--accent-on);
-    background: var(--c-primary-500);
-    border-color: transparent;
-  }
 
   /* El activo va con el color de acento. El texto NO es blanco fijo:
      `--accent-on` es el tono pensado para ir sobre ese relleno y cambia
@@ -11917,11 +10959,6 @@ button {
     border-color: transparent;
     color: var(--accent-on);
     font-weight: var(--fw-semibold);
-  }
-
-  .filter-segment.filter-opt--active:hover {
-    background: var(--c-primary-600);
-    color: var(--accent-on);
   }
 
 
@@ -12042,12 +11079,6 @@ button {
      pintaría una banda justo bajo la cabecera y se leería como suya. */
   .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
     background: var(--zebra-bg);
-  }
-
-  .task-list[data-row-style="cebra"] .today-item:hover {
-    background: var(--task-hover);
-    box-shadow: none;
-    transform: none;
   }
 }
 
@@ -12763,7 +11794,6 @@ button {
 
   .detail-acc-caret {
     display: block;
-    transition: transform var(--dur-fast) var(--ease-out);
   }
 
   .detail-acc--open>.task-detail-label .detail-acc-caret {
