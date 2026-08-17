@@ -1726,6 +1726,55 @@ body {
   color: var(--text-tertiary);
 }
 
+/* ─── ESTADO "CON VALOR" (fecha, recordatorio) ───────────────────
+   Mismo código de color que su badge en la fila (.due-badge /
+   .reminder-badge): sin esto el panel perdía toda la información de
+   urgencia y color que sí se ve en la lista, y todo quedaba plano
+   en gris salvo la prioridad. */
+.task-detail-field-btn--has-value {
+  border-color: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 35%, transparent);
+  background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 10%, var(--surface-input));
+  color: var(--proj-color, var(--text-primary));
+}
+
+.task-detail-field-btn--has-value .lucide {
+  color: var(--proj-color, var(--text-tertiary));
+}
+
+.task-detail-field-btn--due-today {
+  background: var(--accent-tint);
+  border-color: transparent;
+  color: var(--c-primary-300);
+}
+
+.task-detail-field-btn--due-today .lucide {
+  color: var(--c-primary-300);
+}
+
+:root[data-theme="light"] .task-detail-field-btn--due-today {
+  color: var(--c-primary-600);
+}
+
+.task-detail-field-btn--due-overdue {
+  background: rgba(var(--c-overdue-rgb), 0.13);
+  border-color: transparent;
+  color: var(--c-overdue);
+}
+
+.task-detail-field-btn--due-overdue .lucide {
+  color: var(--c-overdue);
+}
+
+.task-detail-field-btn--reminder-set {
+  border-color: color-mix(in srgb, var(--c-info) 35%, transparent);
+  background: color-mix(in srgb, var(--c-info) 10%, var(--surface-input));
+  color: var(--c-info);
+}
+
+.task-detail-field-btn--reminder-set .lucide {
+  color: var(--c-info);
+}
+
 .field-btn-ico {
   flex-shrink: 0;
 }
@@ -2075,17 +2124,26 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 0;
-  border: none;
-  background: transparent;
+  padding: 7px 13px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  background: var(--surface-input);
   color: var(--c-danger);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.task-detail-delete .lucide {
+  width: 14px;
+  height: 14px;
 }
 
 .task-detail-delete:hover {
-  opacity: 0.8;
+  background: rgba(224, 122, 106, 0.10);
+  border-color: var(--c-danger);
 }
 
 /* Móvil: el panel se convierte en pantalla completa, con cabecera
@@ -2102,6 +2160,16 @@ body {
     border: none;
     border-radius: 0;
     box-shadow: none;
+    /* En escritorio el wrap va sin fondo a propósito (se funde con el
+       desk, ver arriba), pero aquí es una pantalla nueva a pantalla
+       completa: sin esto se veía transparente y el Inbox de debajo se
+       transparentaba a través del título y la barra de búsqueda.
+       Mismo tono que .main-panel en móvil, la pantalla que sustituye. */
+    background: #17120d;
+  }
+
+  :root[data-theme="light"] .task-detail-wrap {
+    background: #f4efe3;
   }
 
   .task-detail-wrap.task-detail-wrap--open {

@@ -3427,6 +3427,20 @@ function _renderTaskDetail() {
   els.recurText.textContent    = task.recurDays  ? formatRecurLabel(task.recurDays) : t("detail.no_recur");
   els.reminderText.textContent = task.reminderAt ? _formatReminderLabel(task.reminderAt) : t("detail.no_reminder");
   els.projectText.textContent  = project.name;
+
+  // Color del botón de fecha/hora: mismo código que el due-badge de la
+  // fila (hoy / vencida / con el color de la lista) — sin esto el panel
+  // no reflejaba ninguna de las señales de urgencia que sí se ven fuera.
+  var dueState = task.dueDate ? getDueDateState(task.dueDate) : null;
+  [[els.dateBtn, !!task.dueDate], [els.timeBtn, !!task.dueTime]].forEach(function(pair) {
+    var btn = pair[0], active = pair[1];
+    btn.classList.toggle("task-detail-field-btn--has-value", active);
+    btn.classList.toggle("task-detail-field-btn--due-today", active && !!dueState && dueState.cls === "due-today");
+    btn.classList.toggle("task-detail-field-btn--due-overdue", active && !!dueState && dueState.cls === "due-overdue");
+    if (active) btn.style.setProperty("--proj-color", _projectColor(project));
+    else btn.style.removeProperty("--proj-color");
+  });
+  els.reminderBtn.classList.toggle("task-detail-field-btn--reminder-set", !!task.reminderAt);
   if (els.backLabel) els.backLabel.textContent = project.name;
 
   renderSubtasks(task, els.subtasks, {
