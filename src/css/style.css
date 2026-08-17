@@ -4346,6 +4346,7 @@ input.inline-edit {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   opacity: 0;
+  transition: opacity 0.18s ease;
   padding: 1rem;
 }
 
@@ -4379,6 +4380,8 @@ input.inline-edit {
     0 24px 64px -12px rgba(0, 0, 0, 0.55);
   transform: scale(0.97) translateY(8px);
   opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.18s ease;
   overflow: hidden auto;
   /* recorta en X, permite scroll en Y si no cabe */
   max-height: 90vh;
@@ -4431,6 +4434,7 @@ input.inline-edit {
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
   /* Sube desde abajo; la caja centrada escala y aquí eso no aplica. */
   transform: translateY(100%);
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
   max-height: 86vh;
   overflow: hidden auto;
 }
