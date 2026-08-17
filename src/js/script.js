@@ -400,6 +400,13 @@ setTimeout(function () {
   }
 }, 800);
 
+// Al dispararse un recordatorio, notifications.js ya ha limpiado
+// `task.reminderAt` en memoria (mismo objeto que `projects`, por
+// referencia) — falta guardarlo y quitar la campana de la fila.
+window.addEventListener("antask:reminderfired", function () {
+  saveAndRender();
+});
+
 // ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
 // Se desvanece en cuanto la app ha pintado el primer frame real.
 (function() {

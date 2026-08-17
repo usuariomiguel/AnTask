@@ -4058,6 +4058,18 @@ button:focus-visible {
   display: none;
 }
 
+/* Sin ningún chip real dentro, `.task-meta`/`.today-meta` se quedaban
+   como una píldora vacía — su propio fondo+borde+radio pill, sin
+   contenido, se veía como un círculo hueco suelto al borde de la fila.
+   Solo en escritorio: en móvil ese hueco lo ocupa a propósito
+   `.task-chips-empty-hint` ("+ Añadir detalles"), que vive dentro. */
+@media (min-width: 769px) {
+  .task-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)),
+  .today-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)) {
+    display: none;
+  }
+}
+
 /* El envoltorio de chips solo existe para el layout de móvil. Aquí no
    genera caja, así que los contenedores siguen siendo hijos efectivos
    de `.task-meta` y el gap de 10px sale igual que antes. */

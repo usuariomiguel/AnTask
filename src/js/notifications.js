@@ -402,6 +402,15 @@ window.AnsoNotif = (function() {
       "antask-reminder-" + task.id + "-" + (task.reminderAt || ""),
       { projectId: project.id, taskId: task.id }
     );
+    // El aviso ya se ha dado: la campana de la fila no debe seguir
+    // mostrándose como si el recordatorio siguiera pendiente. `task` es
+    // el mismo objeto que vive en el array `projects` de script.js (se
+    // pasa por referencia, no una copia), así que esto ya deja el dato
+    // en memoria correcto — falta que alguien lo guarde y repinte, que
+    // notifications.js no puede hacer por su cuenta (no conoce
+    // saveProjects/renderTasks). Ver el listener en script.js.
+    task.reminderAt = null;
+    window.dispatchEvent(new CustomEvent("antask:reminderfired", { detail: { taskId: task.id } }));
   }
 
   function cancelTaskReminder(taskId) {
