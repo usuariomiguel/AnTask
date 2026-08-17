@@ -2121,13 +2121,12 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 6px;
+  padding: 6px 12px 6px 6px;
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
   background: var(--surface-input);
-  color: var(--c-danger);
+  color: var(--text-tertiary);
   font-size: 0.82rem;
-  font-weight: 600;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
@@ -2150,18 +2149,10 @@ body {
   width: 37px;
   height: 100%;
   border-radius: 26px;
-  background: color-mix(in srgb, var(--c-danger) 14%, transparent);
+  background: var(--grad-primary);
   flex-shrink: 0;
   transition: background var(--dur-fast) var(--ease-out);
-}
-
-.task-detail-delete:hover {
-  background: rgba(224, 122, 106, 0.10);
-  border-color: var(--c-danger);
-}
-
-.task-detail-delete:hover .task-detail-delete-ico {
-  background: color-mix(in srgb, var(--c-danger) 24%, transparent);
+  color: var(--accent-on);
 }
 
 /* Móvil: el panel se convierte en pantalla completa, con cabecera
@@ -6744,6 +6735,7 @@ body.project-dragging .project-item {
   justify-content: space-between;
   gap: 6px;
   width: 100%;
+  height: 50px;
   margin-top: 22px;
   background: var(--surface-input);
   border: 1px solid var(--border-default);
@@ -6773,8 +6765,8 @@ body.project-dragging .project-item {
 .global-search-ico {
   display: grid;
   place-items: center;
-  width: 33px;
-  height: 33px;
+  width: 37px;
+  height: 37px;
   border-radius: 50%;
   background: var(--grad-primary);
   color: var(--accent-on);
@@ -6783,14 +6775,14 @@ body.project-dragging .project-item {
 
 .global-search-kbd {
   font-family: var(--font-mono, monospace);
+  background: var(--kbd-bg);
   font-size: 10px;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 23px;
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
   letter-spacing: 0.02em;
-  background: transparent;
 }
 
 .global-search-btn:hover {
@@ -8067,6 +8059,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   transition: background var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
   background: var(--surface-input);
+  height: 50px;
 }
 
 .profile-btn:hover {
@@ -8075,8 +8068,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 .profile-avatar {
-  width: 32px;
-  height: 32px;
+  width: 37px;
+  height: 37px;
   border-radius: var(--r-pill);
   background: var(--grad-primary);
   color: #fff;
