@@ -1226,9 +1226,6 @@ body {
   min-width: 0;
 }
 
-
-
-
 /* barra de progreso: mismo track translúcido claro en ambos temas
    (la sidebar es siempre oscura) */
 
@@ -2115,7 +2112,7 @@ body {
 }
 
 .task-detail-footer {
-  padding: 13px 18px;
+  padding: 15px 8px 8px 8px;
   border-top: 1px solid var(--border-default);
   flex-shrink: 0;
 }
@@ -2124,7 +2121,7 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 13px;
+  padding: 6px;
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
   background: var(--surface-input);
@@ -2134,6 +2131,7 @@ body {
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
+  height: 50px;
 }
 
 .task-detail-delete .lucide {
@@ -2141,9 +2139,29 @@ body {
   height: 14px;
 }
 
+/* Mismo tratamiento que .capture-bar-ico: el icono va en su propio
+   círculo teñido, no suelto junto al texto. Tinte en vez de relleno
+   sólido (a diferencia del + de captura, en gradiente) — un icono
+   blanco sobre el rojo de --c-danger no llega al contraste mínimo
+   en tema oscuro. */
+.task-detail-delete-ico {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 100%;
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--c-danger) 14%, transparent);
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
 .task-detail-delete:hover {
   background: rgba(224, 122, 106, 0.10);
   border-color: var(--c-danger);
+}
+
+.task-detail-delete:hover .task-detail-delete-ico {
+  background: color-mix(in srgb, var(--c-danger) 24%, transparent);
 }
 
 /* Móvil: el panel se convierte en pantalla completa, con cabecera
@@ -10550,7 +10568,7 @@ button {
 }
 
 .capture-bar-ico {
-  width: 40px;
+  width: 37px;
   height: 100%;
   border-radius: 26px;
   background: var(--grad-primary);
