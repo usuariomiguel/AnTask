@@ -2587,6 +2587,18 @@ function renderPriorityBadge(task, container) {
   container.appendChild(badge);
 }
 
+/** Pinta un badge de solo lectura con la campana de recordatorio (o nada). */
+function renderReminderBadge(task, container) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!task.reminderAt) return;
+  const badge = document.createElement("span");
+  badge.className = "reminder-badge";
+  badge.title = t("detail.reminder");
+  badge.innerHTML = '<i data-lucide="bell"></i>';
+  container.appendChild(badge);
+}
+
 /**
  * Elimina una tarea con soporte de deshacer. Compartida por el atajo de
  * teclado, el menú contextual y el pie del panel de detalle.
@@ -2630,6 +2642,7 @@ function _updateTaskNode(node, task) {
   // firma de lo que les afecta, un render que no cambia nada no los toca.
   const firmaChips = [
     task.priority || "",
+    task.reminderAt || "",
     task.dueDate || "", task.dueTime || "",
     task.recurDays || "",
     node._showList && node._project ? node._project.id : "",
@@ -2639,6 +2652,7 @@ function _updateTaskNode(node, task) {
   if (node._firmaChips !== firmaChips) {
     node._firmaChips = firmaChips;
     renderPriorityBadge(task, node.querySelector(".task-priority-container"));
+    renderReminderBadge(task, node.querySelector(".task-reminder-container"));
     // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
     // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
     renderListBadge(node._showList ? node._project : null,
@@ -3950,6 +3964,15 @@ function renderTodayItem(task, project, todayStr, tone) {
     pEl.title = IMPORTANT_LABEL();
     pEl.innerHTML = '<i data-lucide="flag"></i>';
     meta.appendChild(pEl);
+  }
+
+  if (task.reminderAt) {
+    var rEl = document.createElement("span");
+    // Mismo chip que la fila del task-list — comparten clase, no una copia.
+    rEl.className = "reminder-badge";
+    rEl.title = t("detail.reminder");
+    rEl.innerHTML = '<i data-lucide="bell"></i>';
+    meta.appendChild(rEl);
   }
 
   // Etiqueta de lista (el `LabelTag` de v1) — aquí además es pulsable
