@@ -88,29 +88,30 @@ export function showQuickCapture(deps) {
 
   const lists = (typeof deps.getLists === "function" ? deps.getLists() : []) || [];
 
-  // El overlay cuelga de <body> y por defecto cubre todo el viewport
-  // (`inset: 0`), pero la barra de captura vive centrada en `.main-panel`
-  // —descuenta la sidebar y el panel de detalle—, no en la pantalla
-  // entera. Sin esto, el modal se abre centrado más a la derecha (o a la
-  // izquierda) de donde estaba la barra, y por poco que se disimule con
-  // la transición de entrada se nota como un salto. Se mide ANTES de
-  // montar el overlay: montarlo ya desplaza el layout (el scrollbar de
-  // la página desaparece al bloquear el scroll de fondo), así que medir
-  // después daba un centro distinto al que el usuario tenía delante.
-  let mainPanelRect = null;
+  // La barra de captura vive centrada en `.main-panel` —descuenta la
+  // sidebar y el panel de detalle—, no en la pantalla entera. El overlay,
+  // en cambio, debe seguir cubriendo TODO el viewport (si no, el
+  // desenfoque no tapa la sidebar ni el panel de detalle, que se quedan
+  // nítidos detrás). La solución no es encoger el overlay: es centrar el
+  // overlay entero y luego desplazar solo la CAJA con `--qc-offset-x`
+  // para que su centro coincida con el de `.main-panel`, sin perder la
+  // cobertura del desenfoque. Se mide ANTES de montar el overlay: montarlo
+  // ya desplaza el layout (el scrollbar de la página desaparece al
+  // bloquear el scroll de fondo), así que medir después daba un centro
+  // distinto al que el usuario tenía delante.
+  let offsetX = 0;
   if (window.matchMedia("(min-width: 769px)").matches) {
     const mainPanel = document.querySelector(".main-panel");
-    if (mainPanel) mainPanelRect = mainPanel.getBoundingClientRect();
+    if (mainPanel) {
+      const rect = mainPanel.getBoundingClientRect();
+      offsetX = (rect.left + rect.width / 2) - window.innerWidth / 2;
+    }
   }
 
   const { overlay, box } = createModalBase();
   overlay.classList.add("modal-overlay--top");
   box.className = "modal-box modal-box-quick";
-
-  if (mainPanelRect) {
-    overlay.style.left  = mainPanelRect.left + "px";
-    overlay.style.width = mainPanelRect.width + "px";
-  }
+  if (offsetX) box.style.setProperty("--qc-offset-x", offsetX + "px");
 
   // Overrides manuales: los chips pisan lo detectado en el texto.
   let dueOverride  = null;    // "hoy" | "manana" | null

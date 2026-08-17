@@ -4392,6 +4392,21 @@ input.inline-edit {
   opacity: 1;
 }
 
+/* Desplazamiento horizontal exclusivo de la captura rápida (ver
+   quick-capture.js): centra la caja con `.main-panel` sin encoger el
+   overlay, que debe seguir cubriendo toda la pantalla con su desenfoque
+   —si no, la sidebar y el panel de detalle quedan nítidos detrás. Por
+   defecto 0px: no afecta a ningún otro modal. Van DESPUÉS de las reglas
+   genéricas de `.modal-box` (misma especificidad) para ganarles. */
+.modal-box-quick {
+  --qc-offset-x: 0px;
+  transform: translateX(var(--qc-offset-x)) scale(0.97) translateY(8px);
+}
+
+.modal-overlay.modal-visible .modal-box-quick {
+  transform: translateX(var(--qc-offset-x)) scale(1) translateY(0);
+}
+
 :root[data-theme="light"] .modal-overlay {
   background: rgba(74, 62, 42, 0.34);
 }
