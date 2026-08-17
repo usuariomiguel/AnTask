@@ -97,10 +97,18 @@ import { loadSync } from "./sync-loader.js";
   function closeSettingsModal() {
     if (!settingsOverlay || settingsOverlay.hidden) return;
     settingsOverlay.classList.remove("modal-visible");
-    settingsOverlay.addEventListener("transitionend", function handler() {
-      settingsOverlay.removeEventListener("transitionend", handler);
-      if (!settingsOverlay.classList.contains("modal-visible")) settingsOverlay.hidden = true;
-    }, { once: true });
+    // `transitionend` no llega si no hay transición (o el navegador la
+    // salta) y el overlay se quedaba con `hidden=false` para siempre,
+    // bloqueando toda la interfaz por debajo. Plazo de respaldo, igual
+    // que closeModal() en ui/modal.js.
+    var hidden = false;
+    function hide() {
+      if (hidden) return;
+      hidden = true;
+      settingsOverlay.hidden = true;
+    }
+    settingsOverlay.addEventListener("transitionend", hide, { once: true });
+    setTimeout(hide, 350);
   }
   window.openSettingsModal = openSettingsModal;
   window.closeSettingsModal = closeSettingsModal;

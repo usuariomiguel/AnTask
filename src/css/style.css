@@ -7296,8 +7296,10 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 /* Project kebab button */
 .project-kebab-btn {
-  /* Oculto por defecto (sin ocupar sitio): en hover reemplaza al contador. */
-  display: none;
+  /* Antes oculto salvo hover; sin hover en la app, fijo siempre visible
+     (si no, `getBoundingClientRect()` daba {0,0,0,0} al posicionar su
+     menú contextual — se abría en la esquina superior izquierda). */
+  display: flex;
   align-items: center;
   background: transparent;
   border: none;
@@ -7323,28 +7325,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   stroke-width: 2;
 }
 
-/* Hover: el contador de tareas se sustituye por el menú «…» en su sitio. */
-
-/* Hoy/Inbox fijados no tienen kebab: mantener el contador visible en hover
-   (si no, el número desaparecía dejando un hueco). */
-
-/* En táctil no hay hover, así que el kebab quedaba inalcanzable y no había
-   forma de renombrar ni borrar una lista desde el móvil. Se muestra fijo, y
-   con él el contador cede el sitio igual que en hover. Los fijados (Hoy /
-   Inbox) no tienen kebab: conservan su contador. */
-@media (hover: none) {
-  .project-item .project-item-count {
-    display: none;
-  }
-
-  .project-item .project-kebab-btn {
-    display: flex;
-  }
-
-  .project-item-pinned .project-item-count {
-    display: inline-block;
-  }
-}
 
 /* ── Context menu (shared) ────────────────────────────────────── */
 .ctx-menu {

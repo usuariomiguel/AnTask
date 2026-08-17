@@ -4618,7 +4618,16 @@ function dismissUndoToast() {
   const toast = document.getElementById("undo-toast");
   if (!toast) return;
   toast.classList.remove("undo-toast-visible");
-  toast.addEventListener("transitionend", function() { toast.remove(); }, { once: true });
+  // Respaldo por plazo: sin transición (o si el navegador la salta), el
+  // toast se quedaba en el DOM para siempre.
+  var removed = false;
+  function remove() {
+    if (removed || !toast.parentNode) return;
+    removed = true;
+    toast.remove();
+  }
+  toast.addEventListener("transitionend", remove, { once: true });
+  setTimeout(remove, 350);
 }
 
 function undoDelete() {
