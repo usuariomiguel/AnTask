@@ -344,10 +344,13 @@
                 <div class="settings-row">
                   <span class="settings-row-ico"><i data-lucide="mail"></i></span>
                   <div>
-                    <div class="settings-row-label" data-i18n="settings.notifications.digest">Resumen diario</div>
+                    <div class="settings-row-label">
+                      <span data-i18n="settings.notifications.digest">Resumen diario</span>
+                      <span class="settings-row-soon" data-i18n="settings.notifications.digest_soon">Próximamente</span>
+                    </div>
                     <div class="settings-row-desc" data-i18n="settings.notifications.digest_desc">Un correo cada mañana con el plan del día.</div>
                   </div>
-                  <button type="button" class="settings-switch" id="settings-digest-toggle" aria-pressed="false">
+                  <button type="button" class="settings-switch" id="settings-digest-toggle" aria-pressed="false" disabled aria-disabled="true">
                     <span class="settings-switch-knob"></span>
                   </button>
                 </div>

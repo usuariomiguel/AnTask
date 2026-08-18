@@ -65,6 +65,7 @@ export const es = {
   "settings.notifications.test":       "Probar aviso",
   "settings.notifications.digest":     "Resumen diario",
   "settings.notifications.digest_desc":"Un correo cada mañana con el plan del día.",
+  "settings.notifications.digest_soon":"Próximamente",
 
   "settings.tasks.monday":             "La semana empieza el lunes",
   "settings.tasks.monday_desc":        "Afecta al orden de los días en las fechas.",

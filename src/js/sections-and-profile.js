@@ -226,7 +226,8 @@ import { loadSync } from "./sync-loader.js";
       el.setAttribute("aria-pressed", String(on));
     });
   }
-  wireInertToggle("settings-digest-toggle");
+  // "settings-digest-toggle" queda deshabilitado a propósito (v2, ver
+  // el atributo `disabled` en index.html) — sin wireInertToggle.
   wireInertToggle("settings-monday-toggle");
 
   // ─── Color de acento (real: se aplica y persiste) ─────────────

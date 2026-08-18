@@ -8005,6 +8005,28 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   justify-content: flex-end;
 }
 
+.settings-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Etiqueta junto al nombre de una opción que aún no hace nada (v2) —
+   sin esto, un switch que no responde al clic se lee como un bug, no
+   como una función por llegar. */
+.settings-row-soon {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  vertical-align: middle;
+}
+
 /* Botón secundario dentro de una fila (Editar perfil, Exportar…) */
 .settings-btn {
   display: inline-flex;

@@ -65,6 +65,7 @@ export const en = {
   "settings.notifications.test":       "Test alert",
   "settings.notifications.digest":     "Daily digest",
   "settings.notifications.digest_desc":"An email every morning with the day's plan.",
+  "settings.notifications.digest_soon":"Coming soon",
 
   "settings.tasks.monday":             "Week starts on Monday",
   "settings.tasks.monday_desc":        "Affects day order in dates.",
