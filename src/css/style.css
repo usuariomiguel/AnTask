@@ -2586,8 +2586,12 @@ button:focus-visible {
 .view-nav-right {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: 6px;
   flex-shrink: 0;
+  padding: 6px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
 }
 
 /* ── Filter trigger button ────────────────────────────────────── */
@@ -10608,11 +10612,36 @@ button {
   margin-bottom: var(--sp-4);
 }
 
+/* Círculo con la gradiente de acento — mismo lenguaje que
+   .capture-bar-ico/.global-search-ico/.profile-avatar en vez de un
+   emoji suelto sin relación con el resto de la app. */
 .onb-icon {
-  font-size: 3.2rem;
-  line-height: 1;
-  margin-bottom: var(--sp-4);
-  filter: drop-shadow(0 4px 16px rgba(163, 179, 102, 0.25));
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--sp-4);
+  border-radius: 50%;
+  background: var(--grad-primary);
+  display: grid;
+  place-items: center;
+  color: var(--accent-on);
+  box-shadow: var(--glow-primary);
+}
+
+.onb-icon .lucide {
+  width: 30px;
+  height: 30px;
+  stroke-width: 2;
+}
+
+/* Entra deslizándose desde la dirección de la que viene (Siguiente/Atrás),
+   no con un salto instantáneo — --onb-dir lo fija onboarding.js por paso. */
+@keyframes onbStepIn {
+  from { opacity: 0; transform: translateX(var(--onb-dir, 16px)); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.onb-step {
+  animation: onbStepIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .onb-title {
@@ -10682,9 +10711,25 @@ button {
 }
 
 .onb-bullet-icon {
-  font-size: 1.4rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--c-primary-300);
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  line-height: 1;
+  margin-top: 1px;
+}
+
+.onb-bullet-icon .lucide {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.2;
+}
+
+:root[data-theme="light"] .onb-bullet-icon {
+  color: var(--c-primary-600);
 }
 
 .onb-bullets strong {
@@ -10711,6 +10756,31 @@ button {
   border-radius: var(--r-sm);
   border: 1px solid var(--border-subtle);
   text-align: center;
+  /* Alto fijo a la altura de una línea: sin esto, mientras el texto se
+     escribe letra a letra el bloque está vacío y toda la caja de debajo
+     (flecha + chips) da un salto hacia arriba, luego hacia abajo al llegar
+     los chips. */
+  min-height: 1.4em;
+}
+
+/* Cursor de máquina de escribir mientras se rellena el ejemplo — se para
+   de parpadear y desaparece en cuanto termina de escribirse. */
+.onb-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--c-primary-300);
+  animation: onbCaretBlink 0.9s steps(1) infinite;
+}
+
+.onb-caret-done {
+  display: none;
+}
+
+@keyframes onbCaretBlink {
+  50% { opacity: 0; }
 }
 
 .onb-syntax-arrow {
@@ -10736,6 +10806,40 @@ button {
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   border: 1px solid transparent;
+  /* Aparece con un pequeño rebote al terminar de escribirse el ejemplo de
+     arriba — nunca está "ya puesto", se siente detectado en vivo. */
+  animation: onbChipPop 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.onb-chip .lucide {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2;
+}
+
+@keyframes onbChipPop {
+  0%   { opacity: 0; transform: scale(0.5) translateY(6px); }
+  65%  { opacity: 1; transform: scale(1.08) translateY(0); }
+  100% { transform: scale(1); }
+}
+
+/* Ráfaga de puntitos al pulsar "Empezar" — _burst() en onboarding.js los
+   crea y los quita solos al terminar la animación. */
+.onb-burst-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--c-primary-500));
+  pointer-events: none;
+  animation: onbBurst 0.55s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
+@keyframes onbBurst {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4); opacity: 0; }
 }
 
 .onb-chip-date {
