@@ -395,7 +395,6 @@ export const es = {
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
   "rowstyle.tarjetas":        "Tarjetas",
-  "rowstyle.cebra":           "Cebra",
   "list.search_placeholder":  "Buscar tareas…",
   "list.search_clear":        "Limpiar búsqueda",
   "bulk.count_one":           "{count} seleccionada",

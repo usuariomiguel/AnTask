@@ -95,14 +95,6 @@
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --row-hover: rgba(255, 238, 214, 0.055);
   /* hover de fila */
-  --zebra-bg: rgba(255, 240, 220, 0.06);
-  /* franja alterna del modo cebra */
-  /* Versión OPACA de la franja. La translúcida no vale en las filas:
-     `.task-swipe-content` hereda el `background-color` y lo vuelve a
-     pintar encima, así que un tinte con alfa se aplicaba dos veces en
-     unas vistas y ninguna en otras. Con un color sólido, las tres
-     pantallas rinden el mismo escalón. */
-  --zebra-solid: color-mix(in srgb, #fff0dc 11%, var(--surface-card));
   --kbd-bg: rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
   --task-hover: rgba(163, 179, 102, 0.10);
@@ -367,8 +359,6 @@
 
   /* Interacción */
   --row-hover: #efe6d4;
-  --zebra-bg: rgba(50, 42, 28, 0.055);
-  --zebra-solid: color-mix(in srgb, #322a1c 9%, var(--surface-card));
   --kbd-bg: #e7dfcf;
   --task-hover: rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
@@ -3227,9 +3217,10 @@ button:focus-visible {
 
 /* Tarjetas — cada tarea flota como su propia tarjeta, agrupada o no.
    `.inbox-group-list` y `.hoy-section-list` traen de fábrica una caja
-   compartida (fondo + borde + sombra) pensada para Cebra/Compacto/
-   Líneas, donde las filas van pegadas — aquí sobra: se veía como un
-   fondo de sección detrás de tarjetas que ya se pintan solas.
+   compartida (fondo + borde + sombra) pensada para un estilo de filas
+   pegadas que ya no existe — aquí sobra: se veía como un fondo de
+   sección detrás de tarjetas que ya se pintan solas. Limpio (justo
+   abajo) también la quita, por el mismo motivo.
    Sin margin-bottom añadido a propósito: `.inbox-group-list` ya separa
    con `gap: 6px` (flex) y `.hoy-section-list` con `margin-top` entre
    filas — sumarle margin-bottom encima doblaba el hueco a 12px. */
@@ -3747,51 +3738,10 @@ button:focus-visible {
   }
 }
 
-/* Cebra — sin tarjeta; la lectura la da una franja alterna. Estilo fijo
-   de móvil (ver _rowStyleEfectivo en script.js), disponible también en
-   escritorio como opción del selector.
-   La franja va en las filas PARES (2ª, 4ª…): empezar por la primera pintaría
-   una banda justo bajo la cabecera de sección y se leería como parte de ella. */
-.task-list[data-row-style="cebra"] .task-item {
-  background: transparent;
-  /* Mismo footprint de 2px (arriba+abajo) que el resto de estilos: solo
-     se quita el COLOR del borde, no el grosor — si no, la fila mide 2px
-     menos que en Limpio/Líneas/Tarjetas. */
-  border: 1px solid transparent;
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
-}
-
-/* `.inbox-group-list` separa sus filas con `gap: 6px` (no con margin,
-   como `.task-item` suelto) — sin esto quedaba el único hueco visible
-   entre tareas de un mismo grupo en cebra dentro del Inbox. */
-.task-list[data-row-style="cebra"] .inbox-group-list {
-  gap: 0;
-}
-
-.task-list[data-row-style="cebra"] .task-item:nth-child(even) {
-  background: var(--zebra-bg);
-}
-
-/* Cebra + dos columnas: `nth-child(even)` tiñe SIEMPRE la misma columna
-   entera (2, 4, 6... caen todas en la columna derecha de la rejilla),
-   así que la franja alterna se veía como una columna entera coloreada
-   en vez de alternar — aquí se repite `:nth-child(even)` para anularla
-   y se tiñe por PAREJA de fila (3-4, 7-8...) en su lugar. */
-.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(even) {
-  background: transparent;
-}
-
-.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(4n+3),
-.task-list[data-row-style="cebra"][data-columns="2"] .task-item:nth-child(4n+4) {
-  background: var(--zebra-bg);
-}
-
 /* Dos columnas — toggle independiente del estilo de fila (#columns-toggle-btn),
-   no una opción más de #row-style-panel: combina con Limpio/Líneas/Tarjetas/
-   Compacto/Cebra. Solo escritorio (el botón se oculta en móvil y el JS
-   nunca escribe data-columns ahí). Las cajas compartidas de grupo
+   no una opción más de #row-style-panel: combina con Limpio/Tarjetas. Solo
+   escritorio (el botón se oculta en móvil y el JS nunca escribe
+   data-columns ahí). Las cajas compartidas de grupo
    (.inbox-group-list/.hoy-section-list) se quitan siempre que esto está
    activo: una caja de fondo detrás de una rejilla de 2 columnas se leía
    como un bloque roto, se vea mejor con cada tarea ya "tarjeta" suelta. */
@@ -3826,13 +3776,10 @@ button:focus-visible {
   gap: 0 14px;
 }
 
-/* Solo en Tarjetas/Limpio el grupo pierde su caja al pasar a dos
-   columnas — sus filas ya se ven como tarjetas sueltas y una caja
-   compartida detrás de una rejilla se leía como un bloque roto (mismo
-   criterio que la excepción de una columna, más arriba). En Cebra/
-   Líneas/Compacto la caja del grupo ES el propio estilo (filas pegadas
-   dentro de un borde redondeado): sin esta excepción se quedaban sin
-   borde ni radio en dos columnas, distinto de como se ven en una. */
+/* El grupo pierde su caja al pasar a dos columnas — sus filas ya se ven
+   como tarjetas sueltas y una caja compartida detrás de una rejilla se
+   leía como un bloque roto (mismo criterio que la excepción de una
+   columna, más arriba). */
 .task-list[data-row-style="tarjetas"][data-columns="2"] .inbox-group-list,
 .task-list[data-row-style="tarjetas"][data-columns="2"] .hoy-section-list,
 .task-list[data-row-style="limpio"][data-columns="2"] .inbox-group-list,
@@ -3842,78 +3789,6 @@ button:focus-visible {
   box-shadow: none;
   border-radius: 0;
   overflow: visible;
-}
-
-/* Las mismas variantes en la vista Hoy (.today-item dentro de #task-list),
-   para que el selector funcione igual que en las listas (como en v1).
-   Cebra faltaba aquí: solo existía dentro del `@media (max-width: 768px)`
-   de más abajo, así que elegirla en escritorio con Hoy abierto no hacía
-   nada — las reglas de `.task-item` no alcanzan a `.today-item`. */
-.task-list[data-row-style="cebra"] .today-item {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
-  margin-top: 0;
-}
-
-/* El `margin-top: 0` de arriba pesa igual que el `margin-top: 6px` base
-   (`.hoy-section-list .today-item + .today-item`, más abajo en el
-   archivo) — a igual especificidad gana el que viene después en la
-   cascada. Repetir el mismo selector aquí es lo que de verdad lo gana. */
-.task-list[data-row-style="cebra"] .hoy-section-list .today-item+.today-item {
-  margin-top: 0;
-}
-
-.task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
-  background: var(--zebra-bg);
-}
-
-/* Mismo arreglo que en .task-item: en dos columnas, `nth-child(even)`
-   tiñe una columna entera en vez de alternar. */
-.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(even) {
-  background: transparent;
-}
-
-.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(4n+3),
-.task-list[data-row-style="cebra"][data-columns="2"] .hoy-section-list .today-item:nth-child(4n+4) {
-  background: var(--zebra-bg);
-}
-
-/* Cebra en una lista suelta (sin sección que la envuelva): aquí
-   `#task-list` ES la lista de filas —a diferencia de Hoy/Inbox, donde
-   `.hoy-section-list`/`.inbox-group-list` son un elemento aparte del
-   bloque—, así que la caja va directamente en ella. Antes esto se
-   resolvía con un borde por fila (izquierda/derecha en todas, arriba/
-   abajo en la primera/última): funcionaba para el borde, pero las filas
-   impares —transparentes a propósito, para que la franja de las pares
-   se note— dejaban ver el canvas del panel en vez de una superficie
-   limpia, y la lista salía con un fondo beige sucio en vez de blanco.
-
-   Solo escritorio: en móvil el estilo de fila está SIEMPRE forzado a
-   cebra (`_rowStyleEfectivo()`), así que sin el `@media` esta regla
-   envolvía CUALQUIER lista suelta en móvil —tuviera tareas o no— en una
-   caja de ancho completo sin el margen lateral del resto de la pantalla.
-   Con un Inbox vacío se veía como una tarjeta oscura a sangre detrás del
-   estado vacío. En móvil las filas van sueltas, sin caja que las
-   envuelva. */
-@media (min-width: 769px) {
-  .task-list--project[data-row-style="cebra"] {
-    background: var(--surface-card);
-    border: 1px solid var(--border-default);
-    border-radius: calc(var(--r-md) + 2px);
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-    /* Aquí la caja y `#task-list` son el mismo elemento, así que el
-       `padding-top` de la base (el hueco antes del bloque de tareas en
-       el resto de estilos) se colaba DENTRO de la caja, dejando una
-       tira de fondo antes de la primera fila. Se cambia por
-       `margin-top`: el mismo hueco, pero FUERA del borde — la lista
-       queda a ras por dentro, como en Hoy/Inbox. */
-    padding-top: 0;
-    margin-top: var(--sp-3);
-  }
 }
 
 .task-list[data-row-style="limpio"] .today-item {
@@ -9848,10 +9723,9 @@ button {
  * que pase con el padding de la lista.
  * 72px dejan ~15px de aire entre el borde inferior de la última fila y
  * el borde superior de la barra — medido con la lista desplazada al
- * fondo, en cebra, que es la variante con menos margen propio (era 56px
- * cuando `.task-list--project` aportaba su propio padding inferior; al
- * quitárselo —ver el bloque de "sin tarjeta de sección"— la última fila
- * pasó a tapar 10px por debajo de la barra). */
+ * fondo (era 56px cuando `.task-list--project` aportaba su propio
+ * padding inferior; al quitárselo —ver el bloque de "sin tarjeta de
+ * sección"— la última fila pasó a tapar 10px por debajo de la barra). */
 @media (min-width: 769px) {
   .task-list-scroll {
     padding-bottom: 82px;
@@ -11152,8 +11026,7 @@ button {
 /* La vista de una lista concreta ya NO lleva una caja envolviendo todas
    sus tareas — iba en `.task-list--project` (solo escritorio) y se quitó
    a petición del usuario, igual que la de `.hoy-section`. "Tarjetas" no
-   la necesita (cada fila es su propia caja) y "cebra" arma su propio
-   borde por fila; ver el bloque de más abajo. */
+   la necesita: cada fila es su propia caja. */
 
 /* ═══════════════════════════════════════════════════════════════
    FILTROS A LA VISTA (solo escritorio)
@@ -11310,34 +11183,16 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MÓVIL — cebra como única vista
+   MÓVIL — limpio como única vista
 
-   El handoff móvil solo contempla la cebra, así que el selector de
-   estilos no se ofrece: `_rowStyleEfectivo()` fija el atributo a
-   «cebra» por debajo del breakpoint y aquí se retira el control. La
-   preferencia de escritorio se conserva intacta.
+   El handoff móvil solo contempla filas planas: el selector de estilos
+   no se ofrece, `_rowStyleEfectivo()` fija el atributo a «limpio» por
+   debajo del breakpoint y aquí se retira el control. La preferencia de
+   escritorio se conserva intacta.
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .row-style-wrap {
     display: none !important;
-  }
-
-  /* La cebra existente solo alcanzaba a `.task-item`; en Hoy las filas son
-     `.today-item` y seguían pintándose como tarjetas. Mismo trato: sin
-     tarjeta, la lectura la da la franja alterna sobre el bloque. */
-  .task-list[data-row-style="cebra"] .today-item {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    margin-bottom: 0;
-    margin-top: 0;
-  }
-
-  /* Franja en las PARES, como en las listas: empezar por la primera
-     pintaría una banda justo bajo la cabecera y se leería como suya. */
-  .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even) {
-    background: var(--zebra-bg);
   }
 }
 
@@ -11510,16 +11365,6 @@ button {
     justify-self: end;
   }
 
-  /* Las filas van pegadas: en cebra, que es la única vista de móvil, la
-     franja alterna solo se lee si no hay hueco entre una y otra. */
-  .task-item {
-    margin-bottom: 0;
-  }
-
-  .inbox-group-list {
-    gap: 0;
-  }
-
   /* ── Hoy: la misma rejilla ───────────────────────────────────
      `.today-item` era flex con `wrap`, así que los chips caían a una
      segunda línea y la casilla se centraba sobre la PRIMERA, no sobre
@@ -11645,30 +11490,6 @@ button {
   .hoy-section-action .lucide {
     width: 15px;
     height: 15px;
-  }
-
-  /* La caja de una lista suelta en cebra ya es la base, sin `@media`
-     — ver `.task-list--project[data-row-style="cebra"]` más arriba.
-
-     ── Cebra sólida, solo en móvil ───────────────────────────────
-     Medido: la misma regla traslúcida rendía Δ10 en Inbox, Δ5 en Hoy y
-     Δ0 en una lista. La culpa es de `.task-swipe-content {
-     background-color: inherit }` —el envoltorio del gesto de deslizar,
-     que solo existe en móvil— que repinta el fondo de la fila encima:
-     un tinte con alfa se componía dos veces donde la fila lo llevaba
-     como color, y desaparecía donde el color ya era la tarjeta opaca.
-     Con un color sólido el resultado no depende de cuántas capas haya.
-     En escritorio no hay swipe, así que la regla base (`var(--zebra-bg)`,
-     traslúcida) ya rinde igual en las tres vistas sin este parche. */
-  .task-list[data-row-style="cebra"] .task-item,
-  .task-list[data-row-style="cebra"] .today-item {
-    background: var(--surface-card);
-  }
-
-  .task-list[data-row-style="cebra"] .task-item:nth-child(even),
-  .task-list[data-row-style="cebra"] .hoy-section-list .today-item:nth-child(even),
-  .task-list--project[data-row-style="cebra"] .task-item:nth-child(even) {
-    background: var(--zebra-solid);
   }
 
   /* ── Márgenes de pantalla ────────────────────────────────────

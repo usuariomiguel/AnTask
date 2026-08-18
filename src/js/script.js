@@ -293,22 +293,22 @@ const selectModeBtn  = document.getElementById("select-mode-btn");
 // El estilo elegido se refleja como atributo data-row-style en #task-list
 // y sólo cambia el aspecto de las filas (puro CSS). Se persiste aparte.
 // ═══════════════════════════════════════════════════════════════
-/* «cebra» viene del handoff móvil v1: es el estilo fijo de móvil. */
-const ROW_STYLES        = ["limpio", "tarjetas", "cebra"];
+const ROW_STYLES        = ["limpio", "tarjetas"];
 const DEFAULT_ROW_STYLE = "tarjetas";
-const ROW_STYLE_ICON    = { limpio: "list", tarjetas: "rows-3", cebra: "rows-4" };
+const ROW_STYLE_ICON    = { limpio: "list", tarjetas: "rows-3" };
 let currentRowStyle = (function() {
   try { const v = localStorage.getItem(ROW_STYLE_KEY); return ROW_STYLES.indexOf(v) !== -1 ? v : DEFAULT_ROW_STYLE; }
   catch (e) { return DEFAULT_ROW_STYLE; }
 })();
 
 /**
- * Estilo que se pinta de verdad. En móvil solo hay cebra —franja alterna,
- * sin tarjeta— y por eso allí no se ofrece el selector. La preferencia
- * del usuario se conserva intacta para cuando vuelva al escritorio.
+ * Estilo que se pinta de verdad. En móvil siempre es "limpio" —filas
+ * planas sin tarjeta— y por eso allí no se ofrece el selector. La
+ * preferencia del usuario se conserva intacta para cuando vuelva a
+ * escritorio.
  */
 function _rowStyleEfectivo() {
-  return window.matchMedia("(max-width: 768px)").matches ? "cebra" : currentRowStyle;
+  return window.matchMedia("(max-width: 768px)").matches ? "limpio" : currentRowStyle;
 }
 
 function applyRowStyle(style, persist) {
@@ -323,7 +323,7 @@ function _syncRowStylePicker() {
   const btn = document.getElementById("row-style-btn");
   if (btn) {
     // La etiqueta solo se ve en móvil, donde el control es una píldora
-    // «⌷ Cebra ⌄» junto a «Filtrar»; en escritorio el CSS la oculta y queda
+    // «☰ Limpio ⌄» junto a «Filtrar»; en escritorio el CSS la oculta y queda
     // el icono suelto de siempre.
     btn.innerHTML =
       '<i data-lucide="' + (ROW_STYLE_ICON[currentRowStyle] || "list") + '"></i>' +
@@ -1218,7 +1218,7 @@ function _syncListSearchVisibility() {
  * o girar el teléfono lo recoloca.
  */
 function _placeRowStyleControl() {
-  // Al cruzar el breakpoint cambia el estilo efectivo (móvil = cebra fija),
+  // Al cruzar el breakpoint cambia el estilo efectivo (móvil = limpio fijo),
   // así que hay que repintar el atributo además de recolocar el control.
   if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
   applyTwoColumns(twoColumnsOn, false);
