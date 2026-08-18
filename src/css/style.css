@@ -1500,10 +1500,30 @@ body {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 11px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border-default);
-  background: var(--surface-input);
+}
+
+/* Prioridad+Fecha y Repetir+Recordatorio van de dos en dos — Nota,
+   Subtareas y Lista se quedan a un ancho completo, como pide el diseño.
+   `.task-detail-field` dentro de la fila no lleva su propio gap vertical
+   en .task-detail-body porque la fila entera cuenta como un solo hijo
+   del flex column — el hueco entre las dos columnas lo pone esta regla. */
+.task-detail-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.task-detail-field-row {
+  position: relative;
+}
+
+.task-detail-field-row .task-detail-field {
+  min-width: 0;
+  /* Sin esto el popover (posicionado respecto al ancestro con position
+     relative más cercano) heredaba el ancho de su propia columna y
+     quedaba a media anchura — con position:static aquí, el popover
+     salta al position:relative de la fila y ocupa el panel entero. */
+  position: static;
 }
 
 .task-detail-label {
@@ -1511,19 +1531,12 @@ body {
   align-items: center;
   align-self: flex-start;
   gap: 5px;
-  padding: 5px 11px 5px 9px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--border-default);
-  background: var(--surface-card);
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  transition: color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
 }
 
 .task-detail-label .lucide {
@@ -1531,66 +1544,20 @@ body {
   height: 13px;
 }
 
-/* El campo tiñe su propia etiqueta del mismo color que su valor cuando
-   tiene algo que contar — mismo lenguaje que ya usan .task-detail-field-btn
-   --has-value/--due-today/--due-overdue/--reminder-set y .active de
-   prioridad, pero también en la píldora de arriba, no solo en el botón. */
-.task-detail-field:has(.task-detail-priority-btn.active) > .task-detail-label {
-  border-color: rgba(224, 122, 106, 0.45);
-  background: rgba(224, 122, 106, 0.10);
-  color: var(--c-pink);
-}
-
-:root[data-theme="light"] .task-detail-field:has(.task-detail-priority-btn.active) > .task-detail-label {
-  color: #9a3a33;
-}
-
-.task-detail-field:has(.task-detail-field-btn--has-value) > .task-detail-label {
-  border-color: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 35%, transparent);
-  background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 10%, var(--surface-card));
-  color: var(--proj-color, var(--text-primary));
-}
-
-.task-detail-field:has(.task-detail-field-btn--due-today) > .task-detail-label {
-  background: var(--accent-tint);
-  border-color: transparent;
-  color: var(--c-primary-300);
-}
-
-:root[data-theme="light"] .task-detail-field:has(.task-detail-field-btn--due-today) > .task-detail-label {
-  color: var(--c-primary-600);
-}
-
-.task-detail-field:has(.task-detail-field-btn--due-overdue) > .task-detail-label {
-  background: rgba(var(--c-overdue-rgb), 0.13);
-  border-color: transparent;
-  color: var(--c-overdue);
-}
-
-.task-detail-field:has(.task-detail-field-btn--reminder-set) > .task-detail-label {
-  border-color: color-mix(in srgb, var(--c-info) 35%, transparent);
-  background: color-mix(in srgb, var(--c-info) 10%, var(--surface-card));
-  color: var(--c-info);
-}
-
-.task-detail-field:has(.task-detail-field-btn--recur-set) > .task-detail-label {
-  border-color: color-mix(in srgb, var(--c-recur) 35%, transparent);
-  background: color-mix(in srgb, var(--c-recur) 10%, var(--surface-card));
-  color: var(--c-recur);
-}
-
 .task-detail-textarea {
   width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 0.875rem;
+  padding: 9px 11px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  background: var(--row-hover);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
   font-family: var(--font-sans);
   outline: none;
   resize: vertical;
   min-height: 68px;
   line-height: 1.5;
+  box-sizing: border-box;
 }
 
 .task-detail-textarea:focus {
@@ -1613,40 +1580,25 @@ body {
   opacity: 0.72;
 }
 
-/* Interruptor de "Importante": es un simple on/off, no un valor que abra
-   un selector (Fecha/Repetir/Recordatorio/Lista) — de ahí a lo ancho
-   completo le sobraba tamaño para lo que hace. Chip del ancho de su
-   contenido, como el resto de píldoras del panel. */
 .task-detail-field-btn.task-detail-priority-btn {
-  width: auto;
   justify-content: center;
   gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--r-pill);
-  align-self: flex-start;
 }
 
 /* Interruptor de "Importante": sin niveles, un único botón que se tiñe
-   de rojo cuando la tarea está marcada. Extiende `.task-detail-field-btn`
-   (mismo look que Fecha/Repetir/Recordatorio/Lista); solo cambia el
-   estado activo. */
+   del acento de la app cuando la tarea está marcada. Extiende
+   `.task-detail-field-btn` (mismo look que Fecha/Repetir/Recordatorio/
+   Lista); solo cambia el estado activo. Mismo acento, no colores por
+   campo, para todo valor "puesto" del panel (ver los modificadores
+   has-value, due-today, due-overdue, reminder-set y recur-set abajo). */
 .task-detail-priority-btn.active {
-  border-color: rgba(224, 122, 106, 0.45);
-  background: rgba(224, 122, 106, 0.10);
-  color: var(--c-pink);
+  border-color: var(--c-primary-500);
+  background: var(--accent-tint);
+  color: var(--text-primary);
 }
 
 .task-detail-priority-btn.active .lucide {
-  color: var(--c-pink);
-}
-
-:root[data-theme="light"] .task-detail-priority-btn.active {
-  color: #9a3a33;
-  background: rgba(var(--c-overdue-rgb), 0.10);
-}
-
-:root[data-theme="light"] .task-detail-priority-btn.active .lucide {
-  color: #9a3a33;
+  color: var(--c-primary-500);
 }
 
 .task-detail-field-btn {
@@ -1658,12 +1610,12 @@ body {
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: var(--row-hover);
-  color: var(--text-primary);
-  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
   /* Explícito: sin esto heredaba el 600 de la regla base de `button`,
      y "Hoy" o "No se repite" pesaban tanto como un título cuando solo
      son el valor actual de un campo. */
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -1677,66 +1629,24 @@ body {
   color: var(--text-tertiary);
 }
 
-/* ─── ESTADO "CON VALOR" (fecha, recordatorio) ───────────────────
-   Mismo código de color que su badge en la fila (.due-badge /
-   .reminder-badge): sin esto el panel perdía toda la información de
-   urgencia y color que sí se ve en la lista, y todo quedaba plano
-   en gris salvo la prioridad. */
-.task-detail-field-btn--has-value {
-  border-color: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 35%, transparent);
-  background: color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 10%, var(--surface-input));
-  color: var(--proj-color, var(--text-primary));
-}
-
-.task-detail-field-btn--has-value .lucide {
-  color: var(--proj-color, var(--text-tertiary));
-}
-
-.task-detail-field-btn--due-today {
-  background: var(--accent-tint);
-  border-color: transparent;
-  color: var(--c-primary-300);
-}
-
-.task-detail-field-btn--due-today .lucide {
-  color: var(--c-primary-300);
-}
-
-:root[data-theme="light"] .task-detail-field-btn--due-today {
-  color: var(--c-primary-600);
-}
-
-.task-detail-field-btn--due-overdue {
-  background: rgba(var(--c-overdue-rgb), 0.13);
-  border-color: transparent;
-  color: var(--c-overdue);
-}
-
-.task-detail-field-btn--due-overdue .lucide {
-  color: var(--c-overdue);
-}
-
-.task-detail-field-btn--reminder-set {
-  border-color: color-mix(in srgb, var(--c-info) 35%, transparent);
-  background: color-mix(in srgb, var(--c-info) 10%, var(--surface-input));
-  color: var(--c-info);
-}
-
-.task-detail-field-btn--reminder-set .lucide {
-  color: var(--c-info);
-}
-
-/* Repetir: morado — mismo lenguaje que usan otras apps de tareas para la
-   recurrencia, y queda claramente distinto del resto (rosa=prioridad,
-   verde=fecha, azul=recordatorio, color de lista=lista). */
+/* Mismo acento para cualquier campo con valor puesto (fecha, repetición,
+   recordatorio, lista) — un único color en vez de uno distinto por campo. */
+.task-detail-field-btn--has-value,
+.task-detail-field-btn--due-today,
+.task-detail-field-btn--due-overdue,
+.task-detail-field-btn--reminder-set,
 .task-detail-field-btn--recur-set {
-  border-color: color-mix(in srgb, var(--c-recur) 35%, transparent);
-  background: color-mix(in srgb, var(--c-recur) 10%, var(--surface-input));
-  color: var(--c-recur);
+  border-color: var(--c-primary-500);
+  background: var(--accent-tint);
+  color: var(--text-primary);
 }
 
+.task-detail-field-btn--has-value .lucide,
+.task-detail-field-btn--due-today .lucide,
+.task-detail-field-btn--due-overdue .lucide,
+.task-detail-field-btn--reminder-set .lucide,
 .task-detail-field-btn--recur-set .lucide {
-  color: var(--c-recur);
+  color: var(--c-primary-500);
 }
 
 .field-btn-ico {
@@ -1766,10 +1676,6 @@ body {
 .task-detail-date-row .task-detail-field-btn {
   justify-content: flex-start;
   gap: 8px;
-}
-
-.task-detail-time-btn {
-  flex: 0 0 108px;
 }
 
 /* ─── POPOVER DE CAMPO (fecha, hora, repetir, aviso, lista) ─────
@@ -2023,8 +1929,8 @@ body {
   padding: 8px 10px;
   border-radius: var(--r-md);
   border: 1px solid var(--border-default);
-  background: var(--surface-input);
-  color: var(--text-primary);
+  background: var(--row-hover);
+  color: var(--text-secondary);
   font-family: inherit;
   font-size: 0.82rem;
   outline: none;
@@ -9667,7 +9573,7 @@ button {
   padding: 6px;
   border-radius: 33px;
   cursor: text;
-  background: var(--surface-card);
+  background: var(--row-hover);
   border: 1px solid var(--border-default);
   font-family: var(--font-body);
   box-shadow: 0 20px 50px -18px rgba(40, 30, 15, 0.34);

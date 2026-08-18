@@ -368,26 +368,19 @@ if (columnsToggleBtn) {
   columnsToggleBtn.addEventListener("click", function() { applyTwoColumns(!twoColumnsOn); });
 }
 
-// ─── ARRANQUE ────────────────────────────────────────────────
-try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
-try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
-try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
-try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
-try { applyTwoColumns(twoColumnsOn, false); } catch(e) { console.error("applyTwoColumns error:", e); }
-try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
-// Vista por defecto: "Hoy" (ya no se muestra la pantalla de estado vacío).
-// Sólo se restaura una lista/proyecto si fue abierto explícitamente (hay una
-// clave ACTIVE_KEY guardada y ese proyecto aún existe). En cualquier otro caso
-// —incluido el arranque limpio o el "modo simple"— entramos directos en Hoy.
-try {
-  var _bootActive = localStorage.getItem(ACTIVE_KEY);
-  if (_bootActive && projects.some(function(p) { return p.id === _bootActive; })) {
-    activateProject(_bootActive);
-  } else {
-    activateTodayView();
-  }
-} catch(e) { console.error("boot view error:", e); }
-try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }
+/* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
+   casos la cadena se vuelve ilegible y hay que tocarla en tres sitios para
+   añadir uno. «all» no aparece a propósito —ausencia significa no filtrar—,
+   así que un valor desconocido se comporta como «todas» en vez de vaciar la
+   lista. Los cinco últimos vienen del handoff móvil v1. */
+const TASK_FILTERS = {
+  pending: function(t) { return !t.done; },
+  done:    function(t) { return t.done; },
+  overdue: function(t) { return !t.done && !!t.dueDate && t.dueDate < _localDateISO(new Date()); },
+  today:   function(t) { return t.dueDate === _localDateISO(new Date()); },
+  nodate:  function(t) { return !t.dueDate; },
+  high:    function(t) { return t.priority === "high"; },
+};
 
 // En escritorio: cursor listo en "nueva tarea" al abrir.
 if (taskInput && !matchMedia("(hover: none)").matches) {
@@ -1305,20 +1298,6 @@ function _matchesQuery(task, project) {
   if (project && _norm(project.name).indexOf(q) !== -1) return true;
   return false;
 }
-
-/* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
-   casos la cadena se vuelve ilegible y hay que tocarla en tres sitios para
-   añadir uno. «all» no aparece a propósito —ausencia significa no filtrar—,
-   así que un valor desconocido se comporta como «todas» en vez de vaciar la
-   lista. Los cinco últimos vienen del handoff móvil v1. */
-const TASK_FILTERS = {
-  pending: function(t) { return !t.done; },
-  done:    function(t) { return t.done; },
-  overdue: function(t) { return !t.done && !!t.dueDate && t.dueDate < _localDateISO(new Date()); },
-  today:   function(t) { return t.dueDate === _localDateISO(new Date()); },
-  nodate:  function(t) { return !t.dueDate; },
-  high:    function(t) { return t.priority === "high"; },
-};
 
 /* Iconos de las opciones de filtro. Van en un mapa porque lucide borra
    `data-lucide` del SVG que genera, así que no se pueden leer del DOM.
@@ -2917,8 +2896,6 @@ const _detailPanelEls = {
   dateField:    document.getElementById("task-detail-date-field"),
   dateBtn:      document.getElementById("task-detail-date-btn"),
   dateText:     document.getElementById("task-detail-date-text"),
-  timeBtn:      document.getElementById("task-detail-time-btn"),
-  timeText:     document.getElementById("task-detail-time-text"),
   recurField:   document.getElementById("task-detail-recur-field"),
   recurBtn:     document.getElementById("task-detail-recur-btn"),
   recurText:    document.getElementById("task-detail-recur-text"),
@@ -3110,53 +3087,6 @@ function _openDatePopover(fieldEl, anchorBtn) {
       });
     }
     render();
-  });
-}
-
-function _openTimePopover(fieldEl, anchorBtn) {
-  const openTask = _getOpenDetailTask();
-  if (!openTask) return;
-  const task = openTask.task;
-  // Horas típicas de agenda: cubren mañana/mediodía/tarde/noche sin
-  // obligar a tocar el <input type="time"> nativo para el caso común.
-  const presets = ["09:00", "12:00", "15:00", "18:00", "20:00"];
-
-  _openFieldPopover(fieldEl, anchorBtn, "down", function(pop, close) {
-    pop.classList.add("field-popover--narrow");
-    const presetsHtml = presets.map(function(hhmm) {
-      const active = task.dueTime === hhmm;
-      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-time="' + hhmm + '">' +
-        '<span class="field-popover-row-label">' + hhmm + '</span>' +
-        (active ? '<i data-lucide="check"></i>' : "") +
-      '</button>';
-    }).join("");
-    pop.innerHTML =
-      '<div class="field-popover-list">' + presetsHtml + '</div>' +
-      '<div class="field-popover-sep"></div>' +
-      '<div class="field-popover-input-row">' +
-        '<input type="time" value="' + (task.dueTime || "") + '" />' +
-        (task.dueTime ? '<button type="button" class="field-popover-chip field-popover-chip--clear">' + t("modal.clear") + '</button>' : "") +
-      '</div>';
-    pop.querySelectorAll("[data-time]").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        task.dueTime = btn.dataset.time;
-        saveAndRender();
-        close();
-      });
-    });
-    const input = pop.querySelector('input[type="time"]');
-    input.addEventListener("change", function() {
-      task.dueTime = input.value || null;
-      saveAndRender();
-      close();
-    });
-    const clearBtn = pop.querySelector(".field-popover-chip--clear");
-    if (clearBtn) clearBtn.addEventListener("click", function() {
-      task.dueTime = null;
-      saveAndRender();
-      close();
-    });
-    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
   });
 }
 
@@ -3360,7 +3290,6 @@ function _renderTaskDetail() {
   els.priority.classList.toggle("active", !!task.priority);
 
   els.dateText.textContent     = task.dueDate    ? formatDueLabel(task.dueDate)     : t("detail.no_date");
-  els.timeText.textContent     = task.dueTime    || t("detail.no_time");
   els.recurText.textContent    = task.recurDays  ? formatRecurLabel(task.recurDays) : t("detail.no_recur");
   els.reminderText.textContent = task.reminderAt ? _formatReminderLabel(task.reminderAt) : t("detail.no_reminder");
   els.projectText.textContent  = project.name;
@@ -3377,7 +3306,7 @@ function _renderTaskDetail() {
     if (task.dueDate) els.dateField.style.setProperty("--proj-color", _projectColor(project));
     else els.dateField.style.removeProperty("--proj-color");
   }
-  [[els.dateBtn, !!task.dueDate], [els.timeBtn, !!task.dueTime]].forEach(function(pair) {
+  [[els.dateBtn, !!task.dueDate]].forEach(function(pair) {
     var btn = pair[0], active = pair[1];
     btn.classList.toggle("task-detail-field-btn--has-value", active);
     btn.classList.toggle("task-detail-field-btn--due-today", active && !!dueState && dueState.cls === "due-today");
@@ -3496,13 +3425,6 @@ function _initTaskDetailPanel() {
     els.dateBtn.addEventListener("click", function(e) {
       e.stopPropagation();
       _openDatePopover(els.dateField, els.dateBtn);
-    });
-  }
-
-  if (els.timeBtn) {
-    els.timeBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      _openTimePopover(els.dateField, els.timeBtn);
     });
   }
 
@@ -5671,3 +5593,27 @@ async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
     console.warn("AnsoSync: error aplicando cambios remotos:", e);
   }
 }
+
+// ─── ARRANQUE ────────────────────────────────────────────────
+// Se ejecuta al final del fichero (no justo tras declarar el DOM) para que
+// todas las const/let de nivel superior que usan las funciones de render
+// (TASK_FILTERS, currentQuery, etc.) ya estén inicializadas.
+try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
+try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
+try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
+try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
+try { applyTwoColumns(twoColumnsOn, false); } catch(e) { console.error("applyTwoColumns error:", e); }
+try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
+// Vista por defecto: "Hoy" (ya no se muestra la pantalla de estado vacío).
+// Sólo se restaura una lista/proyecto si fue abierto explícitamente (hay una
+// clave ACTIVE_KEY guardada y ese proyecto aún existe). En cualquier otro caso
+// —incluido el arranque limpio o el "modo simple"— entramos directos en Hoy.
+try {
+  var _bootActive = localStorage.getItem(ACTIVE_KEY);
+  if (_bootActive && projects.some(function(p) { return p.id === _bootActive; })) {
+    activateProject(_bootActive);
+  } else {
+    activateTodayView();
+  }
+} catch(e) { console.error("boot view error:", e); }
+try { _updateProfileMenu(window.AnsoSync?.getUser?.() ?? null); } catch(e) { console.error("_updateProfileMenu error:", e); }

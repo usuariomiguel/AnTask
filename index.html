@@ -698,49 +698,44 @@
               <textarea class="task-detail-title" id="task-detail-title" rows="2" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
             </div>
 
-            <div class="task-detail-field" data-acc="note">
-              <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
-              <textarea class="task-detail-textarea" id="task-detail-comment" rows="4" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
-            </div>
-
-            <div class="task-detail-field" data-acc="priority">
-              <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
-              <!-- Sin niveles: un único interruptor "Importante", marcado con
-                   bandera roja cuando está activo. -->
-              <button type="button" class="task-detail-field-btn task-detail-priority-btn" id="task-detail-priority" data-value="high">
-                <i data-lucide="flag" class="field-btn-ico"></i>
-                <span data-i18n="detail.priority_important">Importante</span>
-              </button>
-            </div>
-
-            <div class="task-detail-field" id="task-detail-date-field" data-acc="date">
-              <span class="task-detail-label"><i data-lucide="calendar"></i> <span data-i18n="detail.due_date">Fecha y hora</span></span>
-              <div class="task-detail-date-row">
-                <button type="button" class="task-detail-field-btn" id="task-detail-date-btn">
-                  <i data-lucide="calendar" class="field-btn-ico"></i>
-                  <span id="task-detail-date-text" data-i18n="detail.no_date">Sin fecha</span>
+            <div class="task-detail-field-row">
+              <div class="task-detail-field" data-acc="priority">
+                <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
+                <!-- Sin niveles: un único interruptor "Importante", marcado con
+                     bandera roja cuando está activo. -->
+                <button type="button" class="task-detail-field-btn task-detail-priority-btn" id="task-detail-priority" data-value="high">
+                  <i data-lucide="flag" class="field-btn-ico"></i>
+                  <span data-i18n="detail.priority_important">Importante</span>
                 </button>
-                <button type="button" class="task-detail-field-btn task-detail-time-btn" id="task-detail-time-btn">
-                  <i data-lucide="clock" class="field-btn-ico"></i>
-                  <span id="task-detail-time-text" data-i18n="detail.no_time">Hora</span>
-                </button>
+              </div>
+
+              <div class="task-detail-field" id="task-detail-date-field" data-acc="date">
+                <span class="task-detail-label"><i data-lucide="calendar"></i> <span data-i18n="detail.due_date">Fecha</span></span>
+                <div class="task-detail-date-row">
+                  <button type="button" class="task-detail-field-btn" id="task-detail-date-btn">
+                    <i data-lucide="calendar" class="field-btn-ico"></i>
+                    <span id="task-detail-date-text" data-i18n="detail.no_date">Sin fecha</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="task-detail-field" id="task-detail-recur-field" data-acc="recur">
-              <span class="task-detail-label"><i data-lucide="repeat"></i> <span data-i18n="detail.recur">Repetir</span></span>
-              <button type="button" class="task-detail-field-btn" id="task-detail-recur-btn">
-                <span id="task-detail-recur-text" data-i18n="detail.no_recur">No se repite</span>
-                <i data-lucide="chevron-right"></i>
-              </button>
-            </div>
+            <div class="task-detail-field-row">
+              <div class="task-detail-field" id="task-detail-recur-field" data-acc="recur">
+                <span class="task-detail-label"><i data-lucide="repeat"></i> <span data-i18n="detail.recur">Repetir</span></span>
+                <button type="button" class="task-detail-field-btn" id="task-detail-recur-btn">
+                  <span id="task-detail-recur-text" data-i18n="detail.no_recur">No se repite</span>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
 
-            <div class="task-detail-field" id="task-detail-reminder-field" data-acc="reminder">
-              <span class="task-detail-label"><i data-lucide="bell"></i> <span data-i18n="detail.reminder">Recordatorio</span></span>
-              <button type="button" class="task-detail-field-btn" id="task-detail-reminder-btn">
-                <span id="task-detail-reminder-text" data-i18n="detail.no_reminder">Sin recordatorio</span>
-                <i data-lucide="chevron-right"></i>
-              </button>
+              <div class="task-detail-field" id="task-detail-reminder-field" data-acc="reminder">
+                <span class="task-detail-label"><i data-lucide="bell"></i> <span data-i18n="detail.reminder">Recordatorio</span></span>
+                <button type="button" class="task-detail-field-btn" id="task-detail-reminder-btn">
+                  <span id="task-detail-reminder-text" data-i18n="detail.no_reminder">Sin recordatorio</span>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
             </div>
 
             <div class="task-detail-field" data-acc="subtasks">
@@ -758,6 +753,11 @@
                 <span id="task-detail-project-text"></span>
                 <i data-lucide="chevron-right" id="task-detail-project-chevron"></i>
               </button>
+            </div>
+
+            <div class="task-detail-field" data-acc="note">
+              <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
+              <textarea class="task-detail-textarea" id="task-detail-comment" rows="8" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
             </div>
 
           </div>
