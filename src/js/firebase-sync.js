@@ -183,7 +183,20 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
 
       signIn: function () {
         const provider = new GoogleAuthProvider();
-        if (_isStandalone()) return signInWithRedirect(auth, provider);
+        if (_isStandalone()) {
+          // signInWithRedirect saca de la app entera y vuelve como una
+          // carga de página nueva — main.js decide si carga Firebase de
+          // entrada mirando hasSyncHistory(), que en un dispositivo recién
+          // limpiado no tiene ninguna señal todavía (la marca normal solo
+          // se pone DESPUÉS de un login que ya ha tenido éxito). Sin este
+          // aviso previo, la vuelta del redirect aterrizaba en una carga
+          // que nunca llegaba a cargar Firebase, así que nadie procesaba
+          // el resultado: el login se completaba en Google pero la app no
+          // se enteraba nunca. Se marca ANTES de salir; si el login se
+          // cancela, onAuthStateChanged(null) la retira sola al volver.
+          markSyncEnabled();
+          return signInWithRedirect(auth, provider);
+        }
         return signInWithPopup(auth, provider);
       },
 
