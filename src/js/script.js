@@ -5487,6 +5487,13 @@ window.showProfileModal = showProfileModal;
 // siguiente onAuthStateChanged (que con un login fallido puede no llegar).
 window._updateProfileMenu = _updateProfileMenu;
 
+/** ¿Tiene algún proyecto de la lista al menos una tarea real? */
+function _hasRealTasks(list) {
+  return Array.isArray(list) && list.some(function(p) {
+    return p && Array.isArray(p.tasks) && p.tasks.length > 0;
+  });
+}
+
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
@@ -5512,8 +5519,16 @@ function _syncOnFirstConnect(cloudData) {
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
     var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
     var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
+    var cachedProjects  = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]");
+    var cloudHasContent = _hasRealTasks(cloudData.projects);
+    var localHasContent = _hasRealTasks(cachedProjects);
 
-    if (cloudTime >= localTime) {
+    // Una caché local VACÍA con marca de tiempo más reciente no debe ganar
+    // nunca a datos reales de la nube: solo dice "aquí no se guardó nada
+    // desde entonces", no "esto es lo correcto". Sin esta excepción, un
+    // dispositivo recién limpiado que cachea su vacío se queda sordo a la
+    // nube para siempre, aunque tenga todas las tareas esperando ahí.
+    if (cloudTime >= localTime || (cloudHasContent && !localHasContent)) {
       _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
     } else {
       // Caché local más reciente → restaurar y subir
@@ -5612,7 +5627,11 @@ function _syncOnRemoteChange(remoteProjects, remoteSections, remoteUpdatedAt) {
   if (uid && remoteUpdatedAt && typeof remoteUpdatedAt.toMillis === "function") {
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
     var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
-    if (remoteUpdatedAt.toMillis() < localTime) {
+    // Mismo motivo que en _syncOnFirstConnect: un local vacío con marca de
+    // tiempo reciente no debe silenciar datos reales de la nube para siempre.
+    var localEmptyButNewer = remoteUpdatedAt.toMillis() < localTime &&
+      _hasRealTasks(remoteProjects) && !_hasRealTasks(projects);
+    if (remoteUpdatedAt.toMillis() < localTime && !localEmptyButNewer) {
       console.warn("AnsoSync: cambio remoto descartado por ser más antiguo que el local");
       return;
     }
