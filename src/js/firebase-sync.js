@@ -29,6 +29,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as fbSignOut,
   onAuthStateChanged,
 } from "firebase/auth";
@@ -132,6 +134,19 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
       if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
     }
 
+    // Con la app instalada (PWA standalone/en el móvil, sin barra del
+    // navegador alrededor) `signInWithPopup` falla de forma intermitente:
+    // el popup de Google no siempre puede avisar a la ventana que lo abrió
+    // de que ha terminado (Cross-Origin-Opener-Policy entre ventanas de
+    // distinto origen), y Firebase lo interpreta como que el usuario ha
+    // cancelado el login (`auth/user-cancelled`) aunque haya completado el
+    // proceso con normalidad. `signInWithRedirect` esquiva el problema del
+    // todo: navega la propia ventana a Google y vuelve, sin segunda ventana.
+    function _isStandalone() {
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
+    }
+
     window.AnsoSync = {
       isConfigured: true,
 
@@ -146,6 +161,13 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         _onRemoteChange = onRemoteChange;
         _onAuthChange   = onAuthChange;
         _onFirstConnect = onFirstConnect;
+        // Recoge el resultado si veníamos de un signInWithRedirect — sin
+        // esto, un error del redirect (dominio no autorizado, etc.) se
+        // perdía en silencio: onAuthStateChanged solo avisa de logins que
+        // SÍ cuajan, nunca de por qué uno ha fallado.
+        getRedirectResult(auth).catch(function (err) {
+          console.warn("AnsoSync: error en el resultado del redirect de login:", err);
+        });
         onAuthStateChanged(auth, function (user) {
           _user = user;
           // La marca decide si en el próximo arranque Firebase se carga
@@ -161,6 +183,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
 
       signIn: function () {
         const provider = new GoogleAuthProvider();
+        if (_isStandalone()) return signInWithRedirect(auth, provider);
         return signInWithPopup(auth, provider);
       },
 

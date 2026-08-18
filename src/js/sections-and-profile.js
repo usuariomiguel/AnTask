@@ -271,9 +271,19 @@ import { loadSync } from "./sync-loader.js";
           ? "El navegador ha bloqueado la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
           : e.code === "auth/unauthorized-domain"
           ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+          : e.code === "auth/user-cancelled"
+          ? "Google no ha completado el inicio de sesión. Si la app está instalada, ciérrala y ábrela de nuevo antes de reintentar."
           : "Error al iniciar sesión: " + (e.message || e.code);
         console.error("AnsoSync signIn error:", e);
         if (window.modalAlert) modalAlert(msg, "error");
+        // El login ha fallado: repinta el menú de perfil con el usuario REAL
+        // (probablemente null). Sin esto, si algo lo había dejado en un
+        // estado "conectado" que no corresponde, se quedaba así hasta el
+        // siguiente onAuthStateChanged — que con un login fallido puede no
+        // llegar nunca, dejando una sincronización fantasma en pantalla.
+        if (typeof window._updateProfileMenu === "function") {
+          window._updateProfileMenu(window.AnsoSync?.getUser?.() ?? null);
+        }
       });
     }).catch(function (e) {
       console.error("AnsoSync: no se pudo cargar el módulo de sincronización:", e);

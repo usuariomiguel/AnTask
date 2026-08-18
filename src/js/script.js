@@ -5480,6 +5480,13 @@ function showProfileModal() {
 }
 window.showProfileModal = showProfileModal;
 
+// Expuesta para que doSignIn() (sections-and-profile.js, otro módulo) pueda
+// forzar un repintado tras un login fallido — sin esto, si algo dejaba el
+// menú de perfil en un estado "conectado" que no correspondía al usuario
+// real de Firebase, no había forma de corregirlo desde fuera hasta el
+// siguiente onAuthStateChanged (que con un login fallido puede no llegar).
+window._updateProfileMenu = _updateProfileMenu;
+
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
