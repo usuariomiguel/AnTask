@@ -2854,9 +2854,11 @@ button:focus-visible {
   width: 40px;
   height: 40px;
   color: var(--text-tertiary);
-  background: var(--surface-card);
+  /* Mismo fondo+borde+radio que .filter-segment (Todas/Pendientes/Hechas):
+     un solo lenguaje de "botón suelto en el header" en vez de dos. */
+  background: var(--row-hover);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   cursor: pointer;
 }
 
@@ -2885,9 +2887,9 @@ button:focus-visible {
   width: 40px;
   height: 40px;
   color: var(--text-tertiary);
-  background: var(--surface-card);
+  background: var(--row-hover);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   cursor: pointer;
 }
 
@@ -2928,9 +2930,9 @@ button:focus-visible {
   width: 40px;
   height: 40px;
   color: var(--text-tertiary);
-  background: var(--surface-card);
+  background: var(--row-hover);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   cursor: pointer;
 }
 
@@ -10852,6 +10854,42 @@ button {
   background: rgba(224, 122, 106, 0.16);
   border-color: rgba(224, 122, 106, 0.28);
   color: #f2b3a8;
+}
+
+/* ── CTA del paso 2: abre la captura rápida de verdad ─────────
+   Aparece con el mismo rebote que los chips justo después de que
+   termina de escribirse el ejemplo — invita a "ahora tú" en el
+   momento en que el demo ya ha demostrado qué va a pasar. */
+.onb-try-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--grad-primary);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  box-shadow: var(--glow-primary);
+  position: relative;
+  overflow: visible;
+  animation: onbChipPop 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.onb-try-btn .lucide {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+
+.onb-try-btn[hidden] {
+  display: none;
 }
 
 /* ── Tabla de atajos paso 3 ─────────────────────────────────── */

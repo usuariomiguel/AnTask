@@ -2,8 +2,10 @@
 // Onboarding de primera ejecución
 //
 // Modal de 3 pasos que enseña los conceptos clave: Inbox + Hoy +
-// captura rápida + sintaxis natural. Se muestra una sola vez.
-// El flag se persiste en localStorage.
+// captura rápida + sintaxis natural. El paso 2 es interactivo de
+// verdad — abre la captura rápida real y solo avanza cuando se crea
+// una tarea, no con un simple "Siguiente". Se muestra una sola vez;
+// el flag se persiste en localStorage.
 // ═══════════════════════════════════════════════════════════════
 
 import { createModalBase, closeModal } from "./modal.js";
@@ -30,6 +32,9 @@ const STEPS = [
     eyebrow: "Paso 2 de 3",
     icon:    "zap",
     title:   "Captura más rápida que pensar",
+    // Este paso no se salta con "Siguiente": solo avanza al crear una
+    // tarea de verdad (ver el botón #onb-try-btn y su handler abajo).
+    requiresAction: true,
     bodyHTML:
       '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd> desde cualquier sitio.</p>' +
       '<p class="onb-muted" style="margin-top:0">Y al escribir, usa <strong>sintaxis natural</strong>:</p>' +
@@ -38,7 +43,10 @@ const STEPS = [
         '<div class="onb-syntax-arrow">↳</div>' +
         '<div class="onb-syntax-chips" id="onb-syntax-chips"></div>' +
       '</div>' +
-      '<p class="onb-muted">Detecta fechas y prioridad. Tú solo escribes.</p>',
+      '<p class="onb-muted">Detecta fechas y prioridad. Tú solo escribes.</p>' +
+      '<button type="button" class="onb-try-btn" id="onb-try-btn" hidden>' +
+        '<i data-lucide="zap"></i> Ahora tú: crea tu primera tarea' +
+      '</button>',
     // Guía del efecto de escritura — fuera del HTML, lo rellena _runTypeDemo.
     typeDemo: {
       text: "Llamar al banco mañana p1",
@@ -77,13 +85,15 @@ export function markOnboardingDone() {
  * Escribe `demo.text` letra a letra en `#onb-syntax-typed` y, al terminar,
  * revela los chips detectados con un pequeño rebote escalonado — vender la
  * sensación de "esto entiende lo que escribo" en vez de enseñar una imagen
- * fija del resultado.
+ * fija del resultado. Al terminar de revelar los chips, llama a `onComplete`
+ * (el paso 2 la usa para descubrir el botón "Ahora tú" justo después).
  *
  * @param {HTMLElement} box
  * @param {{text: string, chips: Array<{cls:string, icon:string, label:string}>}} demo
+ * @param {() => void} [onComplete]
  * @returns {number} id del intervalo — cancelarlo si se cambia de paso a media escritura
  */
-function _runTypeDemo(box, demo) {
+function _runTypeDemo(box, demo, onComplete) {
   const typedEl = box.querySelector("#onb-syntax-typed");
   const caretEl = box.querySelector("#onb-syntax-caret");
   const chipsEl = box.querySelector("#onb-syntax-chips");
@@ -106,6 +116,9 @@ function _runTypeDemo(box, demo) {
           chipsEl.appendChild(span);
         });
         if (window.lucide) window.lucide.createIcons({ nodes: [chipsEl] });
+        if (typeof onComplete === "function") {
+          setTimeout(onComplete, demo.chips.length * 100 + 250);
+        }
       }, 220);
     }
   }, 42);
@@ -113,9 +126,10 @@ function _runTypeDemo(box, demo) {
 }
 
 /**
- * Ráfaga de puntitos de color desde el centro de `fromEl` — el remate visual
- * al pulsar "Empezar". `fromEl` necesita overflow visible: el botón base ya
- * trae `overflow: hidden` por defecto, así que se pisa aquí en línea.
+ * Ráfaga de puntitos de color desde el centro de `fromEl` — remate visual
+ * al pulsar "Empezar" o al crear la primera tarea de verdad en el paso 2.
+ * `fromEl` necesita overflow visible: el botón base ya trae
+ * `overflow: hidden` por defecto, así que se pisa aquí en línea.
  *
  * @param {HTMLElement} fromEl
  */
@@ -179,16 +193,23 @@ export function showOnboarding(opts) {
         '<button type="button" class="onb-skip"' + (isLast ? ' style="visibility:hidden"' : "") + '>Saltar</button>' +
         '<div class="onb-nav">' +
           (isFirst ? "" : '<button type="button" class="onb-prev">← Atrás</button>') +
-          '<button type="button" class="onb-next">' + (isLast ? "Empezar" : "Siguiente →") + '</button>' +
+          (step.requiresAction ? "" :
+            '<button type="button" class="onb-next">' + (isLast ? "Empezar" : "Siguiente →") + '</button>') +
         '</div>' +
       '</div>';
 
     if (window.lucide) window.lucide.createIcons({ nodes: [box] });
-    if (step.typeDemo) typeTimer = _runTypeDemo(box, step.typeDemo);
 
-    const nextBtn = box.querySelector(".onb-next");
-    const prevBtn = box.querySelector(".onb-prev");
-    const skipBtn = box.querySelector(".onb-skip");
+    const nextBtn  = box.querySelector(".onb-next");
+    const prevBtn  = box.querySelector(".onb-prev");
+    const skipBtn  = box.querySelector(".onb-skip");
+    const tryBtn   = box.querySelector("#onb-try-btn");
+
+    if (step.typeDemo) {
+      typeTimer = _runTypeDemo(box, step.typeDemo, function () {
+        if (tryBtn) tryBtn.hidden = false;
+      });
+    }
 
     if (nextBtn) nextBtn.addEventListener("click", function () {
       if (isLast) {
@@ -206,8 +227,30 @@ export function showOnboarding(opts) {
 
     if (skipBtn) skipBtn.addEventListener("click", finish);
 
-    // Focus en el botón principal para navegación con teclado
-    setTimeout(function () { if (nextBtn) nextBtn.focus(); }, 40);
+    // Paso interactivo: abre la captura rápida DE VERDAD. El onboarding se
+    // oculta mientras tanto (no se cierra — conserva el paso en el que iba)
+    // y solo avanza si de verdad se creó una tarea, no con cualquier cierre.
+    if (tryBtn) tryBtn.addEventListener("click", function () {
+      if (typeof window.openQuickCapture !== "function") return;
+      _burst(tryBtn);
+      overlay.style.display = "none";
+      let created = false;
+      window.openQuickCapture({
+        onTaskCreated: function () { created = true; },
+        onClose: function () {
+          overlay.style.display = "";
+          if (created) { currentStep++; lastDir = 1; render(); }
+          // Si se cerró sin crear nada, se queda tal cual en este paso —
+          // el botón "Ahora tú" sigue ahí para intentarlo de nuevo.
+        },
+      });
+    });
+
+    // Focus en el botón principal para navegación con teclado.
+    setTimeout(function () {
+      const focusTarget = nextBtn || tryBtn;
+      if (focusTarget) focusTarget.focus();
+    }, 40);
   }
 
   overlay._cancel = finish;
@@ -216,8 +259,8 @@ export function showOnboarding(opts) {
   function onKey(e) {
     if (e.key === "Escape") { finish(); cleanup(); }
     if (e.key === "ArrowRight" || e.key === "Enter") {
-      const btn = box.querySelector(".onb-next");
-      if (btn) btn.click();
+      const btn = box.querySelector(".onb-next") || box.querySelector("#onb-try-btn");
+      if (btn && !btn.hidden) btn.click();
     }
     if (e.key === "ArrowLeft") {
       const btn = box.querySelector(".onb-prev");

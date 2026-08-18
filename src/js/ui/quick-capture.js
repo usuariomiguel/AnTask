@@ -300,6 +300,11 @@ export function showQuickCapture(deps) {
     // así que cerrar el modal no se lo lleva por delante solo.
     closeListPopover();
     closeModal(overlay);
+    // Se llama en TODAS las salidas (creada o cancelada) — quien abrió la
+    // captura desde otro flujo (p.ej. el onboarding, que se queda oculto
+    // mientras tanto) necesita saber que ha terminado para reaparecer,
+    // independientemente de si se llegó a crear una tarea o no.
+    if (typeof deps.onClose === "function") deps.onClose();
   }
 
   function submit() {

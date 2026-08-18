@@ -126,6 +126,7 @@ function openQuickCapture(opts) {
       const created = _createTaskInProject(targetProject, rawText, overrides);
       if (!created) return;
       saveProjects();
+      if (typeof opts.onTaskCreated === "function") opts.onTaskCreated(created);
       // Desde una vista que no es de proyecto (Hoy/Calendario/smart-list)
       // la tarea va al Inbox; si se pide, redirigir allí para que se vea.
       if (opts.redirectToInbox && activeView !== "project") {
@@ -141,6 +142,7 @@ function openQuickCapture(opts) {
       if (activeView === "today") renderTasks();
     },
     onToast: function(msg) { _showQuickToast(msg); },
+    onClose: opts.onClose,
   });
 }
 window.openQuickCapture = openQuickCapture;
