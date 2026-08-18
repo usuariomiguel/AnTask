@@ -11805,6 +11805,17 @@ button {
     font-size: 14.5px;
     font-weight: 650;
   }
+
+  /* Sin el círculo sólido del icono: la píldora entera ya va teñida de
+     rojo, así que el círculo de fondo duplicaba el color encima — el
+     icono solo necesita heredar el tono de aviso, suelto. */
+  .task-detail-delete-ico {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    color: var(--c-overdue);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
