@@ -3110,17 +3110,17 @@ button:focus-visible {
    se activan con data-row-style en #task-list y ganan por orden de
    cascada tanto en tema claro como oscuro. */
 
-/* Limpio — filas planas sin tarjeta, sólo realce en hover, sin hueco
-   entre una fila y la siguiente. */
+/* Limpio — filas planas sin tarjeta, sólo realce en hover. Mismo hueco
+   de 6px entre filas que el resto de modos de vista. */
 .task-list[data-row-style="limpio"] .task-item {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
-  margin-bottom: 0;
+  margin-bottom: 6px;
 }
 
 .task-list[data-row-style="limpio"] .inbox-group-list {
-  gap: 0;
+  gap: 6px;
 }
 
 /* Tarjetas — cada tarea flota como su propia tarjeta, agrupada o no.
@@ -3661,7 +3661,7 @@ button:focus-visible {
 }
 
 .task-list[data-columns="2"] .task-item {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 /* El bloque entero (cabecera + su lista) ocupa las dos columnas de la
@@ -3863,7 +3863,7 @@ button:focus-visible {
 .task-text {
   flex: 1;
   min-width: 0;
-  font-size: 16.5px;
+  font-size: 15.5px;
   font-weight: var(--fw-semiregular);
   padding-left: 9px;
   color: var(--text-primary);
@@ -4698,7 +4698,7 @@ input.inline-edit {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--fw-semiregular);
   letter-spacing: 0.01em;
   line-height: 1.5;
@@ -4764,7 +4764,7 @@ input.inline-edit {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--fw-semiregular);
   letter-spacing: 0.01em;
   line-height: 1.5;
@@ -4788,7 +4788,7 @@ input.inline-edit {
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--fw-regular);
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
@@ -9097,7 +9097,7 @@ button {
 .today-text {
   flex: 1;
   min-width: 0;
-  font-size: 16.5px;
+  font-size: 15.5px;
   font-weight: var(--fw-semiregular);
   padding-left: 9px;
   color: var(--text-primary);
@@ -9178,7 +9178,7 @@ button {
      antes solo lo llevaba en móvil (ver @media más abajo) y en escritorio
      heredaba la fuente de texto normal, desentonando con sus vecinos. */
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--fw-semiregular);
   padding: 10px 10px;
   border-radius: 25px;
@@ -9420,15 +9420,10 @@ button {
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
   padding: 11px 15px 11px 17px;
-  /* Altura fija, la misma que una fila de tarea: el botón "Añadir" sólo
-     aparece al escribir y, si la caja se dimensionara sola, la fila daba un
-     salto de 8px al mostrarlo. Los 21px de contenido (45 − borde − padding)
-     son justo lo que mide el botón. */
-  min-height: 45px;
-  /* Separación de la tarjeta de filas que tiene justo encima: desde que
-     esa tarjeta es la lista y no la sección entera, quedaban casi
-     pegadas. */
-  margin-top: 10px;
+  /* Altura fija, la misma que una fila de tarea (48px): el botón "Añadir"
+     sólo aparece al escribir y, si la caja se dimensionara sola, la fila
+     daba un salto al mostrarlo. */
+  min-height: 48px;
   cursor: text;
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
