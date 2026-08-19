@@ -575,7 +575,8 @@
               </button>
               <div class="filter-wrap" id="filter-wrap" style="position:relative">
                 <button type="button" class="filter-trigger-btn" id="filter-trigger-btn">
-                  <span id="filter-trigger-label" data-i18n="filter.trigger_label">Filtrar</span>
+                  <i data-lucide="list-filter" class="filter-trigger-ico"></i>
+                  <span id="filter-trigger-label">Filtrar</span>
                   <i data-lucide="chevron-down" class="filter-caret"></i>
                 </button>
                 <div class="filter-panel" id="filter-panel" hidden role="menu">
@@ -771,8 +772,8 @@
       </div><!-- /.mobile-body -->
 
       <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
-      <!-- Pastilla flotante con 3 destinos (Hoy · Inbox · Perfil), como
-           el prototipo móvil v1. Calendario/Buscar viven dentro de Perfil.
+      <!-- Pastilla flotante con 4 destinos (Hoy · Inbox · Buscar · Perfil),
+           como el prototipo móvil v1. Calendario vive dentro de Perfil.
            El + de captura flota aparte, a la derecha. -->
       <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal">
         <button type="button" class="mobile-bottom-btn" id="bnav-today-btn">
@@ -783,10 +784,16 @@
           <i data-lucide="inbox"></i>
           <span data-i18n="sidebar.inbox">Inbox</span>
         </button>
+        <!-- Abre la búsqueda global (mismo modal que Ctrl+K en escritorio),
+             no una vista propia — no se marca "activo" nunca. -->
+        <button type="button" class="mobile-bottom-btn" id="bnav-search-btn">
+          <i data-lucide="search"></i>
+          <span data-i18n="sidebar.search_short">Buscar</span>
+        </button>
         <!-- Perfil usa el avatar circular con anillo, no un icono (handoff). -->
         <button type="button" class="mobile-bottom-btn mobile-bottom-btn--profile" id="bnav-profile-btn">
-          <span class="bnav-avatar" id="bnav-avatar" aria-hidden="true">A</span>
-          <span data-i18n="nav.profile">Perfil</span>
+          <p class="bnav-avatar" id="bnav-avatar" aria-hidden="true">A</p>
+          <span data-i18n="nav.profile" style="display: none;">Perfil</span>
         </button>
       </nav>
 
@@ -875,8 +882,9 @@
       // ── Bottom navigation ─────────────────────────────────────
       var bnavInbox    = document.getElementById("bnav-inbox-btn");
       var bnavToday    = document.getElementById("bnav-today-btn");
+      var bnavSearch   = document.getElementById("bnav-search-btn");
       var bnavProfile  = document.getElementById("bnav-profile-btn");
-      var allBnavBtns  = [bnavInbox, bnavToday, bnavProfile];
+      var allBnavBtns  = [bnavInbox, bnavToday, bnavSearch, bnavProfile];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -915,6 +923,14 @@
           if (typeof window.activateTodayView === "function") {
             window.activateTodayView();
           }
+        });
+      }
+
+      if (bnavSearch) {
+        bnavSearch.addEventListener("click", function() {
+          // No es una vista propia (es un modal encima de la actual), así
+          // que no se marca "activo" — se deja el destino real tal cual.
+          if (typeof window.showGlobalSearch === "function") window.showGlobalSearch();
         });
       }
 

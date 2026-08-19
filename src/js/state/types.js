@@ -47,7 +47,6 @@
  * @property {boolean}       done
  * @property {Priority}      [priority]
  * @property {string|null}   [dueDate]        - ISO YYYY-MM-DD o null si sin fecha
- * @property {string|null}   [dueTime]        - Hora "HH:mm" opcional asociada a dueDate; null = sin hora
  * @property {number|null}   [recurDays]      - Días entre repeticiones; null = no recurrente
  * @property {string|null}   [reminderAt]     - ISO datetime "YYYY-MM-DDTHH:mm" para recordatorio puntual; null = sin recordatorio
  * @property {number}        [timeLogged]     - Milisegundos acumulados (legacy del timer eliminado)

@@ -14,7 +14,6 @@ const STORAGE_KEY = "antask-onboarded";
 
 const STEPS = [
   {
-    eyebrow: "Paso 1 de 3",
     icon:    "sparkles",
     title:   "Bienvenido a antask",
     bodyHTML:
@@ -29,14 +28,18 @@ const STEPS = [
       '</ul>',
   },
   {
-    eyebrow: "Paso 2 de 3",
     icon:    "zap",
     title:   "Captura más rápida que pensar",
     // Este paso no se salta con "Siguiente": solo avanza al crear una
     // tarea de verdad (ver el botón #onb-try-btn y su handler abajo).
     requiresAction: true,
+    // Sin teclado físico no hay atajo que pulsar — en móvil se señala el
+    // botón + flotante en su lugar (ver leadHTML en showOnboarding).
+    leadHTML:
+      '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd> desde cualquier sitio.</p>',
+    leadHTMLMobile:
+      '<p class="onb-lead">Toca el botón <strong>+</strong> desde cualquier pantalla.</p>',
     bodyHTML:
-      '<p class="onb-lead">Pulsa <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>Espacio</kbd> desde cualquier sitio.</p>' +
       '<p class="onb-muted" style="margin-top:0">Y al escribir, usa <strong>sintaxis natural</strong>:</p>' +
       '<div class="onb-syntax-demo">' +
         '<div class="onb-syntax-input"><code id="onb-syntax-typed"></code><span class="onb-caret" id="onb-syntax-caret"></span></div>' +
@@ -57,9 +60,11 @@ const STEPS = [
     },
   },
   {
-    eyebrow: "Paso 3 de 3",
     icon:    "keyboard",
     title:   "Atajos esenciales",
+    // Sin teclado físico no hay atajos que enseñar — este paso se salta
+    // en móvil (ver el filtrado de STEPS en showOnboarding).
+    desktopOnly: true,
     bodyHTML:
       '<table class="onb-shortcuts">' +
         '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Buscar en proyectos y tareas</td></tr>' +
@@ -157,6 +162,9 @@ function _burst(fromEl) {
  */
 export function showOnboarding(opts) {
   const onDone = opts && opts.onDone;
+  // Sin teclado físico, el paso de atajos no pinta nada en móvil.
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const activeSteps = isMobile ? STEPS.filter(function (s) { return !s.desktopOnly; }) : STEPS;
   let currentStep  = 0;
   let lastDir       = 1;   // 1 = avanzando, -1 = retrocediendo (dirección de la animación)
   let typeTimer     = null;
@@ -173,20 +181,22 @@ export function showOnboarding(opts) {
   function render() {
     if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
 
-    const step    = STEPS[currentStep];
-    const isLast  = currentStep === STEPS.length - 1;
+    const step    = activeSteps[currentStep];
+    const isLast  = currentStep === activeSteps.length - 1;
     const isFirst = currentStep === 0;
+    const eyebrow = "Paso " + (currentStep + 1) + " de " + activeSteps.length;
+    const lead = (isMobile && step.leadHTMLMobile) ? step.leadHTMLMobile : (step.leadHTML || "");
 
-    const dotsHTML = STEPS.map(function (_, i) {
+    const dotsHTML = activeSteps.map(function (_, i) {
       return '<span class="onb-dot' + (i === currentStep ? " onb-dot-active" : "") + '"></span>';
     }).join("");
 
     box.innerHTML =
       '<div class="onb-step" style="--onb-dir:' + (lastDir === -1 ? "-16px" : "16px") + '">' +
-        '<div class="onb-eyebrow">' + step.eyebrow + '</div>' +
+        '<div class="onb-eyebrow">' + eyebrow + '</div>' +
         '<div class="onb-icon"><i data-lucide="' + step.icon + '"></i></div>' +
         '<h2 class="onb-title">' + step.title + '</h2>' +
-        '<div class="onb-body">' + step.bodyHTML + '</div>' +
+        '<div class="onb-body">' + lead + step.bodyHTML + '</div>' +
       '</div>' +
       '<div class="onb-dots">' + dotsHTML + '</div>' +
       '<div class="onb-actions">' +
@@ -239,7 +249,15 @@ export function showOnboarding(opts) {
         onTaskCreated: function () { created = true; },
         onClose: function () {
           overlay.style.display = "";
-          if (created) { currentStep++; lastDir = 1; render(); }
+          if (created) {
+            // En escritorio este paso nunca es el último (sigue "Atajos
+            // esenciales"), pero en móvil ese paso no existe — sin esta
+            // comprobación currentStep++ apuntaba a un paso inexistente
+            // (activeSteps[2] === undefined) y el render reventaba, dejando
+            // el tutorial colgado a medias en vez de cerrarse.
+            if (isLast) { finish(); }
+            else { currentStep++; lastDir = 1; render(); }
+          }
           // Si se cerró sin crear nada, se queda tal cual en este paso —
           // el botón "Ahora tú" sigue ahí para intentarlo de nuevo.
         },

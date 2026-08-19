@@ -62,7 +62,6 @@ export function sanitizeTasks(input) {
         done:       Boolean(i.done),
         priority:   normalizePriority(i.priority),
         dueDate:    typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,
-        dueTime:    typeof i.dueTime === "string" && /^\d{2}:\d{2}$/.test(i.dueTime) ? i.dueTime : null,
         recurDays:  (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
         reminderAt: typeof i.reminderAt === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(i.reminderAt) ? i.reminderAt : null,
         timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,

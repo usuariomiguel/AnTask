@@ -150,6 +150,7 @@ export const es = {
 
   // ── Filtros ───────────────────────────────────────────────
   "filter.trigger_label":     "Otros",
+  "filter.trigger_label_mobile": "Filtros",
   "filter.all":               "Todas",
   "filter.pending":           "Pendientes",
   "filter.done":              "Hechas",

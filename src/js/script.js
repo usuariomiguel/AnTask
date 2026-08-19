@@ -762,7 +762,6 @@ function _createProjectWithTasks(name, taskSpecs, opts) {
         done:       false,
         priority:   spec.priority || null,
         dueDate:    spec.dueDate || null,
-        dueTime:    null,
         recurDays:  spec.recurDays || null,
         reminderAt: null,
         timeLogged: 0,
@@ -934,7 +933,6 @@ function _createTaskInProject(project, rawText, overrides) {
     done:       false,
     priority:   overrides.priority || parsed.priority || null,
     dueDate:    overrides.dueDate || parsed.dueDate || null,
-    dueTime:    null,
     recurDays:  parsed.recurDays || null,
     reminderAt: null,
     timeLogged: 0,
@@ -1194,13 +1192,13 @@ function showProfileMenu() {
 window.showProfileMenu = showProfileMenu;
 
 /**
- * El buscador solo tiene sentido sobre una lista. En «Hoy» no se ofrece: esa
- * vista es un resumen del día —vencidas, para hoy, sugeridas— y no una lista
- * que se recorra buscando, así que el handoff no lo pone ahí.
+ * La búsqueda dentro de la lista se retiró de Inbox/listas: en móvil ahora
+ * vive como destino propio en la barra inferior (#bnav-search-btn), que abre
+ * la búsqueda global — la misma que Ctrl+K en escritorio, no una por lista.
  */
 function _syncListSearchVisibility() {
   const box = document.getElementById("list-search");
-  if (box) box.hidden = activeView !== "project";
+  if (box) box.hidden = true;
 }
 
 /**
@@ -1372,7 +1370,8 @@ function _syncFilterPanel(filter) {
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (triggerBtn) triggerBtn.classList.remove("filter-trigger-btn--active");
   var labelEl = document.getElementById("filter-trigger-label");
-  if (labelEl) labelEl.textContent = t("filter.trigger_label");
+  var isDesktop = window.matchMedia("(min-width: 769px)").matches;
+  if (labelEl) labelEl.textContent = t(isDesktop ? "filter.trigger_label" : "filter.trigger_label_mobile");
 }
 
 function _updateFilterTriggerLabel() {
@@ -1391,7 +1390,7 @@ function _updateFilterTriggerLabel() {
   // habría rotulado «Hechas». La clave se deriva del propio valor.
   if (currentFilter !== "all" && !(isDesktop && inSegments)) parts.push(t("filter." + currentFilter));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
-  labelEl.textContent = parts.length > 0 ? parts.join(", ") : t("filter.trigger_label");
+  labelEl.textContent = parts.length > 0 ? parts.join(", ") : t(isDesktop ? "filter.trigger_label" : "filter.trigger_label_mobile");
 }
 
 // ─── STORAGE EVENT ───────────────────────────────────────────
@@ -2668,7 +2667,7 @@ function _updateTaskNode(node, task) {
   const firmaChips = [
     task.priority || "",
     task.reminderAt || "",
-    task.dueDate || "", task.dueTime || "",
+    task.dueDate || "",
     task.recurDays || "",
     node._showList && node._project ? node._project.id : "",
     node._showList && node._project ? node._project.name : "",
@@ -3025,14 +3024,28 @@ function _openFieldPopover(fieldEl, anchorBtn, placement, buildFn) {
 
   const pop = document.createElement("div");
   pop.className = "field-popover" + (placement === "up" ? " field-popover--up" : "");
-  fieldEl.appendChild(pop);
+
+  // En móvil, dentro de una fila a dos columnas (Prioridad+Fecha,
+  // Repetir+Recordatorio), el popover se monta como HERMANO de la fila
+  // en vez de dentro del campo: si viviera dentro, el campo abierto tenía
+  // que ocupar toda la fila para que el popover cupiera entero, dejando al
+  // campo vecino huérfano a media columna con un hueco muerto al lado. Como
+  // hermano de la fila, ambos campos se quedan intactos arriba y el
+  // desplegable aparece debajo, a todo el ancho del panel.
+  const row = fieldEl.closest(".task-detail-field-row");
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  if (row && isMobile) {
+    row.parentNode.insertBefore(pop, row.nextSibling);
+  } else {
+    fieldEl.appendChild(pop);
+  }
   if (anchorBtn) anchorBtn.classList.add("field-btn-open");
 
   function close() { _closeFieldPopover(); }
   buildFn(pop, close);
   if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
 
-  const onDoc = function(e) { if (!fieldEl.contains(e.target)) close(); };
+  const onDoc = function(e) { if (!fieldEl.contains(e.target) && !pop.contains(e.target)) close(); };
   const onEsc = function(e) { if (e.key === "Escape") { e.stopPropagation(); close(); } };
   setTimeout(function() {
     document.addEventListener("mousedown", onDoc, true);
@@ -3549,15 +3562,39 @@ function renderTodayView() {
 
   // Agrupar como el prototipo: vencidas / para hoy (incluye las hechas hoy,
   // para el progreso) / sin fecha como sugeridas.
-  var overdue = [], todays = [], nodate = [];
+  var overdueRaw = [], todaysRaw = [], nodateRaw = [];
   projects.forEach(function(p) {
     if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
-      if (!tk.dueDate) { if (!tk.done) nodate.push({ task: tk, project: p }); return; }
-      if (tk.dueDate < today) { if (!tk.done) overdue.push({ task: tk, project: p }); }
-      else if (tk.dueDate === today) todays.push({ task: tk, project: p });
+      if (!tk.dueDate) { nodateRaw.push({ task: tk, project: p }); return; }
+      if (tk.dueDate < today) { overdueRaw.push({ task: tk, project: p }); }
+      else if (tk.dueDate === today) todaysRaw.push({ task: tk, project: p });
     });
   });
+
+  // Las stats/anillo de progreso salen siempre del conjunto sin filtrar de
+  // "para hoy" — si dependieran de lo que hay filtrado, seleccionar
+  // "Hechas" en la barra falsearía el progreso mostrado.
+  var hoyDoneStats  = todaysRaw.filter(function(x) { return x.task.done; }).length;
+  var totalHoyStats = overdueRaw.filter(function(x) { return !x.task.done; }).length + todaysRaw.length;
+
+  // El filtro de la barra (Todas/Pendientes/Hechas/…) se aplica sobre los
+  // tres grupos — como son ortogonales al agrupado por fecha, "Vencidas"/
+  // "Hoy"/"Sin fecha" del panel simplemente aíslan su sección.
+  var overdue, todays, nodate;
+  if (currentFilter !== "all" && TASK_FILTERS[currentFilter]) {
+    var _pred = TASK_FILTERS[currentFilter];
+    overdue = overdueRaw.filter(function(it) { return _pred(it.task); });
+    todays  = todaysRaw.filter(function(it) { return _pred(it.task); });
+    nodate  = nodateRaw.filter(function(it) { return _pred(it.task); });
+  } else {
+    // Sin filtro: "vencidas" y "sin fecha" mantienen su comportamiento de
+    // siempre y no muestran hechas (solo "para hoy" las lleva, para el
+    // anillo de progreso).
+    overdue = overdueRaw.filter(function(it) { return !it.task.done; });
+    todays  = todaysRaw;
+    nodate  = nodateRaw.filter(function(it) { return !it.task.done; });
+  }
 
   // Importante primero, empatando por fecha; el resto no distingue orden.
   function prioOf(x) {
@@ -3573,18 +3610,17 @@ function renderTodayView() {
   todays.sort(byDue);
   nodate.sort(function(a, b) { return prioOf(a) - prioOf(b); });
 
-  var hoyDone  = todays.filter(function(x) { return x.task.done; }).length;
-  var totalHoy = overdue.length + todays.length;
-  var pending  = totalHoy - hoyDone;
+  var pendingStats = totalHoyStats - hoyDoneStats;
 
   // Contador en el footer
   if (taskCounter) {
-    taskCounter.textContent = (pending === 1 ? t("today.counter_one") : t("today.counter_other"))
-      .replace("{count}", String(pending));
+    taskCounter.textContent = (pendingStats === 1 ? t("today.counter_one") : t("today.counter_other"))
+      .replace("{count}", String(pendingStats));
   }
 
-  // Stats + anillo de progreso en la cabecera
-  _renderHoyHeaderExtra(hoyDone, totalHoy, overdue.length);
+  // Stats + anillo de progreso en la cabecera: siempre sobre el total real
+  // del día, no sobre lo que deja ver el filtro seleccionado.
+  _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
 
   var allClear = overdue.length === 0 && todays.length === 0;
 
@@ -3599,7 +3635,7 @@ function renderTodayView() {
   }
 
   // ── Para hoy — siempre visible, con quick-add contextual ──
-  var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDone + "/" + todays.length, null, null);
+  var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDoneStats + "/" + todaysRaw.length, null, null);
   todays.forEach(function(it) {
     secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
   });
@@ -3938,8 +3974,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // tamaño de pantalla. "Sin fecha" no tiene píldora que reaprovechar, así
   // que la suya dice "Hoy" directamente.
   if (dateLabel) {
-    // v1 cuelga la hora de la fecha con separador ("Hoy · 11:30").
-    var dateText = dateLabel + (task.dueTime ? " · " + task.dueTime : "");
+    var dateText = dateLabel;
     var dEl = document.createElement("span");
     dEl.className = "today-date-pill" +
       (tone === "today" ? " today-date-pill--today" : "") +
@@ -4926,11 +4961,7 @@ function _setActiveViewTab(view) {
     t.classList.toggle("view-tab--active", t.dataset.view === view);
   });
   var isTasksView    = (view === "tasks");
-  // Como en el prototipo v1, el filtro vive en el cuerpo de la lista y sólo
-  // aparece en las listas normales: la vista "Hoy" y la vista de mes llevan
-  // un header y un cuerpo sobrios, sin fila de filtro.
-  var isHoy          = (activeView === "today");
-  var listActions    = isTasksView && !isHoy;
+  var listActions    = isTasksView;
   var listFilterRow  = document.getElementById("list-filter-row");
   if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
   // El selector de estilo de fila acompaña a Hoy y a las listas normales

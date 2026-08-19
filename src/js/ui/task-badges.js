@@ -75,17 +75,6 @@ export function renderDueBadge(task, container) {
   } else {
     lab.textContent = state.label;
   }
-  if (task.dueTime) {
-    const sep = document.createElement("span");
-    sep.className = "due-badge-sep";
-    sep.textContent = " · ";
-    const hora = document.createElement("span");
-    hora.className = "due-badge-time";
-    hora.textContent = task.dueTime;
-    const ref = badge.querySelector(".due-badge-arrow");
-    badge.insertBefore(sep, ref);
-    badge.insertBefore(hora, ref);
-  }
   container.appendChild(badge);
 }
 

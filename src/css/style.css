@@ -2061,6 +2061,7 @@ body {
   .field-popover--narrow {
     width: auto;
   }
+
 }
 
 /* ─── TASKS PANEL ────────────────────────────────────────────── */
@@ -2516,6 +2517,14 @@ button:focus-visible {
   height: 13px;
   stroke-width: 2;
   flex-shrink: 0;
+}
+
+/* El icono delante del texto es un añadido de móvil (ahí el botón vive
+   fuera del segmentado Todas/Pendientes/Hechas y necesita una pista visual
+   de qué es); en escritorio, junto al segmentado, sobra — antes no estaba
+   y el botón no cambia de aspecto ahí. */
+.filter-trigger-ico {
+  display: none;
 }
 
 .filter-trigger-btn.open .filter-caret {
@@ -3248,9 +3257,9 @@ button:focus-visible {
 .pmenu-group {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-lg);
   overflow: hidden;
   margin-bottom: 14px;
+  border-radius: var(--r-xl);
 }
 
 .pmenu-row {
@@ -3262,6 +3271,7 @@ button:focus-visible {
   padding: 9px 12px;
   border: none;
   border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -5381,7 +5391,7 @@ body.project-dragging .project-item {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    min-height: 36px;
+    min-height: 34px;
     padding: 7px 13px;
     border: 1px solid var(--border-default);
     background: var(--surface-card);
@@ -5396,6 +5406,10 @@ body.project-dragging .project-item {
     width: 15px;
     height: 15px;
     stroke-width: 2;
+  }
+
+  .filter-trigger-ico {
+    display: inline-flex;
   }
 
   .filter-trigger-btn .filter-caret {
@@ -5562,7 +5576,6 @@ body.project-dragging .project-item {
     margin-bottom: var(--sp-2);
     /* 13/15 del handoff móvil. Literales a propósito: la escala de espaciado
        salta de 12 (--sp-3) a 16 (--sp-4) y ninguno de los dos es el valor. */
-    padding: 13px 15px;
     border-radius: var(--r-md);
     /* Todas las filas a la misma altura, tengan o no chips: medido con
        prioridad + fecha + repetición (el caso más alto), 78px. Sin esto
@@ -5871,10 +5884,14 @@ body.project-dragging .project-item {
      de captura flota aparte, a la derecha (variante "Separado" del
      prototipo v1). */
   .mobile-bottom-nav {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 60px;
+    width: max-content;
+    /* display: flex;
     flex-direction: row;
     align-items: stretch;
-    justify-content: space-evenly;
+    justify-content: space-evenly; */
     /* La pastilla ocupa TODO el ancho hasta el FAB (en v1 es `flex: 1`), no
        solo lo que miden sus tres pestañas: por eso quedaban apiñadas a la
        izquierda. 54 del FAB + 11 de separación + 14 de margen. */
@@ -5885,8 +5902,9 @@ body.project-dragging .project-item {
        ocupan las pestañas, con `align-items: stretch` llenando el alto
        entero — no un padding grande dejando la píldora activa suelta
        en medio. */
-    padding: 3px;
-    bottom: max(22px, env(safe-area-inset-bottom, 0px));
+    padding: 6px;
+    gap: 3px;
+    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) - 4px);
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: 46px;
@@ -5906,8 +5924,8 @@ body.project-dragging .project-item {
   .mobile-bottom-btn {
     flex: 0 0 auto;
     /* 56x44 mínimos del handoff, en vez de 64px fijos. */
-    min-width: 56px;
-    min-height: 44px;
+    width: 48px;
+    height: 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -5932,6 +5950,8 @@ body.project-dragging .project-item {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-xl);
   }
 
   .mobile-bottom-btn svg {
@@ -5942,6 +5962,7 @@ body.project-dragging .project-item {
   }
 
   .mobile-bottom-btn>span {
+    display: none;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5952,16 +5973,15 @@ body.project-dragging .project-item {
      con `outline` y no con `border` para que no altere la caja y el avatar
      mantenga sus 26px al pasar a activo (el anillo engorda de 1.5 a 2.5). */
   .bnav-avatar {
-    width: 20px;
-    height: 20px;
+    width: 100%;
+    height: 48px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
     border-radius: 50%;
     background: var(--accent-tint);
     color: var(--c-primary-300);
-    font-size: 12px;
-    font-weight: var(--fw-bold);
+    font-size: 16px;
     line-height: 1;
     outline: 1.5px solid var(--text-tertiary);
     outline-offset: 1.5px;
@@ -7389,6 +7409,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   backdrop-filter: blur(14px);
   animation: profile-drop-in 0.18s cubic-bezier(0.34, 1.3, 0.64, 1) both;
 }
+
 
 /* (El dropdown de perfil vive dentro de la sidebar oscura: mismo estilo
    en ambos temas.) */
@@ -9130,17 +9151,36 @@ button {
   .today-item {
     flex-wrap: wrap;
     row-gap: 7px;
-    padding: 10px 12px;
+    /* La base fija 48px para la fila de una sola línea de escritorio; aquí
+       el título y los chips pasan a dos líneas (flex-wrap arriba) y ese
+       tope cortaba el contenido, que se salía y pisaba la fila de abajo. */
+    max-height: none;
   }
 
   .today-meta {
     display: flex;
-    flex-wrap: wrap;
+    /* Igual que .task-chips en Inbox: con muchos chips a la vez (prioridad +
+       recordatorio + lista + repetición) envolver los sacaba a una tercera
+       línea y desbordaba la fila. Ahora se desplaza en horizontal en vez
+       de envolver. */
+    flex-wrap: nowrap;
     align-items: center;
     gap: 3px;
     flex-basis: 100%;
     margin-left: 33px;
     /* checkbox 20px + gap 13px */
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .today-meta::-webkit-scrollbar {
+    display: none;
+  }
+
+  .today-meta>* {
+    flex-shrink: 0;
   }
 
   .today-meta:empty {
@@ -9412,7 +9452,7 @@ button {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
-  padding: 11px 15px 11px 17px;
+  padding: 6px;
   /* Altura fija, la misma que una fila de tarea (48px): el botón "Añadir"
      sólo aparece al escribir y, si la caja se dimensionara sola, la fila
      daba un salto al mostrarlo. */
@@ -9468,7 +9508,7 @@ button {
   flex-shrink: 0;
   /* Alto explícito en vez de padding vertical: así entra en el contenido de
      la fila sin estirarla al aparecer. */
-  height: 21px;
+  height: stretch;
   padding: 0 11px;
   border-radius: var(--r-md);
   cursor: pointer;
@@ -10937,11 +10977,25 @@ button {
    leyendo #filter-panel, así que sus opciones se conservan en el DOM
    y solo se ocultan en escritorio.
    ═══════════════════════════════════════════════════════════════ */
+/* "display: contents" y no "none": el trigger "Filtrar" (#filter-wrap)
+   vive DENTRO de este contenedor en el DOM (no se toca su estructura, ver
+   más abajo por qué), y en móvil sí tiene que verse — es la única forma de
+   filtrar que queda ahí. "contents" hace que el propio contenedor no
+   pinte caja (ni cápsula de fondo/borde) pero deja que sus hijos
+   participen del flex de `.list-filter-row` con su propio display; los
+   tres botones Todas/Pendientes/Hechas se ocultan aparte, uno a uno. */
 .filter-segments {
+  display: contents;
+}
+
+.filter-segment {
   display: none;
 }
 
 @media (min-width: 769px) {
+  /* En escritorio el contenedor vuelve a pintar su propia cápsula
+     (fondo/borde/radio) y a agrupar los tres segmentos junto al trigger,
+     exactamente como antes de que existiera el botón de filtro en móvil. */
 
   /* Carril del segmentado: una superficie propia que agrupa los tres,
      como en el prototipo. `--surface-card` ya es blanco hueso en tema
@@ -10958,6 +11012,10 @@ button {
   }
 
   .filter-segment {
+    /* La base la oculta (display:none) para dejar sitio al botón "Filtrar"
+       en móvil — aquí se restaura el inline-block por defecto del <button>,
+       el mismo que tenía antes de que existiera esa regla. */
+    display: inline-block;
     font-family: var(--font-sans);
     font-size: var(--fs-sm);
     font-weight: var(--fw-medium);
@@ -11145,10 +11203,25 @@ button {
     font-size: 12px;
   }
 
-  /* La fecha de la fila es metadato: 12px, 650, mono. */
+  /* Mismo tamaño que la píldora de fecha de Hoy (.today-date-pill): 12px,
+     radio 25px — antes eran más pequeñas y de formas distintas entre las
+     dos vistas pese a mostrar el mismo dato. */
   .due-badge {
     font-size: 12px;
     font-weight: 650;
+    border-radius: 25px;
+  }
+
+  /* Hoy/vencidas pierden el borde en la regla base (fondo tintado plano,
+     border-color:transparent) — en móvil se restaura para que combinen
+     con el resto de píldoras de la fila (fecha futura, prioridad...),
+     que sí lo llevan. */
+  .due-today {
+    border-color: color-mix(in srgb, var(--c-primary-300) 45%, transparent);
+  }
+
+  .due-overdue {
+    border-color: color-mix(in srgb, var(--c-overdue) 45%, transparent);
   }
 
   /* ── Estructura de la fila, como `MTaskCard` ─────────────────
@@ -11161,8 +11234,11 @@ button {
      a lo alto de las dos filas. */
   .task-main-row {
     display: grid;
-    /* casilla · contenido · fecha */
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    /* casilla · contenido · fecha. La columna de fecha es max-content, no
+       auto: el badge lleva overflow:hidden y su mínimo automático en grid
+       es 0, así que con "auto" la pista podía encogerse por debajo de su
+       contenido y la fecha se veía cortada ("Mañana" → "Mañan"). */
+    grid-template-columns: auto minmax(0, 1fr) max-content;
     align-items: center;
     /* `center`, no el `normal` por defecto: `normal` equivale a estirar, y
        el alto sobrante de la fila se repartía entre las dos pistas. En una
@@ -11217,7 +11293,11 @@ button {
     grid-area: 2 / 2;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    /* Antes envolvía (flex-wrap: wrap) y con prioridad+recordatorio+lista+
+       repetición a la vez, el chip sobrante se iba a una tercera línea y
+       desbordaba la fila. Ahora no envuelve — se desplaza en horizontal,
+       mismo patrón que `.list-chips` (el carril Todas/Inbox/+). */
+    flex-wrap: nowrap;
     gap: 3px;
     margin-top: 6px;
     /* Misma barra compartida que en escritorio: el chip de fecha se
@@ -11232,6 +11312,18 @@ button {
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .task-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .task-chips>span {
+    flex-shrink: 0;
   }
 
   /* Sin chips no hay segunda línea que separar. Con el chip punteado de
@@ -11405,20 +11497,9 @@ button {
     padding-right: 16px;
   }
 
-  /* Y deja de ser píldora: en el prototipo solo la vencida lo es —el
-     resto es texto mono suelto, sin fondo ni icono de calendario. */
-  .task-item .due-badge:not(.due-overdue) {
-    background: none;
-    padding: 0;
-    height: auto;
-  }
-
-  .task-item .due-badge:not(.due-overdue) .lucide {
-    display: none;
-  }
-
-  /* Vencida: la ficha la describe como píldora roja pulsable, con
-     borde propio y no solo fondo teñido. */
+  /* Píldora rellena también para las no vencidas — mismo aspecto que la
+     fecha de Hoy (.today-date-pill), no el texto suelto con borde extra
+     que quedaba antes al quitarle solo el fondo. */
   .due-badge.due-overdue {
     border: 1px solid rgba(var(--c-overdue-rgb), 0.25);
   }
@@ -11450,9 +11531,15 @@ button {
     flex-wrap: wrap;
     justify-content: flex-end;
     height: auto;
-    min-height: 22px;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    /* Mismo alto y ancho que .today-date-pill en Hoy (38px, padding 10px
+       parejo): antes esta píldora se quedaba en 2px/22px, sensiblemente
+       más baja y estrecha que la de Hoy pese a mostrar el mismo dato. */
+    min-height: 36px;
+    padding: 10px;
+    /* La base fija line-height:1.5 (18px) — .today-date-pill se queda en
+       el "normal" del navegador (~14px) y por eso medía 2px menos de alto
+       con el mismo padding. */
+    line-height: normal;
     row-gap: 0;
     text-align: right;
   }
@@ -11480,9 +11567,9 @@ button {
      `pointer: coarse`; aquí solo se corrige su inset. */
   .task-toggle,
   .today-check {
-    width: 22px;
-    height: 22px;
-    border-width: 2px;
+    width: 30px;
+    height: 30px;
+    border-width: 1px;
   }
 
   .task-toggle::before,
@@ -11708,12 +11795,8 @@ button {
      rojo, así que el círculo de fondo duplicaba el color encima — el
      icono solo necesita heredar el tono de aviso, suelto. */
   .task-detail-delete-ico {
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    color: var(--c-overdue);
-  }
+    display: none;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════
