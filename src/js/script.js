@@ -1802,6 +1802,40 @@ function renderArchivedWidget() {
   if (window.lucide) lucide.createIcons({ nodes: [wrap] });
 }
 
+/**
+ * Patrón de dasharray para un anillo SVG segmentado: un arco por unidad
+ * de `total` (no un único arco proporcional), con los primeros `done`
+ * coloreados. Devuelve { track, fill } listos para `stroke-dasharray`.
+ *
+ * El hueco entre arcos se ata al grosor del trazo (`strokeWidth`), no a un
+ * % fijo del hueco que le toca a cada unidad: con `stroke-linecap: round`
+ * cada arco sobresale medio grosor a cada lado, así que un hueco más fino
+ * que el trazo se ve fusionado con el vecino aunque exista en el path. Si
+ * hay demasiadas unidades para el tamaño del anillo, se cede longitud de
+ * arco antes que hueco: con extremos redondeados un arco casi nulo sigue
+ * viéndose como un punto, pero un hueco casi nulo deja de verse del todo.
+ */
+function _segmentedRingDash(total, done, C, strokeWidth) {
+  if (total <= 0) return { track: "none", fill: "0 " + C.toFixed(2) };
+  var slot = C / total;
+  var targetGap = strokeWidth * 1.3;
+  var minSeg = strokeWidth * 0.15;
+  var gap = Math.max(0, Math.min(targetGap, slot - minSeg));
+  var seg = slot - gap;
+  var track = seg.toFixed(2) + " " + gap.toFixed(2);
+  var fill = "0 " + C.toFixed(2);
+  if (done > 0) {
+    var parts = [];
+    for (var i = 0; i < done; i++) {
+      var isLast = i === done - 1;
+      parts.push(seg.toFixed(2));
+      parts.push((isLast ? (gap + (C - done * slot)) : gap).toFixed(2));
+    }
+    fill = parts.join(" ");
+  }
+  return { track: track, fill: fill };
+}
+
 function renderProjectItem(project, isArchived, parentEl) {
   const target = parentEl || projectListEl;
   const li = document.createElement("li");
@@ -1818,41 +1852,19 @@ function renderProjectItem(project, isArchived, parentEl) {
   const _done  = project.tasks.filter(function(t) { return t.done; }).length;
   const _total = project.tasks.length;
   const R = 8;
+  const STROKE = 2;
   const C = 2 * Math.PI * R;
-
-  // Anillo segmentado: un arco por tarea (no un único arco proporcional),
-  // para que se pueda contar de un vistazo cuántas tareas hay y cuántas
-  // están hechas. El hueco entre arcos es un % del hueco que le toca a
-  // cada tarea (`slot`), así que nunca se come el segmento entero por
-  // muchas tareas que haya.
-  let trackDash = "none";
-  let fillDash = "0 " + C.toFixed(2);
-  if (_total > 0) {
-    const GAP_FRACTION = 0.22;
-    const slot = C / _total;
-    const gap = slot * GAP_FRACTION;
-    const seg = slot - gap;
-    trackDash = seg.toFixed(2) + " " + gap.toFixed(2);
-    if (_done > 0) {
-      const parts = [];
-      for (let i = 0; i < _done; i++) {
-        const isLast = i === _done - 1;
-        parts.push(seg.toFixed(2));
-        parts.push((isLast ? (gap + (C - _done * slot)) : gap).toFixed(2));
-      }
-      fillDash = parts.join(" ");
-    }
-  }
+  const dash = _segmentedRingDash(_total, _done, C, STROKE);
 
   const ringEl = document.createElement("span");
   ringEl.className = "project-ring";
   ringEl.setAttribute("aria-hidden", "true");
   ringEl.innerHTML =
     '<svg width="20" height="20" viewBox="0 0 20 20">' +
-      '<circle class="project-ring-track" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="2" stroke-linecap="round" ' +
-        'stroke-dasharray="' + trackDash + '" transform="rotate(-90 10 10)"></circle>' +
-      '<circle class="project-ring-fill" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="2" stroke-linecap="round" ' +
-        'stroke-dasharray="' + fillDash + '" transform="rotate(-90 10 10)"></circle>' +
+      '<circle class="project-ring-track" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="' + STROKE + '" stroke-linecap="round" ' +
+        'stroke-dasharray="' + dash.track + '" transform="rotate(-90 10 10)"></circle>' +
+      '<circle class="project-ring-fill" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="' + STROKE + '" stroke-linecap="round" ' +
+        'stroke-dasharray="' + dash.fill + '" transform="rotate(-90 10 10)"></circle>' +
     '</svg>';
 
   const nameSpan = document.createElement("span");
@@ -3740,8 +3752,10 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   // Anillo de 44 con r=18 (handoff móvil v1). A 42/17 el «100%» centrado
   // llegaba a rozar el trazo; dos píxeles más de diámetro le dan sitio sin
   // engordar el stroke.
-  var SZ = 44, R = 18, C = 2 * Math.PI * R;
-  var offset = C * (1 - pct / 100);
+  var SZ = 44, R = 18, STROKE = 4.5, C = 2 * Math.PI * R;
+  // Mismo anillo segmentado que las listas del sidebar: un arco por tarea
+  // de hoy en vez de un único arco proporcional.
+  var dash = _segmentedRingDash(total, done, C, STROKE);
   // El punto va en su propio span: en móvil las vencidas caen a una segunda
   // línea —como pide la ficha— y ahí el separador sobra.
   var overdueTxt = overdueN > 0
@@ -3755,15 +3769,15 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
       .replace("{total}", String(total)) +
     overdueTxt;
 
-  // El arco solo se anima si el <circle> SOBREVIVE al repintado: una
-  // transición CSS necesita un valor anterior desde el que salir, y
-  // rehacer el innerHTML entero lo estrenaba ya en su posición final.
-  // Así que la primera vez se construye y a partir de ahí se parchea.
+  // El primer render construye el SVG; a partir de ahí se parchea en vez
+  // de rehacer el innerHTML entero, para no perder el foco/tooltip del
+  // anillo en cada actualización de stats.
   var bar = el.querySelector(".hoy-ring-bar");
   if (bar) {
     el.querySelector(".hoy-stats").innerHTML = statsHtml;
     el.querySelector(".hoy-ring-pct").textContent = pct + "%";
-    bar.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    el.querySelector(".hoy-ring-track").setAttribute("stroke-dasharray", dash.track);
+    bar.setAttribute("stroke-dasharray", dash.fill);
     return;
   }
 
@@ -3771,9 +3785,10 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     '<span class="hoy-stats">' + statsHtml + "</span>" +
     '<span class="hoy-ring" title="' + t("hoy.ring_title") + '">' +
       '<svg width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '" aria-hidden="true">' +
-        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="1.5"></circle>' +
-        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-bar" stroke-width="4.5" stroke-linecap="round" ' +
-          'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '"></circle>' +
+        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-track" stroke-width="' + STROKE + '" stroke-linecap="round" ' +
+          'stroke-dasharray="' + dash.track + '"></circle>' +
+        '<circle cx="' + SZ / 2 + '" cy="' + SZ / 2 + '" r="' + R + '" fill="none" class="hoy-ring-bar" stroke-width="' + STROKE + '" stroke-linecap="round" ' +
+          'stroke-dasharray="' + dash.fill + '"></circle>' +
       "</svg>" +
       '<span class="hoy-ring-pct">' + pct + "%</span>" +
     "</span>";
