@@ -1818,16 +1818,16 @@ function renderProjectItem(project, isArchived, parentEl) {
   const _done  = project.tasks.filter(function(t) { return t.done; }).length;
   const _total = project.tasks.length;
   const _pct   = _total > 0 ? _done / _total : 0;
-  const C = 2 * Math.PI * 6; // r = 6
+  const C = 2 * Math.PI * 8; // r = 8
   const ringEl = document.createElement("span");
   ringEl.className = "project-ring";
   ringEl.setAttribute("aria-hidden", "true");
   ringEl.innerHTML =
-    '<svg width="16" height="16" viewBox="0 0 16 16">' +
-      '<circle class="project-ring-track" cx="8" cy="8" r="6" fill="none" stroke-width="2"></circle>' +
-      '<circle class="project-ring-fill" cx="8" cy="8" r="6" fill="none" stroke-width="2" stroke-linecap="round" ' +
+    '<svg width="20" height="20" viewBox="0 0 20 20">' +
+      '<circle class="project-ring-track" cx="10" cy="10" r="8" fill="none" stroke-width="2"></circle>' +
+      '<circle class="project-ring-fill" cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke-linecap="round" ' +
         'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - _pct)).toFixed(2) + '" ' +
-        'transform="rotate(-90 8 8)"' + (_pct > 0 ? '' : ' style="opacity:0"') + '></circle>' +
+        'transform="rotate(-90 10 10)"' + (_pct > 0 ? '' : ' style="opacity:0"') + '></circle>' +
     '</svg>';
 
   const nameSpan = document.createElement("span");

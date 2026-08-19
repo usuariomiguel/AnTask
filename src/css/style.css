@@ -1082,8 +1082,8 @@ body {
    como en el prototipo v1: círculo de fondo + arco de avance con el
    color del proyecto (--project-color, asignado siempre desde JS). */
 .project-ring {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
