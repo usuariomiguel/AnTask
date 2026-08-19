@@ -1015,8 +1015,10 @@ body {
 .project-item {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0;
   padding: 6px;
+  height: 36px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   cursor: pointer;
@@ -3049,12 +3051,12 @@ button:focus-visible {
   display: grid;
   gap: 0;
   padding: 6px;
-  /* Antes 47px: por debajo de lo que ocupa una fila con badge de fecha
-     (54px), así que esas filas quedaban 2px más altas que una sin
-     ningún chip. Subido para que TODAS midan igual siempre, tengan o
-     no fecha/prioridad/repetición — también entre estilos de fila
-     (ver el footprint de borde igualado más abajo) y en dos columnas. */
-  min-height: 54px;
+  /* 48px en escritorio/tablet, como TOPE fijo (checkbox de 30px + 6px de
+     aire arriba y abajo, dentro del padding de la fila) — ninguna fila
+     puede pasar de 48px, aunque lleve chip de fecha/prioridad; ver el
+     recorte de `.task-meta`/`.due-badge` más abajo para que quepan sin
+     desbordar. En móvil manda el min-height propio de ese @media (abajo). */
+  max-height: 48px;
   align-content: center;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -3788,14 +3790,15 @@ button:focus-visible {
   }
 }
 
-/* Custom checkbox — circle (19px, borde 1.7px, como el prototipo Tierra) */
+/* Custom checkbox — circle (30px en escritorio/tablet, como el prototipo
+   Tierra; en móvil manda el tamaño propio del @media de abajo) */
 .task-toggle {
   appearance: none;
   -webkit-appearance: none;
   /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
      la de Hoy son el mismo control y no deben verse distintas. */
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border: 1.8px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   background: transparent;
@@ -3822,10 +3825,10 @@ button:focus-visible {
   position: absolute;
   inset: 0;
   margin: auto;
-  /* El tick vive dentro del círculo de 20px: 10px es lo que ocupa la
-     marca en Hoy, donde se dibuja con máscara. */
-  width: 25px;
-  height: 25px;
+  /* Misma proporción que antes (25px sobre un círculo de 38px) aplicada
+     al círculo de 30px: ~2/3 de su diámetro. */
+  width: 20px;
+  height: 20px;
   pointer-events: none;
   fill: none;
   stroke: var(--accent-on);
@@ -9038,7 +9041,7 @@ button {
   gap: 3px;
   padding: 6px;
   /* Mismo valor que .task-item — ver el porqué ahí. */
-  min-height: 54px;
+  max-height: 48px;
   margin-bottom: 6px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -9058,13 +9061,14 @@ button {
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
-/* Checkbox circular como el prototipo (20px, borde 1.8px) */
+/* Checkbox circular como el prototipo (30px en escritorio/tablet, borde
+   1.8px; en móvil manda el tamaño propio del @media de abajo) */
 .today-check {
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   margin: 0;
   border-radius: 50%;
   border: 1.8px solid var(--text-tertiary);
@@ -9083,8 +9087,8 @@ button {
 
 .today-check:checked::after {
   content: "";
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   background: var(--accent-on);
   -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
   mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
