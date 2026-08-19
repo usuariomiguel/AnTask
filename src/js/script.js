@@ -1817,17 +1817,42 @@ function renderProjectItem(project, isArchived, parentEl) {
   const iconBtn = null;
   const _done  = project.tasks.filter(function(t) { return t.done; }).length;
   const _total = project.tasks.length;
-  const _pct   = _total > 0 ? _done / _total : 0;
-  const C = 2 * Math.PI * 8; // r = 8
+  const R = 8;
+  const C = 2 * Math.PI * R;
+
+  // Anillo segmentado: un arco por tarea (no un único arco proporcional),
+  // para que se pueda contar de un vistazo cuántas tareas hay y cuántas
+  // están hechas. El hueco entre arcos es un % del hueco que le toca a
+  // cada tarea (`slot`), así que nunca se come el segmento entero por
+  // muchas tareas que haya.
+  let trackDash = "none";
+  let fillDash = "0 " + C.toFixed(2);
+  if (_total > 0) {
+    const GAP_FRACTION = 0.22;
+    const slot = C / _total;
+    const gap = slot * GAP_FRACTION;
+    const seg = slot - gap;
+    trackDash = seg.toFixed(2) + " " + gap.toFixed(2);
+    if (_done > 0) {
+      const parts = [];
+      for (let i = 0; i < _done; i++) {
+        const isLast = i === _done - 1;
+        parts.push(seg.toFixed(2));
+        parts.push((isLast ? (gap + (C - _done * slot)) : gap).toFixed(2));
+      }
+      fillDash = parts.join(" ");
+    }
+  }
+
   const ringEl = document.createElement("span");
   ringEl.className = "project-ring";
   ringEl.setAttribute("aria-hidden", "true");
   ringEl.innerHTML =
     '<svg width="20" height="20" viewBox="0 0 20 20">' +
-      '<circle class="project-ring-track" cx="10" cy="10" r="8" fill="none" stroke-width="2"></circle>' +
-      '<circle class="project-ring-fill" cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke-linecap="round" ' +
-        'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - _pct)).toFixed(2) + '" ' +
-        'transform="rotate(-90 10 10)"' + (_pct > 0 ? '' : ' style="opacity:0"') + '></circle>' +
+      '<circle class="project-ring-track" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-dasharray="' + trackDash + '" transform="rotate(-90 10 10)"></circle>' +
+      '<circle class="project-ring-fill" cx="10" cy="10" r="' + R + '" fill="none" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-dasharray="' + fillDash + '" transform="rotate(-90 10 10)"></circle>' +
     '</svg>';
 
   const nameSpan = document.createElement("span");
