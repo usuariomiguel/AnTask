@@ -8,6 +8,7 @@
 ![Vite](https://img.shields.io/badge/build-Vite-646cff?style=flat-square)
 ![PWA](https://img.shields.io/badge/PWA-instalable-5b4cdb?style=flat-square)
 ![JSDoc tipado](https://img.shields.io/badge/JSDoc-tipado-1d4ed8?style=flat-square)
+[![CI](https://github.com/usuariomiguel/AnTask/actions/workflows/ci.yml/badge.svg)](https://github.com/usuariomiguel/AnTask/actions/workflows/ci.yml)
 ![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue?style=flat-square)
 
 ---
@@ -30,36 +31,33 @@ Tres ideas guían el producto:
 
 - Crear, completar, eliminar (con deshacer), renombrar inline
 - **Subtareas** anidadas
-- **Comentarios** por tarea
-- **Prioridades** alta · media · baja
-- **Estados** En progreso · En espera
-- **Fechas límite** con indicador visual de vencimiento
+- **Nota** libre por tarea (hasta 300 caracteres)
+- **Prioridad** — marcador único de "importante" (sin niveles P1/P2/P3)
+- **Fechas límite**, con hora opcional e indicador visual de vencimiento
 - **Recurrencia** con presets (diario / semanal / quincenal / mensual / personalizado)
 - **Recordatorios puntuales** por tarea (notificación del SO cuando llega la hora)
-- **Etiquetas** personalizables con asignación por color automático
-- **Filtros** todas · pendientes · completadas
+- **Filtros**: todas · pendientes · hechas · vencidas · hoy · sin fecha · importantes
 - **Ordenación** manual (drag) · por prioridad · por fecha · alfabético
 - **Multi-selección** para acciones en lote (completar, mover, eliminar)
+- **Estilo de fila** a elegir — tarjetas o filas planas ("limpio") — y diseño a 1 o 2 columnas
 
 ### Lenguaje natural en el input
 
 Al escribir una nueva tarea, el parser detecta automáticamente:
 
 ```
-Pagar gimnasio cada mes p1 #facturas
+Pagar gimnasio cada mes p1
   ↓
 texto:       "Pagar gimnasio"
 recurrencia: mensual (30 días)
-prioridad:   alta
-etiqueta:    #facturas
+prioridad:   importante
 ```
 
 | Patrón | Ejemplo |
 |---|---|
 | Fechas | `hoy`, `mañana`, `viernes`, `el lunes`, `en 3 días`, `15/3` |
 | Recurrencia | `todos los lunes`, `cada 2 días`, `mensualmente`, `quincenalmente` |
-| Prioridad | `p1`, `p2`, `p3` |
-| Etiquetas | `#trabajo`, `#personal` |
+| Prioridad | `p1` (marca la tarea como importante — sin niveles) |
 
 Chips de preview en vivo muestran lo detectado mientras escribes.
 
@@ -67,10 +65,11 @@ Chips de preview en vivo muestran lo detectado mientras escribes.
 
 - **Proyectos múltiples** con sidebar y secciones colapsables
 - **Proyecto Inbox** auto-creado y fijado al tope — destino fallback para captura
+- **Plantillas de proyecto**: 6 listas para arrancar rápido (mudanza, viaje, nuevo trabajo, curso, trámites médicos, evento)
 - **Vistas**: Lista · Calendario mensual · Hoy (virtual)
-- **Smart Lists / Filtros guardados** — vistas virtuales basadas en criterios combinables (status + prioridad + fecha + etiqueta). 3 presets predefinidos: Vencidas, Esta semana, Prioridad alta.
 - **Archivado** de proyectos
 - **Búsqueda global** (Cmd/Ctrl + K) — tareas, con resaltado de coincidencias
+- **Exportar / Importar** todo el workspace como `.json`
 
 ### Notificaciones
 
@@ -78,12 +77,13 @@ Chips de preview en vivo muestran lo detectado mientras escribes.
 - Recordatorios puntuales por tarea
 - Click en la notificación → te lleva a la tarea correspondiente
 
-### General
+### Personalización
 
 - Tema oscuro / claro con animación radial al cambiar (View Transitions API)
+- **6 colores de acento** a elegir (oliva, arcilla, terracota, miel, marea, vino)
+- **Español / English**, autodetectado por idioma del navegador
 - Instalable como **PWA** — funciona offline
-- **Onboarding de 3 pasos** la primera vez
-- Privacidad total: sin analíticas, sin cookies de seguimiento
+- Onboarding guiado la primera vez
 
 ---
 
@@ -116,12 +116,23 @@ npm run build        # genera /dist con todo bundleado y minificado
 # 4. Previsualizar el build
 npm run preview
 
-# 5. (Opcional) Type-check vía JSDoc — requiere instalar typescript
-npm install -D typescript
+# 5. Type-check vía JSDoc
 npm run typecheck
 ```
 
 Para desplegar en cualquier hosting estático (Netlify, Vercel, GitHub Pages, S3…) sube el contenido de `dist/`.
+
+### Tests
+
+```bash
+npm test               # unit tests (Vitest)
+npm run test:watch     # unit tests en watch mode
+npm run test:coverage  # con cobertura
+npm run test:e2e       # e2e (Playwright) — arranca el dev server automáticamente
+npm run test:e2e:ui    # e2e con la UI interactiva de Playwright
+```
+
+Cada push/PR a `main` corre build + unit + e2e + `npm audit` en GitHub Actions (`.github/workflows/ci.yml`).
 
 ### Instalar como PWA
 
@@ -139,7 +150,13 @@ AnTask/
 ├── index.html                  # Página principal — única HTML de la app
 ├── vite.config.js              # Config del bundler (code splitting de Firebase)
 ├── jsconfig.json               # Habilita JSDoc tipado en VSCode
+├── playwright.config.js        # Config de los e2e
 ├── package.json
+├── e2e/                        # Tests end-to-end (Playwright)
+│   ├── smoke.spec.js
+│   └── a11y.spec.js            # Auditoría de accesibilidad (axe-core)
+├── scripts/
+│   └── fetch-openmoji.mjs      # Descarga el set de emoji usado en iconos de proyecto
 ├── public/                     # Assets sin procesar (copiados a la raíz del build)
 │   ├── manifest.json
 │   ├── service-worker.js
@@ -152,30 +169,44 @@ AnTask/
         ├── script.js           # Lógica principal (vistas, render, orquestador)
         ├── firebase-sync.js    # Sincronización Firebase modular (opcional)
         ├── notifications.js    # Avisos diarios + recordatorios por tarea
+        ├── analytics.js        # Vercel Analytics — solo tras consentimiento
+        ├── consent.js          # Banner y estado de consentimiento de analítica
+        ├── sync-loader.js      # Carga diferida del chunk de Firebase
         ├── paste-utils.js      # Utilidades de pegado en editores
+        ├── setup-lucide.js     # Registro/render de iconos Lucide
         ├── sections-and-profile.js  # Menú de perfil + ajustes
-        ├── state/              # ── Capa de datos ───────────────────
-        │   ├── types.js        # Typedefs JSDoc: Task, Project, SmartList…
-        │   ├── keys.js         # Claves de localStorage + migración legacy
-        │   ├── sanitize.js     # Saneamiento al cargar (input no confiable → forma canónica)
-        │   └── persistence.js  # Lectura de localStorage (loadProjects, loadSmartLists…)
-        ├── ui/                 # ── Componentes UI ─────────────────
-        │   ├── modal.js        # Sistema de modales genéricos
-        │   ├── task-badges.js  # Badges de prioridad/estado/fecha/recurrencia
-        │   ├── labels.js       # Render y color-hash de etiquetas
-        │   ├── subtasks.js     # Lista de subtareas
-        │   ├── search.js       # Búsqueda global
-        │   ├── theme.js        # Sistema de temas
-        │   ├── calendar.js     # Vista Calendario
-        │   ├── quick-capture.js # Modal Ctrl+Shift+Espacio
-        │   └── onboarding.js   # Tour de 3 pasos
-        └── utils/              # ── Utilidades puras ───────────────
-            ├── html.js         # escHtml
-            ├── string.js       # capitalizeFirst
-            ├── id.js           # generateId
-            ├── date.js         # getDueDateState, formatDueDate
-            ├── nl-parse.js     # Parser de lenguaje natural
-            └── nl-chips.js     # Chips de preview NL
+        ├── i18n/                # ── Internacionalización ───────────
+        │   ├── index.js         # Detección de idioma + t()
+        │   ├── es.js
+        │   └── en.js
+        ├── state/               # ── Capa de datos ───────────────────
+        │   ├── types.js          # Typedefs JSDoc: Task, Project, Section…
+        │   ├── keys.js            # Claves de localStorage + migración legacy
+        │   ├── sanitize.js        # Saneamiento al cargar (input no confiable → forma canónica)
+        │   └── persistence.js     # Lectura de localStorage (loadProjects…)
+        ├── ui/                   # ── Componentes UI ─────────────────
+        │   ├── modal.js           # Sistema de modales genéricos
+        │   ├── sheet.js           # Hojas modales (bottom sheets) — móvil
+        │   ├── task-badges.js     # Badges de prioridad/fecha/recurrencia
+        │   ├── subtasks.js        # Lista de subtareas
+        │   ├── search.js          # Búsqueda global
+        │   ├── theme.js           # Tema, acento de color
+        │   ├── calendar.js        # Vista Calendario
+        │   ├── project-templates.js  # Galería de plantillas de proyecto
+        │   ├── quick-capture.js   # Modal Ctrl+Shift+Espacio
+        │   └── onboarding.js      # Tour guiado
+        └── utils/                # ── Utilidades puras ───────────────
+            ├── html.js             # escHtml
+            ├── sanitize-html.js    # Saneamiento de HTML (DOMPurify)
+            ├── string.js           # capitalizeFirst
+            ├── id.js               # generateId
+            ├── date.js             # getDueDateState, formatDueDate
+            ├── storage.js          # Escritura segura + cuota de localStorage
+            ├── project-color.js    # Color determinista por proyecto
+            ├── openmoji.js         # Picker de emoji para iconos de proyecto
+            ├── nl-parse.js         # Parser de lenguaje natural
+            ├── nl-chips.js         # Chips de preview NL
+            └── __tests__/          # Unit tests (Vitest)
 ```
 
 ---
@@ -190,10 +221,17 @@ Todos los datos se guardan en el `localStorage` del navegador:
 | `anso-active-project`       | ID del proyecto activo                               |
 | `anso-meta`                 | Metadatos (timestamp del último guardado)            |
 | `anso-sections`             | Secciones de la sidebar                              |
-| `antask-smart-lists`        | Filtros guardados (smart lists)                      |
+| `anso-sidebar-collapsed`    | Sidebar colapsada o no                               |
 | `antask-task-prefs`         | Preferencias de visibilidad de botones de tarea      |
+| `antask-row-style`          | Estilo de fila (`tarjetas` / `limpio`)               |
+| `antask-two-columns`        | Diseño a 2 columnas activado o no                    |
 | `mis-tareas-theme`          | Preferencia de tema (`dark` / `light`)               |
+| `antask-accent`             | Color de acento elegido                              |
+| `antask-profile`            | Nombre y avatar del perfil local                     |
+| `antask_lang`               | Idioma (`es` / `en`)                                 |
 | `antask-onboarded`          | Flag de onboarding visto                             |
+| `antask_consent`            | Consentimiento de analítica (opt-in)                 |
+| `antask-sync-enabled`       | Sincronización con Firebase activada o no            |
 | `anso-notif-enabled`        | Notificaciones activadas (`0` / `1`)                 |
 | `anso-notif-times`          | Array de horas de aviso (`["09:00", "18:00"]`)       |
 
@@ -203,7 +241,7 @@ Los datos persisten entre sesiones en el mismo navegador. Para llevarlos a otro 
 
 ## Exportar e importar
 
-- **Exportar**: descarga un `.json` con todos tus proyectos, tareas, subtareas, secciones y filtros guardados.
+- **Exportar**: descarga un `.json` con todos tus proyectos, tareas y subtareas.
 - **Importar**: sube un `.json` exportado previamente para restaurar o migrar datos entre dispositivos.
 
 ---
@@ -240,17 +278,21 @@ Los datos se almacenan en `/users/{uid}/workspace/data`. Si no se configura, la 
 
 ## Stack tecnológico
 
-| Aspecto        | Tecnología                                  |
-|----------------|---------------------------------------------|
-| Lenguaje       | HTML5, CSS3, JavaScript ES6+ (vanilla)      |
-| Frameworks     | Ninguno                                     |
-| Build tool     | Vite                                        |
-| Tipado         | JSDoc + `// @ts-check` en módulos críticos  |
-| Almacenamiento | `localStorage`                              |
-| Sincronización | Firebase Firestore modular v9+ (opcional)   |
-| Iconos         | Lucide (self-hosted vía npm)                |
-| Tipografías    | Inter + JetBrains Mono (self-hosted)        |
-| PWA            | Service Worker + `manifest.json`            |
+| Aspecto        | Tecnología                                       |
+|----------------|---------------------------------------------------|
+| Lenguaje       | HTML5, CSS3, JavaScript ES6+ (vanilla)            |
+| Frameworks     | Ninguno                                           |
+| Build tool     | Vite                                              |
+| Tipado         | JSDoc + `// @ts-check` en módulos críticos        |
+| Tests          | Vitest (unit) + Playwright (e2e, con axe-core a11y) |
+| Almacenamiento | `localStorage`                                    |
+| Sincronización | Firebase Firestore modular v9+ (opcional)         |
+| Saneamiento    | DOMPurify (contenido de usuario)                  |
+| Analítica      | Vercel Analytics — opt-in, sin cookies            |
+| i18n           | Español / English                                 |
+| Iconos         | Lucide (self-hosted vía npm)                      |
+| Tipografías    | Inter + Bricolage Grotesque + JetBrains Mono (self-hosted) |
+| PWA            | Service Worker + `manifest.json`                  |
 
 ---
 
@@ -266,16 +308,16 @@ Requiere soporte de `localStorage`, `crypto.randomUUID()`, Service Workers y ES 
 
 ## Privacidad
 
-antask no recopila datos personales por defecto. **Sin cookies de seguimiento. Sin requests a CDN de terceros sin consentimiento.**
+antask no recopila datos personales por defecto. Sin cookies de seguimiento y sin requests a CDN de terceros sin consentimiento.
 
-- Fuentes (Inter, JetBrains Mono) e iconos (Lucide) se sirven **self-hosted** desde el propio dominio.
+- Fuentes (Inter, Bricolage Grotesque, JetBrains Mono) e iconos (Lucide) se sirven **self-hosted** desde el propio dominio.
 - Firebase solo se carga si el usuario inicia sesión voluntariamente.
-- Plausible Analytics (opt-in vía banner de consentimiento, sin cookies ni IPs personales).
+- **Vercel Analytics**, opt-in vía banner de consentimiento — sin cookies, sin IPs personales almacenadas.
 
-Lo que escribes se queda en tu dispositivo.
+Lo que escribes se queda en tu dispositivo. Ver también [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md) y [TERMS.md](TERMS.md).
 
 ---
 
 ## Licencia
 
-[MIT](https://opensource.org/licenses/MIT) — úsalo, modifícalo y distribúyelo libremente.
+[MIT](LICENSE) — úsalo, modifícalo y distribúyelo libremente.
