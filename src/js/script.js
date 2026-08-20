@@ -359,13 +359,9 @@ function applyTwoColumns(on, persist) {
     else delete taskList.dataset.columns;
   }
   if (persist !== false) { try { localStorage.setItem(TWO_COLUMNS_KEY, twoColumnsOn ? "1" : "0"); } catch (e) {} }
-  const btn = document.getElementById("columns-toggle-btn");
-  if (btn) btn.setAttribute("aria-pressed", twoColumnsOn ? "true" : "false");
-}
-
-const columnsToggleBtn = document.getElementById("columns-toggle-btn");
-if (columnsToggleBtn) {
-  columnsToggleBtn.addEventListener("click", function() { applyTwoColumns(!twoColumnsOn); });
+  // El check de "Dos columnas" en #task-prefs-panel (no un aria-pressed
+  // propio: es una opción más del checklist, ver _syncTaskPrefsPanel).
+  _syncTaskPrefsPanel();
 }
 
 /* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
@@ -477,9 +473,6 @@ if (shortcutsBtn) {
 
 // ─── ACCIÓN EN MASA — LISTENERS ──────────────────────────────
 if (selectModeBtn) selectModeBtn.addEventListener("click", toggleSelectMode);
-
-var _taskPrefsBtnEl = document.getElementById("task-prefs-btn");
-if (_taskPrefsBtnEl) _taskPrefsBtnEl.addEventListener("click", showTaskPrefsModal);
 
 var _closePanelBtn = document.getElementById("close-panel-btn");
 if (_closePanelBtn) _closePanelBtn.addEventListener("click", function() { activateProject(null); });
@@ -1202,24 +1195,28 @@ function _syncListSearchVisibility() {
 }
 
 /**
- * El control de modo de vista vive en la cabecera en escritorio y en la fila
- * de «Filtrar» en móvil, que es donde lo pone el handoff. Se mueve el nodo en
- * vez de duplicarlo para no tener dos botones con el mismo id ni dos estados
- * que sincronizar. Se reevalúa al cruzar el breakpoint, así que redimensionar
- * o girar el teléfono lo recoloca.
+ * Tema, estilo de fila y detalles/columnas viven en la cabecera en
+ * escritorio y en la fila de «Filtrar» en móvil (agrupados en
+ * #list-filter-actions), que es donde los pone el handoff. Se mueven los
+ * nodos en vez de duplicarlos para no tener dos botones con el mismo id ni
+ * dos estados que sincronizar. Se reevalúa al cruzar el breakpoint, así
+ * que redimensionar o girar el teléfono los recoloca.
  */
 function _placeRowStyleControl() {
   // Al cruzar el breakpoint cambia el estilo efectivo (móvil = limpio fijo),
   // así que hay que repintar el atributo además de recolocar el control.
   if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
   applyTwoColumns(twoColumnsOn, false);
-  const wrap = document.getElementById("row-style-wrap");
-  const filterRow = document.getElementById("list-filter-row");
+  const filterActions = document.getElementById("list-filter-actions");
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
-  if (!wrap || !filterRow) return;
+  if (!filterActions || !headerActions) return;
   const enMovil = window.matchMedia("(max-width: 768px)").matches;
-  const destino = enMovil ? filterRow : headerActions;
-  if (destino && wrap.parentElement !== destino) destino.appendChild(wrap);
+  const destino = enMovil ? filterActions : headerActions;
+  // Mismo orden en los dos sitios: tema, estilo de fila, detalles/columnas.
+  ["theme-toggle-btn", "row-style-wrap", "task-prefs-wrap"].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && el.parentElement !== destino) destino.appendChild(el);
+  });
 }
 
 /**
@@ -4870,12 +4867,53 @@ async function bulkMoveToProject() {
     });
   }
 
+  // ── Task-prefs panel (qué detalles se ven en la fila) — mismo patrón
+  // que el de estilo de fila de arriba, pero como checklist: cada opción
+  // es independiente, así que alterna su propio check sin cerrar el
+  // panel (a diferencia de row-style, que es una elección única). ──
+  var taskPrefsBtn   = document.getElementById("task-prefs-btn");
+  var taskPrefsPanel = document.getElementById("task-prefs-panel");
+  if (taskPrefsBtn && taskPrefsPanel) {
+    _syncTaskPrefsPanel();
+    taskPrefsBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var opening = taskPrefsPanel.hidden;
+      if (opening) _syncTaskPrefsPanel();
+      taskPrefsPanel.hidden = !opening;
+      taskPrefsBtn.setAttribute("aria-expanded", opening ? "true" : "false");
+    });
+    taskPrefsPanel.addEventListener("click", function(e) {
+      var opt = e.target.closest("[data-pref-key]");
+      if (!opt) return;
+      // A diferencia de row-style (que cierra al elegir), aquí cada click
+      // solo alterna su propio check — sin esto, el listener de "cerrar al
+      // hacer click fuera" (en document, más abajo) también se dispara por
+      // el burbujeo y cierra el panel en cada toggle.
+      e.stopPropagation();
+      var key = opt.dataset.prefKey;
+      // "Dos columnas" no es un taskPrefs.showX: es el mismo estado que
+      // manejaba el viejo columns-toggle-btn (variable aparte, su propia
+      // clave de localStorage). applyTwoColumns ya llama a
+      // _syncTaskPrefsPanel por su cuenta.
+      if (key === "twoColumns") {
+        applyTwoColumns(!twoColumnsOn);
+      } else {
+        taskPrefs[key] = !_taskPrefOn(key);
+        saveTaskPrefs();
+        applyTaskPrefs();
+        _syncTaskPrefsPanel();
+      }
+      renderTasks();
+    });
+  }
+
   // ── Close dropdowns on outside click ─────────────────────────
   document.addEventListener("click", function() {
     if (filterPanel)      filterPanel.hidden = true;
     if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
     if (moreActionsPanel) moreActionsPanel.hidden = true;
     if (rowStylePanel)    { rowStylePanel.hidden = true; if (rowStyleBtn) rowStyleBtn.setAttribute("aria-expanded", "false"); }
+    if (taskPrefsPanel)   { taskPrefsPanel.hidden = true; if (taskPrefsBtn) taskPrefsBtn.setAttribute("aria-expanded", "false"); }
   });
 })();
 
@@ -5155,65 +5193,20 @@ function applyTaskPrefs() {
   document.body.classList.toggle("tasks-compact", taskPrefs.compactView === true);
 }
 
-function showTaskPrefsModal() {
-  var { overlay, box } = createModalBase();
+// Los 4 de detalle vienen encendidos por defecto: "on" es cualquier valor
+// salvo `false` explícito — mismo criterio que sus guardas en el render de
+// filas. "Dos columnas" no vive en taskPrefs (ver applyTwoColumns).
+function _taskPrefOn(key) {
+  return key === "twoColumns" ? twoColumnsOn : taskPrefs[key] !== false;
+}
 
-  var compactOn = taskPrefs.compactView === true;
-  // Detalles: por defecto todos visibles (como hoy), así que "on" es
-  // cualquier valor salvo `false` explícito — igual que el resto de
-  // guardas de taskPrefs.showX en el render.
-  var detailPrefs = [
-    { key: "showPriority", icon: "flag",   label: t("detail.priority") },
-    { key: "showList",     icon: "inbox",  label: t("detail.list") },
-    { key: "showReminder", icon: "bell",   label: t("detail.reminder") },
-    { key: "showRecur",    icon: "repeat", label: t("detail.recur") },
-  ];
-  var detailRowsHtml = detailPrefs.map(function(d) {
-    var on = taskPrefs[d.key] !== false;
-    return '<label class="task-pref-row">' +
-        '<span class="task-pref-icon"><i data-lucide="' + d.icon + '"></i></span>' +
-        '<span class="task-pref-label">' + d.label + '</span>' +
-        '<span class="task-pref-toggle' + (on ? " task-pref-on" : "") + '" data-key="' + d.key + '" data-type="detail">' +
-          '<span class="task-pref-thumb"></span>' +
-        '</span>' +
-      '</label>';
-  }).join("");
-
-  box.innerHTML =
-    '<p class="modal-label">' + t("task_prefs.view_section") + '</p>' +
-    '<div class="task-pref-list">' +
-      '<label class="task-pref-row">' +
-        '<span class="task-pref-icon"><i data-lucide="rows-3"></i></span>' +
-        '<span class="task-pref-label">' + t("task_prefs.compact_view") + '</span>' +
-        '<span class="task-pref-toggle' + (compactOn ? " task-pref-on" : "") + '" data-key="compactView" data-type="view">' +
-          '<span class="task-pref-thumb"></span>' +
-        '</span>' +
-      '</label>' +
-    '</div>' +
-    '<p class="modal-label">' + t("task_prefs.details_section") + '</p>' +
-    '<div class="task-pref-list">' + detailRowsHtml + '</div>' +
-    '<div class="modal-actions">' +
-      '<button class="modal-btn modal-btn-confirm">' + t("modal.done") + '</button>' +
-    '</div>';
-
-  if (window.lucide) lucide.createIcons({ nodes: [box] });
-
-  box.querySelectorAll(".task-pref-toggle").forEach(function(toggle) {
-    toggle.addEventListener("click", function() {
-      var key = toggle.dataset.key;
-      taskPrefs[key] = !toggle.classList.contains("task-pref-on");
-      toggle.classList.toggle("task-pref-on", taskPrefs[key]);
-      saveTaskPrefs();
-      applyTaskPrefs();
-      if (toggle.dataset.type === "detail") renderTasks();
-    });
-  });
-
-  overlay._cancel = function() { closeModal(overlay); };
-  box.querySelector(".modal-btn-confirm").addEventListener("click", function() { closeModal(overlay); });
-
-  document.addEventListener("keydown", function handler(e) {
-    if (e.key === "Escape") { closeModal(overlay); document.removeEventListener("keydown", handler); }
+function _syncTaskPrefsPanel() {
+  var panel = document.getElementById("task-prefs-panel");
+  if (!panel) return;
+  panel.querySelectorAll("[data-pref-key]").forEach(function(b) {
+    var on = _taskPrefOn(b.dataset.prefKey);
+    b.classList.toggle("task-prefs-opt--active", on);
+    b.setAttribute("aria-checked", on ? "true" : "false");
   });
 }
 

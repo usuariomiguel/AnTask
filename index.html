@@ -511,20 +511,38 @@
                     </button>
                   </div>
                 </div>
-                <!-- Dos columnas: toggle independiente del estilo de fila, mismo
-                     patrón que el de claro/oscuro (dos iconos superpuestos que
-                     se cruzan con rotación + fundido). Solo escritorio. -->
-                <button type="button" class="columns-toggle-btn" id="columns-toggle-btn" title="Dos columnas" data-i18n-title="columns.toggle" aria-label="Dos columnas" data-i18n-aria="columns.toggle" aria-pressed="false">
-                  <i data-lucide="square" class="columns-toggle-ico columns-toggle-ico--one"></i>
-                  <i data-lucide="columns-2" class="columns-toggle-ico columns-toggle-ico--two"></i>
-                </button>
-                <!-- Qué detalles se ven en la fila (prioridad/lista/recordatorio/
-                     repetición): mismo tamaño/caja que los tres botones de arriba,
-                     abre el modal de task-prefs ya existente (antes sin disparador
-                     en la UI). -->
-                <button type="button" class="task-prefs-btn" id="task-prefs-btn" title="Detalles visibles" data-i18n-title="task_prefs.trigger" aria-label="Detalles visibles" data-i18n-aria="task_prefs.trigger" aria-haspopup="dialog">
-                  <i data-lucide="sliders-horizontal"></i>
-                </button>
+                <!-- Detalles y columnas: mismo patrón que row-style-wrap — botón +
+                     desplegable anclado, no una ventana modal. Checklist, no radio:
+                     cada opción es independiente y alterna su propio check sin
+                     cerrar el panel. Absorbe el viejo columns-toggle-btn (antes
+                     un botón suelto) para no multiplicar controles en el header;
+                     el label de dentro deja claro que esto es "qué se ve en la
+                     fila", distinto de "Estilo de filas" (el desplegable de al
+                     lado, Limpio/Tarjetas: cómo se ve la fila). -->
+                <div class="task-prefs-wrap" id="task-prefs-wrap" style="position:relative">
+                  <button type="button" class="task-prefs-btn" id="task-prefs-btn" title="Detalles y columnas" data-i18n-title="task_prefs.trigger" aria-label="Detalles y columnas" data-i18n-aria="task_prefs.trigger" aria-haspopup="true" aria-expanded="false">
+                    <i data-lucide="sliders-horizontal"></i>
+                  </button>
+                  <div class="task-prefs-panel" id="task-prefs-panel" hidden role="menu">
+                    <p class="task-prefs-label" data-i18n="task_prefs.trigger">Detalles y columnas</p>
+                    <button type="button" data-pref-key="showPriority" role="menuitemcheckbox">
+                      <i data-lucide="flag"></i><span data-i18n="detail.priority">Prioridad</span><i data-lucide="check" class="task-prefs-check"></i>
+                    </button>
+                    <button type="button" data-pref-key="showList" role="menuitemcheckbox">
+                      <i data-lucide="inbox"></i><span data-i18n="detail.list">Lista</span><i data-lucide="check" class="task-prefs-check"></i>
+                    </button>
+                    <button type="button" data-pref-key="showReminder" role="menuitemcheckbox">
+                      <i data-lucide="bell"></i><span data-i18n="detail.reminder">Recordatorio</span><i data-lucide="check" class="task-prefs-check"></i>
+                    </button>
+                    <button type="button" data-pref-key="showRecur" role="menuitemcheckbox">
+                      <i data-lucide="repeat"></i><span data-i18n="detail.recur">Repetir</span><i data-lucide="check" class="task-prefs-check"></i>
+                    </button>
+                    <div class="task-prefs-sep" role="separator"></div>
+                    <button type="button" data-pref-key="twoColumns" role="menuitemcheckbox">
+                      <i data-lucide="columns-2"></i><span data-i18n="columns.toggle">Dos columnas</span><i data-lucide="check" class="task-prefs-check"></i>
+                    </button>
+                  </div>
+                </div>
                 <!-- Refs ocultas que el JS necesita. Como en el prototipo v1, el
                      header de una lista es sólo título + contador: el filtro vive
                      ahora en el cuerpo (#list-filter-row) y la gestión del
@@ -628,6 +646,11 @@
                 </div>
               </div>
             </div>
+            <!-- Destino móvil de theme-toggle-wrap / task-prefs-wrap / row-style-wrap
+                 (ver _placeMobileHeaderControls en script.js): en escritorio viven en
+                 .view-nav-right, en móvil se mueven aquí para quedar junto a «Filtrar»
+                 en vez de perderse arriba en la cabecera. -->
+            <div class="list-filter-actions" id="list-filter-actions"></div>
           </div>
           <div class="bulk-action-bar" id="bulk-action-bar" hidden>
             <span class="bulk-count" id="bulk-count">0 seleccionadas</span>

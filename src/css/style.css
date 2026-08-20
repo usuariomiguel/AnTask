@@ -2828,62 +2828,10 @@ button:focus-visible {
   transform: rotate(0deg) scale(1);
 }
 
-/* ── Dos columnas: mismo patrón que el toggle de tema, pero el cruce de
-   iconos lo dispara `aria-pressed` del propio botón en vez de `data-theme`
-   en :root. ── */
-.columns-toggle-btn {
-  display: inline-grid;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  color: var(--text-tertiary);
-  background: var(--row-hover);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-pill);
-  cursor: pointer;
-}
-
-.columns-toggle-btn[aria-pressed="true"] {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.10);
-  border-color: rgba(163, 179, 102, 0.30);
-}
-
-:root[data-theme="light"] .columns-toggle-btn[aria-pressed="true"] {
-  color: var(--c-primary-500);
-  background: rgba(111, 122, 61, 0.08);
-  border-color: rgba(111, 122, 61, 0.25);
-}
-
-.columns-toggle-ico {
-  grid-area: 1 / 1;
-  width: 15px;
-  height: 15px;
-  stroke-width: 2;
-}
-
-.columns-toggle-ico--one {
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-}
-
-.columns-toggle-ico--two {
-  opacity: 0;
-  transform: rotate(-90deg) scale(0.5);
-}
-
-.columns-toggle-btn[aria-pressed="true"] .columns-toggle-ico--one {
-  opacity: 0;
-  transform: rotate(90deg) scale(0.5);
-}
-
-.columns-toggle-btn[aria-pressed="true"] .columns-toggle-ico--two {
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-}
-
-/* ── Detalles visibles: mismo tamaño/caja que los tres botones de
-   arriba, un solo icono fijo (abre modal, no alterna estado propio). ── */
+/* ── Detalles y columnas: mismo tamaño/caja que los otros dos botones,
+   un solo icono fijo — abre un desplegable anclado (ver .task-prefs-panel
+   más abajo), no una ventana modal. Absorbe el viejo toggle de 1/2
+   columnas (antes su propio botón suelto). ── */
 .task-prefs-btn {
   display: inline-flex;
   align-items: center;
@@ -2903,7 +2851,8 @@ button:focus-visible {
   stroke-width: 2;
 }
 
-.row-style-panel {
+.row-style-panel,
+.task-prefs-panel {
   position: absolute;
   top: calc(100% + 7px);
   right: 0;
@@ -2917,13 +2866,15 @@ button:focus-visible {
   padding: 6px;
 }
 
-:root[data-theme="light"] .row-style-panel {
+:root[data-theme="light"] .row-style-panel,
+:root[data-theme="light"] .task-prefs-panel {
   background: #fffdf6;
   border-color: rgba(50, 40, 24, 0.10);
   box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
 }
 
-.row-style-panel button {
+.row-style-panel button,
+.task-prefs-panel button {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -2939,31 +2890,60 @@ button:focus-visible {
   text-align: left;
 }
 
-.row-style-panel button>span {
+.row-style-panel button>span,
+.task-prefs-panel button>span {
   flex: 1;
 }
 
-.row-style-panel button svg {
+.row-style-panel button svg,
+.task-prefs-panel button svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
 }
 
-.row-style-check {
+.row-style-check,
+.task-prefs-check {
   opacity: 0;
   color: var(--c-primary-300);
 }
 
-.row-style-opt--active {
+.row-style-opt--active,
+.task-prefs-opt--active {
   color: var(--t-primary);
 }
 
-.row-style-opt--active .row-style-check {
+.row-style-opt--active .row-style-check,
+.task-prefs-opt--active .task-prefs-check {
   opacity: 1;
 }
 
-:root[data-theme="light"] .row-style-check {
+:root[data-theme="light"] .row-style-check,
+:root[data-theme="light"] .task-prefs-check {
   color: var(--c-primary-500);
+}
+
+/* Título de sección dentro del propio desplegable: deja claro que esto
+   ("qué se ve en la fila" + columnas) es un menú distinto del de al lado
+   ("Estilo de filas" — Limpio/Tarjetas, cómo se ve la fila). */
+.task-prefs-label {
+  font-size: 0.60rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-tertiary);
+  padding: 6px 10px 4px;
+  margin: 0;
+}
+
+.task-prefs-sep {
+  height: 1px;
+  margin: 5px 6px;
+  background: rgba(255, 238, 214, 0.10);
+}
+
+:root[data-theme="light"] .task-prefs-sep {
+  background: rgba(50, 40, 24, 0.10);
 }
 
 /* ── Cal month-nav row ────────────────────────────────────────── */
@@ -3597,8 +3577,9 @@ button:focus-visible {
     box-shadow: 0 1px 2px rgba(40, 30, 15, 0.04);
   }
 
-  /* «Filtrar» a la izquierda y el modo de vista a la derecha, en la misma
-     fila (handoff). El nodo del control lo trae aquí _placeRowStyleControl. */
+  /* «Filtrar» a la izquierda y las acciones (tema, detalles/columnas,
+     estilo de fila) a la derecha, en la misma fila (handoff). Los nodos
+     los trae aquí _placeMobileHeaderControls. */
   .list-filter-row {
     display: flex;
     align-items: center;
@@ -3608,21 +3589,14 @@ button:focus-visible {
     margin-bottom: 11px;
   }
 
-  /* En móvil el tema se cambia desde Ajustes; el botón de escritorio sobra
-     junto al de estilo de fila, que aquí ya es una píldora ancha. */
-  .theme-toggle-btn {
-    display: none;
-  }
-
-  /* Dos columnas solo tiene sentido con el ancho de escritorio. */
-  .columns-toggle-btn {
-    display: none;
-  }
-
-  /* Mismo motivo que .theme-toggle-btn: en móvil este ajuste vive en
-     Ajustes, no hace falta un botón de icono suelto en el header. */
-  .task-prefs-btn {
-    display: none;
+  /* Agrupa los tres controles reubicados para que space-between de arriba
+     los trate como un solo bloque junto a «Filtrar», no como three
+     elementos sueltos repartidos por toda la fila. */
+  .list-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
   }
 
   /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
@@ -3676,10 +3650,10 @@ button:focus-visible {
   }
 }
 
-/* Dos columnas — toggle independiente del estilo de fila (#columns-toggle-btn),
-   no una opción más de #row-style-panel: combina con Limpio/Tarjetas. Solo
-   escritorio (el botón se oculta en móvil y el JS nunca escribe
-   data-columns ahí). Las cajas compartidas de grupo
+/* Dos columnas — opción de #task-prefs-panel, no de #row-style-panel:
+   combina con Limpio/Tarjetas, no sustituye a ninguno. Solo escritorio
+   (en móvil el JS nunca escribe data-columns ahí, aunque el control esté
+   accesible). Las cajas compartidas de grupo
    (.inbox-group-list/.hoy-section-list) se quitan siempre que esto está
    activo: una caja de fondo detrás de una rejilla de 2 columnas se leía
    como un bloque roto, se vea mejor con cada tarea ya "tarjeta" suelta. */
@@ -4034,80 +4008,6 @@ body.tasks-compact .task-main-row {
 
 body.tasks-compact .task-text {
   font-size: var(--fs-sm);
-}
-
-/* ── Task preferences modal ───────────────────────────────────── */
-.task-pref-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0.5rem 0 0.75rem;
-}
-
-.task-pref-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  cursor: pointer;
-  border-radius: var(--r-sm);
-}
-
-.task-pref-icon {
-  color: var(--text-tertiary);
-  width: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.task-pref-icon svg {
-  width: 14px;
-  height: 14px;
-}
-
-.task-pref-label {
-  flex: 1;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.task-pref-toggle {
-  width: 38px;
-  height: 22px;
-  border-radius: var(--r-pill);
-  background: rgba(255, 238, 214, 0.07);
-  border: 1px solid rgba(255, 238, 214, 0.10);
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-:root[data-theme="light"] .task-pref-toggle:not(.task-pref-on) {
-  background: rgba(50, 40, 24, 0.08);
-  border-color: rgba(50, 40, 24, 0.10);
-}
-
-.task-pref-toggle.task-pref-on {
-  background: linear-gradient(135deg, var(--c-primary-500), var(--c-primary-600));
-  border-color: var(--c-primary-500);
-  box-shadow: 0 0 10px rgba(163, 179, 102, 0.30);
-}
-
-.task-pref-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
-}
-
-.task-pref-toggle.task-pref-on .task-pref-thumb {
-  left: 19px;
 }
 
 /* ─── SUBTASKS ───────────────────────────────────────────────── */
@@ -5363,7 +5263,7 @@ body.project-dragging .project-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-2);
+    gap: 0;
     width: 100%;
     flex-wrap: nowrap;
   }
@@ -5420,7 +5320,8 @@ body.project-dragging .project-item {
     justify-content: flex-end;
     gap: var(--sp-1);
     padding: 0;
-    border-bottom: none;
+    border: none;
+    background-color: transparent;
   }
 
   /* Seleccionar tareas — oculto en móvil (gestos lo sustituyen a futuro) */
@@ -9643,7 +9544,7 @@ button {
   transform: translateX(-50%);
   bottom: var(--sp-2);
   z-index: 30;
-  width: min(800px, calc(60% - 52px));
+  width: min(800px, calc(50% - 52px));
   height: 50px;
   display: flex;
   align-items: center;
@@ -9651,7 +9552,7 @@ button {
   padding: 6px;
   border-radius: 33px;
   cursor: text;
-  background: var(--row-hover);
+  background: color-mix(in srgb, var(--surface-card) 50%, transparent);
   border: 1px solid var(--border-default);
   font-family: var(--font-body);
   box-shadow: 0 20px 50px -18px rgba(40, 30, 15, 0.34);
