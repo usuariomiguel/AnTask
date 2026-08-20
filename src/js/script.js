@@ -3795,9 +3795,8 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   // El punto va en su propio span: en móvil las vencidas caen a una segunda
   // línea —como pide la ficha— y ahí el separador sobra.
   var overdueTxt = overdueN > 0
-    ? '<span class="hoy-stats-sep"> · </span>' +
-      '<span class="hoy-stats-overdue">' + overdueN + " " +
-      (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</span>"
+    ? '<p class="hoy-stats-overdue">' + overdueN + " " +
+      (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</p>"
     : "";
   var statsHtml =
     t("hoy.done_of")

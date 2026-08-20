@@ -1045,7 +1045,7 @@ body {
    sobre papel ahora que en claro la sidebar es clara. */
 
 .project-item.active {
-  background: color-mix(in srgb, var(--c-primary-500) 17%, transparent);
+  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 17%, transparent);
 }
 
 /* Barra de acento del activo idéntica a v1: pegada al borde de la barra
