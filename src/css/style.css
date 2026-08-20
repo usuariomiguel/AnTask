@@ -1031,7 +1031,7 @@ body {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
+  width: 2px;
   height: 0;
   background: var(--project-color, var(--c-primary-500));
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
@@ -1051,14 +1051,14 @@ body {
 /* Barra de acento del activo idéntica a v1: pegada al borde de la barra
    lateral (left:-8), casi de la altura de la fila (5px arriba/abajo). */
 .project-item.active::before {
-  left: -9px;
-  top: 5px;
+  left: -8px;
+  top: 6px;
   bottom: 5px;
   height: 20px;
   transform: none;
   opacity: 1;
-  background: var(--c-primary-500);
-  border-radius: 0 21px 21px 0;
+  background: var(--project-color, var(--c-primary-500));
+  border-radius: 21px;
   box-shadow: none;
 }
 
@@ -3931,6 +3931,16 @@ button:focus-visible {
 @media (min-width: 769px) {
   .task-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)),
   .today-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)) {
+    display: none;
+  }
+
+  /* En el Inbox agrupado `.task-list-container` se oculta con display:none
+     (la cabecera del grupo ya dice la lista — ver más abajo), pero `:has()`
+     sigue contando ese nodo aunque esté oculto: una fila cuyo único chip
+     fuera el de lista pasaba el `:not(:has(...))` de arriba como si tuviera
+     contenido y se quedaba como la misma píldora vacía. Repite el chequeo
+     sin `.task-list-badge` en la lista de "cuenta como contenido". */
+  .task-list--grupos .task-meta:not(:has(.priority-badge, .reminder-badge, .recur-badge, .due-badge)) {
     display: none;
   }
 }
@@ -9726,9 +9736,9 @@ button {
 }
 
 .inbox-group-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 2px;
+  height: 18px;
+  border-radius: 21px;
   background: var(--text-tertiary);
   flex-shrink: 0;
 }
