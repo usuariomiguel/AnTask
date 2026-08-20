@@ -518,6 +518,13 @@
                   <i data-lucide="square" class="columns-toggle-ico columns-toggle-ico--one"></i>
                   <i data-lucide="columns-2" class="columns-toggle-ico columns-toggle-ico--two"></i>
                 </button>
+                <!-- Qué detalles se ven en la fila (prioridad/lista/recordatorio/
+                     repetición): mismo tamaño/caja que los tres botones de arriba,
+                     abre el modal de task-prefs ya existente (antes sin disparador
+                     en la UI). -->
+                <button type="button" class="task-prefs-btn" id="task-prefs-btn" title="Detalles visibles" data-i18n-title="task_prefs.trigger" aria-label="Detalles visibles" data-i18n-aria="task_prefs.trigger" aria-haspopup="dialog">
+                  <i data-lucide="sliders-horizontal"></i>
+                </button>
                 <!-- Refs ocultas que el JS necesita. Como en el prototipo v1, el
                      header de una lista es sólo título + contador: el filtro vive
                      ahora en el cuerpo (#list-filter-row) y la gestión del

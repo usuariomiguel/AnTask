@@ -2882,6 +2882,27 @@ button:focus-visible {
   transform: rotate(0deg) scale(1);
 }
 
+/* ── Detalles visibles: mismo tamaño/caja que los tres botones de
+   arriba, un solo icono fijo (abre modal, no alterna estado propio). ── */
+.task-prefs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-tertiary);
+  background: var(--row-hover);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+
+.task-prefs-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
 .row-style-panel {
   position: absolute;
   top: calc(100% + 7px);
@@ -3595,6 +3616,12 @@ button:focus-visible {
 
   /* Dos columnas solo tiene sentido con el ancho de escritorio. */
   .columns-toggle-btn {
+    display: none;
+  }
+
+  /* Mismo motivo que .theme-toggle-btn: en móvil este ajuste vive en
+     Ajustes, no hace falta un botón de icono suelto en el header. */
+  .task-prefs-btn {
     display: none;
   }
 
@@ -10973,8 +11000,7 @@ button {
 }
 
 /* — Cabecera de vista: solo "Lista" (sin Mes) — */
-#view-tab-cal,
-#task-prefs-btn {
+#view-tab-cal {
   display: none !important;
 }
 

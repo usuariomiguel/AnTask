@@ -299,8 +299,10 @@ export const es = {
   // ── Importar / exportar ───────────────────────────────────
 
   // ── Preferencias de tarea ─────────────────────────────────
-  "task_prefs.view_section":  "Vista",
-  "task_prefs.compact_view":  "Vista compacta",
+  "task_prefs.trigger":         "Detalles visibles",
+  "task_prefs.view_section":    "Vista",
+  "task_prefs.compact_view":    "Vista compacta",
+  "task_prefs.details_section": "Detalles de la fila",
 
   // ── Almacenamiento ────────────────────────────────────────
 

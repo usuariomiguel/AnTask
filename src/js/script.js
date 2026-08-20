@@ -2672,17 +2672,24 @@ function _updateTaskNode(node, task) {
     node._showList && node._project ? node._project.id : "",
     node._showList && node._project ? node._project.name : "",
     getLang(),
+    // Preferencias de detalles visibles: cambiarlas desde el modal debe
+    // repintar los chips aunque la tarea en sí no haya cambiado.
+    taskPrefs.showPriority, taskPrefs.showReminder, taskPrefs.showList, taskPrefs.showRecur,
   ].join("|");
   if (node._firmaChips !== firmaChips) {
     node._firmaChips = firmaChips;
-    renderPriorityBadge(task, node.querySelector(".task-priority-container"));
-    renderReminderBadge(task, node.querySelector(".task-reminder-container"));
+    if (taskPrefs.showPriority === false) node.querySelector(".task-priority-container").innerHTML = "";
+    else renderPriorityBadge(task, node.querySelector(".task-priority-container"));
+    if (taskPrefs.showReminder === false) node.querySelector(".task-reminder-container").innerHTML = "";
+    else renderReminderBadge(task, node.querySelector(".task-reminder-container"));
     // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
     // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
-    renderListBadge(node._showList ? node._project : null,
+    if (taskPrefs.showList === false) node.querySelector(".task-list-container").innerHTML = "";
+    else renderListBadge(node._showList ? node._project : null,
                     node.querySelector(".task-list-container"));
     renderDueBadge(task, node.querySelector(".task-due-container"));
-    renderRecurBadge(task, node.querySelector(".task-recur-container"));
+    if (taskPrefs.showRecur === false) node.querySelector(".task-recur-container").innerHTML = "";
+    else renderRecurBadge(task, node.querySelector(".task-recur-container"));
     // Sin ningún chip la fila quedaba con un hueco muerto (y, en móvil,
     // más baja que sus vecinas antes del min-height). Un chip punteado
     // ocupa ese espacio y, de paso, es la pista de que se puede tocar la
@@ -3901,7 +3908,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   meta.className = "today-meta";
   li.appendChild(meta);
 
-  if (task.priority) {
+  if (task.priority && taskPrefs.showPriority !== false) {
     var pEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     // Ya no hay niveles: la bandera roja es la única marca de "importante".
@@ -3911,7 +3918,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     meta.appendChild(pEl);
   }
 
-  if (task.reminderAt) {
+  if (task.reminderAt && taskPrefs.showReminder !== false) {
     var rEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     rEl.className = "reminder-badge";
@@ -3924,7 +3931,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // y lleva al proyecto, que es lo que ya hacía esta vista. Las tareas
   // del Inbox no llevan ninguna: v1 omite la píldora cuando no hay
   // lista, para no dejar cápsulas vacías.
-  if (project.id !== INBOX_ID) {
+  if (project.id !== INBOX_ID && taskPrefs.showList !== false) {
     var projBadge = document.createElement("button");
     projBadge.type = "button";
     projBadge.className = "task-list-badge today-project-badge";
@@ -3947,7 +3954,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Repetición: mismo chip mono que en el task-list. Completar no lo
   // esconde —igual que la prioridad y la fecha— solo apaga el título.
   var tieneRecur = false;
-  {
+  if (taskPrefs.showRecur !== false) {
     var recurWrap = document.createElement("span");
     recurWrap.className = "today-recur";
     renderRecurBadge(task, recurWrap);
@@ -5152,6 +5159,26 @@ function showTaskPrefsModal() {
   var { overlay, box } = createModalBase();
 
   var compactOn = taskPrefs.compactView === true;
+  // Detalles: por defecto todos visibles (como hoy), así que "on" es
+  // cualquier valor salvo `false` explícito — igual que el resto de
+  // guardas de taskPrefs.showX en el render.
+  var detailPrefs = [
+    { key: "showPriority", icon: "flag",   label: t("detail.priority") },
+    { key: "showList",     icon: "inbox",  label: t("detail.list") },
+    { key: "showReminder", icon: "bell",   label: t("detail.reminder") },
+    { key: "showRecur",    icon: "repeat", label: t("detail.recur") },
+  ];
+  var detailRowsHtml = detailPrefs.map(function(d) {
+    var on = taskPrefs[d.key] !== false;
+    return '<label class="task-pref-row">' +
+        '<span class="task-pref-icon"><i data-lucide="' + d.icon + '"></i></span>' +
+        '<span class="task-pref-label">' + d.label + '</span>' +
+        '<span class="task-pref-toggle' + (on ? " task-pref-on" : "") + '" data-key="' + d.key + '" data-type="detail">' +
+          '<span class="task-pref-thumb"></span>' +
+        '</span>' +
+      '</label>';
+  }).join("");
+
   box.innerHTML =
     '<p class="modal-label">' + t("task_prefs.view_section") + '</p>' +
     '<div class="task-pref-list">' +
@@ -5163,6 +5190,8 @@ function showTaskPrefsModal() {
         '</span>' +
       '</label>' +
     '</div>' +
+    '<p class="modal-label">' + t("task_prefs.details_section") + '</p>' +
+    '<div class="task-pref-list">' + detailRowsHtml + '</div>' +
     '<div class="modal-actions">' +
       '<button class="modal-btn modal-btn-confirm">' + t("modal.done") + '</button>' +
     '</div>';
@@ -5176,6 +5205,7 @@ function showTaskPrefsModal() {
       toggle.classList.toggle("task-pref-on", taskPrefs[key]);
       saveTaskPrefs();
       applyTaskPrefs();
+      if (toggle.dataset.type === "detail") renderTasks();
     });
   });
 

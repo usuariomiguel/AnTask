@@ -299,8 +299,10 @@ export const en = {
   // ── Import / export ───────────────────────────────────────
 
   // ── Task preferences ──────────────────────────────────────
-  "task_prefs.view_section":  "View",
-  "task_prefs.compact_view":  "Compact view",
+  "task_prefs.trigger":         "Visible details",
+  "task_prefs.view_section":    "View",
+  "task_prefs.compact_view":    "Compact view",
+  "task_prefs.details_section": "Row details",
 
   // ── Storage ───────────────────────────────────────────────
 
