@@ -3741,7 +3741,7 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
+  gap: 3px;
   min-width: 0;
 }
 
@@ -3929,8 +3929,11 @@ button:focus-visible {
    Solo en escritorio: en móvil ese hueco lo ocupa a propósito
    `.task-chips-empty-hint` ("+ Añadir detalles"), que vive dentro. */
 @media (min-width: 769px) {
-  .task-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)),
-  .today-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge)) {
+  /* .due-badge queda fuera de esta lista a propósito: ya no vive dentro
+     de .task-meta (ver .task-due-container, ahora hermano suyo), así que
+     nunca puede ser el contenido que la salva de quedarse vacía. */
+  .task-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge)),
+  .today-meta:not(:has(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge)) {
     display: none;
   }
 
@@ -3940,7 +3943,7 @@ button:focus-visible {
      fuera el de lista pasaba el `:not(:has(...))` de arriba como si tuviera
      contenido y se quedaba como la misma píldora vacía. Repite el chequeo
      sin `.task-list-badge` en la lista de "cuenta como contenido". */
-  .task-list--grupos .task-meta:not(:has(.priority-badge, .reminder-badge, .recur-badge, .due-badge)) {
+  .task-list--grupos .task-meta:not(:has(.priority-badge, .reminder-badge, .recur-badge)) {
     display: none;
   }
 }
@@ -4702,25 +4705,24 @@ input.inline-edit {
   flex-shrink: 0;
 }
 
-/* Ahora sí igual que .today-date-pill de verdad (antes el comentario de
-   arriba lo prometía pero los valores habían divergido: mono/10.5px/
-   25px fijo aquí vs sans/14px/relleno propio en Hoy). Solo se conserva
-   el icono de calendario delante, la única diferencia a propósito. */
+/* Mismos valores que .today-date-pill, letra por letra (padding, radio,
+   fondo neutro, borde, color) — ya no hay tinte por color de proyecto:
+   ahora vive fuera de .task-meta, así que no es "un chip más" del
+   cluster y no debe leerse teñido como el resto. Solo se conserva el
+   icono de calendario delante, la única diferencia a propósito. */
 .due-badge {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: var(--fw-semiregular);
-  letter-spacing: 0.01em;
-  line-height: 1.5;
-  padding: 3px 9px;
-  border-radius: 23px;
-  color: var(--proj-color, var(--text-secondary));
-  background:
-    color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 13%, transparent);
-  border: 1px solid color-mix(in srgb, var(--proj-color, var(--text-tertiary)) 30%, transparent);
+  padding: 10px 10px;
+  border-radius: 25px;
+  background: var(--surface-input);
+  color: var(--text-tertiary);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -4735,14 +4737,21 @@ input.inline-edit {
 
 .due-today {
   background: var(--accent-tint);
-  border-color: transparent;
   color: var(--c-primary-300);
 }
 
 .due-overdue {
   background: rgba(var(--c-overdue-rgb), 0.13);
-  border-color: transparent;
   color: var(--c-overdue);
+}
+
+/* Mañana / más adelante — mismo tratamiento que hoy/vencida (fondo
+   tintado) para que no se lean como "sin estado" al lado de esas dos.
+   Tono info: es una fecha programada, no urgente. */
+.due-soon,
+.due-future {
+  background: color-mix(in srgb, var(--c-info) 13%, transparent);
+  color: var(--c-info);
 }
 
 .due-badge--action {
@@ -11222,10 +11231,10 @@ button {
     border-radius: 25px;
   }
 
-  /* Hoy/vencidas pierden el borde en la regla base (fondo tintado plano,
-     border-color:transparent) — en móvil se restaura para que combinen
-     con el resto de píldoras de la fila (fecha futura, prioridad...),
-     que sí lo llevan. */
+  /* En móvil el borde se tiñe del propio color del estado (en vez del
+     border-subtle neutro de la regla base) para que combine con el resto
+     de píldoras de la fila (fecha futura, prioridad...), que también lo
+     llevan tintado ahí. */
   .due-today {
     border-color: color-mix(in srgb, var(--c-primary-300) 45%, transparent);
   }

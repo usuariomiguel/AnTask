@@ -4001,7 +4001,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     var noDateEl = document.createElement("span");
     noDateEl.className = "today-date-pill today-date-pill--action";
     noDateEl.innerHTML = '<span class="today-date-label"></span><i data-lucide="arrow-right"></i>';
-    noDateEl.querySelector(".today-date-label").textContent = t("date.today");
+    noDateEl.querySelector(".today-date-label").textContent = t("hoy.move_one");
     noDateEl.title = t("hoy.schedule_one");
     noDateEl.addEventListener("click", function(e) {
       e.stopPropagation();
