@@ -12,7 +12,7 @@
 import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
 import { parseNaturalLanguage } from "../utils/nl-parse.js";
-import { buildNLChipsHTML } from "../utils/nl-chips.js";
+import { buildNLChipsHTML, formatRecurLabel } from "../utils/nl-chips.js";
 import { t } from "../i18n/index.js";
 import { projectColor } from "../utils/project-color.js";
 
@@ -28,7 +28,7 @@ let _isOpen = false;
  *   lista (Inbox primero, luego el resto sin archivar).
  * @property {string} [inboxId]
  *   Id del proyecto Inbox — solo para el matiz de color del chip.
- * @property {(project: any, text: string, overrides: {priority?: string, dueDate?: string}) => void} onCreate
+ * @property {(project: any, text: string, overrides: {priority?: string, dueDate?: string, recurDays?: number}) => void} onCreate
  *   Callback para crear la tarea en el proyecto indicado. `overrides`
  *   lleva prioridad/fecha elegidas a mano en los chips (pisan lo
  *   detectado en el texto).
@@ -93,10 +93,11 @@ export function showQuickCapture(deps) {
   box.className = "modal-box modal-box-quick";
 
   // Overrides manuales: los chips pisan lo detectado en el texto.
-  let dueOverride  = null;    // "hoy" | "manana" | null
-  let prioOverride = null;    // "high" | null — sin niveles, solo "importante"
-  let selectedId   = project.id;
-  let manualPick   = false;   // true en cuanto se elige una lista a mano
+  let dueOverride   = null;    // "hoy" | "manana" | null
+  let prioOverride  = null;    // "high" | null — sin niveles, solo "importante"
+  let recurOverride = null;    // número de días | null
+  let selectedId    = project.id;
+  let manualPick    = false;   // true en cuanto se elige una lista a mano
 
   box.innerHTML =
     '<div class="quick-capture-header">' +
@@ -118,6 +119,12 @@ export function showQuickCapture(deps) {
       '<span class="qc-chip-sep"></span>' +
       // Ya no hay niveles: un único chip que marca "importante" (bandera roja).
       '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><i data-lucide="flag"></i>' + t("detail.priority_important") + '</button>' +
+      '<span class="qc-chip-sep"></span>' +
+      '<div class="qc-recur-picker">' +
+        '<button type="button" class="qc-chip qc-recur-trigger" aria-expanded="false" aria-haspopup="listbox">' +
+          '<i data-lucide="repeat"></i><span class="qc-recur-label">' + t("detail.recur") + '</span>' +
+        '</button>' +
+      '</div>' +
       '<span class="qc-chip-sep"></span>' +
       '<div class="qc-list-picker">' +
         '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +
@@ -147,10 +154,13 @@ export function showQuickCapture(deps) {
   const preview      = box.querySelector(".quick-capture-preview");
   const dueBtns      = box.querySelectorAll("[data-due]");
   const prioBtns     = box.querySelectorAll("[data-prio]");
+  const recurTrigger = box.querySelector(".qc-recur-trigger");
+  const recurLabel   = box.querySelector(".qc-recur-label");
   const listPicker   = box.querySelector(".qc-list-picker");
   const listTrigger  = box.querySelector(".qc-list-trigger");
   const listLabel    = box.querySelector(".qc-list-label");
   const submitBtn    = box.querySelector(".quick-capture-submit");
+  let   recurPopoverEl = null;
   let   listPopoverEl = null;
 
   function findList(id) {
@@ -237,6 +247,70 @@ export function showQuickCapture(deps) {
     else openListPopover();
   });
 
+  // Mismos presets que el popover de repetición del panel de detalle
+  // (ver _showRecurPopover en script.js) — no hay input de días a medida
+  // aquí, la captura rápida se queda con los valores típicos.
+  const RECUR_PRESETS = [
+    { label: t("recur.daily"),        days: 1  },
+    { label: t("recur.every_2_days"), days: 2  },
+    { label: t("recur.weekly"),       days: 7  },
+    { label: t("recur.biweekly"),     days: 14 },
+    { label: t("recur.monthly"),      days: 30 },
+  ];
+
+  function closeRecurPopover() {
+    if (!recurPopoverEl) return;
+    recurPopoverEl.remove();
+    recurPopoverEl = null;
+    recurTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  function openRecurPopover() {
+    closeRecurPopover();
+    recurTrigger.setAttribute("aria-expanded", "true");
+    const pop = document.createElement("div");
+    pop.className = "field-popover field-popover--narrow field-popover--fixed";
+    const parsedDays = parseNaturalLanguage(input.value).recurDays;
+    const activeDays = recurOverride != null ? recurOverride : parsedDays;
+    pop.innerHTML = '<div class="field-popover-list">' +
+      RECUR_PRESETS.map(function (p) {
+        const active = activeDays === p.days;
+        return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-recur-days="' + p.days + '">' +
+          '<span class="field-popover-row-label">' + p.label + '</span>' +
+          (active ? '<i data-lucide="check"></i>' : "") +
+        '</button>';
+      }).join("") +
+      (activeDays ? '<div class="field-popover-sep"></div>' +
+        '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
+          '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
+        '</button>' : "") +
+    '</div>';
+    document.body.appendChild(pop);
+    _placeFixedPopover(pop, recurTrigger);
+    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+    pop.querySelectorAll("[data-recur-days]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        recurOverride = parseInt(btn.dataset.recurDays, 10);
+        closeRecurPopover();
+        render();
+      });
+    });
+    const clearBtn = pop.querySelector("[data-recur-clear]");
+    if (clearBtn) clearBtn.addEventListener("click", function () {
+      // Vacío, no null: si el texto sigue diciendo "cada semana" queremos
+      // que se lea de ahí de nuevo, no forzar "sin repetición" a la fuerza.
+      recurOverride = null;
+      closeRecurPopover();
+      render();
+    });
+    recurPopoverEl = pop;
+  }
+
+  recurTrigger.addEventListener("click", function () {
+    if (recurPopoverEl) closeRecurPopover();
+    else openRecurPopover();
+  });
+
   function render() {
     const raw = input.value;
     const hashMatch = _detectHashList(raw, lists);
@@ -252,6 +326,7 @@ export function showQuickCapture(deps) {
       chips.push('<span class="nl-chip nl-chip-list"><span class="nl-chip-hash">#</span>' + escHtml(hashMatch.project.name) + '</span>');
     }
     if (parsed.priority && !prioOverride) chips.push(buildNLChipsHTML({ priority: parsed.priority })[0]);
+    if (parsed.recurDays && recurOverride == null) chips.push(buildNLChipsHTML({ recurDays: parsed.recurDays })[0]);
     if (chips.length) {
       preview.hidden = false;
       preview.innerHTML = chips.join("");
@@ -261,9 +336,12 @@ export function showQuickCapture(deps) {
       preview.innerHTML = "";
     }
 
-    const finalPrio = prioOverride || parsed.priority;
+    const finalPrio  = prioOverride || parsed.priority;
+    const finalRecur = recurOverride != null ? recurOverride : parsed.recurDays;
     dueBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.due === dueOverride); });
     prioBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.prio === finalPrio); });
+    recurTrigger.classList.toggle("active", !!finalRecur);
+    recurLabel.textContent = finalRecur ? formatRecurLabel(finalRecur) : t("detail.recur");
 
     listLabel.textContent = resolved.name;
     listTrigger.classList.add("active");
@@ -296,9 +374,11 @@ export function showQuickCapture(deps) {
   function close() {
     _isOpen = false;
     document.removeEventListener("mousedown", onDocMouseDown, true);
-    // El popover de lista ya no vive dentro de `box` (ver openListPopover),
-    // así que cerrar el modal no se lo lleva por delante solo.
+    // Los popovers de lista y repetición ya no viven dentro de `box` (ver
+    // openListPopover/openRecurPopover), así que cerrar el modal no se
+    // los lleva por delante solos.
     closeListPopover();
+    closeRecurPopover();
     closeModal(overlay);
     // Se llama en TODAS las salidas (creada o cancelada) — quien abrió la
     // captura desde otro flujo (p.ej. el onboarding, que se queda oculto
@@ -319,6 +399,7 @@ export function showQuickCapture(deps) {
     const overrides = {};
     if (prioOverride) overrides.priority = prioOverride;
     if (dueOverride) overrides.dueDate = _dueKeyToISO(dueOverride);
+    if (recurOverride != null) overrides.recurDays = recurOverride;
 
     if (typeof deps.onCreate === "function") {
       deps.onCreate(targetProject, text, overrides);
@@ -349,11 +430,14 @@ export function showQuickCapture(deps) {
   });
 
   function onDocMouseDown(e) {
-    // El popover ya no cuelga de `listPicker` (ver openListPopover: va en
-    // `document.body` con `position: fixed`), así que un clic dentro de
-    // él también cuenta como "dentro".
+    // Los popovers ya no cuelgan de su disparador (ver openListPopover/
+    // openRecurPopover: van en `document.body` con `position: fixed`),
+    // así que un clic dentro de ellos también cuenta como "dentro".
     if (listPopoverEl && !listPicker.contains(e.target) && !listPopoverEl.contains(e.target)) {
       closeListPopover();
+    }
+    if (recurPopoverEl && !recurTrigger.contains(e.target) && !recurPopoverEl.contains(e.target)) {
+      closeRecurPopover();
     }
   }
   document.addEventListener("mousedown", onDocMouseDown, true);

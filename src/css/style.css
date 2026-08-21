@@ -1583,7 +1583,7 @@ body {
 }
 
 .task-detail-field-btn.task-detail-priority-btn {
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
 }
 
@@ -1764,6 +1764,10 @@ body {
 
 .field-popover-chip--clear {
   margin-left: auto;
+}
+
+.field-popover-row--clear {
+  color: var(--text-tertiary);
 }
 
 .field-popover-cal-head {
@@ -9456,6 +9460,14 @@ button {
   color: var(--text-tertiary);
 }
 
+@media (max-width: 768px) {
+  /* Mismo umbral de zoom de Safari que en `.list-search-input`: por
+     debajo de 16px, Safari hace zoom automático al enfocar el campo. */
+  .hoy-quickadd-input {
+    font-size: 16px;
+  }
+}
+
 .hoy-quickadd-btn {
   display: inline-flex;
   align-items: center;
@@ -9924,7 +9936,8 @@ button {
   color: #9a3a33;
 }
 
-.qc-list-picker {
+.qc-list-picker,
+.qc-recur-picker {
   position: relative;
 }
 

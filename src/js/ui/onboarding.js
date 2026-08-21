@@ -246,6 +246,11 @@ export function showOnboarding(opts) {
       overlay.style.display = "none";
       let created = false;
       window.openQuickCapture({
+        // El onboarding arranca en Hoy (vista por defecto de la app): sin
+        // fecha, la tarea de prueba cae en el Inbox pero la vista se queda
+        // en Hoy, que sigue vacía — el usuario no ve lo que acaba de crear.
+        // redirectToInbox lleva a donde de verdad aterrizó la tarea.
+        redirectToInbox: true,
         onTaskCreated: function () { created = true; },
         onClose: function () {
           overlay.style.display = "";

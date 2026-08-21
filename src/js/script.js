@@ -926,7 +926,7 @@ function _createTaskInProject(project, rawText, overrides) {
     done:       false,
     priority:   overrides.priority || parsed.priority || null,
     dueDate:    overrides.dueDate || parsed.dueDate || null,
-    recurDays:  parsed.recurDays || null,
+    recurDays:  overrides.recurDays || parsed.recurDays || null,
     reminderAt: null,
     timeLogged: 0,
     subtasks:   [],
