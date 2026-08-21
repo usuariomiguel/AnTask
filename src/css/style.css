@@ -3075,7 +3075,10 @@ button:focus-visible {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  margin-bottom: 6px;
+  /* Hueco entre filas — 3px, el mismo en tarjetas/limpio, agrupado o no,
+     en Hoy/Inbox/listas y en 1 o 2 columnas (ver los overrides de
+     data-row-style="limpio" y data-columns="2" más abajo). */
+  margin-bottom: 3px;
   cursor: pointer;
   max-width: 100%;
   overflow: hidden;
@@ -3124,12 +3127,19 @@ button:focus-visible {
    se activan con data-row-style en #task-list y ganan por orden de
    cascada tanto en tema claro como oscuro. */
 
-/* Limpio — filas planas sin tarjeta, sólo realce en hover. Mismo hueco
-   de 6px entre filas que el resto de modos de vista. */
+/* Limpio — filas planas sin tarjeta, sólo realce en hover. Sin hueco
+   entre filas (gap: 0), a diferencia de tarjetas (3px). */
 .task-list[data-row-style="limpio"] .task-item {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
+  margin-bottom: 0;
+}
+
+/* Inbox agrupado en limpio: sin gap entre tareas de un mismo grupo
+   (tarjetas sí lo lleva, ver `.inbox-group-list` más abajo). */
+.task-list[data-row-style="limpio"] .inbox-group-list {
+  gap: 0;
 }
 
 /* Tarjetas — cada tarea flota como su propia tarjeta, agrupada o no.
@@ -3144,7 +3154,7 @@ button:focus-visible {
 
 
 .task-list[data-row-style="tarjetas"] .hoy-section-list .today-item {
-  margin-bottom: 6px;
+  margin-bottom: 3px;
 }
 
 .task-list[data-row-style="tarjetas"] .hoy-section-list .today-item+.today-item,
@@ -3677,7 +3687,11 @@ button:focus-visible {
 }
 
 .task-list[data-columns="2"] .task-item {
-  margin-bottom: 6px;
+  margin-bottom: 3px;
+}
+
+.task-list[data-row-style="limpio"][data-columns="2"] .task-item {
+  margin-bottom: 0;
 }
 
 /* El bloque entero (cabecera + su lista) ocupa las dos columnas de la
@@ -5532,9 +5546,9 @@ body.project-dragging .project-item {
   }
 
   .task-item {
-    margin-bottom: var(--sp-2);
-    /* 13/15 del handoff móvil. Literales a propósito: la escala de espaciado
-       salta de 12 (--sp-3) a 16 (--sp-4) y ninguno de los dos es el valor. */
+    /* Móvil siempre fuerza "limpio" (ver _rowStyleEfectivo en script.js):
+       sin hueco entre filas, igual que limpio en escritorio. */
+    margin-bottom: 0;
     border-radius: var(--r-md);
     /* Todas las filas a la misma altura, tengan o no chips: medido con
        prioridad + fecha + repetición (el caso más alto), 78px. Sin esto
