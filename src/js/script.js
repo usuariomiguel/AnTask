@@ -1195,24 +1195,29 @@ function _syncListSearchVisibility() {
 }
 
 /**
- * Tema, estilo de fila y detalles/columnas viven en la cabecera en
- * escritorio y en la fila de «Filtrar» en móvil (agrupados en
- * #list-filter-actions), que es donde los pone el handoff. Se mueven los
- * nodos en vez de duplicarlos para no tener dos botones con el mismo id ni
- * dos estados que sincronizar. Se reevalúa al cruzar el breakpoint, así
- * que redimensionar o girar el teléfono los recoloca.
+ * Tema, estilo de fila y detalles/columnas viven en la cabecera de la
+ * lista en escritorio (.view-nav-right) y junto a «Filtrar» en móvil
+ * (#list-filter-actions, en el cuerpo de la lista). No suben a
+ * #mobile-header-right pese al nombre: esa cabecera (.mobile-header, la
+ * barra compacta con el logo) está apagada a propósito en móvil —
+ * "Ajustes vive en «Perfil»" dice su propio comentario en el CSS—, así
+ * que cualquier cosa que se mueva ahí queda invisible. #list-filter-actions
+ * cuelga de .tasks-header, que sí se ve en móvil. Se mueven los nodos en
+ * vez de duplicarlos para no tener dos botones con el mismo id ni dos
+ * estados que sincronizar. Se reevalúa al cruzar el breakpoint, así que
+ * redimensionar o girar el teléfono los recoloca.
  */
 function _placeRowStyleControl() {
   // Al cruzar el breakpoint cambia el estilo efectivo (móvil = limpio fijo),
   // así que hay que repintar el atributo además de recolocar el control.
   if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
   applyTwoColumns(twoColumnsOn, false);
-  const filterActions = document.getElementById("list-filter-actions");
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
-  if (!filterActions || !headerActions) return;
+  const filterActions = document.getElementById("list-filter-actions");
+  if (!headerActions || !filterActions) return;
   const enMovil = window.matchMedia("(max-width: 768px)").matches;
   const destino = enMovil ? filterActions : headerActions;
-  // Mismo orden en los dos sitios: tema, estilo de fila, detalles/columnas.
+
   ["theme-toggle-btn", "row-style-wrap", "task-prefs-wrap"].forEach(function(id) {
     const el = document.getElementById(id);
     if (el && el.parentElement !== destino) destino.appendChild(el);

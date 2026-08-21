@@ -3589,14 +3589,22 @@ button:focus-visible {
     margin-bottom: 11px;
   }
 
-  /* Agrupa los tres controles reubicados para que space-between de arriba
-     los trate como un solo bloque junto a «Filtrar», no como three
-     elementos sueltos repartidos por toda la fila. */
+  /* Agrupa los controles reubicados (tema, estilo de fila, detalles/
+     columnas) para que space-between de arriba los trate como un solo
+     bloque junto a «Filtrar», no como elementos sueltos repartidos por
+     toda la fila. */
   .list-filter-actions {
     display: flex;
     align-items: center;
     gap: 7px;
     flex-shrink: 0;
+  }
+
+  /* Dos columnas no tiene efecto en móvil (applyTwoColumns comprueba el
+     ancho antes de aplicarlo) — la opción y su separador sobran ahí. */
+  .task-prefs-panel [data-pref-key="twoColumns"],
+  .task-prefs-panel .task-prefs-sep {
+    display: none;
   }
 
   /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
