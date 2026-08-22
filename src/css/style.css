@@ -1997,16 +1997,24 @@ body {
      Con uno solo (repetir) no hace falta segunda fila: aquí se cancela el
      salto de altura y el chip pasa a una 4ª columna, en la misma fila que
      el título (que se trunca con elipsis si no cabe todo). */
-  html[data-mode="simple"] .task-item:has(.task-chips span:not(:empty)) {
+  /* Inbox/listas (.task-item) y Hoy (.today-item) son la MISMA fila con
+     dos juegos de clases distintos (estructura y JS de render distintos,
+     ver script.js), pero el CSS de esta sección es idéntico entre los
+     dos — un selector combinado por regla en vez de repetirlo dos veces. */
+  html[data-mode="simple"] .task-item:has(.task-chips span:not(:empty)),
+  html[data-mode="simple"] .today-item:has(.today-meta:not(:empty)) {
     min-height: 0;
   }
-  html[data-mode="simple"] .task-main-row {
+  html[data-mode="simple"] .task-main-row,
+  html[data-mode="simple"] .today-item {
     grid-template-columns: auto minmax(0, 1fr) auto max-content;
   }
-  html[data-mode="simple"] .task-text {
+  html[data-mode="simple"] .task-text,
+  html[data-mode="simple"] .today-text {
     grid-area: 1 / 2;
   }
-  html[data-mode="simple"] .task-chips {
+  html[data-mode="simple"] .task-chips,
+  html[data-mode="simple"] .today-meta {
     grid-area: 1 / 3;
     margin-top: 0;
     /* La píldora exterior (fondo+borde) tenía sentido como carril con
@@ -2016,7 +2024,8 @@ body {
     border: none;
     padding: 0;
   }
-  html[data-mode="simple"] .task-due-container {
+  html[data-mode="simple"] .task-due-container,
+  html[data-mode="simple"] .today-date-pill {
     grid-area: 1 / 4;
   }
   /* La casilla ocupaba 2 filas (1/1/3/2) para centrarse cuando SÍ había
@@ -2024,8 +2033,11 @@ body {
      implícita seguía generándose vacía solo para que la casilla y la
      fecha tuvieran algo que abarcar. Con las dos en una sola fila, la
      rejilla ya no reserva esa fila fantasma. */
-  html[data-mode="simple"] .task-summary .task-toggle-wrap {
+  html[data-mode="simple"] .task-summary .task-toggle-wrap,
+  html[data-mode="simple"] .today-check {
     grid-area: 1 / 1;
+  }
+  html[data-mode="simple"] .task-summary .task-toggle-wrap {
     height: auto;
   }
   /* Repetir con el mismo alto/padding que la píldora de fecha, para que
@@ -2034,31 +2046,6 @@ body {
   html[data-mode="simple"] .recur-badge {
     height: auto;
     padding: 10px 10px;
-  }
-
-  /* Vista Hoy: misma rejilla, mismo problema, mismo arreglo — ver el
-     bloque de arriba sobre .task-item/.task-main-row para el porqué. */
-  html[data-mode="simple"] .today-item:has(.today-meta:not(:empty)) {
-    min-height: 0;
-  }
-  html[data-mode="simple"] .today-item {
-    grid-template-columns: auto minmax(0, 1fr) auto max-content;
-  }
-  html[data-mode="simple"] .today-text {
-    grid-area: 1 / 2;
-  }
-  html[data-mode="simple"] .today-meta {
-    grid-area: 1 / 3;
-    margin-top: 0;
-    background: none;
-    border: none;
-    padding: 0;
-  }
-  html[data-mode="simple"] .today-date-pill {
-    grid-area: 1 / 4;
-  }
-  html[data-mode="simple"] .today-check {
-    grid-area: 1 / 1;
   }
 }
 
@@ -11411,7 +11398,11 @@ button {
     margin: 0;
   }
 
-  .task-text {
+  /* Idéntica en Inbox/listas (.task-text) y en Hoy (.today-text) — un
+     solo selector combinado en vez de repetirla (ver también más abajo
+     .task-due-container/.today-date-pill, mismo motivo). */
+  .task-text,
+  .today-text {
     grid-area: 1 / 2;
   }
 
@@ -11460,7 +11451,9 @@ button {
     display: none;
   }
 
-  .task-due-container {
+  /* Idéntica a .today-date-pill (más abajo) — combinadas. */
+  .task-due-container,
+  .today-date-pill {
     grid-area: 1 / 3 / 3 / 4;
     align-self: center;
     justify-self: end;
@@ -11493,9 +11486,8 @@ button {
     align-self: center;
   }
 
-  .today-text {
-    grid-area: 1 / 2;
-  }
+  /* .today-text ya está combinada con .task-text más arriba en este
+     mismo bloque. */
 
   .today-meta {
     grid-area: 2 / 2;
@@ -11515,11 +11507,8 @@ button {
     display: none;
   }
 
-  .today-date-pill {
-    grid-area: 1 / 3 / 3 / 4;
-    align-self: center;
-    justify-self: end;
-  }
+  /* .today-date-pill ya está combinada con .task-due-container más
+     arriba en este mismo bloque. */
 
   /* La sección sin tarjeta y la lista como caja son ya la base (ver
      `.hoy-section` / `.hoy-section-list` / `.inbox-group-list` más

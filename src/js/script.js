@@ -4107,7 +4107,12 @@ function renderTodayItem(task, project, todayStr, tone) {
   meta.className = "today-meta";
   li.appendChild(meta);
 
-  if (task.priority && taskPrefs.showPriority !== false) {
+  // Modo simple (móvil): solo fecha y repetir son campos reales —
+  // prioridad, recordatorio y lista se quedan ocultos, igual que en la
+  // fila de Inbox/listas (ver _updateTaskNode).
+  var simpleRow = isSimpleMobile();
+
+  if (!simpleRow && task.priority && taskPrefs.showPriority !== false) {
     var pEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     // Ya no hay niveles: la bandera roja es la única marca de "importante".
@@ -4117,7 +4122,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     meta.appendChild(pEl);
   }
 
-  if (task.reminderAt && taskPrefs.showReminder !== false) {
+  if (!simpleRow && task.reminderAt && taskPrefs.showReminder !== false) {
     var rEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     rEl.className = "reminder-badge";
@@ -4130,7 +4135,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // y lleva al proyecto, que es lo que ya hacía esta vista. Las tareas
   // del Inbox no llevan ninguna: v1 omite la píldora cuando no hay
   // lista, para no dejar cápsulas vacías.
-  if (project.id !== INBOX_ID && taskPrefs.showList !== false) {
+  if (!simpleRow && project.id !== INBOX_ID && taskPrefs.showList !== false) {
     var projBadge = document.createElement("button");
     projBadge.type = "button";
     projBadge.className = "task-list-badge today-project-badge";
@@ -4214,6 +4219,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Volver a pulsar la fila abierta lo cierra.
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
+    if (simpleRow) { _openInlineDateRecurPopover(task, li); return; }
     if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
     openTaskDetail(task.id, project.id);
   });
