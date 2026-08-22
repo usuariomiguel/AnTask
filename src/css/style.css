@@ -5672,7 +5672,6 @@ body.project-dragging .project-item {
   /* Two-row layout siempre — título arriba, meta-row abajo */
   .task-main-row {
     flex-wrap: wrap;
-    gap: 6px var(--sp-2);
     align-items: center;
   }
 
@@ -11366,7 +11365,6 @@ button {
        tarea sin chips eso engordaba la segunda pista —vacía— y dejaba un
        hueco muerto bajo el título. */
     align-content: center;
-    column-gap: var(--sp-3);
     row-gap: 0;
   }
 
@@ -11393,8 +11391,13 @@ button {
        inflaban la segunda fila 9px aunque no hubiera chips, y la fila se
        quedaba con un hueco muerto abajo. La zona táctil de 44 la sigue
        dando `.task-toggle::before` (inset -11) del bloque `pointer:
-       coarse`, que no ocupa sitio. */
-    width: 22px;
+       coarse`, que no ocupa sitio.
+       30px, no 22: `.task-toggle` (el checkbox real, position:absolute
+       y centrado dentro de esta caja) mide 30px de ancho — con la caja
+       más estrecha que él, se desbordaba 4px hacia la izquierda y
+       quedaba más pegado al borde que en Hoy (.today-check, sin este
+       envoltorio, que sencillamente ocupa lo que mide). */
+    width: 30px;
     /* Alto CERO a propósito. Al ocupar las dos filas, Chrome reparte el
        alto del elemento a partes iguales entre las pistas que abarca: con
        22px, la segunda pista se quedaba con 11 aunque estuviera vacía, y
@@ -11477,7 +11480,6 @@ button {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 13px;
     row-gap: 0;
   }
 
@@ -11582,15 +11584,8 @@ button {
 
   .hoy-section-action {
     margin-left: auto;
-    padding: 0;
-    width: 30px;
-    height: 30px;
     justify-content: center;
     flex-shrink: 0;
-  }
-
-  .hoy-section-action-label {
-    display: none;
   }
 
   .hoy-section-action .lucide {
