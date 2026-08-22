@@ -3337,7 +3337,7 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       '</div>' +
       '<div class="field-popover-sep"></div>' +
       '<div class="field-popover-section-label">' + t("detail.recur") + '</div>' +
-      '<div class="field-popover-list">' + recurRows + '</div>' +
+      '<div class="field-popover-list field-popover-list--2col">' + recurRows + '</div>' +
       (task.recurDays ? '<div class="field-popover-sep"></div>' +
         '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
           '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +

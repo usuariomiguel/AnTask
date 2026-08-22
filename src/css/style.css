@@ -1866,6 +1866,16 @@ body {
   overflow-y: auto;
 }
 
+/* Repetir en el popover fecha+repetir de la fila (modo simple, ver
+   _openInlineDateRecurPopover en script.js): 5 opciones caben mejor en
+   2 columnas que en una lista vertical larga. Solo este uso — el resto
+   de listas (.field-popover-list a secas: selector de lista, presets del
+   panel de detalle) se quedan en una columna. */
+.field-popover-list--2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .field-popover-row {
   display: flex;
   align-items: center;
