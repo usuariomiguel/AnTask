@@ -217,6 +217,7 @@ export const en = {
   "detail.due_date":          "Date",
   "detail.no_date":           "No date",
   "detail.recur":             "Repeat",
+  "detail.delete_task":       "Delete task",
   "detail.no_recur":          "Doesn't repeat",
   "detail.reminder":          "Reminder",
   "detail.no_reminder":       "No reminder",

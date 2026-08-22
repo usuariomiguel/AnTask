@@ -2874,7 +2874,7 @@ function _buildTaskNode(task, project, showList) {
       if (e.target.closest("input")) return;
       // Modo simple: la fila no tiene panel de detalle — se edita fecha y
       // repetir en el sitio, con un popover ligero anclado a la propia fila.
-      if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node); return; }
+      if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node, project); return; }
       if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
       openTaskDetail(task.id, project.id);
     });
@@ -2884,7 +2884,7 @@ function _buildTaskNode(task, project, showList) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         if (selectMode) { toggleTaskSelection(task.id, node); return; }
-        if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node); return; }
+        if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node, project); return; }
         // Alterna, como el clic y como anuncia el modal de atajos.
         if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
         openTaskDetail(task.id, project.id);
@@ -3291,7 +3291,7 @@ function _placeInlineRowPopover(pop, anchorEl) {
   }
 }
 
-function _openInlineDateRecurPopover(task, anchorEl) {
+function _openInlineDateRecurPopover(task, anchorEl, project) {
   const wasOpenForSameTask = _inlineRowPopoverEl && _inlineRowPopoverTaskId === task.id;
   _closeInlineRowPopover();
   if (wasOpenForSameTask) return;
@@ -3350,13 +3350,25 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       '</button>';
     }).join("") +
       // 6ª opción: número de días a medida, en la misma rejilla que los 5
-      // presets — no un campo aparte debajo.
-      '<label class="field-popover-row field-popover-row--custom' + (task.recurDays && !isPresetRecur ? " active" : "") + '">' +
+      // presets — no un campo aparte debajo. El botón de confirmar hace
+      // falta porque en un <input type=number> no hay forma de "aceptar"
+      // salvo Enter, que en móvil no siempre es obvio ni está siempre
+      // accesible (algunos teclados numéricos no muestran tecla Intro).
+      '<div class="field-popover-row field-popover-row--custom' + (task.recurDays && !isPresetRecur ? " active" : "") + '">' +
         '<input type="number" min="1" max="3650" class="field-popover-custom-input" inputmode="numeric"' +
           ' placeholder="' + t("modal_recur.custom_short") + '" value="' + (task.recurDays && !isPresetRecur ? task.recurDays : "") + '" />' +
-      '</label>';
+        '<button type="button" class="field-popover-custom-confirm" data-recur-custom-confirm aria-label="' + t("modal.save") + '">' +
+          '<i data-lucide="check"></i>' +
+        '</button>' +
+      '</div>';
 
     pop.innerHTML =
+      '<div class="field-popover-title-row">' +
+        '<input type="text" class="field-popover-title-input" maxlength="120" value="' + escHtml(task.text) + '" />' +
+        '<button type="button" class="field-popover-custom-confirm" data-title-confirm aria-label="' + t("modal.save") + '">' +
+          '<i data-lucide="check"></i>' +
+        '</button>' +
+      '</div>' +
       '<div class="field-popover-cols">' +
         '<div class="field-popover-col field-popover-col--date">' +
           '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
@@ -3364,7 +3376,6 @@ function _openInlineDateRecurPopover(task, anchorEl) {
             '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
             '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
             '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
-            (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
           '</div>' +
           '<div class="field-popover-cal-head">' +
             '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
@@ -3375,6 +3386,10 @@ function _openInlineDateRecurPopover(task, anchorEl) {
             dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
             cellsHtml +
           '</div>' +
+          (task.dueDate ? '<button type="button" class="field-popover-row field-popover-row--clear field-popover-date-clear" data-date-clear>' +
+            '<i data-lucide="trash-2"></i>' +
+            '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
+          '</button>' : "") +
         '</div>' +
         '<div class="field-popover-col field-popover-col--recur">' +
           '<div class="field-popover-list">' +
@@ -3386,7 +3401,11 @@ function _openInlineDateRecurPopover(task, anchorEl) {
             '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
           '</button>' : "") +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '<button type="button" class="field-popover-row field-popover-row--clear field-popover-delete-task" data-delete-task>' +
+        '<i data-lucide="trash-2"></i>' +
+        '<span class="field-popover-row-label">' + t("detail.delete_task") + '</span>' +
+      '</button>';
 
     if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
 
@@ -3413,6 +3432,12 @@ function _openInlineDateRecurPopover(task, anchorEl) {
         _closeInlineRowPopover();
       });
     });
+    const dateClearBtn = pop.querySelector("[data-date-clear]");
+    if (dateClearBtn) dateClearBtn.addEventListener("click", function() {
+      task.dueDate = null;
+      saveAndRender();
+      _closeInlineRowPopover();
+    });
     pop.querySelectorAll("[data-recur-days]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         task.recurDays = parseInt(btn.dataset.recurDays, 10);
@@ -3427,6 +3452,14 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       _closeInlineRowPopover();
     });
     const customInput = pop.querySelector(".field-popover-custom-input");
+    const customConfirmBtn = pop.querySelector("[data-recur-custom-confirm]");
+    function submitCustomRecur() {
+      const v = parseInt(customInput.value, 10);
+      if (isNaN(v) || v <= 0) return;
+      task.recurDays = Math.min(v, 3650);
+      saveAndRender();
+      _closeInlineRowPopover();
+    }
     if (customInput) {
       // Clic dentro del campo no debe cerrar el popover (el overlay
       // externo escucha mousedown en todo el documento).
@@ -3434,13 +3467,43 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       customInput.addEventListener("keydown", function(e) {
         if (e.key !== "Enter") return;
         e.preventDefault();
-        const v = parseInt(customInput.value, 10);
-        if (isNaN(v) || v <= 0) return;
-        task.recurDays = Math.min(v, 3650);
-        saveAndRender();
-        _closeInlineRowPopover();
+        submitCustomRecur();
       });
     }
+    if (customConfirmBtn) {
+      customConfirmBtn.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      customConfirmBtn.addEventListener("click", submitCustomRecur);
+    }
+    const titleInput = pop.querySelector(".field-popover-title-input");
+    const titleConfirmBtn = pop.querySelector("[data-title-confirm]");
+    if (titleInput) {
+      titleInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      function submitTitle() {
+        const clean = titleInput.value.trim().slice(0, 120);
+        if (!clean || clean === task.text) return;
+        task.text = clean;
+        saveAndRender();
+      }
+      titleInput.addEventListener("keydown", function(e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        submitTitle();
+        _closeInlineRowPopover();
+      });
+      titleInput.addEventListener("blur", submitTitle);
+      if (titleConfirmBtn) {
+        titleConfirmBtn.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+        titleConfirmBtn.addEventListener("click", function() {
+          submitTitle();
+          _closeInlineRowPopover();
+        });
+      }
+    }
+    const deleteTaskBtn = pop.querySelector("[data-delete-task]");
+    if (deleteTaskBtn) deleteTaskBtn.addEventListener("click", function() {
+      _closeInlineRowPopover();
+      deleteTaskWithUndo(task, project);
+    });
   }
   renderPop();
 
@@ -4292,7 +4355,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Volver a pulsar la fila abierta lo cierra.
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
-    if (simpleRow) { _openInlineDateRecurPopover(task, li); return; }
+    if (simpleRow) { _openInlineDateRecurPopover(task, li, project); return; }
     if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
     openTaskDetail(task.id, project.id);
   });

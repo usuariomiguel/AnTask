@@ -1763,7 +1763,7 @@ body {
    (chips de fecha y filas de repetir) con el mismo borde/radio/padding. */
 .field-popover-cols {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 2fr 1fr;
   gap: 10px;
   align-items: start;
 }
@@ -1795,9 +1795,59 @@ body {
   margin-left: auto;
 }
 
-.field-popover-row--clear {
-  background: color-mix(in srgb, var(--c-danger) 14%, transparent);
+.field-popover-row.field-popover-row--clear {
   color: var(--c-danger);
+}
+
+/* "Quitar" de fecha: debajo del calendario, no dentro de los chips de
+   arriba, para que quede claro que actúa sobre toda la fecha elegida
+   y no sobre un día del mes. Fuera de la columna de repetir, así que
+   no hereda el borde de `.field-popover-col--recur .field-popover-row`
+   — se repite aquí a mano para que se vea igual que el resto de botones. */
+.field-popover-row.field-popover-date-clear {
+  margin-top: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+}
+
+/* Título de la tarea, encima de las dos columnas — la única forma de
+   editarlo en el popover ligero del modo simple (sin panel de detalle).
+   El botón de confirmar es el mismo check que en "Nº días": un
+   <input type=text> tampoco tiene una forma obvia de "aceptar" en
+   móvil salvo Enter. */
+.field-popover-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.field-popover-title-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.field-popover-title-input:focus {
+  border-color: var(--c-primary-500);
+}
+
+/* "Eliminar tarea": separado del resto por un hueco mayor, para que no
+   se confunda con los botones "Quitar" (que solo limpian un campo). Vive
+   fuera de las columnas, así que el borde se repite a mano igual que en
+   .field-popover-date-clear. */
+.field-popover-row.field-popover-delete-task {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
 }
 
 .field-popover-row--clear .lucide {
@@ -1905,9 +1955,12 @@ body {
 
 /* 6ª celda de la rejilla de repetir: número de días a medida, con el
    mismo aspecto de fila que las 5 de al lado (ver
-   _openInlineDateRecurPopover en script.js). */
+   _openInlineDateRecurPopover en script.js). El botón de confirmar vive
+   dentro de la misma fila porque un <input type=number> no tiene forma
+   propia de "aceptar" salvo Enter, que en el teclado numérico de un
+   móvil no siempre aparece. */
 .field-popover-row--custom {
-  padding: 0;
+  cursor: default;
 }
 
 .field-popover-row--custom.active {
@@ -1915,17 +1968,41 @@ body {
 }
 
 .field-popover-custom-input {
-  width: 100%;
-  height: 100%;
+  flex: 1;
+  min-width: 0;
   border: none;
   background: none;
-  border-radius: 25px;
   font: inherit;
   font-size: 12.5px;
   color: var(--text-primary);
   /* Quita las flechitas de incremento — a este tamaño solo estorban. */
   appearance: textfield;
   -moz-appearance: textfield;
+}
+
+.field-popover-custom-confirm {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  min-width: 0;
+  padding: 0;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.field-popover-custom-confirm:hover {
+  color: var(--c-primary-300);
+  background: rgba(163, 179, 102, 0.14);
+}
+
+.field-popover-custom-confirm .lucide {
+  width: 13px;
+  height: 13px;
 }
 
 .field-popover-custom-input::-webkit-outer-spin-button,

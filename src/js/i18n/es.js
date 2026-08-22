@@ -217,6 +217,7 @@ export const es = {
   "detail.due_date":          "Fecha",
   "detail.no_date":           "Sin fecha",
   "detail.recur":             "Repetir",
+  "detail.delete_task":       "Eliminar tarea",
   "detail.no_recur":          "No se repite",
   "detail.reminder":          "Recordatorio",
   "detail.no_reminder":       "Sin recordatorio",
