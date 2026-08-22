@@ -5645,10 +5645,18 @@ body.project-dragging .project-item {
   }
 
   .task-item {
-    /* Móvil siempre fuerza "limpio" (ver _rowStyleEfectivo en script.js):
-       sin hueco entre filas, igual que limpio en escritorio. */
-    margin-bottom: 0;
+    /* El margin-bottom NO se toca aquí: ahora móvil respeta el estilo
+       real (tarjetas=3px de fábrica, limpio=0 vía su propio selector
+       [data-row-style="limpio"] .task-item, con más especificidad que
+       este) — antes esto lo forzaba a 0 siempre porque móvil solo
+       contemplaba "limpio" (ver _rowStyleEfectivo en script.js). */
     border-radius: var(--r-md);
+    /* El tope de 48px de escritorio (pensado para una sola línea) chocaba
+       con el min-height:78px de la fila con chips — min gana sobre max,
+       así que la fila SÍ medía 78, pero el contenido real (~80px) quedaba
+       2px corto y algo apretado. .today-item ya lo quitaba en móvil; aquí
+       faltaba la misma regla. */
+    max-height: none;
   }
 
   /* 78px solo cuando de verdad hay chips que pintar (medido con prioridad +
