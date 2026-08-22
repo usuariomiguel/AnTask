@@ -261,6 +261,7 @@ export const en = {
 
   // ── Recurrence ────────────────────────────────────────────
   "modal_recur.custom_placeholder": "Custom (days)",
+  "modal_recur.custom_short":       "# days",
   "recur.daily":              "Daily",
   "recur.every_2_days":       "Every 2 days",
   "recur.weekly":             "Weekly",

@@ -3239,22 +3239,31 @@ function _closeInlineRowPopover() {
 function _placeInlineRowPopover(pop, anchorEl) {
   const MARGIN = 8;
   const r      = anchorEl.getBoundingClientRect();
-  const width  = Math.min(280, window.innerWidth - MARGIN * 2);
+  // Mismo ancho que la propia fila (tarjeta) que lo abrió, no un ancho
+  // fijo aparte — así el popover se lee como una extensión de la fila,
+  // no como un cuadro flotante de otro tamaño.
+  const width  = Math.min(r.width, window.innerWidth - MARGIN * 2);
   pop.style.position  = "fixed";
   pop.style.width     = width + "px";
   pop.style.overflowY = "auto";
+  // Este popover trae un margin-top:8px de fábrica (pensado para su uso
+  // normal, anclado dentro de un campo) que aquí, con position:fixed,
+  // se suma por encima de `top` y separaba de más de la fila.
+  pop.style.margin    = "0";
   let left = Math.max(MARGIN, Math.min(r.left, window.innerWidth - width - MARGIN));
   pop.style.left  = left + "px";
   pop.style.right = "auto";
   const spaceBelow = window.innerHeight - r.bottom - MARGIN;
   const spaceAbove = r.top - MARGIN;
   const maxH       = Math.min(420, Math.max(spaceBelow, spaceAbove));
+  // 3px, el mismo hueco que separa una tarjeta de la siguiente — el
+  // popover se lee como si fuera una tarjeta más de la lista.
   if (spaceBelow >= Math.min(maxH, 380) || spaceBelow >= spaceAbove) {
-    pop.style.top = (r.bottom + 6) + "px";
+    pop.style.top = (r.bottom + 3) + "px";
     pop.style.bottom = "auto";
     pop.style.maxHeight = spaceBelow + "px";
   } else {
-    pop.style.bottom = (window.innerHeight - r.top + 6) + "px";
+    pop.style.bottom = (window.innerHeight - r.top + 3) + "px";
     pop.style.top = "auto";
     pop.style.maxHeight = spaceAbove + "px";
   }
@@ -3310,38 +3319,52 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       cellsHtml += '<span class="' + cls.join(" ") + '" data-day-iso="' + iso + '">' + day + '</span>';
     }
 
+    const isPresetRecur = task.recurDays != null && RECUR_PRESETS.some(function(p) { return p.days === task.recurDays; });
     const recurRows = RECUR_PRESETS.map(function(p) {
       const active = task.recurDays === p.days;
       return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-recur-days="' + p.days + '">' +
         '<span class="field-popover-row-label">' + p.label + '</span>' +
         (active ? '<i data-lucide="check"></i>' : "") +
       '</button>';
-    }).join("");
+    }).join("") +
+      // 6ª opción: número de días a medida, en la misma rejilla que los 5
+      // presets — no un campo aparte debajo.
+      '<label class="field-popover-row field-popover-row--custom' + (task.recurDays && !isPresetRecur ? " active" : "") + '">' +
+        '<input type="number" min="1" max="3650" class="field-popover-custom-input" inputmode="numeric"' +
+          ' placeholder="' + t("modal_recur.custom_short") + '" value="' + (task.recurDays && !isPresetRecur ? task.recurDays : "") + '" />' +
+      '</label>';
 
     pop.innerHTML =
-      '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
-      '<div class="field-popover-chips">' +
-        '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
-        '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
-        '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
-        (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
-      '</div>' +
-      '<div class="field-popover-cal-head">' +
-        '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
-        '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
-        '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
-      '</div>' +
-      '<div class="field-popover-cal-grid">' +
-        dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
-        cellsHtml +
-      '</div>' +
-      '<div class="field-popover-sep"></div>' +
-      '<div class="field-popover-section-label">' + t("detail.recur") + '</div>' +
-      '<div class="field-popover-list field-popover-list--2col">' + recurRows + '</div>' +
-      (task.recurDays ? '<div class="field-popover-sep"></div>' +
-        '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
-          '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
-        '</button>' : "");
+      '<div class="field-popover-cols">' +
+        '<div class="field-popover-col field-popover-col--date">' +
+          '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
+          '<div class="field-popover-chips">' +
+            '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
+            '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
+            '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
+            (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
+          '</div>' +
+          '<div class="field-popover-cal-head">' +
+            '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
+            '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
+            '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
+          '</div>' +
+          '<div class="field-popover-cal-grid">' +
+            dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
+            cellsHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="field-popover-col field-popover-col--recur">' +
+          '<div class="field-popover-list">' +
+            '<div class="field-popover-section-label">' + t("detail.recur") + '</div>' +
+            recurRows +
+          '</div>' +
+          (task.recurDays ? '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
+            '<i data-lucide="trash-2"></i>' +
+            '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
+          '</button>' : "") +
+        '</div>' +
+      '</div>';
 
     if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
 
@@ -3381,11 +3404,38 @@ function _openInlineDateRecurPopover(task, anchorEl) {
       saveAndRender();
       _closeInlineRowPopover();
     });
+    const customInput = pop.querySelector(".field-popover-custom-input");
+    if (customInput) {
+      // Clic dentro del campo no debe cerrar el popover (el overlay
+      // externo escucha mousedown en todo el documento).
+      customInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      customInput.addEventListener("keydown", function(e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const v = parseInt(customInput.value, 10);
+        if (isNaN(v) || v <= 0) return;
+        task.recurDays = Math.min(v, 3650);
+        saveAndRender();
+        _closeInlineRowPopover();
+      });
+    }
   }
   renderPop();
 
   document.body.appendChild(pop);
-  _placeInlineRowPopover(pop, anchorEl);
+  // anchorEl.getBoundingClientRect() justo tras abrir puede devolver un
+  // ancho transitorio de la fila (algún panel vecino con su propia
+  // transición de ancho de por medio) — ni un setTimeout(0) ni un rAF
+  // doble garantizan que ya se haya asentado. Un ResizeObserver reposiciona
+  // cada vez que el ancho real cambia, así que en cuanto se asiente el
+  // popover queda bien puesto solo, sin depender de un plazo adivinado.
+  let firstPlacement = true;
+  const ro = new ResizeObserver(function() {
+    _placeInlineRowPopover(pop, anchorEl);
+    if (firstPlacement) { firstPlacement = false; pop.style.visibility = ""; }
+  });
+  pop.style.visibility = "hidden";
+  ro.observe(anchorEl);
 
   const onDoc = function(e) { if (!anchorEl.contains(e.target) && !pop.contains(e.target)) _closeInlineRowPopover(); };
   const onEsc = function(e) { if (e.key === "Escape") { e.stopPropagation(); _closeInlineRowPopover(); } };
@@ -3397,6 +3447,7 @@ function _openInlineDateRecurPopover(task, anchorEl) {
   _inlineRowPopoverEl      = pop;
   _inlineRowPopoverTaskId  = task.id;
   _inlineRowPopoverCleanup = function() {
+    ro.disconnect();
     document.removeEventListener("mousedown", onDoc, true);
     document.removeEventListener("keydown", onEsc, true);
   };

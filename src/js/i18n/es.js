@@ -261,6 +261,7 @@ export const es = {
 
   // ── Recurrencia ───────────────────────────────────────────
   "modal_recur.custom_placeholder": "Personalizado (días)",
+  "modal_recur.custom_short":       "Nº días",
   "recur.daily":              "Diario",
   "recur.every_2_days":       "Cada 2 días",
   "recur.weekly":             "Semanal",

@@ -1709,7 +1709,7 @@ body {
   border: 1px solid var(--border-default);
   border-radius: calc(var(--r-md) + 3px);
   box-shadow: 0 18px 44px -10px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
-  padding: 6px;
+  padding: 12px;
   animation: fieldPopoverIn 0.14s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -1741,7 +1741,7 @@ body {
 .field-popover-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 3px;
   margin-bottom: 6px;
 }
 
@@ -1752,8 +1752,37 @@ body {
   font-weight: 650;
   cursor: pointer;
   border: 1px solid var(--border-default);
-  background: transparent;
+  background: var(--surface-card);
   color: var(--text-secondary);
+}
+
+/* Popover fecha+repetir de la fila (modo simple, ver
+   _openInlineDateRecurPopover en script.js): dos columnas — fecha a la
+   izquierda (más ancha, para el calendario) y repetir a la derecha (una
+   sola columna de opciones, no una rejilla). Todos los botones de dentro
+   (chips de fecha y filas de repetir) con el mismo borde/radio/padding. */
+.field-popover-cols {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.field-popover-col--recur {
+  border-left: 1px solid var(--border-default);
+  padding-left: 10px;
+  height: 100%;
+  display: grid;
+  align-content: space-between;
+}
+
+.field-popover-col--date .field-popover-chip {
+  padding: 6px;
+}
+
+.field-popover-col--recur .field-popover-row {
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
 }
 
 .field-popover-chip.active {
@@ -1767,7 +1796,14 @@ body {
 }
 
 .field-popover-row--clear {
-  color: var(--text-tertiary);
+  background: color-mix(in srgb, var(--c-danger) 14%, transparent);
+  color: var(--c-danger);
+}
+
+.field-popover-row--clear .lucide {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 .field-popover-cal-head {
@@ -1866,14 +1902,45 @@ body {
   overflow-y: auto;
 }
 
-/* Repetir en el popover fecha+repetir de la fila (modo simple, ver
-   _openInlineDateRecurPopover en script.js): 5 opciones caben mejor en
-   2 columnas que en una lista vertical larga. Solo este uso — el resto
-   de listas (.field-popover-list a secas: selector de lista, presets del
-   panel de detalle) se quedan en una columna. */
-.field-popover-list--2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+
+/* 6ª celda de la rejilla de repetir: número de días a medida, con el
+   mismo aspecto de fila que las 5 de al lado (ver
+   _openInlineDateRecurPopover en script.js). */
+.field-popover-row--custom {
+  padding: 0;
+}
+
+.field-popover-row--custom.active {
+  background: rgba(163, 179, 102, 0.14);
+}
+
+.field-popover-custom-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  border-radius: 25px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  /* Quita las flechitas de incremento — a este tamaño solo estorban. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.field-popover-custom-input::-webkit-outer-spin-button,
+.field-popover-custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.field-popover-custom-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.field-popover-custom-input:focus {
+  outline: none;
+  background: var(--surface-input);
 }
 
 .field-popover-row {
@@ -1886,7 +1953,7 @@ body {
   font-weight: 450;
   cursor: pointer;
   color: var(--text-secondary);
-  background: transparent;
+  background: var(--surface-card);
   border: none;
   text-align: left;
   width: 100%;
@@ -9570,7 +9637,6 @@ button {
 
 .hoy-quickadd:focus-within {
   border-color: var(--c-primary-500);
-  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
 .hoy-quickadd-ico {
