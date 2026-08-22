@@ -2349,11 +2349,14 @@ function renderTasks() {
 
   // El Inbox del prototipo muestra TODO el pool: sus propias tareas
   // ("Sin lista") más las de cada proyecto, agrupadas por proyecto.
+  // En modo simple (móvil) no existen otras listas — aunque el usuario
+  // tenga alguna de antes (creada en modo completo), el Inbox no las
+  // trae aquí: solo enseña las tareas que son literalmente del Inbox.
   const isInbox = project.id === INBOX_ID;
   let items = getVisibleTasks(project).map(function(tk) {
     return { task: tk, project: project };
   });
-  if (isInbox) {
+  if (isInbox && !isSimpleMobile()) {
     projects.forEach(function(p) {
       if (p.id === INBOX_ID || p.archived) return;
       getVisibleTasks(p).forEach(function(tk) {
