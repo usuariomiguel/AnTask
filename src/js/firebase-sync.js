@@ -26,7 +26,9 @@
 
 import { initializeApp } from "firebase/app";
 import {
-  getAuth,
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserPopupRedirectResolver,
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
@@ -34,6 +36,7 @@ import {
   signOut as fbSignOut,
   onAuthStateChanged,
 } from "firebase/auth";
+import { modalAlert } from "./ui/modal.js";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -63,7 +66,22 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
   let app, auth, db;
   try {
     app  = initializeApp(firebaseConfig);
-    auth = getAuth(app);
+    // IndexedDB en vez de la persistencia por defecto (localStorage):
+    // en la PWA instalada en iOS ("añadir a pantalla de inicio"), el
+    // viaje de ida y vuelta a accounts.google.com de signInWithRedirect
+    // pierde a veces el estado guardado en localStorage —Safari lo
+    // aísla de forma más agresiva ahí que en una pestaña normal—, así
+    // que getRedirectResult() volvía sin usuario y sin error: el login
+    // se completaba en Google pero, al volver, la app no tenía ni idea
+    // de que había pasado nada. IndexedDB sobrevive a ese viaje con más
+    // fiabilidad. Es la mitigación que recomienda la propia documentación
+    // de Firebase para este caso — no hay garantía absoluta (es una
+    // limitación de la plataforma, no solo de esta app), pero es la
+    // que mejor resultado da.
+    auth = initializeAuth(app, {
+      persistence: indexedDBLocalPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
     // Persistencia offline con soporte multi-tab. Si falla (ej. modo
     // incógnito sin IndexedDB), Firestore sigue funcionando en memoria.
     db   = initializeFirestore(app, {
@@ -161,12 +179,43 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         _onRemoteChange = onRemoteChange;
         _onAuthChange   = onAuthChange;
         _onFirstConnect = onFirstConnect;
+        // ¿Veníamos de un signInWithRedirect? La marca la deja signIn()
+        // justo antes de salir hacia Google, en sessionStorage (no
+        // localStorage: solo debe importar el viaje de ida y vuelta
+        // actual, no quedarse pegada para siempre). Se limpia aquí, se
+        // haya completado el login o no.
+        var vinoDeRedirect = false;
+        try {
+          vinoDeRedirect = sessionStorage.getItem("antask-redirect-pending") === "1";
+          sessionStorage.removeItem("antask-redirect-pending");
+        } catch (e) { /* sessionStorage bloqueado: sin aviso, no rompe nada */ }
+
         // Recoge el resultado si veníamos de un signInWithRedirect — sin
         // esto, un error del redirect (dominio no autorizado, etc.) se
         // perdía en silencio: onAuthStateChanged solo avisa de logins que
-        // SÍ cuajan, nunca de por qué uno ha fallado.
-        getRedirectResult(auth).catch(function (err) {
+        // SÍ cuajan, nunca de por qué uno ha fallado. Antes solo se
+        // registraba en consola: en la PWA instalada, quien vuelve de
+        // Google tras un fallo no ve nada — "no me deja loguearme" sin
+        // ninguna pista de por qué. Mismo mapeo de mensajes que el
+        // catch de signIn() en sections-and-profile.js.
+        getRedirectResult(auth).then(function (result) {
+          // En iOS, la PWA instalada a veces pierde el estado del login
+          // durante el viaje a Google y de vuelta (ver el comentario en
+          // initializeAuth más arriba): ni error ni usuario, solo `null`,
+          // aunque el login se completara en Google con normalidad. Sin
+          // esta comprobación, quien vuelve de un redirect real se
+          // queda mirando la app sin ningún indicio de qué ha pasado.
+          if (!result && vinoDeRedirect) {
+            modalAlert("No se ha podido completar el inicio de sesión al volver de Google. Es un problema conocido de las apps instaladas en iOS — inténtalo de nuevo; si persiste, prueba a iniciar sesión desde Safari en vez de la app instalada.", "error");
+          }
+        }).catch(function (err) {
           console.warn("AnsoSync: error en el resultado del redirect de login:", err);
+          var msg = err.code === "auth/unauthorized-domain"
+            ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+            : err.code === "auth/user-cancelled" || err.code === "auth/cancelled-popup-request"
+            ? null // el usuario canceló a propósito, sin aviso
+            : "Error al iniciar sesión: " + (err.message || err.code);
+          if (msg) modalAlert(msg, "error");
         });
         onAuthStateChanged(auth, function (user) {
           _user = user;
@@ -195,6 +244,11 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           // se enteraba nunca. Se marca ANTES de salir; si el login se
           // cancela, onAuthStateChanged(null) la retira sola al volver.
           markSyncEnabled();
+          // Marca aparte (sessionStorage, no localStorage) para detectar
+          // el caso "resultado nulo silencioso" en init(): si getRedirectResult()
+          // vuelve sin usuario y sin error pero esta marca sigue puesta, es que
+          // el redirect se completó en Google y la app perdió el estado al volver.
+          try { sessionStorage.setItem("antask-redirect-pending", "1"); } catch (e) {}
           return signInWithRedirect(auth, provider);
         }
         return signInWithPopup(auth, provider);
