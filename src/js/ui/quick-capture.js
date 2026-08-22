@@ -12,9 +12,10 @@
 import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
 import { parseNaturalLanguage } from "../utils/nl-parse.js";
-import { buildNLChipsHTML, formatRecurLabel } from "../utils/nl-chips.js";
+import { buildNLChipsHTML, formatRecurLabel, formatDueLabel } from "../utils/nl-chips.js";
 import { t } from "../i18n/index.js";
 import { projectColor } from "../utils/project-color.js";
+import { isSimpleMobile } from "./mode.js";
 
 let _isOpen = false;
 
@@ -44,11 +45,18 @@ export function isQuickCaptureOpen() {
   return _isOpen;
 }
 
-/** ISO YYYY-MM-DD en hora local para "hoy" / "mañana". */
+/** ISO YYYY-MM-DD en hora local para "hoy" / "mañana" / fecha explícita. */
 function _dueKeyToISO(key) {
   if (!key) return null;
+  // Ya es una fecha explícita en ISO (elegida a mano en el calendario).
+  if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return key;
   const d = new Date();
   if (key === "manana") d.setDate(d.getDate() + 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+/** ISO YYYY-MM-DD en hora local, para construir el calendario. */
+function _localISO(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
@@ -86,7 +94,10 @@ export function showQuickCapture(deps) {
     return;
   }
 
-  const lists = (typeof deps.getLists === "function" ? deps.getLists() : []) || [];
+  const lists  = (typeof deps.getLists === "function" ? deps.getLists() : []) || [];
+  // El modo simple es solo para móvil — en escritorio esta captura rápida
+  // se muestra siempre completa, sin importar el flag.
+  const simple = isSimpleMobile();
 
   const { overlay, box } = createModalBase();
   overlay.classList.add("modal-overlay--top");
@@ -114,23 +125,32 @@ export function showQuickCapture(deps) {
       ' placeholder="' + t("quick_capture.placeholder") + '" />' +
     '<div class="quick-capture-preview nl-preview" hidden></div>' +
     '<div class="quick-capture-chips">' +
-      '<button type="button" class="qc-chip" data-due="hoy"><i data-lucide="sun"></i>' + t("date.today") + '</button>' +
-      '<button type="button" class="qc-chip" data-due="manana"><i data-lucide="calendar"></i>' + t("date.tomorrow") + '</button>' +
-      '<span class="qc-chip-sep"></span>' +
-      // Ya no hay niveles: un único chip que marca "importante" (bandera roja).
-      '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><i data-lucide="flag"></i>' + t("detail.priority_important") + '</button>' +
+      '<div class="qc-date-picker">' +
+        '<button type="button" class="qc-chip qc-date-trigger" aria-expanded="false" aria-haspopup="dialog">' +
+          '<i data-lucide="calendar"></i><span class="qc-date-label">' + t("detail.due_date") + '</span>' +
+        '</button>' +
+      '</div>' +
+      // Prioridad: solo en modo completo — el simple se limita a fecha/repetir.
+      (simple ? "" :
+        '<span class="qc-chip-sep"></span>' +
+        // Ya no hay niveles: un único chip que marca "importante" (bandera roja).
+        '<button type="button" class="qc-chip qc-chip--high" data-prio="high"><i data-lucide="flag"></i>' + t("detail.priority_important") + '</button>'
+      ) +
       '<span class="qc-chip-sep"></span>' +
       '<div class="qc-recur-picker">' +
         '<button type="button" class="qc-chip qc-recur-trigger" aria-expanded="false" aria-haspopup="listbox">' +
           '<i data-lucide="repeat"></i><span class="qc-recur-label">' + t("detail.recur") + '</span>' +
         '</button>' +
       '</div>' +
-      '<span class="qc-chip-sep"></span>' +
-      '<div class="qc-list-picker">' +
-        '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +
-          '<span class="qc-list-dot"></span><span class="qc-list-label"></span><i data-lucide="chevron-down" class="qc-list-caret"></i>' +
-        '</button>' +
-      '</div>' +
+      // Selector de lista: solo en modo completo.
+      (simple ? "" :
+        '<span class="qc-chip-sep"></span>' +
+        '<div class="qc-list-picker">' +
+          '<button type="button" class="qc-chip qc-list-trigger" aria-expanded="false" aria-haspopup="listbox">' +
+            '<span class="qc-list-dot"></span><span class="qc-list-label"></span><i data-lucide="chevron-down" class="qc-list-caret"></i>' +
+          '</button>' +
+        '</div>'
+      ) +
     '</div>' +
     '<div class="quick-capture-footer">' +
       // Solo visible en móvil: en la hoja deslizante el aspa de la cabecera
@@ -138,7 +158,7 @@ export function showQuickCapture(deps) {
       '<button type="button" class="quick-capture-cancel">' + t("modal.cancel") + '</button>' +
       '<span class="quick-capture-hint">' +
         '<span class="qc-hint-word">' + t("quick_capture.hint_type") + '</span>' +
-        '<code>hoy</code><code>#lista</code><code>p1</code>' +
+        (simple ? '<code>hoy</code><code>cada 2 días</code>' : '<code>hoy</code><code>#lista</code><code>p1</code>') +
         '<span class="qc-hint-word">' + t("quick_capture.hint_autocomplete") + '</span>' +
       '</span>' +
       '<span class="quick-capture-spacer"></span>' +
@@ -152,7 +172,8 @@ export function showQuickCapture(deps) {
 
   const input        = box.querySelector(".quick-capture-input");
   const preview      = box.querySelector(".quick-capture-preview");
-  const dueBtns      = box.querySelectorAll("[data-due]");
+  const dateTrigger  = box.querySelector(".qc-date-trigger");
+  const dateLabel    = box.querySelector(".qc-date-label");
   const prioBtns     = box.querySelectorAll("[data-prio]");
   const recurTrigger = box.querySelector(".qc-recur-trigger");
   const recurLabel   = box.querySelector(".qc-recur-label");
@@ -160,11 +181,109 @@ export function showQuickCapture(deps) {
   const listTrigger  = box.querySelector(".qc-list-trigger");
   const listLabel    = box.querySelector(".qc-list-label");
   const submitBtn    = box.querySelector(".quick-capture-submit");
+  let   datePopoverEl  = null;
   let   recurPopoverEl = null;
-  let   listPopoverEl = null;
+  let   listPopoverEl  = null;
 
   function findList(id) {
     return lists.find(function (p) { return p.id === id; }) || project;
+  }
+
+  function closeDatePopover() {
+    if (!datePopoverEl) return;
+    datePopoverEl.remove();
+    datePopoverEl = null;
+    dateTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  function openDatePopover() {
+    closeDatePopover();
+    dateTrigger.setAttribute("aria-expanded", "true");
+
+    const currentISO = dueOverride != null
+      ? _dueKeyToISO(dueOverride)
+      : parseNaturalLanguage(input.value).dueDate;
+    const init = currentISO ? new Date(currentISO + "T00:00") : new Date();
+    let vy = init.getFullYear();
+    let vm = init.getMonth();
+
+    const pop = document.createElement("div");
+    pop.className = "field-popover field-popover--fixed";
+
+    function renderCal() {
+      const todayISO    = _localISO(new Date());
+      const tomorrow    = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowISO = _localISO(tomorrow);
+      const inWeek      = new Date(); inWeek.setDate(inWeek.getDate() + 7);
+      const inWeekISO   = _localISO(inWeek);
+      const first       = new Date(vy, vm, 1);
+      const monthTitle  = first.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+      const offset      = (first.getDay() + 6) % 7; // lunes = 0
+      const nDays       = new Date(vy, vm + 1, 0).getDate();
+      const mondayRef   = new Date(2024, 0, 1);
+      const dowNames    = Array.from({ length: 7 }, function (_, i) {
+        const d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
+        return d.toLocaleDateString("es-ES", { weekday: "narrow" }).toUpperCase();
+      });
+
+      let cellsHtml = "";
+      for (let i = 0; i < offset; i++) cellsHtml += '<span class="field-popover-cal-empty">·</span>';
+      for (let day = 1; day <= nDays; day++) {
+        const iso = vy + "-" + String(vm + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        const cls = ["field-popover-cal-day"];
+        if (iso === currentISO) cls.push("field-popover-cal-day--selected");
+        else if (iso === todayISO) cls.push("field-popover-cal-day--today");
+        cellsHtml += '<span class="' + cls.join(" ") + '" data-day-iso="' + iso + '">' + day + '</span>';
+      }
+
+      pop.innerHTML =
+        '<div class="field-popover-chips">' +
+          '<button type="button" class="field-popover-chip' + (currentISO === todayISO ? " active" : "") + '" data-quick="hoy">' + t("date.today") + '</button>' +
+          '<button type="button" class="field-popover-chip' + (currentISO === tomorrowISO ? " active" : "") + '" data-quick="manana">' + t("date.tomorrow") + '</button>' +
+          '<button type="button" class="field-popover-chip' + (currentISO === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
+          (dueOverride != null ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
+        '</div>' +
+        '<div class="field-popover-cal-head">' +
+          '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
+          '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
+          '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
+        '</div>' +
+        '<div class="field-popover-cal-grid">' +
+          dowNames.map(function (d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
+          cellsHtml +
+        '</div>';
+
+      if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+
+      pop.querySelector('[data-cal-nav="-1"]').addEventListener("click", function () {
+        vm--; if (vm < 0) { vm = 11; vy--; }
+        renderCal();
+      });
+      pop.querySelector('[data-cal-nav="1"]').addEventListener("click", function () {
+        vm++; if (vm > 11) { vm = 0; vy++; }
+        renderCal();
+      });
+      pop.querySelectorAll("[data-quick]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const q = btn.dataset.quick;
+          dueOverride = q === "hoy" ? "hoy" : q === "manana" ? "manana" : q === "week" ? inWeekISO : null;
+          closeDatePopover();
+          render();
+        });
+      });
+      pop.querySelectorAll("[data-day-iso]").forEach(function (el) {
+        el.addEventListener("click", function () {
+          dueOverride = el.dataset.dayIso;
+          closeDatePopover();
+          render();
+        });
+      });
+    }
+    renderCal();
+
+    document.body.appendChild(pop);
+    _placeFixedPopover(pop, dateTrigger);
+    datePopoverEl = pop;
   }
 
   function closeListPopover() {
@@ -242,9 +361,16 @@ export function showQuickCapture(deps) {
     }
   }
 
-  listTrigger.addEventListener("click", function () {
-    if (listPopoverEl) closeListPopover();
-    else openListPopover();
+  if (listTrigger) {
+    listTrigger.addEventListener("click", function () {
+      if (listPopoverEl) closeListPopover();
+      else openListPopover();
+    });
+  }
+
+  dateTrigger.addEventListener("click", function () {
+    if (datePopoverEl) closeDatePopover();
+    else openDatePopover();
   });
 
   // Mismos presets que el popover de repetición del panel de detalle
@@ -313,7 +439,7 @@ export function showQuickCapture(deps) {
 
   function render() {
     const raw = input.value;
-    const hashMatch = _detectHashList(raw, lists);
+    const hashMatch = simple ? null : _detectHashList(raw, lists);
 
     if (!manualPick) selectedId = hashMatch ? hashMatch.project.id : project.id;
     const resolved = findList(selectedId);
@@ -325,7 +451,7 @@ export function showQuickCapture(deps) {
     if (hashMatch && manualPick) {
       chips.push('<span class="nl-chip nl-chip-list"><span class="nl-chip-hash">#</span>' + escHtml(hashMatch.project.name) + '</span>');
     }
-    if (parsed.priority && !prioOverride) chips.push(buildNLChipsHTML({ priority: parsed.priority })[0]);
+    if (!simple && parsed.priority && !prioOverride) chips.push(buildNLChipsHTML({ priority: parsed.priority })[0]);
     if (parsed.recurDays && recurOverride == null) chips.push(buildNLChipsHTML({ recurDays: parsed.recurDays })[0]);
     if (chips.length) {
       preview.hidden = false;
@@ -338,29 +464,26 @@ export function showQuickCapture(deps) {
 
     const finalPrio  = prioOverride || parsed.priority;
     const finalRecur = recurOverride != null ? recurOverride : parsed.recurDays;
-    dueBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.due === dueOverride); });
+    const finalDue   = dueOverride != null ? _dueKeyToISO(dueOverride) : parsed.dueDate;
+    dateTrigger.classList.toggle("active", !!finalDue);
+    dateLabel.textContent = finalDue ? formatDueLabel(finalDue) : t("detail.due_date");
     prioBtns.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.prio === finalPrio); });
     recurTrigger.classList.toggle("active", !!finalRecur);
     recurLabel.textContent = finalRecur ? formatRecurLabel(finalRecur) : t("detail.recur");
 
-    listLabel.textContent = resolved.name;
-    listTrigger.classList.add("active");
-    // El color es el mismo que en cualquier otro sitio de la app (chip de
-    // lista, punto de grupo…) — Inbox incluido, con el acento del tema en
-    // vez de un ámbar aparte que no pegaba con el resto de la paleta.
-    listTrigger.style.setProperty("--dot-color", projectColor(resolved));
+    if (listLabel) listLabel.textContent = resolved.name;
+    if (listTrigger) {
+      listTrigger.classList.add("active");
+      // El color es el mismo que en cualquier otro sitio de la app (chip de
+      // lista, punto de grupo…) — Inbox incluido, con el acento del tema en
+      // vez de un ámbar aparte que no pegaba con el resto de la paleta.
+      listTrigger.style.setProperty("--dot-color", projectColor(resolved));
+    }
 
     submitBtn.disabled = raw.trim().length === 0;
   }
 
   input.addEventListener("input", render);
-  dueBtns.forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const key = btn.dataset.due;
-      dueOverride = dueOverride === key ? null : key;
-      render();
-    });
-  });
   prioBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
       const p = btn.dataset.prio;
@@ -374,9 +497,10 @@ export function showQuickCapture(deps) {
   function close() {
     _isOpen = false;
     document.removeEventListener("mousedown", onDocMouseDown, true);
-    // Los popovers de lista y repetición ya no viven dentro de `box` (ver
-    // openListPopover/openRecurPopover), así que cerrar el modal no se
-    // los lleva por delante solos.
+    // Los popovers de fecha/lista/repetición ya no viven dentro de `box`
+    // (ver openDatePopover/openListPopover/openRecurPopover), así que
+    // cerrar el modal no se los lleva por delante solos.
+    closeDatePopover();
     closeListPopover();
     closeRecurPopover();
     closeModal(overlay);
@@ -393,7 +517,7 @@ export function showQuickCapture(deps) {
       input.focus();
       return;
     }
-    const hashMatch = _detectHashList(raw, lists);
+    const hashMatch = simple ? null : _detectHashList(raw, lists);
     const text = hashMatch ? _stripRange(raw, hashMatch.start, hashMatch.end) : raw;
     const targetProject = findList(selectedId);
     const overrides = {};
@@ -424,15 +548,20 @@ export function showQuickCapture(deps) {
       submit();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      if (listPopoverEl) closeListPopover();
+      if (datePopoverEl) closeDatePopover();
+      else if (listPopoverEl) closeListPopover();
       else close();
     }
   });
 
   function onDocMouseDown(e) {
-    // Los popovers ya no cuelgan de su disparador (ver openListPopover/
-    // openRecurPopover: van en `document.body` con `position: fixed`),
-    // así que un clic dentro de ellos también cuenta como "dentro".
+    // Los popovers ya no cuelgan de su disparador (ver openDatePopover/
+    // openListPopover/openRecurPopover: van en `document.body` con
+    // `position: fixed`), así que un clic dentro de ellos también cuenta
+    // como "dentro".
+    if (datePopoverEl && !dateTrigger.contains(e.target) && !datePopoverEl.contains(e.target)) {
+      closeDatePopover();
+    }
     if (listPopoverEl && !listPicker.contains(e.target) && !listPopoverEl.contains(e.target)) {
       closeListPopover();
     }

@@ -26,6 +26,7 @@ import {
   PROFILE_KEY,
   ROW_STYLE_KEY,
   TWO_COLUMNS_KEY,
+  MODE_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -74,6 +75,7 @@ import {
   ACCENT_KEY,
 } from "./ui/theme.js";
 import { renderCalendar as _renderCalendarModule } from "./ui/calendar.js";
+import { initializeMode, setMode, isSimpleMode, isSimpleMobile } from "./ui/mode.js";
 
 /** Wrapper local que inyecta el estado actual al módulo de calendario. */
 function renderCalendar() {
@@ -101,6 +103,12 @@ function openGlobalSearch() {
 // Lo expone también vía window porque el inline script de
 // index.html (bottom-nav móvil) usa esa referencia global.
 window.showGlobalSearch = openGlobalSearch;
+// El script inline de index.html (barra inferior/header móvil) necesita
+// saber el modo para des-ocultar sus botones — `[hidden] { display: none
+// !important }` es global, así que un `hidden=false` en JS es la única
+// forma de mostrarlos, un simple override CSS por especificidad no basta.
+window.isSimpleMode = isSimpleMode;
+window.setMode = setMode;
 
 /**
  * Abre la captura rápida. Detecta proyecto destino:
@@ -308,6 +316,8 @@ let currentRowStyle = (function() {
  * escritorio.
  */
 function _rowStyleEfectivo() {
+  // El modo simple es solo móvil, y en móvil ya se fuerza "limpio" siempre
+  // (con o sin modo simple) — nada que añadir aquí.
   return window.matchMedia("(max-width: 768px)").matches ? "limpio" : currentRowStyle;
 }
 
@@ -879,7 +889,9 @@ function _renderNLPreview(rawText) {
   }
 
   const p = parseNaturalLanguage(rawText);
-  const chips = buildNLChipsHTML(p);
+  // En modo simple no se reconoce prioridad por texto ("p1"): la tarea
+  // se queda solo con fecha/repetición, así que tampoco se previsualiza.
+  const chips = buildNLChipsHTML(isSimpleMobile() ? { dueDate: p.dueDate, recurDays: p.recurDays } : p);
 
   if (chips.length === 0) {
     el.hidden = true;
@@ -919,12 +931,17 @@ function _createTaskInProject(project, rawText, overrides) {
   const text = capitalizeFirst(parsed.text).slice(0, 120);
   if (!text) return null;
 
+  // En modo simple no se reconoce prioridad por texto ("p1") — solo
+  // fecha/repetición. Un `overrides.priority` explícito (p.ej. desde el
+  // detalle en modo completo) sigue respetándose.
+  const nlPriority = isSimpleMobile() ? null : parsed.priority;
+
   const task = {
     id:         generateId(),
     text:       text,
     comment:    "",
     done:       false,
-    priority:   overrides.priority || parsed.priority || null,
+    priority:   overrides.priority || nlPriority || null,
     dueDate:    overrides.dueDate || parsed.dueDate || null,
     recurDays:  overrides.recurDays || parsed.recurDays || null,
     reminderAt: null,
@@ -1405,6 +1422,7 @@ window.addEventListener("storage", function(event) {
   }
   if (event.key === THEME_KEY) initializeTheme();
   if (event.key === ACCENT_KEY) initializeAccent();
+  if (event.key === MODE_KEY) initializeMode();
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -2352,12 +2370,16 @@ function renderTasks() {
   // Agrupar el Inbox por proyecto (las "listas" del prototipo): cada
   // proyecto es un grupo con cabecera y punto en su color; las tareas
   // del propio Inbox van al final bajo "Sin lista".
+  // En modo simple (móvil) no hay concepto de listas propias — aunque
+  // existan de antes (creadas en modo completo), el Inbox las funde en
+  // una sola lista plana sin cabeceras, para no reintroducir por la
+  // puerta de atrás algo que el resto de la UI ya oculta.
   let inboxGroups = null;
   // Se agrupa con cualquier filtro salvo «done»: la lista de aquí son las
   // pendientes, así que los filtros nuevos (vencidas, hoy, sin fecha…) se
   // agrupan igual de bien. Antes se enumeraban los filtros permitidos, lo que
   // habría dejado los nuevos sin agrupar sin ningún motivo.
-  if (isInbox && currentFilter !== "done") {
+  if (isInbox && currentFilter !== "done" && !isSimpleMobile()) {
     const byProj = new Map();
     pendingItems.forEach(function(it) {
       const k = it.project.id;
@@ -2677,46 +2699,26 @@ function _updateTaskNode(node, task) {
     // Preferencias de detalles visibles: cambiarlas desde el modal debe
     // repintar los chips aunque la tarea en sí no haya cambiado.
     taskPrefs.showPriority, taskPrefs.showReminder, taskPrefs.showList, taskPrefs.showRecur,
+    isSimpleMobile(),
   ].join("|");
   if (node._firmaChips !== firmaChips) {
     node._firmaChips = firmaChips;
-    if (taskPrefs.showPriority === false) node.querySelector(".task-priority-container").innerHTML = "";
+    // Modo simple (móvil): solo fecha y repetir son campos reales — prioridad,
+    // recordatorio y lista se quedan ocultos pase lo que pase en las prefs
+    // (que además ni se pueden tocar: su botón está oculto, ver style.css).
+    var simpleRow = isSimpleMobile();
+    if (simpleRow || taskPrefs.showPriority === false) node.querySelector(".task-priority-container").innerHTML = "";
     else renderPriorityBadge(task, node.querySelector(".task-priority-container"));
-    if (taskPrefs.showReminder === false) node.querySelector(".task-reminder-container").innerHTML = "";
+    if (simpleRow || taskPrefs.showReminder === false) node.querySelector(".task-reminder-container").innerHTML = "";
     else renderReminderBadge(task, node.querySelector(".task-reminder-container"));
     // La etiqueta de lista solo aparece si la fila no cuelga de una cabecera
     // de grupo que ya la nombre (lo decide _buildTaskNode y queda en el nodo).
-    if (taskPrefs.showList === false) node.querySelector(".task-list-container").innerHTML = "";
+    if (simpleRow || taskPrefs.showList === false) node.querySelector(".task-list-container").innerHTML = "";
     else renderListBadge(node._showList ? node._project : null,
                     node.querySelector(".task-list-container"));
     renderDueBadge(task, node.querySelector(".task-due-container"));
-    if (taskPrefs.showRecur === false) node.querySelector(".task-recur-container").innerHTML = "";
+    if (!simpleRow && taskPrefs.showRecur === false) node.querySelector(".task-recur-container").innerHTML = "";
     else renderRecurBadge(task, node.querySelector(".task-recur-container"));
-    // Sin ningún chip la fila quedaba con un hueco muerto (y, en móvil,
-    // más baja que sus vecinas antes del min-height). Un chip punteado
-    // ocupa ese espacio y, de paso, es la pista de que se puede tocar la
-    // fila para añadir fecha/prioridad — sin eso no era obvio en móvil.
-    // El Inbox agrupado pasa `_showList = true` a TODAS las filas (para
-    // que CSS decida si se ve, según la cabecera de grupo lo diga ya),
-    // así que ahí nunca cuenta como "hay contenido" aunque el flag esté
-    // a true — el chip de lista real está oculto por `.task-list--grupos
-    // .task-list-container { display: none }`.
-    const listaVisible = node._showList && node._project &&
-                          !taskList.classList.contains("task-list--grupos");
-    // La fecha NO cuenta como "hay algo": vive en su propia columna, a la
-    // derecha, y no ocupa la fila de chips — una tarea con solo fecha
-    // seguía dejando ese hueco vacío abajo a la izquierda.
-    const sinNada = !task.priority && !task.recurDays && !listaVisible;
-    const chipsBox = node.querySelector(".task-chips");
-    let hint = chipsBox.querySelector(".task-chips-empty-hint");
-    if (sinNada && !hint) {
-      hint = document.createElement("span");
-      hint.className = "task-chips-empty-hint";
-      hint.textContent = t("task.add_details_hint");
-      chipsBox.appendChild(hint);
-    } else if (!sinNada && hint) {
-      hint.remove();
-    }
   }
 
   // El panel de detalle (columna derecha) sustituye a la expansión en la
@@ -2845,6 +2847,9 @@ function _buildTaskNode(task, project, showList) {
         return;
       }
       if (e.target.closest("input")) return;
+      // Modo simple: la fila no tiene panel de detalle — se edita fecha y
+      // repetir en el sitio, con un popover ligero anclado a la propia fila.
+      if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node); return; }
       if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
       openTaskDetail(task.id, project.id);
     });
@@ -2854,6 +2859,7 @@ function _buildTaskNode(task, project, showList) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         if (selectMode) { toggleTaskSelection(task.id, node); return; }
+        if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node); return; }
         // Alterna, como el clic y como anuncia el modal de atajos.
         if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
         openTaskDetail(task.id, project.id);
@@ -3203,6 +3209,194 @@ function _openRecurPopover(fieldEl, anchorBtn) {
       close();
     });
   });
+}
+
+// ─── POPOVER DE FILA (modo simple) ──────────────────────────
+// En modo simple, tocar una fila no abre el panel de detalle completo:
+// abre este popover ligero, anclado a la propia fila, con solo fecha y
+// repetir — los dos únicos campos que ese modo expone. Reutiliza el
+// mismo calendario/presets que _openDatePopover/_openRecurPopover, pero
+// anclado con `position: fixed` (como en quick-capture.js) en vez de
+// depender del panel de detalle, y cierra tras cada elección — igual
+// que el resto de popovers de campo de esta sección.
+let _inlineRowPopoverEl     = null;
+let _inlineRowPopoverTaskId = null;
+let _inlineRowPopoverCleanup = null;
+
+function _closeInlineRowPopover() {
+  if (!_inlineRowPopoverEl) return;
+  if (_inlineRowPopoverCleanup) _inlineRowPopoverCleanup();
+  _inlineRowPopoverEl.remove();
+  _inlineRowPopoverEl = null;
+  _inlineRowPopoverTaskId = null;
+  _inlineRowPopoverCleanup = null;
+}
+
+/** Coloca un popover `position: fixed` bajo (o, si no cabe, sobre) la fila. */
+function _placeInlineRowPopover(pop, anchorEl) {
+  const MARGIN = 8;
+  const r      = anchorEl.getBoundingClientRect();
+  const width  = Math.min(280, window.innerWidth - MARGIN * 2);
+  pop.style.position  = "fixed";
+  pop.style.width     = width + "px";
+  pop.style.overflowY = "auto";
+  let left = Math.max(MARGIN, Math.min(r.left, window.innerWidth - width - MARGIN));
+  pop.style.left  = left + "px";
+  pop.style.right = "auto";
+  const spaceBelow = window.innerHeight - r.bottom - MARGIN;
+  const spaceAbove = r.top - MARGIN;
+  const maxH       = Math.min(420, Math.max(spaceBelow, spaceAbove));
+  if (spaceBelow >= Math.min(maxH, 380) || spaceBelow >= spaceAbove) {
+    pop.style.top = (r.bottom + 6) + "px";
+    pop.style.bottom = "auto";
+    pop.style.maxHeight = spaceBelow + "px";
+  } else {
+    pop.style.bottom = (window.innerHeight - r.top + 6) + "px";
+    pop.style.top = "auto";
+    pop.style.maxHeight = spaceAbove + "px";
+  }
+}
+
+function _openInlineDateRecurPopover(task, anchorEl) {
+  const wasOpenForSameTask = _inlineRowPopoverEl && _inlineRowPopoverTaskId === task.id;
+  _closeInlineRowPopover();
+  if (wasOpenForSameTask) return;
+
+  let vy, vm;
+  (function resetCalMonth() {
+    const init = task.dueDate ? new Date(task.dueDate + "T00:00") : new Date();
+    vy = init.getFullYear();
+    vm = init.getMonth();
+  })();
+
+  const RECUR_PRESETS = [
+    { label: t("recur.daily"),        days: 1  },
+    { label: t("recur.every_2_days"), days: 2  },
+    { label: t("recur.weekly"),       days: 7  },
+    { label: t("recur.biweekly"),     days: 14 },
+    { label: t("recur.monthly"),      days: 30 },
+  ];
+
+  const pop = document.createElement("div");
+  pop.className = "field-popover field-popover--fixed";
+
+  function renderPop() {
+    const localeD     = getLang() === "en" ? "en-GB" : "es-ES";
+    const todayISO    = _localDateISO(new Date());
+    const tomorrow    = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowISO = _localDateISO(tomorrow);
+    const inWeek      = new Date(); inWeek.setDate(inWeek.getDate() + 7);
+    const inWeekISO   = _localDateISO(inWeek);
+    const first       = new Date(vy, vm, 1);
+    const monthTitle  = first.toLocaleDateString(localeD, { month: "long", year: "numeric" });
+    const offset      = (first.getDay() + 6) % 7; // lunes = 0
+    const nDays       = new Date(vy, vm + 1, 0).getDate();
+    const mondayRef   = new Date(2024, 0, 1);
+    const dowNames    = Array.from({ length: 7 }, function(_, i) {
+      const d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
+      return d.toLocaleDateString(localeD, { weekday: "narrow" }).toUpperCase();
+    });
+
+    let cellsHtml = "";
+    for (let i = 0; i < offset; i++) cellsHtml += '<span class="field-popover-cal-empty">·</span>';
+    for (let day = 1; day <= nDays; day++) {
+      const iso = vy + "-" + String(vm + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+      const cls = ["field-popover-cal-day"];
+      if (iso === task.dueDate) cls.push("field-popover-cal-day--selected");
+      else if (iso === todayISO) cls.push("field-popover-cal-day--today");
+      cellsHtml += '<span class="' + cls.join(" ") + '" data-day-iso="' + iso + '">' + day + '</span>';
+    }
+
+    const recurRows = RECUR_PRESETS.map(function(p) {
+      const active = task.recurDays === p.days;
+      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-recur-days="' + p.days + '">' +
+        '<span class="field-popover-row-label">' + p.label + '</span>' +
+        (active ? '<i data-lucide="check"></i>' : "") +
+      '</button>';
+    }).join("");
+
+    pop.innerHTML =
+      '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
+      '<div class="field-popover-chips">' +
+        '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
+        '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
+        '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
+        (task.dueDate ? '<button type="button" class="field-popover-chip field-popover-chip--clear" data-quick="clear">' + t("modal.clear") + '</button>' : "") +
+      '</div>' +
+      '<div class="field-popover-cal-head">' +
+        '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
+        '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
+        '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
+      '</div>' +
+      '<div class="field-popover-cal-grid">' +
+        dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
+        cellsHtml +
+      '</div>' +
+      '<div class="field-popover-sep"></div>' +
+      '<div class="field-popover-section-label">' + t("detail.recur") + '</div>' +
+      '<div class="field-popover-list">' + recurRows + '</div>' +
+      (task.recurDays ? '<div class="field-popover-sep"></div>' +
+        '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
+          '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
+        '</button>' : "");
+
+    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+
+    pop.querySelector('[data-cal-nav="-1"]').addEventListener("click", function() {
+      vm--; if (vm < 0) { vm = 11; vy--; }
+      renderPop();
+    });
+    pop.querySelector('[data-cal-nav="1"]').addEventListener("click", function() {
+      vm++; if (vm > 11) { vm = 0; vy++; }
+      renderPop();
+    });
+    pop.querySelectorAll("[data-quick]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        const q = btn.dataset.quick;
+        task.dueDate = q === "today" ? todayISO : q === "tomorrow" ? tomorrowISO : q === "week" ? inWeekISO : null;
+        saveAndRender();
+        _closeInlineRowPopover();
+      });
+    });
+    pop.querySelectorAll("[data-day-iso]").forEach(function(el) {
+      el.addEventListener("click", function() {
+        task.dueDate = el.dataset.dayIso;
+        saveAndRender();
+        _closeInlineRowPopover();
+      });
+    });
+    pop.querySelectorAll("[data-recur-days]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        task.recurDays = parseInt(btn.dataset.recurDays, 10);
+        saveAndRender();
+        _closeInlineRowPopover();
+      });
+    });
+    const recurClearBtn = pop.querySelector("[data-recur-clear]");
+    if (recurClearBtn) recurClearBtn.addEventListener("click", function() {
+      task.recurDays = null;
+      saveAndRender();
+      _closeInlineRowPopover();
+    });
+  }
+  renderPop();
+
+  document.body.appendChild(pop);
+  _placeInlineRowPopover(pop, anchorEl);
+
+  const onDoc = function(e) { if (!anchorEl.contains(e.target) && !pop.contains(e.target)) _closeInlineRowPopover(); };
+  const onEsc = function(e) { if (e.key === "Escape") { e.stopPropagation(); _closeInlineRowPopover(); } };
+  setTimeout(function() {
+    document.addEventListener("mousedown", onDoc, true);
+    document.addEventListener("keydown", onEsc, true);
+  }, 0);
+
+  _inlineRowPopoverEl      = pop;
+  _inlineRowPopoverTaskId  = task.id;
+  _inlineRowPopoverCleanup = function() {
+    document.removeEventListener("mousedown", onDoc, true);
+    document.removeEventListener("keydown", onEsc, true);
+  };
 }
 
 function _openReminderPopover(fieldEl, anchorBtn) {
@@ -3962,17 +4156,6 @@ function renderTodayItem(task, project, todayStr, tone) {
     renderRecurBadge(task, recurWrap);
     tieneRecur = !!recurWrap.firstChild;
     if (tieneRecur) meta.appendChild(recurWrap);
-  }
-
-  // Misma pista que en Inbox/listas (.task-chips-empty-hint, solo móvil):
-  // sin ningún chip la fila quedaba con un hueco muerto abajo. La fecha
-  // no cuenta como "hay algo" — vive en su propia píldora, no en `meta`.
-  var sinNadaHoy = !task.priority && !task.reminderAt && !tieneRecur && project.id === INBOX_ID;
-  if (sinNadaHoy) {
-    var hoyHint = document.createElement("span");
-    hoyHint.className = "task-chips-empty-hint";
-    hoyHint.textContent = t("task.add_details_hint");
-    meta.appendChild(hoyHint);
   }
 
   // Mover/programar a hoy: antes era un botón con texto ("Mover a hoy",
@@ -5698,6 +5881,7 @@ async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
 // (TASK_FILTERS, currentQuery, etc.) ya estén inicializadas.
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
 try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
+try { initializeMode(); } catch(e) { console.error("initializeMode error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
 try { applyTwoColumns(twoColumnsOn, false); } catch(e) { console.error("applyTwoColumns error:", e); }

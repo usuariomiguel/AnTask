@@ -51,6 +51,10 @@ export const en = {
   "settings.appearance.theme_desc":    "Light for the day, dark for the night.",
   "settings.appearance.light":         "Light",
   "settings.appearance.dark":          "Dark",
+  "settings.appearance.mode":          "Mode",
+  "settings.appearance.mode_desc":     "Simple: only Today and Inbox on mobile. Full: every feature.",
+  "settings.appearance.mode_simple":   "Simple",
+  "settings.appearance.mode_full":     "Full",
   "settings.appearance.accent":        "Accent color",
   "settings.appearance.accent_desc":   "Sets the character of the interface.",
   "settings.appearance.container":        "Container",
@@ -197,7 +201,6 @@ export const en = {
   "task.rename_hint":         "Double-click to rename",
   "task.move_to_project":     "Move to project...",
   "task.in_list":             "List",
-  "task.add_details_hint":    "+ Add details",
 
   // ── Task detail panel ─────────────────────────────────────
   "detail.title":             "Task details",
@@ -289,7 +292,7 @@ export const en = {
 
   // ── Quick capture ─────────────────────────────────────────
   "quick_capture.title":      "Quick capture",
-  "quick_capture.placeholder":"e.g. Call the office tomorrow p1 #Work",
+  "quick_capture.placeholder":"e.g. Call the office tomorrow",
   "quick_capture.key_space":  "Space",
   "quick_capture.hint_type":          "Type",
   "quick_capture.hint_autocomplete":  "to autocomplete",

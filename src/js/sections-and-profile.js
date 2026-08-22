@@ -81,9 +81,19 @@ import { loadSync } from "./sync-loader.js";
     });
   }
 
+  function syncModeSeg() {
+    var seg = document.getElementById("settings-mode-seg");
+    if (!seg) return;
+    var cur = document.documentElement.dataset.mode === "full" ? "full" : "simple";
+    seg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.classList.toggle("active", btn.dataset.modeValue === cur);
+    });
+  }
+
   function openSettingsModal() {
     if (!settingsOverlay) return;
     syncThemeSeg();
+    syncModeSeg();
     syncAccentDots();
     // En móvil no hay pestañas de navegación (todo va en una sola pantalla
     // con tarjetas, al estilo del handoff): las secciones se muestran todas
@@ -184,6 +194,27 @@ import { loadSync } from "./sync-loader.js";
       });
     });
     syncThemeSeg();
+  }
+
+  // ─── Modo simple/completo ──────────────────────────────────────
+  // El modo simple solo cambia algo en móvil (ver isSimpleMobile() en
+  // ui/mode.js) — en escritorio la app se ve y comporta siempre igual,
+  // por eso el interruptor vive aquí y no hace falta duplicarlo.
+  var modeSeg = document.getElementById("settings-mode-seg");
+  if (modeSeg) {
+    modeSeg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var next = btn.dataset.modeValue;
+        var cur  = document.documentElement.dataset.mode === "full" ? "full" : "simple";
+        if (cur === next) return;
+        if (window.setMode) window.setMode(next);
+        // El modo simple afecta a muchas rutas de render (fila, nav,
+        // captura...) que hoy se leen una sola vez al montar la UI —
+        // recargar es lo único que garantiza que todo quede coherente.
+        location.reload();
+      });
+    });
+    syncModeSeg();
   }
 
   // ─── Botón claro/oscuro de la barra de tareas (escritorio) ────

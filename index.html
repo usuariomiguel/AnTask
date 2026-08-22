@@ -289,6 +289,17 @@
                   </div>
                 </div>
                 <div class="settings-row settings-row--top">
+                  <span class="settings-row-ico"><i data-lucide="sparkles"></i></span>
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.appearance.mode">Modo</div>
+                    <div class="settings-row-desc" data-i18n="settings.appearance.mode_desc">Simple: solo Hoy e Inbox en el móvil. Completo: todas las funciones.</div>
+                  </div>
+                  <div class="settings-seg" id="settings-mode-seg" role="radiogroup">
+                    <button type="button" class="settings-seg-opt" data-mode-value="simple" data-i18n="settings.appearance.mode_simple">Simple</button>
+                    <button type="button" class="settings-seg-opt" data-mode-value="full" data-i18n="settings.appearance.mode_full">Completo</button>
+                  </div>
+                </div>
+                <div class="settings-row settings-row--top">
                   <span class="settings-row-ico"><i data-lucide="palette"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.appearance.accent">Color de acento</div>
@@ -491,6 +502,14 @@
                 </button>
               </div> -->
               <div class="view-nav-right">
+                <!-- Modo simple + móvil: la Búsqueda no tiene pestaña propia
+                     en la barra inferior (solo Hoy/Inbox/Ajustes) — vive aquí
+                     como icono suelto. El header fijo (.mobile-header) está
+                     retirado en móvil desde un rediseño anterior, así que
+                     este es el único sitio realmente visible para ponerlo. -->
+                <button type="button" class="row-style-btn" id="mobile-search-btn" title="Buscar" data-i18n-title="sidebar.search_short" aria-label="Buscar" data-i18n-aria="sidebar.search_short" hidden>
+                  <i data-lucide="search"></i>
+                </button>
                 <!-- Claro/Oscuro: mismo tamaño e icono único que .row-style-btn,
                      con animación de View Transition (irradia desde el botón). -->
                 <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="Cambiar tema" data-i18n-title="theme.toggle" aria-label="Cambiar tema" data-i18n-aria="theme.toggle">
@@ -827,6 +846,12 @@
           <p class="bnav-avatar" id="bnav-avatar" aria-hidden="true">A</p>
           <span data-i18n="nav.profile" style="display: none;">Perfil</span>
         </button>
+        <!-- Modo simple: sustituye a Buscar+Perfil — Ajustes directo, sin
+             pasar por la hoja de listas/perfil. Oculto por defecto. -->
+        <button type="button" class="mobile-bottom-btn" id="bnav-settings-btn" hidden>
+          <i data-lucide="settings"></i>
+          <span data-i18n="profile.settings">Ajustes</span>
+        </button>
       </nav>
 
       <!-- FAB de captura rápida, separado de la pastilla -->
@@ -920,7 +945,8 @@
       var bnavToday    = document.getElementById("bnav-today-btn");
       var bnavSearch   = document.getElementById("bnav-search-btn");
       var bnavProfile  = document.getElementById("bnav-profile-btn");
-      var allBnavBtns  = [bnavInbox, bnavToday, bnavSearch, bnavProfile];
+      var bnavSettings = document.getElementById("bnav-settings-btn");
+      var allBnavBtns  = [bnavInbox, bnavToday, bnavSearch, bnavProfile, bnavSettings];
 
       function setActiveBnavBtn(btn) {
         allBnavBtns.forEach(function(b) {
@@ -977,6 +1003,23 @@
           // drawer y 300 ms después pulsaba por código el botón de perfil de
           // dentro, confiando en que la animación hubiera acabado.
           if (typeof window.showProfileMenu === "function") window.showProfileMenu();
+        });
+      }
+
+      // Modo simple: Ajustes directo desde la barra inferior, en vez de la
+      // hoja de listas/perfil (ver #bnav-settings-btn, oculto en modo completo).
+      if (bnavSettings) {
+        bnavSettings.addEventListener("click", function() {
+          if (typeof window.openSettingsModal === "function") window.openSettingsModal();
+        });
+      }
+
+      // Búsqueda desde el header (modo simple) — mismo modal que el atajo
+      // de escritorio y que el destino "Buscar" de la barra inferior.
+      var mobileSearchBtn = document.getElementById("mobile-search-btn");
+      if (mobileSearchBtn) {
+        mobileSearchBtn.addEventListener("click", function() {
+          if (typeof window.showGlobalSearch === "function") window.showGlobalSearch();
         });
       }
 
@@ -1095,6 +1138,24 @@
         document.addEventListener("DOMContentLoaded", syncBnavActive);
       } else {
         syncBnavActive();
+      }
+
+      // Modo simple: `[hidden] { display: none !important }` es una regla
+      // global (ver style.css) — ningún selector CSS por especificidad
+      // puede des-ocultar estos botones, así que se hace aquí con JS,
+      // en el mismo punto en que ya sabemos que script.js ha cargado.
+      function applySimpleModeNav() {
+        if (typeof window.isSimpleMode !== "function" || !window.isSimpleMode()) return;
+        if (bnavSettings) bnavSettings.hidden = false;
+        // El icono de búsqueda sustituye a la pestaña "Buscar" de la barra
+        // inferior — solo hace falta en móvil (en escritorio ya está
+        // #global-search-btn en el sidebar).
+        if (mobileSearchBtn && isMobile()) mobileSearchBtn.hidden = false;
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", applySimpleModeNav);
+      } else {
+        applySimpleModeNav();
       }
 
       // Grupo "Más" (Archivados): abierto en desktop (sidebar

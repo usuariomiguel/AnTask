@@ -51,6 +51,10 @@ export const es = {
   "settings.appearance.theme_desc":    "Claro para el día, oscuro para la noche.",
   "settings.appearance.light":         "Claro",
   "settings.appearance.dark":          "Oscuro",
+  "settings.appearance.mode":          "Modo",
+  "settings.appearance.mode_desc":     "Simple: solo Hoy e Inbox en el móvil. Completo: todas las funciones.",
+  "settings.appearance.mode_simple":   "Simple",
+  "settings.appearance.mode_full":     "Completo",
   "settings.appearance.accent":        "Color de acento",
   "settings.appearance.accent_desc":   "Define el carácter de la interfaz.",
   "settings.appearance.container":        "Contenedor",
@@ -197,7 +201,6 @@ export const es = {
   "task.rename_hint":         "Doble clic para renombrar",
   "task.move_to_project":     "Mover a proyecto...",
   "task.in_list":             "Lista",
-  "task.add_details_hint":    "+ Añadir detalles",
 
   // ── Panel de detalle de tarea ─────────────────────────────
   "detail.title":             "Detalle de tarea",
@@ -289,7 +292,7 @@ export const es = {
 
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.title":      "Captura rápida",
-  "quick_capture.placeholder":"p. ej. Llamar a la gestoría mañana p1 #IRPs",
+  "quick_capture.placeholder":"p. ej. Llamar a pablo mañana",
   "quick_capture.key_space":  "Espacio",
   "quick_capture.hint_type":          "Escribe",
   "quick_capture.hint_autocomplete":  "para autocompletar",

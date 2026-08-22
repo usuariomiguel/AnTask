@@ -1709,7 +1709,7 @@ body {
   border: 1px solid var(--border-default);
   border-radius: calc(var(--r-md) + 3px);
   box-shadow: 0 18px 44px -10px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
-  padding: 12px;
+  padding: 6px;
   animation: fieldPopoverIn 0.14s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -1742,11 +1742,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 11px;
+  margin-bottom: 6px;
 }
 
 .field-popover-chip {
-  padding: 5px 10px;
+  padding: 3px 6px;
   border-radius: var(--r-pill);
   font-size: 11.5px;
   font-weight: 650;
@@ -1774,7 +1774,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .field-popover-cal-title {
@@ -1799,7 +1799,7 @@ body {
 .field-popover-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
   text-align: center;
 }
 
@@ -1811,7 +1811,7 @@ body {
 }
 
 .field-popover-cal-day {
-  padding: 5px 0;
+  padding: 6px 0;
   font-size: 12px;
   font-weight: 450;
   border-radius: 25px;
@@ -1840,12 +1840,12 @@ body {
 .field-popover-input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .field-popover-input-row input {
   flex: 1;
-  padding: 8px 10px;
+  padding: 6px;
   border-radius: var(--r-md);
   border: 1px solid var(--border-default);
   background: var(--surface-input);
@@ -1861,7 +1861,7 @@ body {
 .field-popover-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   max-height: 238px;
   overflow-y: auto;
 }
@@ -1869,8 +1869,8 @@ body {
 .field-popover-row {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 6px;
   border-radius: 25px;
   font-size: 12.5px;
   font-weight: 450;
@@ -1918,7 +1918,63 @@ body {
 .field-popover-sep {
   height: 1px;
   background: var(--border-default);
-  margin: 6px 2px;
+  margin: 6px 3px;
+}
+
+/* Etiqueta de sección dentro del popover combinado fecha+repetir de la
+   fila en modo simple (ver _openInlineDateRecurPopover en script.js). */
+.field-popover-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+  margin: 6px 3px;
+}
+
+/* ── Modo simple: sin listas propias (SOLO MÓVIL) ──────────────
+   El modo simple no toca nada en escritorio — solo Hoy/Inbox en móvil.
+   La lista de proyectos y "Más" (archivados) del sidebar quedan
+   ocultas ahí, no borradas (siguen ahí para modo completo/escritorio). */
+@media (max-width: 768px) {
+  html[data-mode="simple"] #project-list,
+  html[data-mode="simple"] #sidebar-more-group {
+    display: none;
+  }
+
+  /* Fila sin configurabilidad: en móvil ya se fuerza "limpio"/una columna
+     siempre (ver _rowStyleEfectivo/applyTwoColumns en script.js), así que
+     solo hace falta esconder los botones — no hay nada más que aplicar.
+     El de tema también se oculta aquí: el control real vive en Ajustes ›
+     Apariencia (#settings-theme-seg), no hace falta duplicarlo en la fila. */
+  html[data-mode="simple"] #row-style-wrap,
+  html[data-mode="simple"] #task-prefs-wrap,
+  html[data-mode="simple"] #theme-toggle-btn {
+    display: none;
+  }
+
+  /* Sin filtros: Todas/Pendientes/Hechas + el desplegable "Filtrar" (7
+     opciones más) desaparecen — la lista se queda siempre en "Todas".
+     #list-filter-actions es HERMANO, no hijo, de #filter-segments: ahí
+     vive theme-toggle-btn en móvil (ver _placeRowStyleControl en
+     script.js), así que ocultar solo #filter-segments no se lo lleva. */
+  html[data-mode="simple"] #filter-segments {
+    display: none;
+  }
+
+  /* Ajustes: solo Cuenta, Apariencia y Acerca de. Notificaciones, Tareas
+     y Datos (exportar/importar) se quedan para modo completo — nada se
+     borra, sus paneles y su código siguen intactos.
+     En móvil, openSettingsModal() les quita el atributo `hidden` para
+     mostrar TODAS las secciones apiladas (no hay pestañas ahí, ver
+     sections-and-profile.js) — por eso aquí un `display:none` normal
+     basta, sin pelear con el `[hidden]{!important}` global: en el
+     momento en que esto se evalúa, el atributo ya no está puesto. */
+  html[data-mode="simple"] #settings-panel-notif,
+  html[data-mode="simple"] #settings-panel-tareas,
+  html[data-mode="simple"] #settings-panel-datos {
+    display: none;
+  }
 }
 
 .task-detail-subtasks {
@@ -3952,9 +4008,7 @@ button:focus-visible {
 
 /* Sin ningún chip real dentro, `.task-meta`/`.today-meta` se quedaban
    como una píldora vacía — su propio fondo+borde+radio pill, sin
-   contenido, se veía como un círculo hueco suelto al borde de la fila.
-   Solo en escritorio: en móvil ese hueco lo ocupa a propósito
-   `.task-chips-empty-hint` ("+ Añadir detalles"), que vive dentro. */
+   contenido, se veía como un círculo hueco suelto al borde de la fila. */
 @media (min-width: 769px) {
   /* .due-badge queda fuera de esta lista a propósito: ya no vive dentro
      de .task-meta (ver .task-due-container, ahora hermano suyo), así que
@@ -3983,12 +4037,6 @@ button:focus-visible {
 }
 
 .task-chips>span:empty {
-  display: none;
-}
-
-/* Solo tiene sentido en móvil (ver @media más abajo): en escritorio la
-   fila no necesita rellenar hueco, así que no se muestra. */
-.task-chips-empty-hint {
   display: none;
 }
 
@@ -4678,6 +4726,7 @@ input.inline-edit {
   border: 1px solid var(--border-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
+  gap: 3px;
 }
 
 .due-badge .lucide {
@@ -5550,11 +5599,15 @@ body.project-dragging .project-item {
        sin hueco entre filas, igual que limpio en escritorio. */
     margin-bottom: 0;
     border-radius: var(--r-md);
-    /* Todas las filas a la misma altura, tengan o no chips: medido con
-       prioridad + fecha + repetición (el caso más alto), 78px. Sin esto
-       una tarea sin nada quedaba en 53px y la de al lado en 78 — el
-       usuario lo pidió parejo. `align-content: center` (regla base) hace
-       el resto: centra el título solo cuando no hay segunda línea. */
+  }
+
+  /* 78px solo cuando de verdad hay chips que pintar (medido con prioridad +
+     fecha + repetición, el caso más alto) — si no hay ninguno, sea porque
+     la tarea no tiene nada o porque el usuario apagó Prioridad/Lista/
+     Recordatorio/Repetir desde "Detalles y columnas", la fila se encoge en
+     vez de dejar el hueco de la segunda línea vacío. `align-content:
+     center` (regla base) centra el título cuando no hay segunda línea. */
+  .task-item:has(.task-chips span:not(:empty)) {
     min-height: 78px;
   }
 
@@ -6063,6 +6116,22 @@ body.project-dragging .project-item {
      resto de opciones. */
   /* Botón "Nueva": FAB circular en acento (prototipo AddFab) */
 
+  /* ── Modo simple: 3 destinos en la barra inferior ────────────
+     Buscar y Perfil (que abre la hoja de listas) se sustituyen por un
+     icono de búsqueda junto al de tema y un acceso directo a Ajustes.
+     Ocultar con `display:none` funciona por especificidad normal, pero
+     DES-ocultar #bnav-settings-btn/#mobile-search-btn no: parten del
+     atributo `hidden`, y `[hidden] { display:none !important }` (ver
+     arriba del todo del archivo) gana a cualquier selector por muy
+     específico que sea. Esos dos se des-ocultan desde JS
+     (applySimpleModeNav() en index.html) con `el.hidden = false`. */
+  html[data-mode="simple"] .mobile-bottom-nav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  html[data-mode="simple"] #bnav-search-btn,
+  html[data-mode="simple"] #bnav-profile-btn {
+    display: none;
+  }
 }
 
 @media (min-width: 769px) {
@@ -11146,6 +11215,11 @@ button {
 @media (max-width: 768px) {
   .today-item .today-text {
     font-size: 15px;
+    /* El comentario de .task-item .task-text decía "igual que .today-text"
+       pero aquí nunca se puso — el título de Hoy se quedaba en el peso
+       normal de la ficha (300) mientras Inbox pesaba 550. */
+    font-weight: 550;
+    letter-spacing: normal;
     /* Una sola línea, truncada — igual que en las listas. */
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -11289,7 +11363,9 @@ button {
        ancha como la fila en vez de ceñida a su contenido. */
     justify-self: start;
     max-width: 100%;
-    padding: 3px;
+    /* Mismo padding que .today-meta en Hoy (6px) — antes 3px, la píldora
+       de chips quedaba más apretada aquí que allí. */
+    padding: 6px;
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
@@ -11307,27 +11383,10 @@ button {
     flex-shrink: 0;
   }
 
-  /* Sin chips no hay segunda línea que separar. Con el chip punteado de
-     abajo esto ya casi nunca se dispara —solo si la tarea tiene fecha
-     y nada más, que ya se lee en la columna de la derecha. */
+  /* Sin chips no hay segunda línea que separar — la fila se encoge
+     (ver min-height condicional de .task-item más abajo). */
   .task-chips:not(:has(span:not(:empty))) {
     display: none;
-  }
-
-  /* Chip fantasma cuando la tarea no tiene NADA: sin esto la fila se
-     leía "rota" (un hueco vacío) y, en móvil, no había ninguna pista de
-     que tocándola se puede añadir fecha o prioridad. */
-  .task-chips-empty-hint {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 9px;
-    border-radius: 23px;
-    border: 1px dashed var(--border-default);
-    color: var(--text-tertiary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
   }
 
   .task-due-container {
@@ -11348,6 +11407,14 @@ button {
     align-items: center;
     column-gap: 13px;
     row-gap: 0;
+  }
+
+  /* Mismo criterio que .task-item en Inbox: 78px solo si hay chips que
+     pintar en .today-meta — si no, la fila se encoge en vez de dejar el
+     hueco de la segunda línea vacío (tarea sin nada, o con Prioridad/
+     Lista/Recordatorio/Repetir apagados desde "Detalles y columnas"). */
+  .today-item:has(.today-meta:not(:empty)) {
+    min-height: 78px;
   }
 
   .today-check {
@@ -11593,10 +11660,10 @@ button {
     width: 100%;
     max-width: none;
     max-height: 88vh;
-    border-radius: 40px 40px 0 0;
+    margin: 6px;
+    border-radius: 40px;
     background: var(--surface-canvas);
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
-    padding-bottom: max(22px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(15px, env(safe-area-inset-bottom, 0px));
     animation: qcSheetIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
@@ -11673,6 +11740,7 @@ button {
     /* 10px de aire bajo el campo y 4 sobre los botones, como el prototipo:
        la línea de ayuda pertenece al campo, no a la fila de acciones. */
     margin: 10px 0 4px;
+    justify-content: center;
   }
 
   .quick-capture-cancel {

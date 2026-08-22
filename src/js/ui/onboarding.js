@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { createModalBase, closeModal } from "./modal.js";
+import { isSimpleMobile } from "./mode.js";
 
 const STORAGE_KEY = "antask-onboarded";
 
@@ -56,6 +57,25 @@ const STEPS = [
       chips: [
         { cls: "onb-chip-date", icon: "calendar", label: "Mañana" },
         { cls: "onb-chip-prio", icon: "flag",     label: "Alta" },
+      ],
+    },
+    // Modo simple (móvil): sin prioridad — solo fecha y repetir existen,
+    // así que "p1" no significaría nada ahí. Ver showOnboarding().
+    bodyHTMLSimple:
+      '<p class="onb-muted" style="margin-top:0">Y al escribir, usa <strong>sintaxis natural</strong>:</p>' +
+      '<div class="onb-syntax-demo">' +
+        '<div class="onb-syntax-input"><code id="onb-syntax-typed"></code><span class="onb-caret" id="onb-syntax-caret"></span></div>' +
+        '<div class="onb-syntax-arrow">↳</div>' +
+        '<div class="onb-syntax-chips" id="onb-syntax-chips"></div>' +
+      '</div>' +
+      '<p class="onb-muted">Detecta fechas. Tú solo escribes.</p>' +
+      '<button type="button" class="onb-try-btn" id="onb-try-btn" hidden>' +
+        '<i data-lucide="zap"></i> Ahora tú: crea tu primera tarea' +
+      '</button>',
+    typeDemoSimple: {
+      text: "Llamar al banco mañana",
+      chips: [
+        { cls: "onb-chip-date", icon: "calendar", label: "Mañana" },
       ],
     },
   },
@@ -164,6 +184,7 @@ export function showOnboarding(opts) {
   const onDone = opts && opts.onDone;
   // Sin teclado físico, el paso de atajos no pinta nada en móvil.
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const simple   = isSimpleMobile();
   const activeSteps = isMobile ? STEPS.filter(function (s) { return !s.desktopOnly; }) : STEPS;
   let currentStep  = 0;
   let lastDir       = 1;   // 1 = avanzando, -1 = retrocediendo (dirección de la animación)
@@ -186,6 +207,7 @@ export function showOnboarding(opts) {
     const isFirst = currentStep === 0;
     const eyebrow = "Paso " + (currentStep + 1) + " de " + activeSteps.length;
     const lead = (isMobile && step.leadHTMLMobile) ? step.leadHTMLMobile : (step.leadHTML || "");
+    const bodyHTML = (simple && step.bodyHTMLSimple) ? step.bodyHTMLSimple : step.bodyHTML;
 
     const dotsHTML = activeSteps.map(function (_, i) {
       return '<span class="onb-dot' + (i === currentStep ? " onb-dot-active" : "") + '"></span>';
@@ -196,7 +218,7 @@ export function showOnboarding(opts) {
         '<div class="onb-eyebrow">' + eyebrow + '</div>' +
         '<div class="onb-icon"><i data-lucide="' + step.icon + '"></i></div>' +
         '<h2 class="onb-title">' + step.title + '</h2>' +
-        '<div class="onb-body">' + lead + step.bodyHTML + '</div>' +
+        '<div class="onb-body">' + lead + bodyHTML + '</div>' +
       '</div>' +
       '<div class="onb-dots">' + dotsHTML + '</div>' +
       '<div class="onb-actions">' +
@@ -215,8 +237,9 @@ export function showOnboarding(opts) {
     const skipBtn  = box.querySelector(".onb-skip");
     const tryBtn   = box.querySelector("#onb-try-btn");
 
-    if (step.typeDemo) {
-      typeTimer = _runTypeDemo(box, step.typeDemo, function () {
+    const typeDemo = (simple && step.typeDemoSimple) ? step.typeDemoSimple : step.typeDemo;
+    if (typeDemo) {
+      typeTimer = _runTypeDemo(box, typeDemo, function () {
         if (tryBtn) tryBtn.hidden = false;
       });
     }
