@@ -2082,6 +2082,14 @@ body {
   html[data-mode="simple"] .today-item:has(.today-meta:not(:empty)) {
     min-height: 0;
   }
+  /* Una tarea sin fecha ni repetir se encogía a su contenido mínimo
+     (checkbox+texto, ~35px) mientras que una con fecha medía ~52px por
+     la propia píldora — la lista se veía con filas de alturas distintas
+     sin motivo real. Altura mínima igual para todas. */
+  html[data-mode="simple"] .task-item,
+  html[data-mode="simple"] .today-item {
+    min-height: 52px;
+  }
   html[data-mode="simple"] .task-main-row,
   html[data-mode="simple"] .today-item {
     grid-template-columns: auto minmax(0, 1fr) auto max-content;
@@ -4025,9 +4033,10 @@ button:focus-visible {
   appearance: none;
   -webkit-appearance: none;
   /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
-     la de Hoy son el mismo control y no deben verse distintas. */
-  width: 30px;
-  height: 30px;
+     la de Hoy son el mismo control y no deben verse distintas. 36px en
+     cualquier tamaño de pantalla. */
+  width: 36px;
+  height: 36px;
   background: var(--row-hover);
   border: 1px solid var(--text-tertiary);
   border-radius: var(--r-pill);
@@ -7964,6 +7973,18 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   color: var(--c-primary-600);
 }
 
+/* "Modo" y "Estilo de filas" desactivados TEMPORALMENTE en móvil (ver
+   isSimpleMobile()/_rowStyleEfectivo() — el flag/preferencia real se
+   ignora ahí y se fuerza simple/tarjetas siempre): sin efecto que
+   mostrar, así que sus filas de Ajustes se ocultan a la vez. En
+   escritorio siguen intactas. Revertir: quitar este bloque. */
+@media (max-width: 768px) {
+  .settings-row:has(#settings-mode-seg),
+  .settings-row:has(#settings-rowstyle-seg) {
+    display: none;
+  }
+}
+
 /* Switch (toggle booleano) */
 .settings-switch {
   width: 40px;
@@ -9248,14 +9269,15 @@ button {
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
-/* Checkbox circular como el prototipo (30px en escritorio/tablet, borde
-   1.8px; en móvil manda el tamaño propio del @media de abajo) */
+/* Checkbox circular como el prototipo — 36px en cualquier tamaño de
+   pantalla (en móvil manda el mismo valor repetido en el @media de
+   abajo, no se pisan, es el mismo número). */
 .today-check {
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   margin: 0;
   border-radius: 50%;
   border: 1px solid var(--text-tertiary);
@@ -11293,6 +11315,21 @@ button {
   letter-spacing: 0.08em;
 }
 
+/* Inbox en modo simple: sin listas, filtros ni cabeceras de grupo, la
+   vista se quedaba en solo un contador — misma etiqueta que "PARA HOY"
+   en Hoy, para que no se sienta tan vacía (ver renderTasks en script.js,
+   #inbox-tasks-label). Va como primer hijo de #task-list, no dentro de
+   una fila — por eso su propio margen, no el de .task-item. */
+.inbox-tasks-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding: 0 4px 9px;
+}
+
 .hoy-section-count {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -11468,12 +11505,12 @@ button {
        quedaba con un hueco muerto abajo. La zona táctil de 44 la sigue
        dando `.task-toggle::before` (inset -11) del bloque `pointer:
        coarse`, que no ocupa sitio.
-       30px, no 22: `.task-toggle` (el checkbox real, position:absolute
-       y centrado dentro de esta caja) mide 30px de ancho — con la caja
-       más estrecha que él, se desbordaba 4px hacia la izquierda y
-       quedaba más pegado al borde que en Hoy (.today-check, sin este
+       36px, no 22: `.task-toggle` (el checkbox real, position:absolute
+       y centrado dentro de esta caja) mide 36px de ancho — con la caja
+       más estrecha que él, se desbordaba hacia la izquierda y quedaba
+       más pegado al borde que en Hoy (.today-check, sin este
        envoltorio, que sencillamente ocupa lo que mide). */
-    width: 30px;
+    width: 36px;
     /* Alto CERO a propósito. Al ocupar las dos filas, Chrome reparte el
        alto del elemento a partes iguales entre las pistas que abarca: con
        22px, la segunda pista se quedaba con 11 aunque estuviera vacía, y
@@ -11738,13 +11775,13 @@ button {
     align-self: center;
   }
 
-  /* «El círculo visible es de 22px, borde de 2px», con área táctil
-     de 44 (22 + 11×2). El ::before que la crea vive en el bloque de
-     `pointer: coarse`; aquí solo se corrige su inset. */
+  /* 36px, igual que en cualquier otro tamaño de pantalla. El área
+     táctil ampliada la da el ::before, en el bloque de `pointer:
+     coarse`; aquí solo se corrige su inset. */
   .task-toggle,
   .today-check {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     border-width: 1px;
   }
 

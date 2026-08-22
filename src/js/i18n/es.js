@@ -5,6 +5,7 @@ export const es = {
   "sidebar.search":           "Buscar tareas",
   "sidebar.search_short":     "Buscar",
   "sidebar.inbox":            "Inbox",
+  "inbox.tasks_label":        "Tareas",
   "sidebar.today":            "Hoy",
   "sidebar.hide_sidebar":     "Ocultar la barra lateral",
   "sidebar.show_sidebar":     "Desplegar la barra lateral",

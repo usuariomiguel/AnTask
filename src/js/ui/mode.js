@@ -17,10 +17,19 @@ export const MODE_DEFAULT = "simple";
 
 /**
  * Aplica un modo sin persistirlo (solo modifica el DOM).
+ *
+ * DESACTIVADO TEMPORALMENTE "modo completo" en móvil: por debajo del
+ * breakpoint se fuerza siempre "simple" en el propio atributo
+ * `data-mode`, así que todo el CSS que ya lee ese atributo (listas,
+ * filtros, prefs de fila…) se comporta en consecuencia sin tocarlo uno
+ * a uno. La preferencia elegida en escritorio se sigue guardando y
+ * aplicando normal — el interruptor de Ajustes solo se oculta en móvil
+ * (ver style.css). Revertir: quitar la comprobación de matchMedia.
  * @param {"simple"|"full"} mode
  */
 export function applyMode(mode) {
-  document.documentElement.dataset.mode = mode === "full" ? "full" : "simple";
+  const forced = window.matchMedia("(max-width: 768px)").matches;
+  document.documentElement.dataset.mode = forced ? "simple" : (mode === "full" ? "full" : "simple");
 }
 
 /**
@@ -55,6 +64,10 @@ export function isSimpleMode() {
  * comporta siempre como modo completo, sin importar el flag. Toda lógica
  * de UI que decida ocultar/simplificar algo debe usar esto, no
  * `isSimpleMode()` a secas (que solo mira el flag, no la pantalla).
+ *
+ * Con "modo completo" desactivado temporalmente en móvil (ver
+ * applyMode()), `data-mode` ya vale siempre "simple" ahí, así que esta
+ * función no necesita saberlo aparte — sigue siendo el flag real.
  */
 export function isSimpleMobile() {
   return isSimpleMode() && window.matchMedia("(max-width: 768px)").matches;

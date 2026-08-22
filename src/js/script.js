@@ -311,14 +311,15 @@ let currentRowStyle = (function() {
 })();
 
 /**
- * Estilo que se pinta de verdad. Antes en móvil se forzaba siempre a
- * "limpio" —el selector del header vivía oculto ahí (ver
- * `.row-style-wrap` en style.css)— pero ahora el mismo control existe
- * en Ajustes › Apariencia (ver sections-and-profile.js), así que móvil
- * respeta la preferencia real igual que escritorio.
+ * Estilo que se pinta de verdad. El selector de Ajustes › Apariencia
+ * (ver sections-and-profile.js) sigue ahí, pero DESACTIVADO
+ * TEMPORALMENTE en móvil: se fuerza "tarjetas" por debajo del
+ * breakpoint sin mirar la preferencia guardada, y su fila en Ajustes
+ * se oculta a la vez (ver style.css). Nada se ha borrado, solo
+ * desconectado. Revertir: volver a `return currentRowStyle;`.
  */
 function _rowStyleEfectivo() {
-  return currentRowStyle;
+  return window.matchMedia("(max-width: 768px)").matches ? "tarjetas" : currentRowStyle;
 }
 
 function applyRowStyle(style, persist) {
@@ -2504,10 +2505,28 @@ function renderTasks() {
 
   // Limpieza: si venimos de la vista "Hoy" o de otro estado, eliminamos
   // cualquier nodo huérfano (`.today-item`, `.empty-illustrated`, ...) que no
-  // pertenece al diff por data-task-id.
+  // pertenece al diff por data-task-id. #inbox-tasks-label se libra: no es
+  // una tarea, se gestiona aparte justo debajo.
   Array.from(taskList.children).forEach(function (n) {
+    if (n.id === "inbox-tasks-label") return;
     if (!n.dataset || !n.dataset.taskId) n.remove();
   });
+
+  // Inbox en modo simple: sin listas ni "Filtros" ni cabeceras de grupo,
+  // la vista se quedaba en solo un contador — una etiqueta sencilla evita
+  // que se sienta vacía sin reintroducir nada de lo que ya se ocultó.
+  var inboxLabel = document.getElementById("inbox-tasks-label");
+  if (isInbox && isSimpleMobile()) {
+    if (!inboxLabel) {
+      inboxLabel = document.createElement("div");
+      inboxLabel.id = "inbox-tasks-label";
+      inboxLabel.className = "inbox-tasks-label";
+      inboxLabel.textContent = t("inbox.tasks_label");
+    }
+    if (taskList.firstChild !== inboxLabel) taskList.insertBefore(inboxLabel, taskList.firstChild);
+  } else if (inboxLabel) {
+    inboxLabel.remove();
+  }
 
   // Mapa de nodos existentes por id
   const existing = new Map();
@@ -2517,7 +2536,10 @@ function renderTasks() {
   }
 
   // Build/reuse + colocar en orden
-  let prevNode = null;
+  // Si hay label de Inbox, las tareas van DESPUÉS de ella — si no,
+  // taskList.firstChild sería el propio label y la primera tarea se
+  // colaría por delante.
+  let prevNode = inboxLabel && inboxLabel.parentNode === taskList ? inboxLabel : null;
   for (let i = 0; i < visible.length; i++) {
     const task = visible[i].task;
     const taskProject = visible[i].project;
