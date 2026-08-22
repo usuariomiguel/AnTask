@@ -90,10 +90,21 @@ import { loadSync } from "./sync-loader.js";
     });
   }
 
+  function syncRowStyleSeg() {
+    var seg = document.getElementById("settings-rowstyle-seg");
+    var taskList = document.getElementById("task-list");
+    if (!seg || !taskList) return;
+    var cur = taskList.dataset.rowStyle === "limpio" ? "limpio" : "tarjetas";
+    seg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.classList.toggle("active", btn.dataset.rowstyleValue === cur);
+    });
+  }
+
   function openSettingsModal() {
     if (!settingsOverlay) return;
     syncThemeSeg();
     syncModeSeg();
+    syncRowStyleSeg();
     syncAccentDots();
     // En móvil no hay pestañas de navegación (todo va en una sola pantalla
     // con tarjetas, al estilo del handoff): las secciones se muestran todas
@@ -215,6 +226,23 @@ import { loadSync } from "./sync-loader.js";
       });
     });
     syncModeSeg();
+  }
+
+  // ─── Estilo de fila (Limpio/Tarjetas) ───────────────────────────
+  // El selector de escritorio (#row-style-btn) vive oculto en móvil (ver
+  // .row-style-wrap en style.css) — aquí es el único sitio para tocarlo
+  // ahí, y ahora también sirve en modo simple. Puramente visual: no hace
+  // falta recargar, applyRowStyle() ya repinta al vuelo.
+  var rowStyleSeg = document.getElementById("settings-rowstyle-seg");
+  if (rowStyleSeg) {
+    rowStyleSeg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var next = btn.dataset.rowstyleValue;
+        if (window.applyRowStyle) window.applyRowStyle(next);
+        syncRowStyleSeg();
+      });
+    });
+    syncRowStyleSeg();
   }
 
   // ─── Botón claro/oscuro de la barra de tareas (escritorio) ────

@@ -1942,12 +1942,16 @@ body {
     display: none;
   }
 
-  /* Fila sin configurabilidad: en móvil ya se fuerza "limpio"/una columna
-     siempre (ver _rowStyleEfectivo/applyTwoColumns en script.js), así que
-     solo hace falta esconder los botones — no hay nada más que aplicar.
-     El de tema también se oculta aquí: el control real vive en Ajustes ›
-     Apariencia (#settings-theme-seg), no hace falta duplicarlo en la fila. */
-  html[data-mode="simple"] #row-style-wrap,
+  /* Fila sin configurabilidad en el header — pero el estilo (Limpio/
+     Tarjetas) sí se puede elegir, ahora desde Ajustes › Apariencia
+     (#settings-rowstyle-seg en sections-and-profile.js), en ambos modos.
+     El botón del header (#row-style-wrap) se queda oculto igual que
+     siempre (ver "MÓVIL — limpio como única vista" más abajo) — ya no
+     hace falta mostrarlo ahí con Ajustes como acceso alternativo.
+     "Detalles y columnas" se queda oculto del todo: una columna siempre
+     en móvil (ver applyTwoColumns). El de tema también se oculta aquí:
+     el control real vive en Ajustes › Apariencia (#settings-theme-seg),
+     no hace falta duplicarlo en la fila. */
   html[data-mode="simple"] #task-prefs-wrap,
   html[data-mode="simple"] #theme-toggle-btn {
     display: none;
@@ -3731,12 +3735,7 @@ button:focus-visible {
      estilo de fila) a la derecha, en la misma fila (handoff). Los nodos
      los trae aquí _placeMobileHeaderControls. */
   .list-filter-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 9px;
-    padding: 0 16px;
-    margin-bottom: 11px;
+    display: none;
   }
 
   /* Agrupa los controles reubicados (tema, estilo de fila, detalles/
@@ -5281,7 +5280,7 @@ body.project-dragging .project-item {
 
   .tasks-header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: var(--sp-2);
     flex-wrap: nowrap;

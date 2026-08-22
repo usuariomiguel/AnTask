@@ -55,6 +55,7 @@ export const es = {
   "settings.appearance.mode_desc":     "Simple: solo Hoy e Inbox en el móvil. Completo: todas las funciones.",
   "settings.appearance.mode_simple":   "Simple",
   "settings.appearance.mode_full":     "Completo",
+  "settings.appearance.rowstyle_desc": "Limpio: filas planas. Tarjetas: con fondo y separación.",
   "settings.appearance.accent":        "Color de acento",
   "settings.appearance.accent_desc":   "Define el carácter de la interfaz.",
   "settings.appearance.container":        "Contenedor",

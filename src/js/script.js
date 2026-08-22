@@ -109,6 +109,7 @@ window.showGlobalSearch = openGlobalSearch;
 // forma de mostrarlos, un simple override CSS por especificidad no basta.
 window.isSimpleMode = isSimpleMode;
 window.setMode = setMode;
+window.applyRowStyle = applyRowStyle;
 
 /**
  * Abre la captura rápida. Detecta proyecto destino:
@@ -310,15 +311,14 @@ let currentRowStyle = (function() {
 })();
 
 /**
- * Estilo que se pinta de verdad. En móvil siempre es "limpio" —filas
- * planas sin tarjeta— y por eso allí no se ofrece el selector. La
- * preferencia del usuario se conserva intacta para cuando vuelva a
- * escritorio.
+ * Estilo que se pinta de verdad. Antes en móvil se forzaba siempre a
+ * "limpio" —el selector del header vivía oculto ahí (ver
+ * `.row-style-wrap` en style.css)— pero ahora el mismo control existe
+ * en Ajustes › Apariencia (ver sections-and-profile.js), así que móvil
+ * respeta la preferencia real igual que escritorio.
  */
 function _rowStyleEfectivo() {
-  // El modo simple es solo móvil, y en móvil ya se fuerza "limpio" siempre
-  // (con o sin modo simple) — nada que añadir aquí.
-  return window.matchMedia("(max-width: 768px)").matches ? "limpio" : currentRowStyle;
+  return currentRowStyle;
 }
 
 function applyRowStyle(style, persist) {
