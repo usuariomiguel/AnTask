@@ -4298,8 +4298,13 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   var pct = total > 0 ? Math.round((done / total) * 100) : 0;
   // Anillo de 44 con r=18 (handoff móvil v1). A 42/17 el «100%» centrado
   // llegaba a rozar el trazo; dos píxeles más de diámetro le dan sitio sin
-  // engordar el stroke.
-  var SZ = 44, R = 18, STROKE = 4.5, C = 2 * Math.PI * R;
+  // engordar el stroke. En móvil sube a 50 (r=21, mismo hueco de 1,75px
+  // entre el borde del trazo y la caja); el tamaño va aquí y no solo en
+  // CSS porque el SVG se dibuja con estas medidas. El ancho/alto de
+  // .hoy-ring acompaña en style.css.
+  var SZ = 44, R = 18, STROKE = 4.5;
+  if (window.matchMedia("(max-width: 768px)").matches) { SZ = 50; R = 21; }
+  var C = 2 * Math.PI * R;
   // Mismo anillo segmentado que las listas del sidebar: un arco por tarea
   // de hoy en vez de un único arco proporcional.
   var dash = _segmentedRingDash(total, done, C, STROKE);
