@@ -1757,18 +1757,20 @@ body {
 }
 
 /* Popover fecha+repetir de la fila (modo simple, ver
-   _openInlineDateRecurPopover en script.js): dos columnas — fecha a la
-   izquierda (más ancha, para el calendario) y repetir a la derecha (una
-   sola columna de opciones, no una rejilla). Todos los botones de dentro
-   (chips de fecha y filas de repetir) con el mismo borde/radio/padding. */
+   _openInlineDateRecurPopover en script.js): dos columnas al 50/50,
+   cada una una sola lista vertical de opciones (fecha ya no tiene
+   rejilla de calendario ni chips en fila, ver .field-popover-date-chip
+   más abajo) — incluida la cantidad de filas (4 + "Quitar" opcional en
+   cada lado), para que ambas columnas midan lo mismo de alto. */
 .field-popover-cols {
   display: grid;
-  /* REPETIR con un mínimo propio: con el padding de tarjeta de cada
-     columna (ver .field-popover-col) un simple "1fr" se quedaba sin
-     espacio para textos como "Cada 2 días" y truncaba de más. */
-  grid-template-columns: minmax(0, 3fr) minmax(112px, 2fr);
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  align-items: start;
+  /* stretch, no start: si un lado tiene "Quitar" (fecha u hora puestas)
+     y el otro no, sin esto medirían distinto de alto — con stretch,
+     ambas columnas igualan la altura de la más alta y el sobrante lo
+     reparte cada una por su cuenta (ver .field-popover-col--date/--recur). */
+  align-items: stretch;
 }
 
 /* Cada columna es su propia tarjeta (borde + fondo + padding), no solo
@@ -1788,25 +1790,43 @@ body {
   background: var(--surface-canvas);
 }
 
+.field-popover-col--date,
 .field-popover-col--recur {
-  height: 100%;
   display: grid;
   align-content: space-between;
 }
 
-.field-popover-col--date .field-popover-chip {
-  padding: 6px;
-}
-
-.field-popover-col--recur .field-popover-row {
+.field-popover-col .field-popover-row {
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
 }
 
-.field-popover-chip.active {
-  border-color: var(--c-primary-500);
-  background: rgba(163, 179, 102, 0.14);
-  color: var(--c-primary-300);
+/* Selector de fecha nativo, con la misma fila que el resto de opciones
+   (Hoy/Mañana/En 1 semana y las de repetir) — nada de rejilla de mes
+   propia (era lo que más alto le sumaba al popover): se apoya en el
+   selector del propio sistema. El icono de calendario del navegador es
+   demasiado genérico (no encaja con el resto de iconos lucide de la
+   app), así que se oculta y se pinta uno propio al lado. */
+.field-popover-date-chip {
+  cursor: default;
+}
+
+/* Comparte fila con field-popover-row-label (ver arriba): mismo flex:1
+   y truncado que el texto de cualquier otra opción, para que las cuatro
+   filas midan y se comporten igual. */
+.field-popover-date-input {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  color-scheme: light dark;
+}
+
+.field-popover-date-input::-webkit-calendar-picker-indicator {
+  display: none;
 }
 
 .field-popover-chip--clear {
@@ -1830,20 +1850,19 @@ body {
 
 /* Título de la tarea, encima de las dos columnas — la única forma de
    editarlo en el popover ligero del modo simple (sin panel de detalle).
-   El botón de confirmar es el mismo check que en "Nº días": un
-   <input type=text> tampoco tiene una forma obvia de "aceptar" en
-   móvil salvo Enter. */
+   El botón de confirmar va dentro del propio input, ocupando toda su
+   altura a la derecha — un <input type=text> no tiene forma obvia de
+   "aceptar" en móvil salvo Enter. */
 .field-popover-title-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  position: relative;
   margin-bottom: 10px;
 }
 
 .field-popover-title-input {
-  flex: 1;
-  min-width: 0;
-  padding: 12px;
+  width: 100%;
+  /* Hueco a la derecha para el botón superpuesto, que si no tapa el
+     final del texto según se escribe. */
+  padding: 12px 40px 12px 12px;
   border-radius: var(--r-md);
   border: 1px solid var(--border-default);
   background: var(--surface-input);
@@ -1857,15 +1876,27 @@ body {
   border-color: var(--c-primary-500);
 }
 
-/* "Eliminar tarea": separado del resto por un hueco mayor, para que no
-   se confunda con los botones "Quitar" (que solo limpian un campo). Vive
-   fuera de las columnas, así que el borde se repite a mano igual que en
-   .field-popover-date-clear. */
-.field-popover-row.field-popover-delete-task {
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-pill);
+.field-popover-title-confirm {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 40px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.field-popover-title-confirm:hover {
+  color: var(--c-primary-300);
+}
+
+.field-popover-title-confirm .lucide {
+  width: 14px;
+  height: 14px;
 }
 
 .field-popover-cal-head {
@@ -2095,7 +2126,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--text-tertiary);
-  margin: 12px 3px;
+  margin: 6px 3px;
 }
 
 /* ── Modo simple: sin listas propias (SOLO MÓVIL) ──────────────

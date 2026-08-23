@@ -2350,15 +2350,17 @@ function renderTasks() {
   taskList.classList.remove("task-list--hoy", "task-list--grupos");
 
   // El Inbox del prototipo muestra TODO el pool: sus propias tareas
-  // ("Sin lista") más las de cada proyecto, agrupadas por proyecto.
-  // En modo simple (móvil) no existen otras listas — aunque el usuario
-  // tenga alguna de antes (creada en modo completo), el Inbox no las
-  // trae aquí: solo enseña las tareas que son literalmente del Inbox.
+  // ("Sin lista") más las de cada proyecto. En modo simple (móvil) no
+  // hay UI para gestionar listas, pero eso no debe hacer invisibles
+  // tareas reales que ya tuvieran una lista asignada (creadas en modo
+  // completo, o antes de activar el modo simple) — el Inbox las sigue
+  // trayendo aquí; lo único que cambia en simple es que van en una
+  // lista plana sin agrupar (ver el bloque de `inboxGroups` más abajo).
   const isInbox = project.id === INBOX_ID;
   let items = getVisibleTasks(project).map(function(tk) {
     return { task: tk, project: project };
   });
-  if (isInbox && !isSimpleMobile()) {
+  if (isInbox) {
     projects.forEach(function(p) {
       if (p.id === INBOX_ID || p.archived) return;
       getVisibleTasks(p).forEach(function(tk) {
@@ -3297,50 +3299,25 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
   _closeInlineRowPopover();
   if (wasOpenForSameTask) return;
 
-  let vy, vm;
-  (function resetCalMonth() {
-    const init = task.dueDate ? new Date(task.dueDate + "T00:00") : new Date();
-    vy = init.getFullYear();
-    vm = init.getMonth();
-  })();
-
   const RECUR_PRESETS = [
     { label: t("recur.daily"),        days: 1  },
     { label: t("recur.every_2_days"), days: 2  },
     { label: t("recur.weekly"),       days: 7  },
-    { label: t("recur.biweekly"),     days: 14 },
-    { label: t("recur.monthly"),      days: 30 },
   ];
 
   const pop = document.createElement("div");
   pop.className = "field-popover field-popover--fixed";
 
   function renderPop() {
-    const localeD     = getLang() === "en" ? "en-GB" : "es-ES";
     const todayISO    = _localDateISO(new Date());
     const tomorrow    = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowISO = _localDateISO(tomorrow);
     const inWeek      = new Date(); inWeek.setDate(inWeek.getDate() + 7);
     const inWeekISO   = _localDateISO(inWeek);
-    const first       = new Date(vy, vm, 1);
-    const monthTitle  = first.toLocaleDateString(localeD, { month: "long", year: "numeric" });
-    const offset      = (first.getDay() + 6) % 7; // lunes = 0
-    const nDays       = new Date(vy, vm + 1, 0).getDate();
-    const mondayRef   = new Date(2024, 0, 1);
-    const dowNames    = Array.from({ length: 7 }, function(_, i) {
-      const d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
-      return d.toLocaleDateString(localeD, { weekday: "narrow" }).toUpperCase();
-    });
-
-    let cellsHtml = "";
-    for (let i = 0; i < offset; i++) cellsHtml += '<span class="field-popover-cal-empty">·</span>';
-    for (let day = 1; day <= nDays; day++) {
-      const iso = vy + "-" + String(vm + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-      const cls = ["field-popover-cal-day"];
-      if (iso === task.dueDate) cls.push("field-popover-cal-day--selected");
-      else if (iso === todayISO) cls.push("field-popover-cal-day--today");
-      cellsHtml += '<span class="' + cls.join(" ") + '" data-day-iso="' + iso + '">' + day + '</span>';
-    }
+    // Cualquier fecha que no sea una de las 3 rápidas se elige con el
+    // selector nativo del sistema — nada de pintar una rejilla de mes
+    // entera aquí, que es lo que más alto le añadía al popover.
+    const isQuickDate = task.dueDate === todayISO || task.dueDate === tomorrowISO || task.dueDate === inWeekISO;
 
     const isPresetRecur = task.recurDays != null && RECUR_PRESETS.some(function(p) { return p.days === task.recurDays; });
     const recurRows = RECUR_PRESETS.map(function(p) {
@@ -3366,26 +3343,31 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
     pop.innerHTML =
       '<div class="field-popover-title-row">' +
         '<input type="text" class="field-popover-title-input" maxlength="120" value="' + escHtml(task.text) + '" />' +
-        '<button type="button" class="field-popover-custom-confirm" data-title-confirm aria-label="' + t("modal.save") + '">' +
+        '<button type="button" class="field-popover-title-confirm" data-title-confirm aria-label="' + t("modal.save") + '">' +
           '<i data-lucide="check"></i>' +
         '</button>' +
       '</div>' +
       '<div class="field-popover-cols">' +
         '<div class="field-popover-col field-popover-col--date">' +
-          '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
-          '<div class="field-popover-chips">' +
-            '<button type="button" class="field-popover-chip' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' + t("date.today") + '</button>' +
-            '<button type="button" class="field-popover-chip' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' + t("date.tomorrow") + '</button>' +
-            '<button type="button" class="field-popover-chip' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' + t("date.in_week") + '</button>' +
-          '</div>' +
-          '<div class="field-popover-cal-head">' +
-            '<button type="button" class="field-popover-cal-nav" data-cal-nav="-1" aria-label="Mes anterior">‹</button>' +
-            '<span class="field-popover-cal-title">' + escHtml(monthTitle) + '</span>' +
-            '<button type="button" class="field-popover-cal-nav" data-cal-nav="1" aria-label="Mes siguiente">›</button>' +
-          '</div>' +
-          '<div class="field-popover-cal-grid">' +
-            dowNames.map(function(d) { return '<span class="field-popover-cal-dow">' + d + '</span>'; }).join("") +
-            cellsHtml +
+          '<div class="field-popover-list">' +
+            '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
+            '<button type="button" class="field-popover-row' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' +
+              '<span class="field-popover-row-label">' + t("date.today") + '</span>' +
+              (task.dueDate === todayISO ? '<i data-lucide="check"></i>' : "") +
+            '</button>' +
+            '<button type="button" class="field-popover-row' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' +
+              '<span class="field-popover-row-label">' + t("date.tomorrow") + '</span>' +
+              (task.dueDate === tomorrowISO ? '<i data-lucide="check"></i>' : "") +
+            '</button>' +
+            '<button type="button" class="field-popover-row' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' +
+              '<span class="field-popover-row-label">' + t("date.in_week") + '</span>' +
+              (task.dueDate === inWeekISO ? '<i data-lucide="check"></i>' : "") +
+            '</button>' +
+            '<div class="field-popover-row field-popover-date-chip' + (task.dueDate && !isQuickDate ? " active" : "") + '" data-date-chip>' +
+              '<i data-lucide="calendar"></i>' +
+              '<input type="date" class="field-popover-date-input field-popover-row-label" data-date-input value="' + (task.dueDate || "") + '" />' +
+              (task.dueDate && !isQuickDate ? '<i data-lucide="check"></i>' : "") +
+            '</div>' +
           '</div>' +
           (task.dueDate ? '<button type="button" class="field-popover-row field-popover-row--clear field-popover-date-clear" data-date-clear>' +
             '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
@@ -3400,21 +3382,10 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
             '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
           '</button>' : "") +
         '</div>' +
-      '</div>' +
-      '<button type="button" class="field-popover-row field-popover-row--clear field-popover-delete-task" data-delete-task>' +
-        '<span class="field-popover-row-label">' + t("detail.delete_task") + '</span>' +
-      '</button>';
+      '</div>';
 
     if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
 
-    pop.querySelector('[data-cal-nav="-1"]').addEventListener("click", function() {
-      vm--; if (vm < 0) { vm = 11; vy--; }
-      renderPop();
-    });
-    pop.querySelector('[data-cal-nav="1"]').addEventListener("click", function() {
-      vm++; if (vm > 11) { vm = 0; vy++; }
-      renderPop();
-    });
     pop.querySelectorAll("[data-quick]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         const q = btn.dataset.quick;
@@ -3423,13 +3394,25 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
         _closeInlineRowPopover();
       });
     });
-    pop.querySelectorAll("[data-day-iso]").forEach(function(el) {
-      el.addEventListener("click", function() {
-        task.dueDate = el.dataset.dayIso;
+    const dateInputEl = pop.querySelector("[data-date-input]");
+    const dateChipEl  = pop.querySelector("[data-date-chip]");
+    if (dateInputEl) {
+      dateInputEl.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      dateInputEl.addEventListener("change", function() {
+        task.dueDate = dateInputEl.value || null;
         saveAndRender();
         _closeInlineRowPopover();
       });
-    });
+      // El icono de calendario es decorativo (el nativo del navegador se
+      // oculta por CSS, ver .field-popover-date-input), así que un toque
+      // ahí no cae dentro del <input> real — se reenvía a mano para que
+      // todo el chip abra el selector, no solo el hueco del texto.
+      if (dateChipEl) dateChipEl.addEventListener("click", function(e) {
+        if (e.target === dateInputEl) return;
+        if (typeof dateInputEl.showPicker === "function") dateInputEl.showPicker();
+        else dateInputEl.focus();
+      });
+    }
     const dateClearBtn = pop.querySelector("[data-date-clear]");
     if (dateClearBtn) dateClearBtn.addEventListener("click", function() {
       task.dueDate = null;
@@ -3497,11 +3480,6 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
         });
       }
     }
-    const deleteTaskBtn = pop.querySelector("[data-delete-task]");
-    if (deleteTaskBtn) deleteTaskBtn.addEventListener("click", function() {
-      _closeInlineRowPopover();
-      deleteTaskWithUndo(task, project);
-    });
   }
   renderPop();
 
