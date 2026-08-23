@@ -13,6 +13,7 @@ import {
   closeModal,
   modalHead,
   modalPrompt,
+  modalEmailPassword,
   modalConfirm,
   modalAlert,
 } from "./ui/modal.js";
@@ -172,9 +173,12 @@ function _showQuickToast(msg) {
   }, 1800);
 }
 
-// Otros módulos (sections-and-profile.js) acceden a modalAlert/modalPrompt vía window.
-window.modalAlert  = modalAlert;
-window.modalPrompt = modalPrompt;
+// Otros módulos (sections-and-profile.js) acceden a modalAlert/modalPrompt/
+// modalEmailPassword/modalConfirm vía window.
+window.modalAlert          = modalAlert;
+window.modalPrompt         = modalPrompt;
+window.modalEmailPassword  = modalEmailPassword;
+window.modalConfirm        = modalConfirm;
 
 // ─── ALIASES DE GLOBALES (de otros módulos cargados antes) ───
 // setupPasteHandler y setupImageResizer se leen de window porque se
@@ -3896,16 +3900,17 @@ function _hoyCalMondayOf(iso) {
   return _hoyCalAddDays(iso, -((d.getDay() + 6) % 7));
 }
 
-/** Set con todos los `dueDate` que tienen al menos una tarea. */
-function _hoyCalDiasConTarea() {
-  var set = new Set();
+/** Map ISO → nº de tareas ese día (para los puntitos, hasta 3). */
+function _hoyCalTareasPorDia() {
+  var map = new Map();
   projects.forEach(function(p) {
     if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
-      if (tk.dueDate) set.add(tk.dueDate);
+      if (!tk.dueDate) return;
+      map.set(tk.dueDate, (map.get(tk.dueDate) || 0) + 1);
     });
   });
-  return set;
+  return map;
 }
 
 function _renderHoyCalStrip() {
@@ -3920,7 +3925,7 @@ function _renderHoyCalStrip() {
   var localeD = getLang() === "en" ? "en-GB" : "es-ES";
   var todayISO = _localDateISO(new Date());
   var viewISO  = _hoyCalViewISO || todayISO;
-  var conTarea = _hoyCalDiasConTarea();
+  var tareasPorDia = _hoyCalTareasPorDia();
 
   // Abreviaturas de tres letras (Lun, Mar, Mié…), empezando en lunes
   // (2024-01-01 fue lunes). Algunas locales las devuelven con punto
@@ -3936,9 +3941,15 @@ function _renderHoyCalStrip() {
     if (fueraDeMes) cls.push("hoy-cal-day--muted");
     if (iso === todayISO) cls.push("hoy-cal-day--today");
     if (iso === _hoySelectedDate) cls.push("hoy-cal-day--selected");
+    // Hasta 3 puntos según cuántas tareas hay ese día; con 0 se pinta uno
+    // "off" (invisible, no ausente) para que la fila mida siempre igual.
+    var n = Math.min(tareasPorDia.get(iso) || 0, 3);
+    var dotsHtml = n > 0
+      ? '<span class="hoy-cal-dots">' + '<span class="hoy-cal-dot"></span>'.repeat(n) + '</span>'
+      : '<span class="hoy-cal-dots"><span class="hoy-cal-dot hoy-cal-dot--off"></span></span>';
     return '<button type="button" class="' + cls.join(" ") + '" data-cal-day="' + iso + '">' +
       '<span class="hoy-cal-day-num">' + num + '</span>' +
-      (conTarea.has(iso) ? '<span class="hoy-cal-dot"></span>' : '<span class="hoy-cal-dot hoy-cal-dot--off"></span>') +
+      dotsHtml +
     '</button>';
   }
 
@@ -5908,16 +5919,18 @@ function _updateProfileMenu(user) {
   var pfSub          = document.getElementById("profile-sub");
   var pfSubTop       = document.getElementById("profile-sub-top");
   var settingsSub    = document.getElementById("settings-sub");
-  var settingsSigninBtn      = document.getElementById("settings-signin-btn");
-  var settingsSigninEmailBtn = document.getElementById("settings-signin-email-btn");
-  var settingsSyncUser       = document.getElementById("settings-sync-user");
+  var settingsSigninBtn         = document.getElementById("settings-signin-btn");
+  var settingsSigninEmailBtn    = document.getElementById("settings-signin-email-btn");
+  var settingsSigninPasswordBtn = document.getElementById("settings-signin-password-btn");
+  var settingsSyncUser          = document.getElementById("settings-sync-user");
 
   if (pfSyncSep)   pfSyncSep.hidden   = false;
   if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
   if (pfSyncUser)  pfSyncUser.hidden  = !user;
-  if (settingsSigninBtn)      settingsSigninBtn.hidden      = Boolean(user);
-  if (settingsSigninEmailBtn) settingsSigninEmailBtn.hidden = Boolean(user);
-  if (settingsSyncUser)       settingsSyncUser.hidden       = !user;
+  if (settingsSigninBtn)         settingsSigninBtn.hidden         = Boolean(user);
+  if (settingsSigninEmailBtn)    settingsSigninEmailBtn.hidden    = Boolean(user);
+  if (settingsSigninPasswordBtn) settingsSigninPasswordBtn.hidden = Boolean(user);
+  if (settingsSyncUser)          settingsSyncUser.hidden          = !user;
 
   // Valores base según el modo (cuenta Google vs. local).
   var baseName, baseInitial;

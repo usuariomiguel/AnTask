@@ -383,6 +383,52 @@ import { loadSync } from "./sync-loader.js";
     });
   }
 
+  // Tercera alternativa a Google, pensada para lo mismo: email+contraseña
+  // no pasa por ningún dominio externo, así que tampoco lo bloquea la
+  // política de Google contra WebViews embebidos — y a diferencia del
+  // enlace por email, no depende de abrir un correo en el mismo contexto.
+  // Firebase (desde hace unas versiones) no distingue "no existe la
+  // cuenta" de "contraseña incorrecta" en el código de error por
+  // seguridad, así que ante cualquiera de los dos se ofrece crear cuenta;
+  // si en realidad ya existía, el create falla con "email-already-in-use"
+  // y ese mensaje aclara lo que ha pasado.
+  function doSignInPassword() {
+    loadSync().then(function () {
+      if (!window.AnsoSync) {
+        if (window.modalAlert) modalAlert("La sincronización no está disponible ahora mismo. Inténtalo de nuevo en un momento.", "info");
+        return;
+      }
+      return window.modalEmailPassword("signin").then(function (cred) {
+        if (!cred) return;
+        return AnsoSync.signInWithPassword(cred.email, cred.password).catch(function (err) {
+          var sinCuenta = err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/wrong-password";
+          if (!sinCuenta) throw err;
+          return window.modalConfirm(
+            "No hay ninguna cuenta con ese email y esa contraseña. ¿Quieres crear una cuenta nueva?",
+            "Crear cuenta"
+          ).then(function (yes) {
+            if (!yes) return;
+            return AnsoSync.signUpWithPassword(cred.email, cred.password);
+          });
+        });
+      });
+    }).catch(function (e) {
+      console.error("AnsoSync password auth error:", e);
+      var msg = e.code === "auth/invalid-email"
+        ? "Ese email no es válido."
+        : e.code === "auth/weak-password"
+        ? "La contraseña debe tener al menos 6 caracteres."
+        : e.code === "auth/email-already-in-use"
+        ? "Ya existe una cuenta con ese email — comprueba la contraseña."
+        : e.code === "auth/operation-not-allowed"
+        ? "El login con contraseña no está activado en Firebase. Actívalo en Firebase Console → Authentication → Métodos de acceso → Correo electrónico/contraseña."
+        : e.code === "auth/too-many-requests"
+        ? "Demasiados intentos. Espera un poco antes de volver a intentarlo."
+        : "Error al iniciar sesión: " + (e.message || e.code);
+      if (window.modalAlert) modalAlert(msg, "error");
+    });
+  }
+
   /* Expuestas para la pantalla «Perfil» de móvil. No se duplican allí:
      doSignIn carga el módulo de sincronización bajo demanda y distingue
      popup cerrado, popup bloqueado y dominio no autorizado. */
@@ -393,6 +439,8 @@ import { loadSync } from "./sync-loader.js";
   });
   var settingsSigninEmailBtn = document.getElementById("settings-signin-email-btn");
   if (settingsSigninEmailBtn) settingsSigninEmailBtn.addEventListener("click", doSignInEmail);
+  var settingsSigninPasswordBtn = document.getElementById("settings-signin-password-btn");
+  if (settingsSigninPasswordBtn) settingsSigninPasswordBtn.addEventListener("click", doSignInPassword);
   [
     document.getElementById("pf-signout-btn"),
     document.getElementById("settings-signout-btn"),
@@ -410,6 +458,7 @@ import { loadSync } from "./sync-loader.js";
   var pfNotifNewTime   = document.getElementById("pf-notif-new-time");
   var pfNotifAddBtn    = document.getElementById("pf-notif-add");
   var pfNotifTest      = document.getElementById("pf-notif-test");
+  var pfNotifSimpleInput = document.getElementById("pf-notif-simple-input");
 
   function renderNotifTimes() {
     if (!pfNotifTimesList || !window.AnsoNotif) return;
@@ -456,6 +505,9 @@ import { loadSync } from "./sync-loader.js";
       if (pfNotifPill) { pfNotifPill.textContent = "ON"; pfNotifPill.classList.add("on"); }
       if (pfNotifOptions) pfNotifOptions.hidden = false;
       renderNotifTimes();
+      // Modo simple: refleja la primera hora configurada (si venía de
+      // modo completo con varias, se ve solo esa hasta que se cambie).
+      if (pfNotifSimpleInput) pfNotifSimpleInput.value = AnsoNotif.getTimes()[0] || "09:00";
     } else {
       pfNotifLabel.textContent = perm === "denied" ? t("notif.blocked") : t("notif.enable");
       if (pfNotifPill) { pfNotifPill.textContent = "OFF"; pfNotifPill.classList.remove("on"); }
@@ -494,6 +546,18 @@ import { loadSync } from "./sync-loader.js";
         // ya existe — silencioso, solo refrescar
       }
       renderNotifTimes();
+    });
+  }
+
+  // Modo simple: un único horario — cambiarlo sustituye TODAS las horas
+  // configuradas por esta una (si el usuario tenía varias de cuando usó
+  // el modo completo, se pierden al tocar aquí; es justo lo que "un
+  // único horario" implica).
+  if (pfNotifSimpleInput && window.AnsoNotif) {
+    pfNotifSimpleInput.addEventListener("change", function() {
+      var v = pfNotifSimpleInput.value;
+      if (!v) return;
+      AnsoNotif.setTimes([v]);
     });
   }
 

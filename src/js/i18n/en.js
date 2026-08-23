@@ -33,7 +33,14 @@ export const en = {
   "profile.signout":          "Sign out",
   "profile.workspace_section":"Workspace",
   "profile.signin":           "Sync with Google",
-  "profile.signin_email":     "Or with an email link",
+  "profile.signin_email":     "Email link",
+  "profile.signin_password":  "Email and password",
+  "auth.signin_title":        "Sign in",
+  "auth.signup_title":        "Create account",
+  "auth.signin_btn":          "Sign in",
+  "auth.signup_btn":          "Create account",
+  "auth.email_ph":            "you@email.com",
+  "auth.password_ph":         "Password",
 
   // ── Settings (two-pane dialog) ─────────────────────────────
   "settings.nav.account":              "Account",
@@ -68,6 +75,7 @@ export const en = {
   "settings.notifications.tasks":      "Task alerts",
   "settings.notifications.tasks_desc": "Reminders when a task is due.",
   "settings.notifications.times":      "Alert times",
+  "settings.notifications.time":       "Alert time",
   "settings.notifications.add":        "Add",
   "settings.notifications.test":       "Test alert",
   "settings.notifications.digest":     "Daily digest",

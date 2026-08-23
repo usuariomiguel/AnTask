@@ -140,6 +140,63 @@ export function modalPrompt(label, value, placeholder) {
 }
 
 /**
+ * Modal de email + contraseña (login/registro con Firebase Auth).
+ * `mode` solo cambia el texto del botón — la decisión de si es alta o
+ * inicio de sesión la toma quien llama, según lo que responda Firebase.
+ * @param {"signin"|"signup"} mode
+ * @returns {Promise<{email: string, password: string}|null>}
+ */
+export function modalEmailPassword(mode) {
+  return new Promise(function (resolve) {
+    const { overlay, box } = createModalBase();
+
+    box.classList.add("modal-box-v1");
+    box.innerHTML =
+      modalHead(t(mode === "signup" ? "auth.signup_title" : "auth.signin_title"), "lock") +
+      '<div class="modal-body modal-body--stack">' +
+        '<input class="modal-input" type="email" autocomplete="email" placeholder="' + t("auth.email_ph") + '" />' +
+        '<input class="modal-input" type="password" autocomplete="current-password" placeholder="' + t("auth.password_ph") + '" />' +
+      '</div>' +
+      '<div class="modal-foot">' +
+        '<button class="modal-btn modal-btn-cancel">' + t("modal.cancel") + '</button>' +
+        '<button class="modal-btn modal-btn-confirm">' + t(mode === "signup" ? "auth.signup_btn" : "auth.signin_btn") + '</button>' +
+      '</div>';
+    if (window.lucide) window.lucide.createIcons({ nodes: [box] });
+
+    const inputs   = box.querySelectorAll(".modal-input");
+    const email    = inputs[0];
+    const password = inputs[1];
+    const confirm  = box.querySelector(".modal-btn-confirm");
+    const cancel   = box.querySelector(".modal-btn-cancel");
+
+    function doConfirm() {
+      const e = email.value.trim();
+      const p = password.value;
+      if (!e || !p) return;
+      closeModal(overlay);
+      resolve({ email: e, password: p });
+    }
+    function doCancel() {
+      closeModal(overlay);
+      resolve(null);
+    }
+
+    overlay._cancel = doCancel;
+    confirm.addEventListener("click", doConfirm);
+    cancel.addEventListener("click",  doCancel);
+    box.querySelector(".modal-head-close").addEventListener("click", doCancel);
+    [email, password].forEach(function (input) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter")  doConfirm();
+        if (e.key === "Escape") doCancel();
+      });
+    });
+
+    setTimeout(function () { email.focus(); }, 50);
+  });
+}
+
+/**
  * Modal de confirmación (reemplaza window.confirm).
  * @returns {Promise<boolean>}
  */

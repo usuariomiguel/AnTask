@@ -33,7 +33,14 @@ export const es = {
   "profile.signout":          "Cerrar sesión",
   "profile.workspace_section":"Espacio de trabajo",
   "profile.signin":           "Sincronizar con Google",
-  "profile.signin_email":     "O con enlace por email",
+  "profile.signin_email":     "Enlace por email",
+  "profile.signin_password":  "Email y contraseña",
+  "auth.signin_title":        "Iniciar sesión",
+  "auth.signup_title":        "Crear cuenta",
+  "auth.signin_btn":          "Entrar",
+  "auth.signup_btn":          "Crear cuenta",
+  "auth.email_ph":            "tu@email.com",
+  "auth.password_ph":         "Contraseña",
 
   // ── Ajustes (diálogo de dos paneles) ───────────────────────
   "settings.nav.account":              "Cuenta",
@@ -68,6 +75,7 @@ export const es = {
   "settings.notifications.tasks":      "Avisos de tareas",
   "settings.notifications.tasks_desc": "Recordatorios cuando una tarea vence.",
   "settings.notifications.times":      "Horas de aviso",
+  "settings.notifications.time":       "Hora del aviso",
   "settings.notifications.add":        "Añadir",
   "settings.notifications.test":       "Probar aviso",
   "settings.notifications.digest":     "Resumen diario",

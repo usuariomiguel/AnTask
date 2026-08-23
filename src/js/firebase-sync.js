@@ -8,9 +8,11 @@
  *  1. Ve a https://console.firebase.google.com y crea un proyecto.
  *  2. En el proyecto, añade una app web (icono </>) y copia la config.
  *  3. Activa Authentication → métodos de inicio de sesión → Google, y
- *     también "Enlace de email (sin contraseña)" — alternativa a Google
- *     para la PWA instalada en iOS, donde Google bloquea el login dentro
- *     de un WebView embebido (ver signInWithEmailLinkTo() más abajo).
+ *     también "Enlace de email (sin contraseña)" y "Correo electrónico/
+ *     contraseña" — alternativas a Google para la PWA instalada en iOS,
+ *     donde Google bloquea el login dentro de un WebView embebido (ver
+ *     signInWithEmailLinkTo() y signInWithPassword()/signUpWithPassword()
+ *     más abajo).
  *  4. Activa Firestore Database → crear base de datos → modo producción.
  *  5. En Firestore → Reglas, sustituye el contenido por:
  *
@@ -39,6 +41,8 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut as fbSignOut,
   onAuthStateChanged,
 } from "firebase/auth";
@@ -307,6 +311,22 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         return sendSignInLinkToEmail(auth, email, actionCodeSettings).then(function () {
           try { localStorage.setItem("antask-email-for-signin", email); } catch (e) {}
         });
+      },
+
+      /**
+       * Otra alternativa a Google, pensada para lo mismo (la PWA instalada
+       * en iOS): email + contraseña no pasa por ningún dominio externo, así
+       * que no lo bloquea la política de Google contra WebViews embebidos.
+       * @param {string} email
+       * @param {string} password
+       */
+      signInWithPassword: function (email, password) {
+        return signInWithEmailAndPassword(auth, email, password);
+      },
+
+      /** @param {string} email @param {string} password */
+      signUpWithPassword: function (email, password) {
+        return createUserWithEmailAndPassword(auth, email, password);
       },
 
       signOut: function () {

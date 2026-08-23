@@ -256,7 +256,8 @@
                   </div>
                   <div class="settings-row-control" id="settings-sync-control">
                     <button type="button" class="settings-btn" id="settings-signin-btn" hidden><i data-lucide="cloud"></i> <span data-i18n="profile.signin">Sincronizar con Google</span></button>
-                    <button type="button" class="settings-link-btn" id="settings-signin-email-btn" hidden data-i18n="profile.signin_email">O con enlace por email</button>
+                    <button type="button" class="settings-btn" id="settings-signin-email-btn" hidden><i data-lucide="mail"></i> <span data-i18n="profile.signin_email">Enlace por email</span></button>
+                    <button type="button" class="settings-btn" id="settings-signin-password-btn" hidden><i data-lucide="lock"></i> <span data-i18n="profile.signin_password">Email y contraseña</span></button>
                     <div id="settings-sync-user" class="settings-sync-connected" hidden>
                       <span class="settings-sync-status" data-i18n="settings.account.connected">Conectado</span>
                       <button type="button" class="settings-btn settings-btn--danger" id="settings-signout-btn"><span data-i18n="profile.signout">Cerrar sesión</span></button>
@@ -347,6 +348,14 @@
                   </button>
                 </div>
                 <div class="profile-notif-options" id="pf-notif-options" hidden>
+                  <!-- Modo simple: un único horario, sin gestión de varias
+                       horas ni botón de prueba aparte (ver style.css y
+                       sections-and-profile.js). El bloque de abajo
+                       (.profile-notif-times-block) es el de modo completo. -->
+                  <div class="profile-notif-simple-time" id="pf-notif-simple-time">
+                    <span class="profile-notif-times-label" data-i18n="settings.notifications.time">Hora del aviso</span>
+                    <input type="time" id="pf-notif-simple-input" value="09:00">
+                  </div>
                   <div class="profile-notif-times-block">
                     <span class="profile-notif-times-label" data-i18n="settings.notifications.times">Horas de aviso</span>
                     <div class="profile-notif-times-list" id="pf-notif-times-list"></div>
