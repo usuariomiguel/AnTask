@@ -310,7 +310,7 @@
   --c-primary-700: #4a5228;
   --c-primary-800: #3d441f;
 
-  --accent-on: #fffdf6;
+  --accent-on: #fffcf1;
   --accent-tint: rgba(111, 122, 61, 0.14);
 
   --grad-primary: linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
@@ -318,32 +318,34 @@
   --glow-primary: 0 4px 14px rgba(111, 122, 61, 0.28);
   --ring-primary: 0 0 0 3px rgba(111, 122, 61, 0.20);
 
-  /* Surfaces — papel cálido. `--surface-deep` la usan solo la sidebar y
+  /* Surfaces — "arena cálida": el beige anterior (#dcd1bc/#f8f4ea) leía
+     grisáceo/apagado; este sube saturación y calidez sin tocar el
+     acento ni la tipografía. `--surface-deep` la usan solo la sidebar y
      el panel de detalle: cargan el tono cálido y marcan el marco de la
-     app. `--surface-canvas` ya no es un beige intermedio entre deep y
-     card — se aclara casi a blanco para que canvas y tarjeta se lean
-     como una única zona de trabajo luminosa, y el contraste real quede
-     entre esa zona y el marco cálido de sidebar/detalle. */
-  --surface-desk: #dcd1bc;
-  --surface-deep: #dcd1bc;
-  --surface-canvas: #f8f4ea;
-  --surface-card: #fffdf6;
-  --surface-raised: #efe6d4;
-  --block-bg: rgba(255, 253, 246, 0.66);
-  --surface-overlay: rgba(255, 253, 246, 0.97);
-  --surface-input: #fffdf6;
+     app. `--surface-canvas` se aclara casi a crema para que canvas y
+     tarjeta se lean como una única zona de trabajo luminosa, y el
+     contraste real quede entre esa zona y el marco cálido de
+     sidebar/detalle. */
+  --surface-desk: #e6d19e;
+  --surface-deep: #e6d19e;
+  --surface-canvas: #f9f1de;
+  --surface-card: #fffcf1;
+  --surface-raised: #f3e8c9;
+  --block-bg: rgba(255, 252, 241, 0.66);
+  --surface-overlay: rgba(255, 252, 241, 0.97);
+  --surface-input: #fffcf1;
 
   /* Borders */
-  --border-subtle: rgba(50, 40, 24, 0.08);
-  --border-default: rgba(50, 40, 24, 0.11);
-  --border-strong: rgba(50, 40, 24, 0.18);
+  --border-subtle: rgba(80, 55, 10, 0.08);
+  --border-default: rgba(80, 55, 10, 0.12);
+  --border-strong: rgba(80, 55, 10, 0.20);
 
   /* Text */
-  --text-primary: #2a251d;
-  --text-secondary: #6a6151;
-  --text-tertiary: #665c4c;
-  /* ≥4.5:1 sobre canvas #f8f4ea (AA) — 5.97:1 */
-  --text-disabled: #b3a892;
+  --text-primary: #2b2213;
+  --text-secondary: #6f5f3e;
+  --text-tertiary: #7a6a4a;
+  /* ≥4.5:1 sobre canvas #f9f1de (AA) */
+  --text-disabled: #b8a173;
   --text-inverse: #f2ece0;
 
   /* Semantic */
@@ -358,16 +360,16 @@
   --c-overdue: #b0473f;
 
   /* Interacción */
-  --row-hover: #efe6d4;
-  --kbd-bg: #e7dfcf;
+  --row-hover: #f3e8c9;
+  --kbd-bg: #f0e0b8;
   --task-hover: rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
 
   /* Shadows — más suaves, con tinte cálido */
-  --shadow-sm: 0 1px 2px rgba(50, 40, 24, 0.06);
-  --shadow-md: 0 4px 12px rgba(50, 40, 24, 0.08);
-  --shadow-lg: 0 12px 32px rgba(50, 40, 24, 0.12);
-  --shadow-card: 0 1px 3px rgba(50, 40, 24, 0.06), 0 0 0 1px rgba(50, 40, 24, 0.04);
+  --shadow-sm: 0 1px 2px rgba(80, 55, 10, 0.06);
+  --shadow-md: 0 4px 12px rgba(80, 55, 10, 0.08);
+  --shadow-lg: 0 12px 32px rgba(80, 55, 10, 0.12);
+  --shadow-card: 0 1px 3px rgba(80, 55, 10, 0.06), 0 0 0 1px rgba(80, 55, 10, 0.04);
 
   /* Aliases que necesitan tinte específico en light (no cascadean limpio) */
   --b-active: rgba(111, 122, 61, 0.45);
@@ -709,9 +711,9 @@ body {
 
 :root[data-theme="light"] {
   --shell-shadow:
-    0 1px 2px rgba(50, 40, 24, 0.05),
-    0 6px 14px -4px rgba(50, 40, 24, 0.10),
-    0 18px 36px -12px rgba(50, 40, 24, 0.18);
+    0 1px 2px rgba(80, 55, 10, 0.05),
+    0 6px 14px -4px rgba(80, 55, 10, 0.10),
+    0 18px 36px -12px rgba(80, 55, 10, 0.18);
 }
 
 @media (min-width: 769px) {
@@ -1102,7 +1104,7 @@ body {
 }
 
 :root[data-theme="light"] .project-ring-track {
-  stroke: rgba(50, 40, 24, 0.14);
+  stroke: rgba(80, 55, 10, 0.14);
 }
 
 .project-ring-fill {
@@ -1201,7 +1203,7 @@ body {
 
 :root[data-theme="light"] .new-project-btn,
 :root[data-theme="light"] .task-form button[type="submit"] {
-  color: #fffdf6;
+  color: #fffcf1;
   box-shadow:
     inset 0 1px 0 rgba(255, 238, 214, 0.18),
     0 0 0 1px rgba(111, 122, 61, 0.28),
@@ -2831,7 +2833,7 @@ button:focus-visible {
   background: var(--surface-card);
   /* segOn claro = papel */
   color: var(--c-primary-600);
-  box-shadow: 0 1px 2px rgba(50, 40, 24, 0.10);
+  box-shadow: 0 1px 2px rgba(80, 55, 10, 0.10);
 }
 
 .view-nav-right {
@@ -2896,7 +2898,7 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .filter-trigger-btn.open {
-  background: rgba(50, 40, 24, 0.03);
+  background: rgba(80, 55, 10, 0.03);
 }
 
 :root[data-theme="light"] .filter-trigger-btn--active {
@@ -2950,9 +2952,9 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .filter-panel {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.10);
-  box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.10);
+  box-shadow: 0 12px 34px -10px rgba(80, 55, 10, 0.24), 0 2px 8px rgba(80, 55, 10, 0.10);
 }
 
 .filter-panel-section {
@@ -3066,9 +3068,9 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .more-actions-panel {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.10);
-  box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.10);
+  box-shadow: 0 12px 34px -10px rgba(80, 55, 10, 0.24), 0 2px 8px rgba(80, 55, 10, 0.10);
 }
 
 .more-actions-panel button {
@@ -3122,8 +3124,8 @@ button:focus-visible {
 }
 
 .row-style-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2;
 }
 
@@ -3134,7 +3136,7 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .row-style-btn[aria-expanded="true"] {
-  background: rgba(50, 40, 24, 0.03);
+  background: rgba(80, 55, 10, 0.03);
 }
 
 /* ── Claro/Oscuro: mismo tamaño/caja que .row-style-btn, un solo botón. Los
@@ -3220,9 +3222,9 @@ button:focus-visible {
 
 :root[data-theme="light"] .row-style-panel,
 :root[data-theme="light"] .task-prefs-panel {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.10);
-  box-shadow: 0 12px 34px -10px rgba(50, 40, 24, 0.24), 0 2px 8px rgba(50, 40, 24, 0.10);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.10);
+  box-shadow: 0 12px 34px -10px rgba(80, 55, 10, 0.24), 0 2px 8px rgba(80, 55, 10, 0.10);
 }
 
 .row-style-panel button,
@@ -3295,7 +3297,7 @@ button:focus-visible {
 }
 
 :root[data-theme="light"] .task-prefs-sep {
-  background: rgba(50, 40, 24, 0.10);
+  background: rgba(80, 55, 10, 0.10);
 }
 
 /* ── Cal month-nav row ────────────────────────────────────────── */
@@ -4029,6 +4031,8 @@ button:focus-visible {
   .hoy-cal-strip:not([hidden]) {
     display: block;
     padding: 0 16px;
+    width: max-content;
+    margin: auto;
   }
 
   .hoy-cal-head {
@@ -4092,7 +4096,7 @@ button:focus-visible {
     justify-items: center;
     gap: 3px;
     min-width: 0;
-    padding: 3px0;
+    padding: 3px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
@@ -4106,6 +4110,7 @@ button:focus-visible {
      puntitos debajo). Todos los días llevan ya el borde por defecto,
      no solo esos dos estados. */
   span.hoy-cal-day-num {
+    background: var(--surface-card);
     display: grid;
     place-items: center;
     width: 40px;
@@ -4547,8 +4552,8 @@ body.tasks-compact .task-text {
 }
 
 :root[data-theme="light"] .subtask-item {
-  background: rgba(50, 40, 24, 0.02);
-  border-color: rgba(50, 40, 24, 0.07);
+  background: rgba(80, 55, 10, 0.02);
+  border-color: rgba(80, 55, 10, 0.07);
 }
 
 /* Misma casilla circular que .task-toggle, un punto más pequeña por
@@ -4656,7 +4661,7 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] input.inline-edit {
-  background: #fffdf6;
+  background: #fffcf1;
   border-color: var(--b-active);
   box-shadow: var(--glow-blue);
   caret-color: var(--c-cyan);
@@ -4726,8 +4731,8 @@ input.inline-edit {
 
 :root[data-theme="light"] .modal-box {
   box-shadow:
-    0 4px 12px rgba(50, 40, 24, 0.07),
-    0 24px 56px -12px rgba(50, 40, 24, 0.20);
+    0 4px 12px rgba(80, 55, 10, 0.07),
+    0 24px 56px -12px rgba(80, 55, 10, 0.20);
 }
 
 /* ─── HOJAS MODALES (bottom sheets, móvil) ───────────────────────
@@ -5075,8 +5080,8 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] .modal-input {
-  background: rgba(50, 40, 24, 0.03);
-  border-color: rgba(50, 40, 24, 0.10);
+  background: rgba(80, 55, 10, 0.03);
+  border-color: rgba(80, 55, 10, 0.10);
   color: var(--text-primary);
 }
 
@@ -5113,7 +5118,7 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] .modal-btn-cancel {
-  border-color: rgba(50, 40, 24, 0.10);
+  border-color: rgba(80, 55, 10, 0.10);
   color: var(--text-tertiary);
 }
 
@@ -5948,7 +5953,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .filter-panel {
-    box-shadow: 0 -4px 24px rgba(50, 40, 24, 0.10), 0 -1px 0 rgba(50, 40, 24, 0.06);
+    box-shadow: 0 -4px 24px rgba(80, 55, 10, 0.10), 0 -1px 0 rgba(80, 55, 10, 0.06);
     border-top-color: rgba(111, 122, 61, 0.35);
   }
 
@@ -5978,7 +5983,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .more-actions-panel {
-    box-shadow: 0 -4px 24px rgba(50, 40, 24, 0.10), 0 -1px 0 rgba(50, 40, 24, 0.06);
+    box-shadow: 0 -4px 24px rgba(80, 55, 10, 0.10), 0 -1px 0 rgba(80, 55, 10, 0.06);
     border-top-color: rgba(111, 122, 61, 0.30);
   }
 
@@ -6917,9 +6922,9 @@ mark.search-hl {
 }
 
 :root[data-theme="light"] .undo-toast {
-  background: #fffdf6;
+  background: #fffcf1;
   border-color: rgba(111, 122, 61, 0.20);
-  box-shadow: 0 4px 24px rgba(50, 40, 24, 0.12);
+  box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 
 .undo-toast-visible {
@@ -6982,6 +6987,26 @@ mark.search-hl {
   position: relative;
   z-index: 3;
   background-color: inherit;
+}
+
+/* .today-item en móvil es grid (checkbox/texto/fecha/chips puestos por
+   grid-area, ver el bloque "Hoy: la misma rejilla" más abajo en este
+   archivo) — display:block/flex aquí les quitaba esas posiciones y el
+   contenido se apelotonaba en la primera columna (el título llegaba a
+   desaparecer del todo, tapado o sin sitio). subgrid hereda la MISMA
+   rejilla del padre en vez de duplicar sus columnas/filas a mano, así
+   que sigue funcionando aunque cambien entre modo simple y completo. */
+.today-item .task-swipe-content {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  /* Los hijos de un subgrid toman la alineación del propio subgrid, no
+     la de `.today-item` (el abuelo aquí) — sin esto el título se
+     estiraba a la altura entera de la celda en vez de centrarse, y el
+     texto quedaba pegado arriba en vez de en medio de la fila. */
+  align-items: center;
 }
 
 /* Paneles de acción del swipe. A sangre sobre toda la fila, con icono y
@@ -7740,8 +7765,8 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 :root[data-theme="light"] .ctx-menu {
-  background: #fffdf6;
-  box-shadow: 0 6px 22px rgba(50, 40, 24, 0.12);
+  background: #fffcf1;
+  box-shadow: 0 6px 22px rgba(80, 55, 10, 0.12);
 }
 
 .ctx-header {
@@ -8756,9 +8781,9 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 :root[data-theme="light"] .paste-toast {
-  background: #fffdf6;
+  background: #fffcf1;
   border-color: rgba(111, 122, 61, 0.20);
-  box-shadow: 0 4px 24px rgba(50, 40, 24, 0.12);
+  box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 
 .paste-toast-visible {
@@ -9385,7 +9410,7 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 }
 
 :root[data-theme="light"] .cal-cell-today .cal-cell-num {
-  color: #fffdf6;
+  color: #fffcf1;
   background: var(--c-primary-500);
   box-shadow: 0 2px 6px rgba(111, 122, 61, 0.40);
 }
@@ -9625,6 +9650,11 @@ button {
   /* Mismo motivo que .task-item: la fila es un objetivo clicable, no
      texto para seleccionar. */
   user-select: none;
+  /* Ancla para que `.task-swipe-act` (position:absolute, inset:0, ver
+     initSwipeGesture en script.js) mida el alto de ESTA fila y no el
+     del ancestro posicionado más cercano que hubiera sin esto —
+     .task-item ya lo tenía por el mismo motivo. */
+  position: relative;
 }
 
 /* Fila con el panel de detalle abierto — mismo trato que .task-item en
@@ -10364,7 +10394,7 @@ button {
 }
 
 :root[data-theme="light"] .today-date {
-  background: rgba(50, 40, 24, 0.04);
+  background: rgba(80, 55, 10, 0.04);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -10614,7 +10644,7 @@ button {
 }
 
 :root[data-theme="light"] .quick-capture-footer {
-  background: rgba(50, 40, 24, 0.02);
+  background: rgba(80, 55, 10, 0.02);
 }
 
 .quick-capture-hint {
@@ -10695,9 +10725,9 @@ button {
 }
 
 :root[data-theme="light"] .quick-toast {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.08);
-  box-shadow: 0 8px 24px rgba(50, 40, 24, 0.12);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.08);
+  box-shadow: 0 8px 24px rgba(80, 55, 10, 0.12);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -10906,8 +10936,8 @@ button {
 }
 
 :root[data-theme="light"] .tpl-card {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.08);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.08);
 }
 
 :root[data-theme="light"] .tpl-task-due {
@@ -11429,18 +11459,18 @@ button {
 }
 
 :root[data-theme="light"] .onb-bullets li {
-  background: rgba(50, 40, 24, 0.02);
-  border-color: rgba(50, 40, 24, 0.08);
+  background: rgba(80, 55, 10, 0.02);
+  border-color: rgba(80, 55, 10, 0.08);
 }
 
 :root[data-theme="light"] .onb-syntax-demo {
-  background: rgba(50, 40, 24, 0.02);
-  border-color: rgba(50, 40, 24, 0.08);
+  background: rgba(80, 55, 10, 0.02);
+  border-color: rgba(80, 55, 10, 0.08);
 }
 
 :root[data-theme="light"] .onb-syntax-input {
-  background: #fffdf6;
-  border-color: rgba(50, 40, 24, 0.08);
+  background: #fffcf1;
+  border-color: rgba(80, 55, 10, 0.08);
 }
 
 :root[data-theme="light"] .onb-chip-date {
@@ -11775,14 +11805,20 @@ button {
 @media (max-width: 768px) {
   .today-item .today-text {
     font-size: 15px;
-    /* El comentario de .task-item .task-text decía "igual que .today-text"
-       pero aquí nunca se puso — el título de Hoy se quedaba en el peso
-       normal de la ficha (300) mientras Inbox pesaba 550. */
     letter-spacing: normal;
     /* Una sola línea, truncada — igual que en las listas. */
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  /* Mismo peso que .task-item .task-text (Inbox/listas): el título de
+     Hoy se quedaba en el peso normal de la ficha (300) mientras Inbox
+     pesaba 550. Sin tocar completadas (`.today-item--done`, línea 9692
+     de este archivo) — misma especificidad y posterior en cascada, así
+     que ganaría aquí si no se excluye. */
+  .today-item:not(.today-item--done) .today-text {
+    font-weight: 550;
   }
 
   .today-item .priority-badge,

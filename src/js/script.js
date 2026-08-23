@@ -4545,6 +4545,12 @@ function renderTodayItem(task, project, todayStr, tone) {
     openTaskDetail(task.id, project.id);
   });
 
+  // Mismo gesto que en Inbox/listas (mover a hoy / eliminar) — antes solo
+  // estaba en _buildTaskNode, así que Hoy no tenía swipe.
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    initSwipeGesture(li, task, project);
+  }
+
   return li;
 }
 
