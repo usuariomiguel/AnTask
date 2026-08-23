@@ -3387,7 +3387,6 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
             cellsHtml +
           '</div>' +
           (task.dueDate ? '<button type="button" class="field-popover-row field-popover-row--clear field-popover-date-clear" data-date-clear>' +
-            '<i data-lucide="trash-2"></i>' +
             '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
           '</button>' : "") +
         '</div>' +
@@ -3397,13 +3396,11 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
             recurRows +
           '</div>' +
           (task.recurDays ? '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
-            '<i data-lucide="trash-2"></i>' +
             '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
           '</button>' : "") +
         '</div>' +
       '</div>' +
       '<button type="button" class="field-popover-row field-popover-row--clear field-popover-delete-task" data-delete-task>' +
-        '<i data-lucide="trash-2"></i>' +
         '<span class="field-popover-row-label">' + t("detail.delete_task") + '</span>' +
       '</button>';
 

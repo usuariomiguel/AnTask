@@ -1763,14 +1763,32 @@ body {
    (chips de fecha y filas de repetir) con el mismo borde/radio/padding. */
 .field-popover-cols {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 10px;
+  /* REPETIR con un mínimo propio: con el padding de tarjeta de cada
+     columna (ver .field-popover-col) un simple "1fr" se quedaba sin
+     espacio para textos como "Cada 2 días" y truncaba de más. */
+  grid-template-columns: minmax(0, 3fr) minmax(112px, 2fr);
+  gap: 8px;
   align-items: start;
 }
 
+/* Cada columna es su propia tarjeta (borde + fondo + padding), no solo
+   un bloque separado por una línea — así FECHA y REPETIR se leen como
+   dos secciones independientes dentro del popover. */
+.field-popover-col {
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--surface-card);
+  padding: 8px;
+}
+
+/* En modo claro `.field-popover` ya usa --surface-card de fondo (ver
+   arriba), así que las columnas necesitan el otro tono para distinguirse
+   — al revés que en oscuro, donde --surface-card es la más clara. */
+:root[data-theme="light"] .field-popover-col {
+  background: var(--surface-canvas);
+}
+
 .field-popover-col--recur {
-  border-left: 1px solid var(--border-default);
-  padding-left: 10px;
   height: 100%;
   display: grid;
   align-content: space-between;
@@ -1848,12 +1866,6 @@ body {
   padding: 12px;
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
-}
-
-.field-popover-row--clear .lucide {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
 }
 
 .field-popover-cal-head {
@@ -2083,7 +2095,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--text-tertiary);
-  margin: 6px 3px;
+  margin: 12px 3px;
 }
 
 /* ── Modo simple: sin listas propias (SOLO MÓVIL) ──────────────
@@ -9796,9 +9808,13 @@ button {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  /* Alto explícito en vez de padding vertical: así entra en el contenido de
-     la fila sin estirarla al aparecer. */
-  height: stretch;
+  /* align-self:stretch en vez de padding vertical: así entra en el
+     contenido de la fila sin estirarla al aparecer. `height: stretch`
+     (el valor, no la propiedad align-self) es demasiado reciente —
+     Safari/iOS lo resuelve de forma inconsistente (llegaba a colapsar
+     el botón a ~13px de alto en vez de llenar la fila), lo que hacía
+     saltar el layout justo al escribir, que es cuando aparece. */
+  align-self: stretch;
   padding: 0 11px;
   border-radius: var(--r-md);
   cursor: pointer;
