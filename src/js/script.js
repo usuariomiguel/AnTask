@@ -2333,6 +2333,7 @@ function renderTasks() {
   // lista anterior se quedarían pintados.
   _renderListChips();
   _syncListSearchVisibility();
+  _renderHoyCalStrip();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
@@ -3872,6 +3873,151 @@ function _wireEmptyStateCTA(emptyNode) {
 // VISTA HOY (virtual — atraviesa todos los proyectos)
 // ═══════════════════════════════════════════════════════════════
 
+// ── Tira de calendario de Hoy (solo modo simple en móvil) ──
+//
+// Semana actual por defecto, desplegable a mes. Un punto bajo el número
+// marca los días que tienen alguna tarea, y tocar un día filtra la lista
+// de abajo a ese día (ver la rama de `_hoySelectedDate` en
+// renderTodayView), donde además el quick-add crea ya con esa fecha.
+var _hoyCalExpanded  = false;  // false = semana, true = mes
+var _hoyCalViewISO   = null;   // semana/mes que se está mirando (ISO); null = hoy
+var _hoySelectedDate = null;   // día tocado (ISO), o null = Hoy normal
+
+/** Suma días a un ISO y devuelve el ISO resultante. */
+function _hoyCalAddDays(iso, n) {
+  var d = new Date(iso + "T00:00");
+  d.setDate(d.getDate() + n);
+  return _localDateISO(d);
+}
+
+/** Lunes de la semana que contiene el ISO dado. */
+function _hoyCalMondayOf(iso) {
+  var d = new Date(iso + "T00:00");
+  return _hoyCalAddDays(iso, -((d.getDay() + 6) % 7));
+}
+
+/** Set con todos los `dueDate` que tienen al menos una tarea. */
+function _hoyCalDiasConTarea() {
+  var set = new Set();
+  projects.forEach(function(p) {
+    if (p.archived) return;
+    (p.tasks || []).forEach(function(tk) {
+      if (tk.dueDate) set.add(tk.dueDate);
+    });
+  });
+  return set;
+}
+
+function _renderHoyCalStrip() {
+  var host = document.getElementById("hoy-cal-strip");
+  if (!host) return;
+  if (activeView !== "today" || !isSimpleMobile()) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+
+  var localeD = getLang() === "en" ? "en-GB" : "es-ES";
+  var todayISO = _localDateISO(new Date());
+  var viewISO  = _hoyCalViewISO || todayISO;
+  var conTarea = _hoyCalDiasConTarea();
+
+  // Abreviaturas de tres letras (Lun, Mar, Mié…), empezando en lunes
+  // (2024-01-01 fue lunes). Algunas locales las devuelven con punto
+  // final ("lun."), que aquí sobra.
+  var mondayRef = new Date(2024, 0, 1);
+  var dowNames = Array.from({ length: 7 }, function(_, i) {
+    var d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
+    return capitalizeFirst(d.toLocaleDateString(localeD, { weekday: "short" }).replace(".", ""));
+  });
+
+  function celda(iso, num, fueraDeMes) {
+    var cls = ["hoy-cal-day"];
+    if (fueraDeMes) cls.push("hoy-cal-day--muted");
+    if (iso === todayISO) cls.push("hoy-cal-day--today");
+    if (iso === _hoySelectedDate) cls.push("hoy-cal-day--selected");
+    return '<button type="button" class="' + cls.join(" ") + '" data-cal-day="' + iso + '">' +
+      '<span class="hoy-cal-day-num">' + num + '</span>' +
+      (conTarea.has(iso) ? '<span class="hoy-cal-dot"></span>' : '<span class="hoy-cal-dot hoy-cal-dot--off"></span>') +
+    '</button>';
+  }
+
+  var titulo, cellsHtml = "";
+  if (_hoyCalExpanded) {
+    var vd    = new Date(viewISO + "T00:00");
+    var vy    = vd.getFullYear(), vm = vd.getMonth();
+    var first = new Date(vy, vm, 1);
+    titulo    = first.toLocaleDateString(localeD, { month: "long", year: "numeric" });
+    var offset = (first.getDay() + 6) % 7;
+    var nDays  = new Date(vy, vm + 1, 0).getDate();
+    for (var i = 0; i < offset; i++) cellsHtml += '<span class="hoy-cal-day hoy-cal-day--empty"></span>';
+    for (var day = 1; day <= nDays; day++) {
+      var isoM = vy + "-" + String(vm + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+      cellsHtml += celda(isoM, day, false);
+    }
+  } else {
+    var lunes = _hoyCalMondayOf(viewISO);
+    var finde = _hoyCalAddDays(lunes, 6);
+    var dl = new Date(lunes + "T00:00"), df = new Date(finde + "T00:00");
+    // Si la semana cruza de mes, se nombran los dos.
+    titulo = dl.getMonth() === df.getMonth()
+      ? dl.toLocaleDateString(localeD, { month: "long", year: "numeric" })
+      : dl.toLocaleDateString(localeD, { month: "short" }) + " – " + df.toLocaleDateString(localeD, { month: "short", year: "numeric" });
+    for (var k = 0; k < 7; k++) {
+      var isoS = _hoyCalAddDays(lunes, k);
+      cellsHtml += celda(isoS, new Date(isoS + "T00:00").getDate(), false);
+    }
+  }
+
+  host.innerHTML =
+    '<div class="hoy-cal-head">' +
+      '<button type="button" class="hoy-cal-nav" data-cal-step="-1" aria-label="' + escHtml(t("hoy.cal_prev")) + '">‹</button>' +
+      '<span class="hoy-cal-title">' + escHtml(titulo) + '</span>' +
+      '<button type="button" class="hoy-cal-nav" data-cal-step="1" aria-label="' + escHtml(t("hoy.cal_next")) + '">›</button>' +
+      '<button type="button" class="hoy-cal-toggle" data-cal-toggle aria-label="' +
+        escHtml(t(_hoyCalExpanded ? "hoy.cal_collapse" : "hoy.cal_expand")) + '">' +
+        '<i data-lucide="' + (_hoyCalExpanded ? "chevron-up" : "chevron-down") + '"></i>' +
+      '</button>' +
+    '</div>' +
+    '<div class="hoy-cal-grid">' +
+      dowNames.map(function(d) { return '<span class="hoy-cal-dow">' + d + '</span>'; }).join("") +
+      cellsHtml +
+    '</div>';
+  host.hidden = false;
+  if (window.lucide) window.lucide.createIcons({ nodes: [host] });
+
+  host.querySelectorAll("[data-cal-step]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var paso = parseInt(btn.dataset.calStep, 10);
+      if (_hoyCalExpanded) {
+        var d = new Date(viewISO + "T00:00");
+        // Al día 1 antes de sumar meses: en un día 29-31, sumar un mes corto
+        // se desbordaría al siguiente (31 de enero + 1 mes = 2 o 3 de marzo).
+        d.setDate(1);
+        d.setMonth(d.getMonth() + paso);
+        _hoyCalViewISO = _localDateISO(d);
+      } else {
+        _hoyCalViewISO = _hoyCalAddDays(viewISO, paso * 7);
+      }
+      _renderHoyCalStrip();
+    });
+  });
+  var toggleBtn = host.querySelector("[data-cal-toggle]");
+  if (toggleBtn) toggleBtn.addEventListener("click", function() {
+    _hoyCalExpanded = !_hoyCalExpanded;
+    _renderHoyCalStrip();
+  });
+  host.querySelectorAll("[data-cal-day]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var iso = btn.dataset.calDay;
+      // Volver a tocar el día ya seleccionado deshace el filtro: sin esto,
+      // la única salida sería el botón "Volver a Hoy" de la sección.
+      _hoySelectedDate = _hoySelectedDate === iso ? null : iso;
+      renderTasks();
+    });
+  });
+}
+
 function renderTodayView() {
   taskList.innerHTML = "";
   taskList.classList.remove("task-list--project", "task-list--grupos");
@@ -3939,6 +4085,49 @@ function renderTodayView() {
   // Stats + anillo de progreso en la cabecera: siempre sobre el total real
   // del día, no sobre lo que deja ver el filtro seleccionado.
   _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
+
+  // ── Día concreto elegido en la tira de calendario (modo simple móvil) ──
+  // Sustituye a los tres bloques de siempre por uno solo con las tareas de
+  // ese día. Las stats de la cabecera siguen siendo las de HOY (ya
+  // calculadas arriba): son el progreso del día real, no el de lo que se
+  // esté mirando de paso.
+  if (isSimpleMobile() && _hoySelectedDate) {
+    var delDia = [];
+    projects.forEach(function(p) {
+      if (p.archived) return;
+      (p.tasks || []).forEach(function(tk) {
+        if (tk.dueDate === _hoySelectedDate) delDia.push({ task: tk, project: p });
+      });
+    });
+    if (currentFilter !== "all" && TASK_FILTERS[currentFilter]) {
+      var _predDia = TASK_FILTERS[currentFilter];
+      delDia = delDia.filter(function(it) { return _predDia(it.task); });
+    }
+    delDia.sort(function(a, b) { return prioOf(a) - prioOf(b); });
+
+    // Formato corto ("vie, 21 ago"): el largo ("viernes, 21 de agosto")
+    // no cabe junto al contador y al botón de volver, y los empujaba a
+    // una segunda línea.
+    var fechaCorta = new Date(_hoySelectedDate + "T00:00").toLocaleDateString(
+      getLang() === "en" ? "en-GB" : "es-ES",
+      { weekday: "short", day: "numeric", month: "short" });
+    var secD = _hoySectionEl("today", capitalizeFirst(fechaCorta), String(delDia.length),
+      t("hoy.back_to_today"), function() { _hoySelectedDate = null; renderTasks(); });
+    delDia.forEach(function(it) {
+      secD.list.appendChild(renderTodayItem(it.task, it.project, today,
+        it.task.dueDate < today ? "overdue" : it.task.dueDate === today ? "today" : "nodate"));
+    });
+    secD.li.appendChild(_hoyQuickAddEl(_hoySelectedDate, t("hoy.day_quickadd_ph")));
+    taskList.appendChild(secD.li);
+
+    if (window.lucide) lucide.createIcons();
+    if (_hoyQuickAddRefocus) {
+      _hoyQuickAddRefocus = false;
+      var qaD = taskList.querySelector(".hoy-quickadd-input");
+      if (qaD) qaD.focus();
+    }
+    return;
+  }
 
   var allClear = overdue.length === 0 && todays.length === 0;
 
@@ -4051,8 +4240,12 @@ function _hoySetDueToday(items) {
   renderSidebar();
 }
 
-/** Quick-add contextual del bloque "Para hoy": crea en el Inbox con fecha hoy. */
-function _hoyQuickAddEl(todayStr) {
+/**
+ * Quick-add contextual de la vista Hoy: crea en el Inbox. `todayStr` es la
+ * fecha que se le pone a la tarea nueva si el texto no traía una propia —
+ * con un día elegido en la tira de calendario es ese día, no hoy.
+ */
+function _hoyQuickAddEl(todayStr, placeholder) {
   // `div`, no `li`: cuelga del bloque de sección, no de un `ul`, y un `li`
   // suelto ahí es HTML inválido (axe lo marca como «serious»).
   var li = document.createElement("div");
@@ -4064,7 +4257,7 @@ function _hoyQuickAddEl(todayStr) {
       '<span></span></button>';
   var input = li.querySelector(".hoy-quickadd-input");
   var btn = li.querySelector(".hoy-quickadd-btn");
-  input.placeholder = t("hoy.quickadd_ph");
+  input.placeholder = placeholder || t("hoy.quickadd_ph");
   btn.querySelector("span").textContent = t("task.add_btn");
   function submit() {
     var value = input.value.trim();

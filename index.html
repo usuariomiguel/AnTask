@@ -698,6 +698,10 @@
                Inbox no salen, porque ahí las tareas ya van agrupadas por
                proyecto y sería el mismo mecanismo dos veces. -->
           <nav class="list-chips" id="list-chips" hidden aria-label="Cambiar de lista" data-i18n-aria="a11y.list_chips"></nav>
+          <!-- Tira de calendario semana/mes de "Hoy" (solo móvil, solo modo
+               simple): ver _renderHoyCalStrip() en script.js. Mismo patrón que
+               #list-chips — un host vacío que JS rellena y muestra/oculta. -->
+          <div class="hoy-cal-strip" id="hoy-cal-strip" hidden></div>
           <!-- El scroll vive en el contenedor a todo el ancho (scrollbar al
                borde del panel, como v1); la lista va centrada a 932px dentro. -->
           <div class="task-list-scroll">

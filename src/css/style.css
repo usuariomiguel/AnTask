@@ -3999,6 +3999,139 @@ button:focus-visible {
   }
 }
 
+/* ── Tira de calendario de Hoy (solo modo simple en móvil) ────────
+   Semana actual por defecto, desplegable a mes; un punto marca los días
+   con alguna tarea y tocar un día filtra la lista (ver
+   _renderHoyCalStrip en script.js). Va oculta por defecto y solo se
+   enciende bajo el breakpoint: el guard de JS ya no la pinta fuera de
+   ahí, pero el CSS no depende de eso para aislar el escritorio.
+   `:not([hidden])` por lo mismo que en .list-chips, arriba. */
+.hoy-cal-strip {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hoy-cal-strip:not([hidden]) {
+    display: block;
+    padding: 0 16px;
+  }
+
+  .hoy-cal-head {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  .hoy-cal-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: capitalize;
+  }
+
+  .hoy-cal-nav,
+  .hoy-cal-toggle {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    min-width: 0;
+    padding: 0;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .hoy-cal-toggle .lucide {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hoy-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    text-align: center;
+  }
+
+  .hoy-cal-dow {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    padding: 3px 0;
+  }
+
+  .hoy-cal-day {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 6px 0;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  span.hoy-cal-day-num {
+    font-weight: 700;
+  }
+
+  .hoy-cal-day--muted .hoy-cal-day-num {
+    opacity: 0.45;
+  }
+
+  .hoy-cal-day--today {
+    font-weight: 700;
+    color: var(--c-primary-300);
+    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  }
+
+  .hoy-cal-day--selected {
+    font-weight: 700;
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+    border-color: transparent;
+  }
+
+  /* Sin celda no hay botón, pero el hueco tiene que seguir contando en la
+     rejilla para que el día 1 caiga en su columna. */
+  .hoy-cal-day--empty {
+    visibility: hidden;
+  }
+
+  /* El punto ocupa sitio siempre (--off es invisible, no ausente): si solo
+     existiera en los días con tarea, esos días medirían más alto y la
+     rejilla bailaría. */
+  .hoy-cal-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--c-primary-300);
+  }
+
+  .hoy-cal-day--selected .hoy-cal-dot {
+    background: var(--accent-on);
+  }
+
+  .hoy-cal-dot--off {
+    background: transparent;
+  }
+}
+
 /* Dos columnas — opción de #task-prefs-panel, no de #row-style-panel:
    combina con Limpio/Tarjetas, no sustituye a ninguno. Solo escritorio
    (en móvil el JS nunca escribe data-columns ahí, aunque el control esté
@@ -5274,10 +5407,6 @@ body.project-dragging .project-item {
     position: relative;
   }
 
-  :root[data-theme="light"] .main-panel {
-    background: #f4efe3;
-  }
-
   /* Sidebar: drawer fullscreen-height fixed para cubrir bottom nav
      y safe area. Antes era absolute dentro de .mobile-body, lo que
      dejaba el bottom nav + FAB visibles a través del drawer. */
@@ -5569,11 +5698,21 @@ body.project-dragging .project-item {
   }
 
   .main-panel {
+    background: var(--surface-desk);
     flex: 1;
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  /* Sin difuminado al pie en móvil: con la lista convertida en tarjeta
+     con borde propio (ver .task-list-scroll más abajo), la capa borrosa
+     emborronaba también ese borde y el hueco de alrededor en vez de
+     limpiar la transición. En escritorio se mantiene (ver
+     .main-panel::after en el bloque base). */
+  .main-panel::after {
+    content: none;
   }
 
   .tasks-panel {
@@ -5609,6 +5748,7 @@ body.project-dragging .project-item {
   .ctrl-bar {
     padding: 16px;
     animation: none;
+    border: none;
   }
 
   /* ── Tabs de vista (Lista/Mes) — ocultas en móvil porque
@@ -5838,7 +5978,13 @@ body.project-dragging .project-item {
   }
 
   .task-list-scroll {
+    background: var(--surface-canvas);
     -webkit-overflow-scrolling: touch;
+    margin: 6px;
+    border-radius: var(--r-xl);
+    border: 1px solid var(--border-default);
+    padding-inline: 0;
+
   }
 
   .task-list {
@@ -6186,7 +6332,7 @@ body.project-dragging .project-item {
        izquierda. 54 del FAB + 11 de separación + 14 de margen. */
     position: fixed;
     left: 14px;
-    right: calc(14px + 54px + 11px);
+    right: calc(18px + 54px + 11px);
     /* Mismo criterio que `.filter-segments`: 3px de relleno y el resto lo
        ocupan las pestañas, con `align-items: stretch` llenando el alto
        entero — no un padding grande dejando la píldora activa suelta
@@ -6324,7 +6470,7 @@ body.project-dragging .project-item {
        (60 del FAB frente a 52 de la pastilla) para que los centros
        coincidan. Con bases distintas el ajuste se habría desalineado en
        dispositivos con área segura grande (notch/home indicator). */
-    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) - 4px);
+    bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) - 4px);
     /* Mismo motivo que la barra de navegación (z-index 510): por encima
        del panel de detalle a pantalla completa, para poder capturar una
        tarea nueva sin salir primero de la que se está viendo. */
@@ -11540,7 +11686,6 @@ button {
     /* El comentario de .task-item .task-text decía "igual que .today-text"
        pero aquí nunca se puso — el título de Hoy se quedaba en el peso
        normal de la ficha (300) mientras Inbox pesaba 550. */
-    font-weight: 550;
     letter-spacing: normal;
     /* Una sola línea, truncada — igual que en las listas. */
     white-space: nowrap;
