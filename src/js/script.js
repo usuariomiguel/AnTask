@@ -172,8 +172,9 @@ function _showQuickToast(msg) {
   }, 1800);
 }
 
-// Otros módulos (sections-and-profile.js) acceden a modalAlert vía window.
-window.modalAlert = modalAlert;
+// Otros módulos (sections-and-profile.js) acceden a modalAlert/modalPrompt vía window.
+window.modalAlert  = modalAlert;
+window.modalPrompt = modalPrompt;
 
 // ─── ALIASES DE GLOBALES (de otros módulos cargados antes) ───
 // setupPasteHandler y setupImageResizer se leen de window porque se
@@ -5731,14 +5732,16 @@ function _updateProfileMenu(user) {
   var pfSub          = document.getElementById("profile-sub");
   var pfSubTop       = document.getElementById("profile-sub-top");
   var settingsSub    = document.getElementById("settings-sub");
-  var settingsSigninBtn = document.getElementById("settings-signin-btn");
-  var settingsSyncUser  = document.getElementById("settings-sync-user");
+  var settingsSigninBtn      = document.getElementById("settings-signin-btn");
+  var settingsSigninEmailBtn = document.getElementById("settings-signin-email-btn");
+  var settingsSyncUser       = document.getElementById("settings-sync-user");
 
   if (pfSyncSep)   pfSyncSep.hidden   = false;
   if (pfSigninBtn) pfSigninBtn.hidden = Boolean(user);
   if (pfSyncUser)  pfSyncUser.hidden  = !user;
-  if (settingsSigninBtn) settingsSigninBtn.hidden = Boolean(user);
-  if (settingsSyncUser)  settingsSyncUser.hidden  = !user;
+  if (settingsSigninBtn)      settingsSigninBtn.hidden      = Boolean(user);
+  if (settingsSigninEmailBtn) settingsSigninEmailBtn.hidden = Boolean(user);
+  if (settingsSyncUser)       settingsSyncUser.hidden       = !user;
 
   // Valores base según el modo (cuenta Google vs. local).
   var baseName, baseInitial;

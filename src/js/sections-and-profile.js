@@ -354,6 +354,35 @@ import { loadSync } from "./sync-loader.js";
     if (window.AnsoSync) AnsoSync.signOut();
   }
 
+  // Alternativa a Google pensada para la PWA instalada en iOS: Google
+  // bloquea el login dentro de un WebView embebido (la app añadida a la
+  // pantalla de inicio vuelve del redirect sin loguearse, aunque en
+  // Safari sí funcione) — un enlace de email no pasa por esa pantalla.
+  function doSignInEmail() {
+    loadSync().then(function () {
+      if (!window.AnsoSync) {
+        if (window.modalAlert) modalAlert("La sincronización no está disponible ahora mismo. Inténtalo de nuevo en un momento.", "info");
+        return;
+      }
+      return window.modalPrompt("¿Cuál es tu email?", "", "tu@email.com").then(function (email) {
+        if (!email) return;
+        return AnsoSync.signInWithEmailLinkTo(email).then(function () {
+          modalAlert("Te hemos enviado un enlace a " + email + ". Ábrelo desde este mismo dispositivo para completar el inicio de sesión.", "info");
+        });
+      });
+    }).catch(function (e) {
+      console.error("AnsoSync signInWithEmailLinkTo error:", e);
+      var msg = e.code === "auth/invalid-email"
+        ? "Ese email no es válido."
+        : e.code === "auth/operation-not-allowed"
+        ? "El inicio de sesión por email no está activado en Firebase. Actívalo en Firebase Console → Authentication → Métodos de acceso → Enlace de email."
+        : e.code === "auth/unauthorized-continue-uri" || e.code === "auth/unauthorized-domain"
+        ? "Este dominio no está autorizado en Firebase. Añádelo en Firebase Console → Authentication → Dominios autorizados."
+        : "No se ha podido enviar el enlace: " + (e.message || e.code);
+      if (window.modalAlert) modalAlert(msg, "error");
+    });
+  }
+
   /* Expuestas para la pantalla «Perfil» de móvil. No se duplican allí:
      doSignIn carga el módulo de sincronización bajo demanda y distingue
      popup cerrado, popup bloqueado y dominio no autorizado. */
@@ -362,6 +391,8 @@ import { loadSync } from "./sync-loader.js";
   [pfSigninBtn, document.getElementById("settings-signin-btn")].forEach(function(btn) {
     if (btn) btn.addEventListener("click", doSignIn);
   });
+  var settingsSigninEmailBtn = document.getElementById("settings-signin-email-btn");
+  if (settingsSigninEmailBtn) settingsSigninEmailBtn.addEventListener("click", doSignInEmail);
   [
     document.getElementById("pf-signout-btn"),
     document.getElementById("settings-signout-btn"),

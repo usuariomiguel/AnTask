@@ -28,6 +28,13 @@ const SYNC_FLAG = "antask-sync-enabled";
  */
 export function hasSyncHistory() {
   try {
+    // 0. Venimos de pulsar el enlace de un email de inicio de sesión sin
+    //    contraseña (ver signInWithEmailLinkTo() en firebase-sync.js): en
+    //    un dispositivo/contexto sin ningún rastro previo de sync, sin
+    //    esto nadie cargaría Firebase para procesar el enlace.
+    if (location.search.indexOf("mode=signIn") !== -1 && location.search.indexOf("oobCode=") !== -1) {
+      return true;
+    }
     // 1. La marca que ponemos nosotros al autenticar.
     if (localStorage.getItem(SYNC_FLAG) === "1") return true;
 

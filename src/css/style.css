@@ -7968,6 +7968,26 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
   max-width: 320px;
 }
 
+/* Alternativa secundaria a "Sincronizar con Google" — enlace de texto
+   plano, no un botón con borde, para no competir visualmente con la
+   acción principal. */
+.settings-link-btn {
+  display: block;
+  margin-top: 6px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.settings-link-btn:hover {
+  color: var(--text-secondary);
+}
+
 /* `margin-left: auto`, no `justify-content: space-between` en la fila:
    así el hueco extra lo absorbe SOLO este margen, y el `gap` de 12px
    entre icono y texto no se ve inflado por el espacio sobrante. */

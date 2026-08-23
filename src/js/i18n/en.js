@@ -33,6 +33,7 @@ export const en = {
   "profile.signout":          "Sign out",
   "profile.workspace_section":"Workspace",
   "profile.signin":           "Sync with Google",
+  "profile.signin_email":     "Or with an email link",
 
   // ── Settings (two-pane dialog) ─────────────────────────────
   "settings.nav.account":              "Account",

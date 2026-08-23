@@ -7,7 +7,10 @@
  *
  *  1. Ve a https://console.firebase.google.com y crea un proyecto.
  *  2. En el proyecto, añade una app web (icono </>) y copia la config.
- *  3. Activa Authentication → métodos de inicio de sesión → Google.
+ *  3. Activa Authentication → métodos de inicio de sesión → Google, y
+ *     también "Enlace de email (sin contraseña)" — alternativa a Google
+ *     para la PWA instalada en iOS, donde Google bloquea el login dentro
+ *     de un WebView embebido (ver signInWithEmailLinkTo() más abajo).
  *  4. Activa Firestore Database → crear base de datos → modo producción.
  *  5. En Firestore → Reglas, sustituye el contenido por:
  *
@@ -33,10 +36,13 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
   signOut as fbSignOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { modalAlert } from "./ui/modal.js";
+import { modalAlert, modalPrompt } from "./ui/modal.js";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -190,6 +196,33 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           sessionStorage.removeItem("antask-redirect-pending");
         } catch (e) { /* sessionStorage bloqueado: sin aviso, no rompe nada */ }
 
+        // ¿Es la vuelta de un enlace de email de inicio de sesión sin
+        // contraseña? (ver signInWithEmailLinkTo() más abajo). Alternativa
+        // a Google pensada para la PWA instalada en iOS: Google bloquea el
+        // login dentro de un WebView embebido, pero este método no pasa
+        // por la pantalla de consentimiento de Google en absoluto.
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+          var savedEmail = null;
+          try { savedEmail = localStorage.getItem("antask-email-for-signin"); } catch (e) {}
+          Promise.resolve(savedEmail || modalPrompt(
+            "¿Con qué email pediste el enlace?", "", "tu@email.com"
+          )).then(function (email) {
+            if (!email) return;
+            return signInWithEmailLink(auth, email, window.location.href).then(function () {
+              try { localStorage.removeItem("antask-email-for-signin"); } catch (e) {}
+              // Limpia el enlace de la URL — si no, un refresco reintenta
+              // el mismo oobCode ya consumido y falla.
+              history.replaceState(null, "", window.location.pathname);
+            });
+          }).catch(function (err) {
+            console.warn("AnsoSync: error completando el login por email:", err);
+            var msg = err.code === "auth/invalid-action-code"
+              ? "Este enlace ya no es válido — puede que ya lo hayas usado o haya caducado. Pide uno nuevo."
+              : "Error al completar el inicio de sesión: " + (err.message || err.code);
+            modalAlert(msg, "error");
+          });
+        }
+
         // Recoge el resultado si veníamos de un signInWithRedirect — sin
         // esto, un error del redirect (dominio no autorizado, etc.) se
         // perdía en silencio: onAuthStateChanged solo avisa de logins que
@@ -252,6 +285,28 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           return signInWithRedirect(auth, provider);
         }
         return signInWithPopup(auth, provider);
+      },
+
+      /**
+       * Alternativa a signIn() con Google: envía un enlace de un solo uso
+       * al email indicado. Pensada para la PWA instalada en iOS, donde
+       * Google bloquea el login dentro de un WebView embebido — este
+       * método no pasa por la pantalla de consentimiento de Google.
+       *
+       * El enlace hay que abrirlo en el mismo dispositivo/app desde el
+       * que se pidió para que complete el login ahí (ver el bloque
+       * isSignInWithEmailLink() en init()); en otro contexto, se pide el
+       * email otra vez y el login se completa allí en su lugar.
+       * @param {string} email
+       */
+      signInWithEmailLinkTo: function (email) {
+        var actionCodeSettings = {
+          url: window.location.origin + window.location.pathname,
+          handleCodeInApp: true,
+        };
+        return sendSignInLinkToEmail(auth, email, actionCodeSettings).then(function () {
+          try { localStorage.setItem("antask-email-for-signin", email); } catch (e) {}
+        });
       },
 
       signOut: function () {
