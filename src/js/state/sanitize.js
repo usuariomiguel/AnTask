@@ -47,6 +47,31 @@ export function sanitizeSubtasks(input) {
 }
 
 /**
+ * Historial de completados de una tarea con repetición: {"YYYY-MM-DD": n}.
+ *
+ * Las claves son fechas libres que llegan de localStorage, de un backup o
+ * de la nube, así que se filtran a fondo: cualquier clave que no sea una
+ * fecha ISO, o cuyo valor no sea un número positivo, se descarta en vez de
+ * arrastrarse. `n` es siempre 1 hoy — se guarda como número, y no como
+ * booleano, para que un día pueda contar repeticiones ("3 de 8 vasos")
+ * sin migrar los datos ya escritos.
+ *
+ * @param {any} input
+ * @returns {Record<string, number>}
+ */
+export function sanitizeCompletionLog(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  /** @type {Record<string, number>} */
+  const out = {};
+  Object.keys(input).forEach(function (k) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+    const v = Number(input[k]);
+    if (Number.isFinite(v) && v > 0) out[k] = v;
+  });
+  return out;
+}
+
+/**
  * @param {any} input
  * @returns {Task[]}
  */
@@ -65,6 +90,7 @@ export function sanitizeTasks(input) {
         recurDays:  (typeof i.recurDays === "number" && i.recurDays > 0) ? i.recurDays : null,
         reminderAt: typeof i.reminderAt === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(i.reminderAt) ? i.reminderAt : null,
         timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
+        log:        sanitizeCompletionLog(i.log),
         subtasks:   sanitizeSubtasks(i.subtasks),
       };
     })

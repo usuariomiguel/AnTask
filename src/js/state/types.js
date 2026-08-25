@@ -50,6 +50,7 @@
  * @property {number|null}   [recurDays]      - Días entre repeticiones; null = no recurrente
  * @property {string|null}   [reminderAt]     - ISO datetime "YYYY-MM-DDTHH:mm" para recordatorio puntual; null = sin recordatorio
  * @property {number}        [timeLogged]     - Milisegundos acumulados (legacy del timer eliminado)
+ * @property {Record<string, number>} [log]   - Historial de completados {"YYYY-MM-DD": 1}; solo se escribe en tareas con `recurDays`
  * @property {Subtask[]}     [subtasks]
  */
 

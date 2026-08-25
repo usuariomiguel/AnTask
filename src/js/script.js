@@ -2202,6 +2202,7 @@ async function showTodayMenu(x, y) {
         pending.forEach(function(it) {
           it.task.done = true;
           it.task.completedAt = Date.now();
+          _logCompletado(it.task, true);
         });
         saveAndRender();
       }
@@ -2805,6 +2806,7 @@ function _buildTaskNode(task, project, showList) {
     // esperaba a que corriese (460ms al completar, 220 al descompletar).
     checkbox.addEventListener("change", function() {
       task.done = checkbox.checked;
+      _logCompletado(task, task.done);
       if (task.done && task.recurDays) {
         // La tarea SE QUEDA marcada y con su fecha: completarla no la hacía
         // desaparecer de Hoy en el acto, que es lo que se veía antes al
@@ -4400,6 +4402,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     if (!cb.checked) {
       // Reabrir una tarea hecha hoy (visible en la sección "Para hoy")
       task.done = false;
+      _logCompletado(task, false);
       saveProjects();
       renderTasks();
       renderSidebar();
@@ -4409,6 +4412,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     // las hacía desaparecer de Hoy nada más completarlas. Reaparecen
     // pendientes cuando llega su vuelta (`_reactivarRecurrentes`).
     task.done = true;
+    _logCompletado(task, true);
     saveProjects();
     renderTasks();
     renderSidebar();
@@ -4631,6 +4635,37 @@ function startSubtaskInlineEdit(textSpan, subtask) {
   });
   input.addEventListener("blur", commit);
   input.addEventListener("click", function(e) { e.stopPropagation(); });
+}
+
+/**
+ * Anota (o retira) en el historial de la tarea que hoy se ha completado.
+ *
+ * Solo para tareas con repetición: son las únicas que vuelven, así que las
+ * únicas cuyo historial dice algo. Sin esto no queda ni rastro de las
+ * vueltas anteriores —`_reactivarRecurrentes()` reescribe `done`/`dueDate`
+ * en cada ciclo—, y ese historial es la materia prima de las rachas y del
+ * mapa de calor de hábitos.
+ *
+ * Se apunta el día REAL en que se marcó, no su `dueDate`: completar el
+ * martes una tarea que vencía el domingo son dos hechos distintos, y el
+ * histórico debe reflejar cuándo se hizo de verdad.
+ *
+ * Al desmarcar se borra la entrada de hoy para que un clic sin querer no
+ * deje un día contado para siempre. `_reactivarRecurrentes()` no pasa por
+ * aquí, así que sus `done = false` automáticos no tocan el historial.
+ *
+ * @param {object}  task
+ * @param {boolean} done
+ */
+function _logCompletado(task, done) {
+  if (!task.recurDays) return;
+  var hoy = _localDateISO(new Date());
+  if (done) {
+    if (!task.log) task.log = {};
+    task.log[hoy] = 1;
+  } else if (task.log) {
+    delete task.log[hoy];
+  }
 }
 
 /** Fecha de la siguiente vuelta de una tarea con repetición. */
@@ -5192,7 +5227,7 @@ function bulkMarkDone() {
   var project = getActiveProject();
   if (!project || selectedTaskIds.size === 0) return;
   project.tasks.forEach(function(t) {
-    if (selectedTaskIds.has(t.id)) t.done = true;
+    if (selectedTaskIds.has(t.id)) { t.done = true; _logCompletado(t, true); }
   });
   exitSelectMode();
   saveAndRender();
@@ -5202,7 +5237,7 @@ function bulkMarkPending() {
   var project = getActiveProject();
   if (!project || selectedTaskIds.size === 0) return;
   project.tasks.forEach(function(t) {
-    if (selectedTaskIds.has(t.id)) t.done = false;
+    if (selectedTaskIds.has(t.id)) { t.done = false; _logCompletado(t, false); }
   });
   exitSelectMode();
   saveAndRender();

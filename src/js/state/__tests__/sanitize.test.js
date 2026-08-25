@@ -4,6 +4,7 @@ import {
   sanitizeSubtasks,
   sanitizeTasks,
   sanitizeProject,
+  sanitizeCompletionLog,
 } from "../sanitize.js";
 
 // ────────────────────────────────────────────────────────────────
@@ -78,6 +79,54 @@ describe("sanitizeTasks", () => {
   it("timeLogged negativo → 0", () => {
     const [t] = sanitizeTasks([{ text: "x", timeLogged: -5 }]);
     expect(t.timeLogged).toBe(0);
+  });
+
+  it("log ausente → {}", () => {
+    const [t] = sanitizeTasks([{ text: "x" }]);
+    expect(t.log).toEqual({});
+  });
+
+  it("conserva el log de completados entre cargas", () => {
+    const [t] = sanitizeTasks([{ text: "x", log: { "2026-08-20": 1 } }]);
+    expect(t.log).toEqual({ "2026-08-20": 1 });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+// sanitizeCompletionLog
+// ────────────────────────────────────────────────────────────────
+describe("sanitizeCompletionLog", () => {
+  it("devuelve {} para input que no es objeto", () => {
+    expect(sanitizeCompletionLog(null)).toEqual({});
+    expect(sanitizeCompletionLog("2026-08-20")).toEqual({});
+    expect(sanitizeCompletionLog(42)).toEqual({});
+  });
+
+  it("un array no cuela como objeto de fechas", () => {
+    expect(sanitizeCompletionLog(["2026-08-20"])).toEqual({});
+  });
+
+  it("conserva las entradas con fecha ISO y valor positivo", () => {
+    expect(sanitizeCompletionLog({ "2026-08-20": 1, "2026-08-21": 3 }))
+      .toEqual({ "2026-08-20": 1, "2026-08-21": 3 });
+  });
+
+  it("descarta claves que no son fechas ISO", () => {
+    expect(sanitizeCompletionLog({ "ayer": 1, "2026-8-1": 1, "2026-08-20": 1 }))
+      .toEqual({ "2026-08-20": 1 });
+  });
+
+  it("descarta valores no positivos o no numéricos", () => {
+    expect(sanitizeCompletionLog({
+      "2026-08-20": 0,
+      "2026-08-21": -1,
+      "2026-08-22": "sí",
+      "2026-08-23": 1,
+    })).toEqual({ "2026-08-23": 1 });
+  });
+
+  it("acepta valor numérico en texto (viene así de algunos backups)", () => {
+    expect(sanitizeCompletionLog({ "2026-08-20": "2" })).toEqual({ "2026-08-20": 2 });
   });
 });
 
