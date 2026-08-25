@@ -338,17 +338,24 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
       getUser: function () { return _user; },
 
       /**
-       * Guarda proyectos y secciones en la nube con un debounce de 2 s.
+       * Guarda el workspace en la nube con un debounce de 2 s.
        * Pausa el listener para evitar el bucle escritura → snapshot.
+       *
+       * Recibe un objeto y no argumentos sueltos a propósito: hay siete
+       * puntos de llamada, y con la firma posicional cada campo nuevo
+       * obligaba a tocarlos todos.
+       *
+       * @param {{projects: any[], sections?: any[]}} workspace
        */
-      scheduleSave: function (projects, sections) {
+      scheduleSave: function (workspace) {
         if (!_user) return;
+        if (!workspace || !Array.isArray(workspace.projects)) return;
         if (_saveTimer) clearTimeout(_saveTimer);
         _saveTimer = setTimeout(function () {
           _syncPaused = true;
           setDoc(docRef(), {
-            projects:        projects,
-            sections:        sections || [],
+            projects:        workspace.projects,
+            sections:        workspace.sections || [],
             updatedAt:       serverTimestamp(),
             version:         2,
           }, {

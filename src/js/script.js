@@ -5728,6 +5728,17 @@ function _checkStorageWarning() {
   }
 }
 
+/**
+ * El estado que viaja a la nube, construido en un único sitio.
+ *
+ * Los siete puntos que llaman a `scheduleSave` pasaban los campos sueltos
+ * y en el mismo orden; centralizarlo aquí hace que añadir uno sea una
+ * línea en vez de siete, y evita que unos envíen más que otros.
+ */
+function _workspace() {
+  return { projects: projects, sections: sections };
+}
+
 function saveProjects() {
   const ok = safeLsSet(PROJECTS_KEY, JSON.stringify(projects), _showQuotaModal);
   if (!ok) return;
@@ -5736,7 +5747,7 @@ function saveProjects() {
   updateSaveStatus(now);
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  window.AnsoSync?.scheduleSave?.(projects, sections);
+  window.AnsoSync?.scheduleSave?.(_workspace());
   if (window.AnsoNotif?.scheduleTaskReminders) {
     window.AnsoNotif.scheduleTaskReminders(projects);
   }
@@ -5776,7 +5787,7 @@ function saveSections() {
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  window.AnsoSync?.scheduleSave?.(projects, sections);
+  window.AnsoSync?.scheduleSave?.(_workspace());
 }
 
 function updateSaveStatus(lastSavedAt) {
@@ -6093,7 +6104,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      window.AnsoSync?.scheduleSave?.(projects, sections);
+      window.AnsoSync?.scheduleSave?.(_workspace());
       return;
     }
     var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
@@ -6119,7 +6130,7 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         renderSidebar(); renderTasks();
       } catch(e) {}
-      window.AnsoSync?.scheduleSave?.(projects, sections);
+      window.AnsoSync?.scheduleSave?.(_workspace());
     }
     return;
   }
@@ -6132,7 +6143,7 @@ function _syncOnFirstConnect(cloudData) {
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
     _saveAccountCache(uid);
-    if (projects.length > 0) window.AnsoSync?.scheduleSave?.(projects, sections);
+    if (projects.length > 0) window.AnsoSync?.scheduleSave?.(_workspace());
     return;
   }
 
@@ -6152,7 +6163,7 @@ function _syncOnFirstConnect(cloudData) {
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
     if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
-    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(projects, sections); }
+    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(_workspace()); }
     return;
   }
 
@@ -6191,7 +6202,7 @@ function _showSyncConflictModal(cloudData, uid) {
   box.querySelector("#_sc-local").addEventListener("click", function() {
     closeModal(overlay);
     _saveAccountCache(uid);
-    window.AnsoSync?.scheduleSave?.(projects, sections);
+    window.AnsoSync?.scheduleSave?.(_workspace());
   });
 }
 
