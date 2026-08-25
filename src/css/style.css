@@ -326,7 +326,7 @@
      tarjeta se lean como una única zona de trabajo luminosa, y el
      contraste real quede entre esa zona y el marco cálido de
      sidebar/detalle. */
-  --surface-desk: #e6d19e;
+  --surface-desk: #f8e1aa;
   --surface-deep: #e6d19e;
   --surface-canvas: #f9f1de;
   --surface-card: #fffcf1;
@@ -1713,14 +1713,20 @@ body {
   z-index: 40;
   background: var(--surface-canvas);
   border: 1px solid var(--border-default);
-  border-radius: calc(var(--r-md) + 3px);
-  box-shadow: 0 18px 44px -10px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  /* Mismo radio y misma sombra que `.ctx-menu` (el menú de hábitos y el
+     de listas): son dos capas flotantes hermanas y se leían distinto —
+     el popover con esquinas mucho menos redondeadas y una sombra negra
+     pesada frente a la cálida y suave del menú. */
+  border-radius: 26px;
+  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.60);
   padding: 12px;
   animation: fieldPopoverIn 0.14s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 :root[data-theme="light"] .field-popover {
   background: var(--surface-card);
+  /* La sombra negra de la base no vale sobre papel; misma que .ctx-menu. */
+  box-shadow: 0 6px 22px rgba(80, 55, 10, 0.12);
 }
 
 /* El popover de lista de la captura rápida vive en document.body con
@@ -8204,13 +8210,21 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 /* Los tres botones de inicio de sesión (Google, enlace por email, email +
    contraseña) van apilados en columna, no en fila: sin esto se apretaban
    unos contra otros porque `.settings-btn` es `inline-flex` (reset global
-   de `button`). `align-items: flex-start` para que cada uno mida lo que
-   pide su propio contenido, no todo el ancho del control. */
+   de `button`). Cada uno mide lo que pide su contenido, no todo el ancho
+   del control. */
 #settings-sync-control {
   display: flex;
   flex-direction: column;
   align-items: end;
   gap: 8px;
+}
+
+/* En móvil la fila envuelve y el control cae a su propia línea, donde
+   alinear a la derecha lo deja descolgado del rótulo de la fila. */
+@media (max-width: 768px) {
+  #settings-sync-control {
+    align-items: start;
+  }
 }
 
 .settings-sync-connected {
@@ -8416,6 +8430,15 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
    de escritorio — todas las secciones se muestran a la vez (ver
    openSettingsModal en sections-and-profile.js). ────────────────── */
 @media (max-width: 768px) {
+  /* La caja y sus tarjetas usaban las dos `--surface-card`, así que las
+     tarjetas no se despegaban del fondo. Con `canvas` detrás queda la
+     misma jerarquía que en la lista de tareas: tarjeta clara sobre
+     lienzo. Solo en móvil — en escritorio el diálogo es de dos paneles y
+     el contraste ya lo da `.settings-nav` con su propio tinte. */
+  .modal-box-settings-v1 {
+    background: var(--surface-canvas);
+  }
+
   .settings-nav {
     display: none;
   }
@@ -9859,6 +9882,17 @@ button {
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-title {
   color: #4a7644;
+}
+
+/* Hábitos: morado, el mismo tinte que ya usa el chip de repetición
+   (--c-recur) — un hábito ES una repetición, así que se leen como
+   familia en vez de estrenar un color más. */
+.hoy-section--habits .hoy-section-dot {
+  background: var(--c-recur);
+}
+
+.hoy-section--habits .hoy-section-title {
+  color: var(--c-recur);
 }
 
 /* En móvil el botón no cabe junto al título —"Programar todas hoy"

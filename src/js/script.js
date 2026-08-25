@@ -35,8 +35,14 @@ import {
   sanitizeProject,
   sanitizeTasks,
   sanitizeSubtasks,
+  sanitizeHabit,
   sanitizeHabits,
 } from "./state/sanitize.js";
+import {
+  isDueOn,
+  isDoneOn,
+  setDoneOn,
+} from "./habits/model.js";
 import {
   loadProjects,
   loadSections,
@@ -4093,7 +4099,15 @@ function renderTodayView() {
     return;
   }
 
-  var allClear = overdue.length === 0 && todays.length === 0;
+  // Los hábitos de hoy no entran en `hoyDoneStats`/`totalHoyStats` ni en el
+  // anillo —un hábito no es una tarea y no debe mover ese progreso, ver el
+  // typedef Habit en state/types.js—, pero sí en `allClear`: "Todo al día"
+  // encima de hábitos sin marcar sería mentira.
+  var habitsHoy = _hoyHabitsDeHoy(today);
+  var habitsHechos = habitsHoy.filter(function(h) { return isDoneOn(h, today); }).length;
+
+  var allClear = overdue.length === 0 && todays.length === 0 &&
+    habitsHechos === habitsHoy.length;
 
   // ── Vencidas ──
   if (overdue.length > 0) {
@@ -4115,6 +4129,19 @@ function renderTodayView() {
   // debajo, separada por un hueco.
   secH.li.appendChild(_hoyQuickAddEl(today));
   taskList.appendChild(secH.li);
+
+  // ── Hábitos ──
+  // Siempre visible, aunque no haya ninguno: su fila de alta es el único
+  // camino para crear el primero.
+  var secHab = _hoySectionEl("habits", t("hoy.habits"),
+    habitsHechos + "/" + habitsHoy.length, null, null);
+  habitsHoy.forEach(function(h) {
+    secHab.list.appendChild(_renderHabitItem(h, today));
+  });
+  // Fuera de la lista, igual que el quick-add de "Para hoy": la lista es la
+  // tarjeta redondeada y su `overflow: hidden` se comería el borde.
+  secHab.li.appendChild(_hoyHabitAddEl());
+  taskList.appendChild(secHab.li);
 
   // ── Sin fecha · sugeridas ──
   if (nodate.length > 0) {
@@ -4145,8 +4172,16 @@ function renderTodayView() {
 
   if (_hoyQuickAddRefocus) {
     _hoyQuickAddRefocus = false;
-    var qa = taskList.querySelector(".hoy-quickadd-input");
+    // `:not(.hoy-quickadd--habit)`: ahora hay dos quick-adds en Hoy y este
+    // selector se quedaba con el primero del DOM sin distinguir cuál.
+    var qa = taskList.querySelector(".hoy-quickadd:not(.hoy-quickadd--habit) .hoy-quickadd-input");
     if (qa) qa.focus();
+  }
+
+  if (_hoyHabitAddRefocus) {
+    _hoyHabitAddRefocus = false;
+    var qh = taskList.querySelector(".hoy-quickadd--habit .hoy-quickadd-input");
+    if (qh) qh.focus();
   }
 }
 
@@ -4155,14 +4190,25 @@ function renderTodayView() {
 var _hoyQuickAddRefocus = false;
 
 
-function _hoySectionEl(tone, label, count, actionLabel, onAction) {
+/**
+ * @param {string} tone         overdue | today | nodate | habits
+ * @param {string} label
+ * @param {string} count        texto libre ("3", "2/5"…)
+ * @param {string|null} actionLabel
+ * @param {Function|null} onAction
+ * @param {string} [actionIcon] icono del botón de acción; "arrow-right" por
+ *                              defecto, que es lo que piden las secciones de
+ *                              tareas ("mover todas a hoy"). Hábitos pasa un
+ *                              "plus", que es un alta y no un traslado.
+ */
+function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   var li = document.createElement("li");
   li.className = "hoy-section hoy-section--" + tone;
   var head = document.createElement("div");
   head.className = "hoy-section-head";
   // Icono por tono, como el prototipo: sol para hoy, aviso para lo vencido
   // y bandeja para lo que no tiene fecha. Sustituye al punto de color.
-  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox" };
+  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "repeat" };
   head.insertAdjacentHTML("beforeend",
     '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
@@ -4175,7 +4221,7 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction) {
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "hoy-section-action";
-    btn.innerHTML = '<i data-lucide="arrow-right"></i> ';
+    btn.innerHTML = '<i data-lucide="' + (actionIcon || "arrow-right") + '"></i> ';
     // La etiqueta va en su propio span: en móvil no cabe junto al rótulo de
     // la sección y se oculta, dejando el botón como icono con `aria-label`.
     var lbl = document.createElement("span");
@@ -4246,6 +4292,175 @@ function _hoyQuickAddEl(todayStr, placeholder) {
   btn.addEventListener("click", submit);
   li.addEventListener("click", function(e) { if (e.target === li) input.focus(); });
   return li;
+}
+
+// ── Hábitos en Hoy (fase 2a) ─────────────────────────────────
+// La tubería de datos ya venía hecha (loadHabits/saveHabits/sync); esto
+// es lo primero que la usa. Sin rachas todavía: `computeStreak` y
+// `statsBetween` esperan a tener historial real que enseñar.
+
+var _hoyHabitAddRefocus = false;
+
+/** Hábitos que tocan hoy. `isDueOn` ya descarta archivados y futuros. */
+function _hoyHabitsDeHoy(todayISO) {
+  return habits.filter(function(h) { return isDueOn(h, todayISO); });
+}
+
+/**
+ * Fila de un hábito. Reaprovecha el CSS de `.today-item` (misma caja,
+ * misma casilla) en vez de un juego de clases paralelo.
+ *
+ * Sin `initSwipeGesture`: ese gesto lee `task.done`/`task.dueDate` y sus
+ * dos acciones son "mover a hoy" y borrar, que no significan nada aquí.
+ */
+function _renderHabitItem(habit, todayISO) {
+  var hecho = isDoneOn(habit, todayISO);
+
+  var li = document.createElement("li");
+  li.className = "today-item today-item--habit" + (hecho ? " today-item--done" : "");
+
+  var cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.className = "today-check";
+  cb.checked = hecho;
+  cb.setAttribute("aria-label", t("hoy.habit_done_toggle"));
+  cb.addEventListener("click", function(e) { e.stopPropagation(); });
+  cb.addEventListener("change", function() {
+    setDoneOn(habit, todayISO, cb.checked);
+    saveHabits();
+    // Sin renderSidebar(): los hábitos no salen ahí ni cuentan en los
+    // contadores de listas (ver el typedef Habit en state/types.js).
+    renderTasks();
+  });
+
+  var text = document.createElement("span");
+  text.className = "today-text";
+  text.textContent = habit.name;
+
+  li.appendChild(cb);
+  li.appendChild(text);
+
+  // Cada N días: se dice en la propia fila, o no hay forma de saber por
+  // qué un hábito aparece unos días sí y otros no.
+  if (habit.schedule === "everyN" && habit.everyNDays > 1) {
+    var freq = document.createElement("span");
+    freq.className = "today-date-pill";
+    freq.textContent = t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays));
+    li.appendChild(freq);
+  }
+
+  li.addEventListener("click", function(e) {
+    if (e.target.closest("button, input")) return;
+    _showHabitMenu(habit, li);
+  });
+
+  return li;
+}
+
+/** Alta rápida de hábito. Espejo de `_hoyQuickAddEl`, ver la nota del maxlength. */
+function _hoyHabitAddEl() {
+  var wrap = document.createElement("div");
+  // Reutiliza el aspecto del quick-add de tareas; el modificador --habit
+  // es el que permite refocalizar el correcto tras repintar (ver abajo).
+  wrap.className = "hoy-quickadd hoy-quickadd--habit";
+  wrap.innerHTML =
+    '<span class="hoy-quickadd-ico"><i data-lucide="plus"></i></span>' +
+    // 60, no 120: `sanitizeHabit` recorta el nombre a 60 y lo que sobre se
+    // perdería en silencio al recargar.
+    '<input type="text" class="hoy-quickadd-input" maxlength="60" autocomplete="off">' +
+    '<button type="button" class="hoy-quickadd-btn" hidden><i data-lucide="plus"></i> <span></span></button>';
+  var input = wrap.querySelector(".hoy-quickadd-input");
+  var btn = wrap.querySelector(".hoy-quickadd-btn");
+  input.placeholder = t("hoy.habit_name_ph");
+  btn.querySelector("span").textContent = t("task.add_btn");
+
+  function submit() {
+    var value = input.value.trim();
+    if (!value) return;
+    // Por sanitizeHabit y no a mano: es quien pone id, createdAt, log y
+    // el resto de campos con sus reglas, sin duplicarlas aquí.
+    habits.push(sanitizeHabit({ name: value }));
+    saveHabits();
+    _hoyHabitAddRefocus = true;
+    renderTasks();
+  }
+
+  input.addEventListener("input", function() { btn.hidden = input.value.trim() === ""; });
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); submit(); }
+    else if (e.key === "Escape") { input.value = ""; btn.hidden = true; input.blur(); }
+  });
+  btn.addEventListener("mousedown", function(e) { e.preventDefault(); });
+  btn.addEventListener("click", submit);
+  wrap.addEventListener("click", function(e) { if (e.target === wrap) input.focus(); });
+  return wrap;
+}
+
+/** Menú de la fila: renombrar, frecuencia y eliminar. Como `showProjectMenu`. */
+function _showHabitMenu(habit, anchor) {
+  var items = [
+    {
+      label: t("action.rename"),
+      action: async function() {
+        var nuevo = await modalPrompt(t("hoy.habit_rename_prompt"), habit.name, habit.name);
+        if (nuevo === null) return;
+        var limpio = nuevo.trim().slice(0, 60);
+        if (!limpio || limpio === habit.name) return;
+        habit.name = limpio;
+        saveHabits();
+        renderTasks();
+      },
+    },
+    {
+      label: t("hoy.habit_freq_daily"),
+      action: function() {
+        habit.schedule = "daily";
+        habit.everyNDays = null;
+        saveHabits();
+        renderTasks();
+      },
+    },
+    {
+      label: t("hoy.habit_freq_everyn_menu"),
+      action: async function() {
+        var n = await modalPrompt(t("hoy.habit_freq_prompt"),
+          habit.everyNDays ? String(habit.everyNDays) : "2", "2");
+        if (n === null) return;
+        var num = Math.round(Number(n));
+        if (!Number.isFinite(num) || num < 2) return;
+        habit.schedule = "everyN";
+        habit.everyNDays = Math.min(num, 365);
+        saveHabits();
+        renderTasks();
+      },
+    },
+    null,
+    {
+      label: t("action.delete"),
+      danger: true,
+      action: async function() {
+        // Sin deshacer: `_undoStack`/`undoDelete()` están atados a
+        // projects/tasks, y generalizarlos no toca en esta fase. Por eso
+        // aquí sí se confirma antes de borrar.
+        var ok = await modalConfirm(
+          t("hoy.habit_confirm_delete").replace("{name}", escHtml(habit.name)),
+          t("modal.delete")
+        );
+        if (!ok) return;
+        habits = habits.filter(function(h) { return h.id !== habit.id; });
+        saveHabits();
+        renderTasks();
+      },
+    },
+  ];
+
+  var menu = _buildCtxMenu(items);
+  positionCtxMenu(menu, anchor);
+  _ctxMenu = menu;
+  requestAnimationFrame(function() {
+    _ctxCloseHandler = function(e) { if (!menu.contains(e.target)) closeCtxMenu(); };
+    document.addEventListener("mousedown", _ctxCloseHandler);
+  });
 }
 
 /** Stats "N de M hechas · X vencidas" + anillo de progreso en la cabecera. */
