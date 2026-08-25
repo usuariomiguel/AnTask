@@ -301,13 +301,6 @@ let _archivedExpanded  = false;
 let taskPrefs         = loadTaskPrefs();
 let userProfile       = loadProfile();
 
-// ─── MULTI-SELECT ─────────────────────────────────────────────
-let selectMode = false;
-const selectedTaskIds = new Set();
-const bulkActionBar  = document.getElementById("bulk-action-bar");
-const bulkCount      = document.getElementById("bulk-count");
-const selectModeBtn  = document.getElementById("select-mode-btn");
-
 // ═══════════════════════════════════════════════════════════════
 // ESTILO DE FILA (Limpio · Líneas · Tarjetas · Compacto) — como en v1.
 // El estilo elegido se refleja como atributo data-row-style en #task-list
@@ -493,22 +486,8 @@ if (shortcutsBtn) {
   shortcutsBtn.addEventListener("click", function() { showShortcutsHelp(); });
 }
 
-// ─── ACCIÓN EN MASA — LISTENERS ──────────────────────────────
-if (selectModeBtn) selectModeBtn.addEventListener("click", toggleSelectMode);
-
 var _closePanelBtn = document.getElementById("close-panel-btn");
 if (_closePanelBtn) _closePanelBtn.addEventListener("click", function() { activateProject(null); });
-
-var _bulkDoneBtn   = document.getElementById("bulk-done-btn");
-var _bulkPendingBtn= document.getElementById("bulk-pending-btn");
-var _bulkMoveBtn   = document.getElementById("bulk-move-btn");
-var _bulkDeleteBtn = document.getElementById("bulk-delete-btn");
-var _bulkCancelBtn = document.getElementById("bulk-cancel-btn");
-if (_bulkDoneBtn)    _bulkDoneBtn.addEventListener("click",    bulkMarkDone);
-if (_bulkPendingBtn) _bulkPendingBtn.addEventListener("click", bulkMarkPending);
-if (_bulkMoveBtn)    _bulkMoveBtn.addEventListener("click",    bulkMoveToProject);
-if (_bulkDeleteBtn)  _bulkDeleteBtn.addEventListener("click",  bulkDelete);
-if (_bulkCancelBtn)  _bulkCancelBtn.addEventListener("click",  exitSelectMode);
 
 // ─── ATAJOS DE TECLADO GLOBALES ───────────────────────────────
 document.addEventListener("keydown", function(e) {
@@ -544,11 +523,6 @@ document.addEventListener("keydown", function(e) {
     if (_mp) _mp.classList.toggle("sidebar-is-collapsed", _sb && _sb.classList.contains("sidebar-collapsed"));
     var _collapsed = _sb && _sb.classList.contains("sidebar-collapsed");
     localStorage.setItem("anso-sidebar-collapsed", _collapsed ? "1" : "0");
-    return;
-  }
-
-  if (e.key === "Escape" && selectMode) {
-    exitSelectMode();
     return;
   }
 
@@ -1492,7 +1466,6 @@ function activateProject(id) {
   projectSubtitle.textContent = project.tasks.length + " tarea" + (project.tasks.length !== 1 ? "s" : "");
   _setMobileSubtitle(project.tasks.filter(function(x) { return !x.done; }).length);
 
-  if (selectMode) exitSelectMode();
   currentFilter = "all";
   _syncFilterPanel("all");
 
@@ -1550,7 +1523,6 @@ function activateTodayView() {
     projectSubtitleM.textContent = fechaM.charAt(0).toUpperCase() + fechaM.slice(1);
   }
 
-  if (selectMode) exitSelectMode();
   currentFilter = "all";
   _syncFilterPanel("all");
 
@@ -2765,14 +2737,6 @@ function _updateTaskNode(node, task) {
   // fila — solo marcamos si su panel está abierto (barra de acento).
   node.classList.toggle("detail-open", openDetailTaskId === task.id);
 
-  // Select mode visual
-  const selectCb = node.querySelector(".task-select-cb");
-  if (selectCb) {
-    const isSelected = selectedTaskIds.has(task.id);
-    selectCb.checked = isSelected;
-    node.classList.toggle("selected", isSelected);
-  }
-
   // El texto se corta con puntos suspensivos: el tooltip lo deja leer
   // entero (mismo detalle que la fila de v1).
   text.title = task.text;
@@ -2830,7 +2794,6 @@ function _buildTaskNode(task, project, showList) {
     // menú de la tarea, que llama al mismo startInlineEdit.
 
     function openTaskActionsMenu(anchorOrPoint) {
-      if (selectMode) return;
       closeCtxMenu();
 
       var items = [
@@ -2882,11 +2845,6 @@ function _buildTaskNode(task, project, showList) {
     // cierra. Antes cerrarlo pedía doble clic. ──
     node.addEventListener("click", function(e) {
       if (e.target.closest("button")) return;
-      if (selectMode) {
-        e.preventDefault();
-        toggleTaskSelection(task.id, node);
-        return;
-      }
       if (e.target.closest("input")) return;
       // Modo simple: la fila no tiene panel de detalle — se edita fecha y
       // repetir en el sitio, con un popover ligero anclado a la propia fila.
@@ -2899,7 +2857,6 @@ function _buildTaskNode(task, project, showList) {
 
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        if (selectMode) { toggleTaskSelection(task.id, node); return; }
         if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node, project); return; }
         // Alterna, como el clic y como anuncia el modal de atajos.
         if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
@@ -2941,18 +2898,6 @@ function _buildTaskNode(task, project, showList) {
         return;
       }
     });
-
-    // ── Checkbox de selección ─────────────────────────────────
-    const selectCb = node.querySelector(".task-select-cb");
-    if (selectCb) {
-      selectCb.checked = selectedTaskIds.has(task.id);
-      if (selectedTaskIds.has(task.id)) node.classList.add("selected");
-      selectCb.addEventListener("change", function(e) {
-        e.stopPropagation();
-        toggleTaskSelection(task.id, node);
-      });
-      selectCb.addEventListener("click", function(e) { e.stopPropagation(); });
-    }
 
     initDragDrop(node, task.id);
     if (window.matchMedia("(max-width: 768px)").matches) {
@@ -3016,7 +2961,6 @@ function _getOpenDetailTask() {
 }
 
 function openTaskDetail(taskId, projectId) {
-  if (selectMode) return;
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
@@ -3759,6 +3703,7 @@ function _initTaskDetailPanel() {
       const open = _getOpenDetailTask();
       if (!open) return;
       open.task.done = els.toggle.checked;
+      _logCompletado(open.task, open.task.done);
       saveAndRender();
     });
   }
@@ -5164,120 +5109,6 @@ function undoDelete() {
   }
 
   _undoStack = null;
-  saveAndRender();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ACCIÓN EN MASA (MULTI-SELECT)
-// ═══════════════════════════════════════════════════════════════
-
-function toggleSelectMode() {
-  if (selectMode) exitSelectMode();
-  else enterSelectMode();
-}
-
-function enterSelectMode() {
-  selectMode = true;
-  selectedTaskIds.clear();
-  taskList.classList.add("select-mode");
-  if (selectModeBtn) {
-    selectModeBtn.innerHTML = '<i data-lucide="x"></i>';
-    selectModeBtn.classList.add("active");
-    if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
-  }
-  renderBulkBar();
-  renderTasks();
-}
-
-function exitSelectMode() {
-  if (!selectMode) return;
-  selectMode = false;
-  selectedTaskIds.clear();
-  taskList.classList.remove("select-mode");
-  if (selectModeBtn) {
-    selectModeBtn.innerHTML = '<i data-lucide="square-check-big"></i>';
-    selectModeBtn.classList.remove("active");
-    if (window.lucide) lucide.createIcons({ nodes: [selectModeBtn] });
-  }
-  if (bulkActionBar) bulkActionBar.hidden = true;
-  renderTasks();
-}
-
-function renderBulkBar() {
-  if (!bulkActionBar) return;
-  if (!selectMode) { bulkActionBar.hidden = true; return; }
-  bulkActionBar.hidden = false;
-  var n = selectedTaskIds.size;
-  if (bulkCount) {
-    bulkCount.textContent = (n === 1 ? t("bulk.count_one") : t("bulk.count_other"))
-      .replace("{count}", String(n));
-  }
-}
-
-function toggleTaskSelection(taskId, node) {
-  if (selectedTaskIds.has(taskId)) {
-    selectedTaskIds.delete(taskId);
-    node.classList.remove("selected");
-    var cb = node.querySelector(".task-select-cb");
-    if (cb) cb.checked = false;
-  } else {
-    selectedTaskIds.add(taskId);
-    node.classList.add("selected");
-    var cb = node.querySelector(".task-select-cb");
-    if (cb) cb.checked = true;
-  }
-  renderBulkBar();
-}
-
-function bulkMarkDone() {
-  var project = getActiveProject();
-  if (!project || selectedTaskIds.size === 0) return;
-  project.tasks.forEach(function(t) {
-    if (selectedTaskIds.has(t.id)) { t.done = true; _logCompletado(t, true); }
-  });
-  exitSelectMode();
-  saveAndRender();
-}
-
-function bulkMarkPending() {
-  var project = getActiveProject();
-  if (!project || selectedTaskIds.size === 0) return;
-  project.tasks.forEach(function(t) {
-    if (selectedTaskIds.has(t.id)) { t.done = false; _logCompletado(t, false); }
-  });
-  exitSelectMode();
-  saveAndRender();
-}
-
-function bulkDelete() {
-  var project = getActiveProject();
-  if (!project || selectedTaskIds.size === 0) return;
-  var toDelete = project.tasks
-    .map(function(t, i) { return { task: t, index: i }; })
-    .filter(function(x) { return selectedTaskIds.has(x.task.id); });
-  _undoStack = {
-    projectId: project.id,
-    tasks:   toDelete.map(function(x) { return JSON.parse(JSON.stringify(x.task)); }),
-    indices: toDelete.map(function(x) { return x.index; }),
-  };
-  if (toDelete.some(function(x) { return x.task.id === openDetailTaskId; })) closeTaskDetail();
-  project.tasks = project.tasks.filter(function(t) { return !selectedTaskIds.has(t.id); });
-  exitSelectMode();
-  saveAndRender();
-  showUndoToast();
-}
-
-async function bulkMoveToProject() {
-  var project = getActiveProject();
-  if (!project || selectedTaskIds.size === 0) return;
-  var targetId = await modalProjectPicker(project.id);
-  if (!targetId) return;
-  var target = projects.find(function(p) { return p.id === targetId; });
-  if (!target) return;
-  var toMove = project.tasks.filter(function(t) { return selectedTaskIds.has(t.id); });
-  project.tasks = project.tasks.filter(function(t) { return !selectedTaskIds.has(t.id); });
-  toMove.reverse().forEach(function(t) { target.tasks.unshift(t); });
-  exitSelectMode();
   saveAndRender();
 }
 

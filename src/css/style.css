@@ -5844,11 +5844,6 @@ body.project-dragging .project-item {
     background-color: transparent;
   }
 
-  /* Seleccionar tareas — oculto en móvil (gestos lo sustituyen a futuro) */
-  .select-mode-btn {
-    display: none !important;
-  }
-
   /* Filtro: chip con label visible (más claro que solo icono).
      Sin border en móvil — ghost look. */
   /* Misma píldora que el control de modo de vista: comparten fila, así que
@@ -5933,9 +5928,6 @@ body.project-dragging .project-item {
     background: rgba(111, 122, 61, 0.08);
     color: var(--c-primary-500);
   }
-
-  /* task-prefs-btn: en móvil su acción ("personalizar acciones") va al
-     menú •••, no merece chrome dedicado. Se queda oculto vía .select-mode-btn. */
 
   /* Filter panel anchored just above the bottom nav */
   .filter-panel {
@@ -7071,103 +7063,18 @@ mark.search-hl {
   opacity: 0 !important;
 }
 
-/* ─── MULTI-SELECT ───────────────────────────────────────────── */
-.task-select-cb {
-  display: none;
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-  cursor: pointer;
-  accent-color: var(--c-primary-500);
-}
-
-.task-list.select-mode .task-select-cb {
-  display: block;
-}
-
-.task-list.select-mode .task-item {
-  cursor: pointer;
-}
-
-.task-item.selected {
-  background: rgba(163, 179, 102, 0.09);
-  border-color: rgba(163, 179, 102, 0.38) !important;
-}
-
-.task-item.selected::before,
 .task-item.detail-open::before {
   opacity: 1 !important;
 }
 
-/* Fila con el panel de detalle abierto — mismo acento que "seleccionada",
-   con el mismo tinte de fondo (antes solo llevaba el borde, y con la
-   lista llena costaba distinguir cuál era la fila abierta de verdad). */
+/* Fila con el panel de detalle abierto: borde de acento y tinte de fondo
+   (antes solo llevaba el borde, y con la lista llena costaba distinguir
+   cuál era la fila abierta de verdad). */
 .task-item.detail-open {
   background: rgba(163, 179, 102, 0.09);
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
 
-/* Estilos legacy de .select-mode-btn eliminados: viven en el bloque
- * principal de la toolbar (icon-only 30×30). */
-
-.bulk-action-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.85rem;
-  background: var(--bg-glass);
-  border: 1px solid var(--b-active);
-  border-radius: var(--radius-md);
-  margin-bottom: 0.65rem;
-  flex-wrap: wrap;
-  backdrop-filter: blur(8px);
-  animation: bulk-bar-in 0.20s ease;
-}
-
-@media (max-width: 768px) {
-  .bulk-action-bar {
-    margin: 0.65rem;
-  }
-}
-
-@keyframes bulk-bar-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.bulk-count {
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--t-soft);
-  flex: 1;
-  min-width: 80px;
-}
-
-.bulk-action-bar button {
-  background: transparent;
-  border: 1px solid var(--b-subtle);
-  color: var(--t-soft);
-  border-radius: 23px;
-  padding: 0.20rem 0.55rem;
-  font-size: 0.76rem;
-  font-family: var(--font-body);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-/* .bulk-action-bar button.X — sube especificidad para vencer
- * a `.bulk-action-bar button:hover` sin !important. */
-
-.bulk-action-bar button.bulk-cancel-btn {
-  color: var(--t-muted);
-}
 
 /* ─── MODAL PROJECT PICKER ──────────────────────────────────── */
 .modal-project-list {
@@ -9298,12 +9205,6 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
     min-height: 44px;
     padding: 11px 14px;
     font-size: 13px;
-  }
-
-  /* Botón check del checkbox del bulk-select — ya gestionado por kebab,
-     pero el .task-select-cb visible queda oculto en móvil. */
-  .task-select-cb {
-    display: none;
   }
 
   .cal-cell-num {

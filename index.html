@@ -694,14 +694,6 @@
                  _placeRowStyleControl). -->
             <div class="list-filter-actions" id="list-filter-actions"></div>
           </div>
-          <div class="bulk-action-bar" id="bulk-action-bar" hidden>
-            <span class="bulk-count" id="bulk-count">0 seleccionadas</span>
-            <button type="button" id="bulk-done-btn"><i data-lucide="check"></i> <span data-i18n="bulk.mark_done">Marcar hechas</span></button>
-            <button type="button" id="bulk-pending-btn"><i data-lucide="circle"></i> <span data-i18n="bulk.mark_pending">Pendientes</span></button>
-            <button type="button" id="bulk-move-btn" class="bulk-move-btn"><i data-lucide="folder-input"></i> <span data-i18n="bulk.move_to">Mover a...</span></button>
-            <button type="button" id="bulk-delete-btn" class="bulk-delete-btn"><i data-lucide="trash-2"></i> <span data-i18n="bulk.delete">Eliminar</span></button>
-            <button type="button" id="bulk-cancel-btn" class="bulk-cancel-btn" data-i18n="bulk.cancel">Cancelar</button>
-          </div>
           <!-- Chips de listas (solo móvil, y solo dentro de una lista): saltar
                a otra lista o volver a todas sin pasar por el drawer. En el
                Inbox no salen, porque ahí las tareas ya van agrupadas por
@@ -889,7 +881,6 @@
     <template id="task-item-template">
       <li class="task-item" tabindex="0">
         <div class="task-main-row">
-          <input type="checkbox" class="task-select-cb" aria-label="Seleccionar tarea" />
           <div class="task-summary">
             <span class="task-toggle-wrap">
               <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
