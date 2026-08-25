@@ -343,8 +343,12 @@
   /* Text */
   --text-primary: #2b2213;
   --text-secondary: #6f5f3e;
-  --text-tertiary: #7a6a4a;
-  /* ≥4.5:1 sobre canvas #f9f1de (AA) */
+  --text-tertiary: #756545;
+  /* ≥4.5:1 sobre la superficie MÁS OSCURA en la que se pinta (#ebead8, la
+     del modal de búsqueda): 4.67:1. Antes se validó solo contra el canvas
+     #f9f1de y ahí daba 4.68, pero sobre #ebead8 se quedaba en 4.33 y el
+     test de axe lo cazaba. Al comprobar este token hay que mirar la
+     superficie peor, no la del fondo general. */
   --text-disabled: #b8a173;
   --text-inverse: #f2ece0;
 
