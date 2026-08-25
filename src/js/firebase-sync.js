@@ -351,6 +351,17 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
             sections:        sections || [],
             updatedAt:       serverTimestamp(),
             version:         2,
+          }, {
+            // Sin `merge` este setDoc REEMPLAZA el documento entero, así que
+            // un cliente que no conozca algún campo lo borra de la nube al
+            // guardar — y con la PWA instalada es normal que un dispositivo
+            // vaya por detrás varias versiones durante días. Con merge, los
+            // campos que este cliente no envía se quedan como estaban.
+            //
+            // No cambia nada para `projects`/`sections`: siempre se envían,
+            // y los arrays se reemplazan enteros con merge o sin él. Solo
+            // protege lo que este cliente todavía no sabe escribir.
+            merge: true,
           }).then(function () {
             setTimeout(function () { _syncPaused = false; }, 1500);
           }).catch(function (err) {
