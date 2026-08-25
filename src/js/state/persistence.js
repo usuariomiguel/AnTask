@@ -13,11 +13,13 @@ import {
   METADATA_KEY,
   TASK_PREFS_KEY,
   PROFILE_KEY,
+  HABITS_KEY,
 } from "./keys.js";
-import { sanitizeProject } from "./sanitize.js";
+import { sanitizeProject, sanitizeHabits } from "./sanitize.js";
 
 /** @typedef {import("./types.js").Project}           Project */
 /** @typedef {import("./types.js").Section}           Section */
+/** @typedef {import("./types.js").Habit}             Habit */
 /** @typedef {import("./types.js").WorkspaceMetadata} WorkspaceMetadata */
 
 /** @returns {Project[]} */
@@ -26,6 +28,17 @@ export function loadProjects() {
     const raw = localStorage.getItem(PROJECTS_KEY);
     if (!raw) return [];
     return JSON.parse(raw).map(sanitizeProject);
+  } catch (_) {
+    return [];
+  }
+}
+
+/** @returns {Habit[]} */
+export function loadHabits() {
+  try {
+    const raw = localStorage.getItem(HABITS_KEY);
+    if (!raw) return [];
+    return sanitizeHabits(JSON.parse(raw));
   } catch (_) {
     return [];
   }

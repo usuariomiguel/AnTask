@@ -5,6 +5,8 @@ import {
   sanitizeTasks,
   sanitizeProject,
   sanitizeCompletionLog,
+  sanitizeHabit,
+  sanitizeHabits,
 } from "../sanitize.js";
 
 // ────────────────────────────────────────────────────────────────
@@ -159,5 +161,88 @@ describe("sanitizeProject", () => {
     expect(sanitizeProject({ archived: 1 }).archived).toBe(true);
     expect(sanitizeProject({ archived: 0 }).archived).toBe(false);
     expect(sanitizeProject({}).archived).toBe(false);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+// sanitizeHabit / sanitizeHabits
+// ────────────────────────────────────────────────────────────────
+describe("sanitizeHabit", () => {
+  it("normaliza un hábito válido", () => {
+    const h = sanitizeHabit({
+      id: "h1", name: "  Correr  ", icon: "🏃", color: "#8a9a5b",
+      schedule: "daily", createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    expect(h.id).toBe("h1");
+    expect(h.name).toBe("Correr");
+    expect(h.icon).toBe("🏃");
+    expect(h.schedule).toBe("daily");
+    expect(h.everyNDays).toBeNull();
+    expect(h.log).toEqual({});
+  });
+
+  it("schedule desconocido → daily", () => {
+    expect(sanitizeHabit({ name: "x", schedule: "lunar" }).schedule).toBe("daily");
+  });
+
+  it("everyN con N válido se conserva", () => {
+    const h = sanitizeHabit({ name: "x", schedule: "everyN", everyNDays: 3 });
+    expect(h.schedule).toBe("everyN");
+    expect(h.everyNDays).toBe(3);
+  });
+
+  it("everyN sin N usable degrada a daily", () => {
+    ["ninguno", null, 0, -4].forEach((n) => {
+      const h = sanitizeHabit({ name: "x", schedule: "everyN", everyNDays: n });
+      expect(h.schedule).toBe("daily");
+      expect(h.everyNDays).toBeNull();
+    });
+  });
+
+  it("everyN de 1 día es lo mismo que daily, y se colapsa", () => {
+    const h = sanitizeHabit({ name: "x", schedule: "everyN", everyNDays: 1 });
+    expect(h.schedule).toBe("daily");
+    expect(h.everyNDays).toBeNull();
+  });
+
+  it("acota everyNDays a 365", () => {
+    expect(sanitizeHabit({ name: "x", schedule: "everyN", everyNDays: 99999 }).everyNDays).toBe(365);
+  });
+
+  it("createdAt inválido → ahora", () => {
+    const h = sanitizeHabit({ name: "x", createdAt: "el martes" });
+    expect(isNaN(Date.parse(h.createdAt))).toBe(false);
+  });
+
+  it("trunca el nombre a 60 caracteres", () => {
+    expect(sanitizeHabit({ name: "a".repeat(90) }).name.length).toBe(60);
+  });
+
+  it("limpia el log igual que en las tareas", () => {
+    const h = sanitizeHabit({ name: "x", log: { "2026-01-01": 1, "ayer": 1, "2026-01-02": 0 } });
+    expect(h.log).toEqual({ "2026-01-01": 1 });
+  });
+
+  it("no explota con entradas basura", () => {
+    expect(sanitizeHabit(null).name).toBe("");
+    expect(sanitizeHabit("texto").name).toBe("");
+  });
+});
+
+describe("sanitizeHabits", () => {
+  it("devuelve [] para input no-array", () => {
+    expect(sanitizeHabits(null)).toEqual([]);
+    expect(sanitizeHabits({})).toEqual([]);
+  });
+
+  it("descarta los que se quedan sin nombre", () => {
+    const res = sanitizeHabits([{ name: "Correr" }, { name: "   " }, {}, { name: "Leer" }]);
+    expect(res.map((h) => h.name)).toEqual(["Correr", "Leer"]);
+  });
+
+  it("genera id a los que no lo traen", () => {
+    const [h] = sanitizeHabits([{ name: "Correr" }]);
+    expect(typeof h.id).toBe("string");
+    expect(h.id.length).toBeGreaterThan(0);
   });
 });

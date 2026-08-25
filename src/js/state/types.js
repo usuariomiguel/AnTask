@@ -69,6 +69,34 @@
  */
 
 /**
+ * Hábito — algo que se repite y del que interesa el histórico, no el
+ * "hecho y fuera" de una tarea.
+ *
+ * Se guarda aparte de `Task` a propósito: un hábito no se completa nunca
+ * del todo, no vive en ninguna lista y no debe contar en los contadores
+ * de Hoy/Inbox. Lo único que comparten es el formato del historial.
+ *
+ * `schedule`:
+ *  - "daily"  → toca todos los días.
+ *  - "everyN" → toca cada `everyNDays` días contando desde `createdAt`.
+ *
+ * No hay "N veces por semana" a propósito: ese modo no tiene un "toca
+ * hoy" que marcar ni una celda que fallar, así que necesita otra UI. Si
+ * se añade, será un `schedule` nuevo, sin tocar los dos existentes.
+ *
+ * @typedef {object} Habit
+ * @property {string}  id
+ * @property {string}  name
+ * @property {string}  [icon]        - Emoji
+ * @property {string}  [color]       - Hex color
+ * @property {("daily"|"everyN")} schedule
+ * @property {number|null} [everyNDays] - Solo con schedule "everyN"; ≥2
+ * @property {string}  createdAt     - ISO timestamp; ancla de "qué días tocaba"
+ * @property {boolean} [archived]
+ * @property {Record<string, number>} log - Historial {"YYYY-MM-DD": 1}
+ */
+
+/**
  * Sección en la sidebar — agrupador visual de proyectos.
  *
  * @typedef {object} Section

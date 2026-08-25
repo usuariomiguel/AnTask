@@ -97,6 +97,54 @@ export function sanitizeTasks(input) {
     .filter(function (i) { return i.text.length > 0; });
 }
 
+const VALID_SCHEDULES = ["daily", "everyN"];
+
+/**
+ * @param {any} h
+ * @returns {import("./types.js").Habit}
+ */
+export function sanitizeHabit(h) {
+  h = (h && typeof h === "object") ? h : {};
+
+  // "everyN" sin un N usable no significa nada, así que degrada a diario
+  // en vez de quedar como un horario imposible de evaluar. N=1 ya ES
+  // diario: se colapsa para no tener dos formas de decir lo mismo.
+  let schedule = VALID_SCHEDULES.includes(h.schedule) ? h.schedule : "daily";
+  let everyNDays = null;
+  if (schedule === "everyN") {
+    const n = Math.round(Number(h.everyNDays));
+    if (Number.isFinite(n) && n > 1) everyNDays = Math.min(n, 365);
+    else schedule = "daily";
+  }
+
+  const createdAt = (typeof h.createdAt === "string" && !isNaN(Date.parse(h.createdAt)))
+    ? h.createdAt
+    : new Date().toISOString();
+
+  return {
+    id:         typeof h.id === "string" ? h.id : generateId(),
+    name:       typeof h.name === "string" ? h.name.trim().slice(0, 60) : "",
+    icon:       typeof h.icon === "string" ? h.icon : "",
+    color:      typeof h.color === "string" ? h.color : "",
+    schedule:   /** @type {"daily"|"everyN"} */ (schedule),
+    everyNDays: everyNDays,
+    createdAt:  createdAt,
+    archived:   !!h.archived,
+    log:        sanitizeCompletionLog(h.log),
+  };
+}
+
+/**
+ * @param {any} input
+ * @returns {import("./types.js").Habit[]}
+ */
+export function sanitizeHabits(input) {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map(sanitizeHabit)
+    .filter(function (h) { return h.name.length > 0; });
+}
+
 /**
  * @param {any} p
  * @returns {Project}
