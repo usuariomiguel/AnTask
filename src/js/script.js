@@ -28,16 +28,19 @@ import {
   ROW_STYLE_KEY,
   TWO_COLUMNS_KEY,
   MODE_KEY,
+  HABITS_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
   sanitizeProject,
   sanitizeTasks,
   sanitizeSubtasks,
+  sanitizeHabits,
 } from "./state/sanitize.js";
 import {
   loadProjects,
   loadSections,
+  loadHabits,
   loadMetadata,
   loadTaskPrefs,
   loadProfile,
@@ -228,6 +231,9 @@ migrateStorageIfNeeded();
 
 let projects        = loadProjects();
 let sections        = loadSections();
+// Todavía sin UI que los cree: se cargan, se guardan y se sincronizan para
+// que la tubería esté montada y probada antes de que exista la pantalla.
+let habits          = loadHabits();
 
 // Las notas se retiraron: borra de una vez su clave para no dejar datos
 // huérfanos ocupando la cuota de localStorage.
@@ -5736,7 +5742,19 @@ function _checkStorageWarning() {
  * línea en vez de siete, y evita que unos envíen más que otros.
  */
 function _workspace() {
-  return { projects: projects, sections: sections };
+  return { projects: projects, sections: sections, habits: habits };
+}
+
+/**
+ * Persiste los hábitos en local y programa la subida a la nube.
+ * Espejo de `saveSections()`.
+ */
+function saveHabits() {
+  const ok = safeLsSet(HABITS_KEY, JSON.stringify(habits), _showQuotaModal);
+  if (!ok) return;
+  var user = window.AnsoSync?.getUser?.() ?? null;
+  if (user) _saveAccountCache(user.uid);
+  window.AnsoSync?.scheduleSave?.(_workspace());
 }
 
 function saveProjects() {
@@ -5910,17 +5928,20 @@ window.addEventListener("load", function() {
 
 // ─── Claves por cuenta ────────────────────────────────────────
 // Cada usuario tiene su propio espacio en localStorage:
-//   anso-projects-{uid}, anso-sections-{uid}, anso-meta-{uid}
+//   anso-projects-{uid}, anso-sections-{uid}, anso-meta-{uid},
+//   antask-habits-{uid}
 // Las claves anónimas (sin uid) son exclusivas del modo local.
 
 function _acctKey(uid)      { return PROJECTS_KEY + "-" + uid; }
 function _acctSectKey(uid)  { return SECTIONS_KEY + "-" + uid; }
 function _acctMetaKey(uid)  { return METADATA_KEY + "-" + uid; }
+function _acctHabitsKey(uid){ return HABITS_KEY + "-" + uid; }
 
 function _saveAccountCache(uid) {
   var now = new Date().toISOString();
-  safeLsSet(_acctKey(uid),     JSON.stringify(projects),  _showQuotaModal);
-  safeLsSet(_acctSectKey(uid), JSON.stringify(sections),  _showQuotaModal);
+  safeLsSet(_acctKey(uid),       JSON.stringify(projects), _showQuotaModal);
+  safeLsSet(_acctSectKey(uid),   JSON.stringify(sections), _showQuotaModal);
+  safeLsSet(_acctHabitsKey(uid), JSON.stringify(habits),   _showQuotaModal);
   safeLsSet(_acctMetaKey(uid), JSON.stringify({ lastSavedAt: now }), _showQuotaModal);
 }
 
@@ -5940,12 +5961,14 @@ function _clearLocalData() {
   // y en la nube — no se pierden.
   projects          = [];
   sections          = [];
+  habits            = [];
   activeProjectId   = null;
   activeView        = "project";
 
   // localStorage del espacio anónimo
   localStorage.removeItem(PROJECTS_KEY);
   localStorage.removeItem(SECTIONS_KEY);
+  localStorage.removeItem(HABITS_KEY);
   localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
 
@@ -6100,8 +6123,10 @@ function _syncOnFirstConnect(cloudData) {
       try {
         projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
         sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+        habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
         localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+        localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
         renderSidebar(); renderTasks();
       } catch(e) {}
       window.AnsoSync?.scheduleSave?.(_workspace());
@@ -6120,14 +6145,16 @@ function _syncOnFirstConnect(cloudData) {
     // dispositivo recién limpiado que cachea su vacío se queda sordo a la
     // nube para siempre, aunque tenga todas las tareas esperando ahí.
     if (cloudTime >= localTime || (cloudHasContent && !localHasContent)) {
-      _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+      _syncApplyRemote(cloudData, uid);
     } else {
       // Caché local más reciente → restaurar y subir
       try {
         projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
         sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+        habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
         localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+        localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
         renderSidebar(); renderTasks();
       } catch(e) {}
       window.AnsoSync?.scheduleSave?.(_workspace());
@@ -6149,7 +6176,7 @@ function _syncOnFirstConnect(cloudData) {
 
   if (!hasAnonymousData) {
     // Sin datos locales → usar nube directamente
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    _syncApplyRemote(cloudData, uid);
     return;
   }
 
@@ -6162,7 +6189,7 @@ function _syncOnFirstConnect(cloudData) {
 
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
-    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData, uid);
     else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(_workspace()); }
     return;
   }
@@ -6196,7 +6223,7 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.querySelector("#_sc-cloud").addEventListener("click", function() {
     closeModal(overlay);
-    _syncApplyRemote(cloudData.projects, cloudData.sections || [], uid);
+    _syncApplyRemote(cloudData, uid);
   });
 
   box.querySelector("#_sc-local").addEventListener("click", function() {
@@ -6206,9 +6233,14 @@ function _showSyncConflictModal(cloudData, uid) {
   });
 }
 
-function _syncOnRemoteChange(remoteProjects, remoteSections, remoteUpdatedAt) {
+/**
+ * @param {{projects: any[], sections?: any[], habits?: any[]}} remote
+ * @param {any} remoteUpdatedAt
+ */
+function _syncOnRemoteChange(remote, remoteUpdatedAt) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   var uid  = user ? user.uid : null;
+  var remoteProjects = remote.projects;
 
   // Igual que en la primera conexión: si lo que llega de la nube es más
   // viejo que la última vez que este dispositivo guardó, se ignora. Sin
@@ -6228,12 +6260,28 @@ function _syncOnRemoteChange(remoteProjects, remoteSections, remoteUpdatedAt) {
     }
   }
 
-  _syncApplyRemote(remoteProjects, remoteSections || [], uid);
+  _syncApplyRemote(remote, uid);
 }
 
-async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
+/**
+ * Vuelca en local lo que llega de la nube.
+ *
+ * Recibe el objeto entero y no los campos sueltos: son cinco puntos de
+ * llamada y, con la firma posicional, cada campo nuevo obligaba a
+ * tocarlos todos (mismo motivo que en `scheduleSave`).
+ *
+ * @param {{projects: any[], sections?: any[], habits?: any[]}} remote
+ * @param {string|null} uid
+ */
+async function _syncApplyRemote(remote, uid) {
   try {
-    var cleanProjects = remoteProjects.map(sanitizeProject);
+    var cleanProjects = (remote.projects || []).map(sanitizeProject);
+    var remoteSections = remote.sections;
+    // Los hábitos pueden no venir: un cliente con la versión anterior no
+    // los escribe. `undefined` significa "no sé nada de esto", que no es
+    // lo mismo que "está vacío" — en ese caso se deja lo que haya en
+    // local en vez de borrarlo.
+    var remoteHabits = Array.isArray(remote.habits) ? sanitizeHabits(remote.habits) : null;
 
     // Write to localStorage first — if this throws we haven't touched memory yet.
     localStorage.removeItem(PROJECTS_KEY);
@@ -6241,11 +6289,15 @@ async function _syncApplyRemote(remoteProjects, remoteSections, uid) {
     if (Array.isArray(remoteSections)) {
       localStorage.setItem(SECTIONS_KEY, JSON.stringify(remoteSections));
     }
+    if (remoteHabits) {
+      localStorage.setItem(HABITS_KEY, JSON.stringify(remoteHabits));
+    }
 
     // Commit to memory only after successful persistence.
     projects = cleanProjects;
     ensureInbox();
     if (Array.isArray(remoteSections)) sections = remoteSections;
+    if (remoteHabits) habits = remoteHabits;
 
     if (uid) _saveAccountCache(uid);
 

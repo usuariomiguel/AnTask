@@ -149,9 +149,13 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
 
         if (!snap.exists()) return;
         const data = snap.data();
+        // Se pasa el documento entero, no campo a campo: así un campo
+        // nuevo no obliga a tocar también este punto (y `habits` puede
+        // llegar como `undefined` desde un cliente antiguo, que es
+        // información distinta de "lista vacía" — ver _syncApplyRemote).
         if (data && Array.isArray(data.projects) &&
             typeof _onRemoteChange === "function") {
-          _onRemoteChange(data.projects, data.sections || [], data.updatedAt);
+          _onRemoteChange(data, data.updatedAt);
         }
       }, function (err) {
         console.warn("AnsoSync: error en listener:", err);
@@ -345,7 +349,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
        * puntos de llamada, y con la firma posicional cada campo nuevo
        * obligaba a tocarlos todos.
        *
-       * @param {{projects: any[], sections?: any[]}} workspace
+       * @param {{projects: any[], sections?: any[], habits?: any[]}} workspace
        */
       scheduleSave: function (workspace) {
         if (!_user) return;
@@ -356,8 +360,9 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           setDoc(docRef(), {
             projects:        workspace.projects,
             sections:        workspace.sections || [],
+            habits:          workspace.habits  || [],
             updatedAt:       serverTimestamp(),
-            version:         2,
+            version:         3,
           }, {
             // Sin `merge` este setDoc REEMPLAZA el documento entero, así que
             // un cliente que no conozca algún campo lo borra de la nube al
