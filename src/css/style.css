@@ -6416,6 +6416,36 @@ body.project-dragging .project-item {
     box-shadow: 0 14px 32px -12px rgba(40, 28, 12, 0.38);
   }
 
+  /* ── Auto-ocultar al hacer scroll ──────────────────────────────
+     La pastilla y el FAB se apartan hacia abajo al bajar por la lista y
+     vuelven al subir (ver _initNavAutoHide en script.js). Se mueven
+     juntos a propósito: comparten eje y se leen como una sola fila
+     flotante, así que dejar uno de los dos quieto descoloca el conjunto.
+
+     Se va hacia ABAJO en vez de solo desvanecerse: así se lee como que
+     se aparta para dejar sitio, no como que parpadea. */
+  .mobile-bottom-nav,
+  .mobile-fab.visible {
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-bottom-nav,
+    .mobile-fab.visible {
+      transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.18s ease;
+    }
+  }
+
+  /* `pointer-events: none` además de la opacidad: sin esto la barra
+     seguiría capturando toques donde ya no se ve nada. */
+  .mobile-bottom-nav.mobile-nav--hidden,
+  .mobile-fab.visible.mobile-nav--hidden {
+    transform: translateY(calc(100% + 28px));
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .mobile-bottom-btn {
     flex: 0 0 auto;
     /* 56x44 mínimos del handoff, en vez de 64px fijos. */
@@ -10219,6 +10249,7 @@ button {
     display: none;
   }
 }
+
 
 /* Hueco al pie para la barra de captura flotante. Va en el contenedor de
  * scroll y no en `.task-list`, para que el hueco sea el mismo pase lo

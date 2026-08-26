@@ -1483,6 +1483,8 @@ function activateProject(id) {
   // hacían Hoy y el calendario—, así que al arrancar en Inbox, o al abrir una
   // lista, ninguna pestaña quedaba marcada.
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
+  if (window._antaskNavShow) window._antaskNavShow();
 }
 
 /**
@@ -1536,6 +1538,8 @@ function activateTodayView() {
   renderSidebar();
   renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
+  if (window._antaskNavShow) window._antaskNavShow();
 }
 
 
@@ -5597,6 +5601,8 @@ function showCalendarPanel() {
   if (mobileFab) mobileFab.classList.add("visible");
   renderCalendar();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
+  if (window._antaskNavShow) window._antaskNavShow();
 }
 
 function _restoreMainPanel() {
@@ -5609,6 +5615,8 @@ function _restoreMainPanel() {
   _setActiveViewTab("tasks");
   if (isVirtualView) renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
+  if (window._antaskNavShow) window._antaskNavShow();
 }
 
 function _setActiveViewTab(view) {
@@ -5930,8 +5938,74 @@ window.addEventListener("load", function() {
   renderSidebar();
   renderTasks();
   initializeTheme();
+  _initNavAutoHide();
   checkAutoBackup(); // Verificar backup automático al cargar
 });
+/**
+ * Auto-ocultar la barra inferior (y el FAB, que va a su lado) al bajar
+ * por la lista, y devolverla al subir. Solo móvil: en escritorio la
+ * pastilla no se pinta.
+ *
+ * Escucha el scroll de `.task-list-scroll`, que es quien desplaza de
+ * verdad — el `window` no se mueve, el scroll vive en ese contenedor.
+ */
+function _initNavAutoHide() {
+  var nav = document.getElementById("mobile-bottom-nav");
+  var fab = document.getElementById("mobile-fab");
+  var scroller = document.querySelector(".task-list-scroll");
+  if (!nav || !scroller) return;
+
+  // Por debajo de esto no se reacciona: sin margen, el temblor del dedo
+  // al mantener el scroll quieto hacía parpadear la barra.
+  var UMBRAL = 8;
+  // Cerca del tope se muestra siempre, aunque el gesto sea hacia abajo:
+  // ahí todavía no estorba y esconderla nada más empezar despista.
+  var ZONA_ALTA = 48;
+  // Un salto mayor que esto no es un dedo, es `_restaurarScroll()`
+  // devolviendo la posición tras repintar: no debe contar como gesto, o
+  // cada render pasaría por un falso "scroll hacia abajo".
+  var SALTO_PROGRAMATICO = 200;
+
+  var ultimoY = scroller.scrollTop;
+
+  function ocultar(v) {
+    nav.classList.toggle("mobile-nav--hidden", v);
+    if (fab) fab.classList.toggle("mobile-nav--hidden", v);
+  }
+
+  scroller.addEventListener("scroll", function() {
+    var y = scroller.scrollTop;
+    var dy = y - ultimoY;
+
+    if (Math.abs(dy) > SALTO_PROGRAMATICO) {
+      // Salto programático: no se decide por la dirección, pero si ha
+      // acabado arriba del todo hay que mostrarla igual — si no, se
+      // quedaría escondida sin nada que la haga volver.
+      ultimoY = y;
+      if (y <= ZONA_ALTA) ocultar(false);
+      return;
+    }
+    if (Math.abs(dy) < UMBRAL) return;
+
+    if (y <= ZONA_ALTA)   ocultar(false);
+    else if (dy > 0)      ocultar(true);
+    else                  ocultar(false);
+
+    ultimoY = y;
+  }, { passive: true });
+
+  /* Cambiar de vista tiene que devolverla siempre: la vista nueva puede
+     ser más corta que la anterior y no dar ni un scroll con el que
+     recuperarla, dejándola escondida para siempre. Lo llaman las
+     funciones que activan vista, no `renderTasks()`: ahí saltaría en
+     cada repintado —marcar una tarea, por ejemplo— y la barra estaría
+     apareciendo sola todo el rato. */
+  window._antaskNavShow = function() {
+    ultimoY = scroller.scrollTop;
+    ocultar(false);
+  };
+}
+
 // ── SIDEBAR COLAPSAR/EXPANDIR (solo escritorio) ─────────────────
 (function () {
   const COLLAPSED_KEY = "anso-sidebar-collapsed";
