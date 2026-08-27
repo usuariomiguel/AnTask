@@ -2327,6 +2327,7 @@ function renderTasks() {
   _renderListChips();
   _syncListSearchVisibility();
   _renderHoyCalStrip();
+  _renderHoyTabs();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
@@ -3876,10 +3877,70 @@ function _hoyCalTareasPorDia() {
   return map;
 }
 
+/**
+ * Pestaña activa dentro de Hoy: tareas o hábitos. Solo modo simple en
+ * móvil — en escritorio y en modo completo Hoy sigue mostrando las dos
+ * cosas seguidas, sin conmutador.
+ *
+ * No se persiste a propósito: Hoy se abre en "Tareas", que es lo que se
+ * viene a mirar; los hábitos son una parada aparte dentro del día.
+ */
+var _hoyTab = "tasks";
+
+/**
+ * Pinta el conmutador Tareas | Hábitos. Mismo patrón que
+ * `_renderListChips`: un host vacío en el HTML que se rellena y se
+ * muestra u oculta según la vista y el modo.
+ */
+function _renderHoyTabs() {
+  var host = document.getElementById("hoy-tabs");
+  if (!host) return;
+  if (activeView !== "today" || !isSimpleMobile()) {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  host.querySelectorAll("[data-hoy-tab]").forEach(function(btn) {
+    var activo = btn.dataset.hoyTab === _hoyTab;
+    btn.classList.toggle("hoy-tab--active", activo);
+    btn.setAttribute("aria-pressed", String(activo));
+  });
+
+  // El progreso de hábitos vive aquí y no en la cabecera de la sección:
+  // debajo de la pestaña "Hábitos" ese rótulo se repetía, así que la
+  // sección va sin cabecera y el contador se queda en la pestaña.
+  var hoyISO = _localDateISO(new Date());
+  var deHoy = _hoyHabitsDeHoy(hoyISO);
+  var pill = host.querySelector("[data-hoy-tab-count]");
+  if (pill) {
+    pill.hidden = deHoy.length === 0;
+    pill.textContent = deHoy.filter(function(h) { return isDoneOn(h, hoyISO); }).length +
+      "/" + deHoy.length;
+  }
+
+  // El FAB crea tareas en el Inbox: en la solapa de Hábitos no pinta
+  // nada, y además el alta de hábito ya tiene su propia fila.
+  if (mobileFab) mobileFab.classList.toggle("visible", _hoyTab !== "habits");
+}
+
+(function _wireHoyTabs() {
+  var host = document.getElementById("hoy-tabs");
+  if (!host) return;
+  host.addEventListener("click", function(e) {
+    var btn = e.target.closest("[data-hoy-tab]");
+    if (!btn || btn.dataset.hoyTab === _hoyTab) return;
+    _hoyTab = btn.dataset.hoyTab;
+    renderTasks();
+  });
+})();
+
 function _renderHoyCalStrip() {
   var host = document.getElementById("hoy-cal-strip");
   if (!host) return;
-  if (activeView !== "today" || !isSimpleMobile()) {
+  // Fuera también en la solapa de Hábitos: los puntos de cada día
+  // cuentan TAREAS, así que ahí estaría hablando de otra cosa que la
+  // lista de debajo.
+  if (activeView !== "today" || !isSimpleMobile() || _hoyTab !== "tasks") {
     host.hidden = true;
     host.innerHTML = "";
     return;
@@ -4058,7 +4119,10 @@ function renderTodayView() {
 
   // Stats + anillo de progreso en la cabecera: siempre sobre el total real
   // del día, no sobre lo que deja ver el filtro seleccionado.
-  _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
+  // El anillo y "N de M hechas" son de las TAREAS de hoy; en la solapa
+  // de Hábitos no pintan nada y estarían contando lo que no se ve.
+  if (isSimpleMobile() && _hoyTab === "habits") _removeHoyHeaderExtra();
+  else _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
 
   // ── Día concreto elegido en la tira de calendario (modo simple móvil) ──
   // Sustituye a los tres bloques de siempre por uno solo con las tareas de
@@ -4110,11 +4174,21 @@ function renderTodayView() {
   var habitsHoy = _hoyHabitsDeHoy(today);
   var habitsHechos = habitsHoy.filter(function(h) { return isDoneOn(h, today); }).length;
 
-  var allClear = overdue.length === 0 && todays.length === 0 &&
-    habitsHechos === habitsHoy.length;
+  // Con el conmutador puesto, cada pestaña enseña una cosa: los hábitos
+  // dejan de ir debajo de las tareas y pasan a su propia solapa. En
+  // escritorio y modo completo no hay conmutador y se ven las dos.
+  var conTabs = isSimpleMobile();
+  var verTareas  = !conTabs || _hoyTab === "tasks";
+  var verHabitos = !conTabs || _hoyTab === "habits";
+
+  // "Todo al día" solo mira lo que hay a la vista: en la solapa de
+  // tareas, unos hábitos sin marcar no son motivo para no darlo por
+  // cerrado, porque ni siquiera se están mostrando.
+  var allClear = verTareas && overdue.length === 0 && todays.length === 0 &&
+    (!verHabitos || habitsHechos === habitsHoy.length);
 
   // ── Vencidas ──
-  if (overdue.length > 0) {
+  if (verTareas && overdue.length > 0) {
     var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
       t("hoy.move_all"), function() { _hoySetDueToday(overdue); });
     overdue.forEach(function(it) {
@@ -4124,6 +4198,7 @@ function renderTodayView() {
   }
 
   // ── Para hoy — siempre visible, con quick-add contextual ──
+  if (verTareas) {
   var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDoneStats + "/" + todaysRaw.length, null, null);
   todays.forEach(function(it) {
     secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
@@ -4133,10 +4208,12 @@ function renderTodayView() {
   // debajo, separada por un hueco.
   secH.li.appendChild(_hoyQuickAddEl(today));
   taskList.appendChild(secH.li);
+  }
 
   // ── Hábitos ──
   // Siempre visible, aunque no haya ninguno: su fila de alta es el único
   // camino para crear el primero.
+  if (verHabitos) {
   var secHab = _hoySectionEl("habits", t("hoy.habits"),
     habitsHechos + "/" + habitsHoy.length, null, null);
   habitsHoy.forEach(function(h) {
@@ -4145,10 +4222,14 @@ function renderTodayView() {
   // Fuera de la lista, igual que el quick-add de "Para hoy": la lista es la
   // tarjeta redondeada y su `overflow: hidden` se comería el borde.
   secHab.li.appendChild(_hoyHabitAddEl());
+  // Con el conmutador puesto, la pestaña "Hábitos" ya hace de rótulo
+  // justo encima y la cabecera de la sección lo repetía.
+  if (conTabs) secHab.li.classList.add("hoy-section--headless");
   taskList.appendChild(secHab.li);
+  }
 
   // ── Sin fecha · sugeridas ──
-  if (nodate.length > 0) {
+  if (verTareas && nodate.length > 0) {
     var secN = _hoySectionEl("nodate", t("hoy.nodate"), String(nodate.length),
       t("hoy.schedule_all"), function() { _hoySetDueToday(nodate); });
     nodate.forEach(function(it) {

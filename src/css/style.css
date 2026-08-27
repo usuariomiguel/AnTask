@@ -4037,6 +4037,71 @@ button:focus-visible {
   display: none;
 }
 
+/* Conmutador Tareas | Hábitos de la vista Hoy (ver _renderHoyTabs en
+   script.js). Ocupa el hueco que deja #filter-segments, oculto en modo
+   simple, pero con clases propias: las de aquel viven enteras en un
+   @media (min-width: 769px), así que en móvil no aportan nada y habría
+   que redefinirlo todo igualmente.
+
+   Fuera del breakpoint no se pinta nunca: el JS ya lo mantiene con
+   `hidden`, pero el CSS no depende de eso para aislar el escritorio. */
+.hoy-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hoy-tabs:not([hidden]) {
+    display: flex;
+    gap: 3px;
+    margin: 16px 10px;
+    padding: 3px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-pill);
+  }
+
+  /* Dos opciones y nada más, así que se reparten el ancho: con `auto` se
+     quedaban apretadas a la izquierda y la píldora activa suelta. */
+  .hoy-tab {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .hoy-tab--active {
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+    font-weight: 700;
+  }
+
+  /* El progreso de hábitos, en la propia pestaña: la sección va sin
+     cabecera porque el rótulo se repetía justo debajo. */
+  .hoy-tab-count {
+    margin-left: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.65;
+  }
+
+  .hoy-tab-count[hidden] {
+    display: none;
+  }
+
+  .hoy-section--headless > .hoy-section-head {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .hoy-cal-strip:not([hidden]) {
     display: block;
@@ -4095,7 +4160,7 @@ button:focus-visible {
   }
 
   .hoy-cal-dow {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text-tertiary);
     padding: 3px 0;

@@ -165,6 +165,7 @@ export const en = {
   "hoy.back_to_today":        "Back to Today",
   "hoy.day_quickadd_ph":      "Add a task for this day…",
   "hoy.habits":               "Habits",
+  "hoy.tab_tasks":            "Tasks",
   "hoy.habits_add":           "New habit",
   "hoy.habit_name_ph":        "Add a habit…",
   "hoy.habit_rename_prompt":  "Habit name",

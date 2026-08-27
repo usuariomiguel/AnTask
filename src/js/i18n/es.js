@@ -165,6 +165,7 @@ export const es = {
   "hoy.back_to_today":        "Volver a Hoy",
   "hoy.day_quickadd_ph":      "Añadir una tarea para este día…",
   "hoy.habits":               "Hábitos",
+  "hoy.tab_tasks":            "Tareas",
   "hoy.habits_add":           "Nuevo hábito",
   "hoy.habit_name_ph":        "Añadir un hábito…",
   "hoy.habit_rename_prompt":  "Nombre del hábito",

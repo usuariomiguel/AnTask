@@ -703,6 +703,20 @@
                simple): ver _renderHoyCalStrip() en script.js. Mismo patrón que
                #list-chips — un host vacío que JS rellena y muestra/oculta. -->
           <div class="hoy-cal-strip" id="hoy-cal-strip" hidden></div>
+          <!-- Tareas | Hábitos dentro de Hoy (solo móvil, solo modo simple).
+               Va en el hueco que deja #filter-segments, oculto en simple. Con
+               clases propias: las de aquel viven todas en @media(min-width:769px)
+               y en móvil no dan nada. Ver
+               _renderHoyTabs() en script.js. -->
+          <div class="hoy-tabs" id="hoy-tabs" role="group" hidden>
+            <button type="button" class="hoy-tab hoy-tab--active" data-hoy-tab="tasks" aria-pressed="true">
+              <span data-i18n="hoy.tab_tasks">Tareas</span>
+            </button>
+            <button type="button" class="hoy-tab" data-hoy-tab="habits" aria-pressed="false">
+              <span data-i18n="hoy.habits">Hábitos</span>
+              <span class="hoy-tab-count" data-hoy-tab-count hidden></span>
+            </button>
+          </div>
           <!-- El scroll vive en el contenedor a todo el ancho (scrollbar al
                borde del panel, como v1); la lista va centrada a 932px dentro. -->
           <div class="task-list-scroll">
