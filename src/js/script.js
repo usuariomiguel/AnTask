@@ -1884,16 +1884,14 @@ function renderProjectItem(project, isArchived, parentEl) {
   nameSpan.className = "project-item-name";
   nameSpan.textContent = project.name;
   nameSpan.title = t("project.dblclick_rename");
-  nameSpan.addEventListener("dblclick", async function(e) {
+  nameSpan.addEventListener("dblclick", function(e) {
+    e.preventDefault();
     e.stopPropagation();
-    const newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
-    if (newName === null) return;
-    const trimmed = capitalizeFirst(newName.trim());
-    if (!trimmed || trimmed === project.name) return;
-    project.name = trimmed;
-    saveProjects();
-    renderSidebar();
-    if (project.id === activeProjectId) activateProject(project.id);
+    // A propósito NO se le pasa este `nameSpan`: un doble clic dispara
+    // antes dos `click`, y cada uno activa la lista y repinta la sidebar,
+    // así que para cuando llega aquí este nodo ya está desechado. El campo
+    // tiene que ir sobre la fila viva.
+    startProjectInlineEdit(project);
   });
 
   const countSpan = document.createElement("span");
@@ -2060,8 +2058,33 @@ function _buildCtxMenu(items) {
 
 /* Renombrar una lista. Extraído del menú de proyecto porque el lápiz de la
    pantalla «Perfil» hace exactamente lo mismo (handoff móvil v1: cada lista
-   del usuario lleva su botón de editar). */
-async function renameProject(project) {
+   del usuario lleva su botón de editar).
+
+   Se renombra sobre la propia fila de la sidebar, igual que los títulos de
+   subtarea en el panel de detalle. El diálogo solo queda como recambio
+   para cuando esa fila no está a la vista: en móvil la sidebar sigue en el
+   DOM pero es inalcanzable, y el lápiz de «Perfil» abre este mismo menú. */
+function renameProject(project) {
+  var span = _sidebarNameSpan(project.id);
+  // `offsetParent` nulo = la fila existe pero no se ve (sidebar oculta en
+  // móvil). Enfocar ahí un campo invisible dejaría el teclado abierto
+  // sobre nada.
+  if (span && span.offsetParent !== null) {
+    startProjectInlineEdit(project);
+    return;
+  }
+  return _renameProjectPrompt(project);
+}
+
+/** El `<span>` con el nombre de una lista dentro de la sidebar, si está. */
+function _sidebarNameSpan(projectId) {
+  if (!projectListEl) return null;
+  var li = projectListEl.querySelector('li[data-project-id="' + projectId + '"]');
+  return li ? li.querySelector(".project-item-name") : null;
+}
+
+/** Recambio con diálogo, para cuando no hay fila que editar (móvil). */
+async function _renameProjectPrompt(project) {
   var newName = await modalPrompt(t("project.rename_prompt"), project.name, project.name);
   if (newName === null) return;
   var trimmed = capitalizeFirst(newName.trim());
@@ -2070,6 +2093,70 @@ async function renameProject(project) {
   saveProjects();
   renderSidebar();
   if (project.id === activeProjectId) activateProject(project.id);
+}
+
+/**
+ * Renombrar una lista escribiendo encima de su nombre en la sidebar.
+ *
+ * Mismo gesto y mismo componente (`input.inline-edit`) que los títulos de
+ * subtarea del panel de detalle: Enter confirma, Escape descarta, y salir
+ * del campo guarda.
+ *
+ * Resuelve la fila por sí misma en vez de recibir el nodo: quien llama
+ * suele venir de un evento que ya ha provocado un repintado, y el nodo que
+ * tenía en la mano ha dejado de estar en el documento.
+ *
+ * @param {{id: string, name: string}} project
+ */
+function startProjectInlineEdit(project) {
+  var nameSpan = _sidebarNameSpan(project.id);
+  if (!nameSpan || nameSpan.querySelector("input.inline-edit")) return;
+  var current = project.name;
+
+  var input = document.createElement("input");
+  input.type = "text";
+  input.className = "inline-edit project-inline-edit";
+  input.value = current;
+  // 60 = el tope que aplica sanitizeProject al cargar; recortar aquí evita
+  // escribir algo que luego se trunca solo al recargar.
+  input.maxLength = 60;
+  input.setAttribute("aria-label", t("project.rename"));
+
+  nameSpan.textContent = "";
+  nameSpan.appendChild(input);
+  input.focus();
+  input.select();
+
+  // `renderSidebar()` destruye el campo desde dentro de commit, y quitar
+  // del DOM un elemento con el foco vuelve a disparar `blur` en algunos
+  // navegadores: sin este cerrojo, se guardaría dos veces.
+  var hecho = false;
+  function commit() {
+    if (hecho) return;
+    hecho = true;
+    var nuevo = capitalizeFirst(input.value.trim()).slice(0, 60);
+    if (nuevo && nuevo !== current) {
+      project.name = nuevo;
+      saveProjects();
+      renderSidebar();
+      if (project.id === activeProjectId) activateProject(project.id);
+    } else {
+      nameSpan.textContent = current;
+    }
+  }
+
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter")  { e.preventDefault(); input.blur(); }
+    if (e.key === "Escape") { input.value = current; input.blur(); }
+    e.stopPropagation();
+  });
+  input.addEventListener("blur", commit);
+  // La fila entera abre la lista al pulsarla: sin frenar estos eventos,
+  // colocar el cursor o seleccionar texto cambiaría de lista a media
+  // edición.
+  ["click", "mousedown", "dblclick"].forEach(function(ev) {
+    input.addEventListener(ev, function(e) { e.stopPropagation(); });
+  });
 }
 
 async function showProjectMenu(project, anchor) {

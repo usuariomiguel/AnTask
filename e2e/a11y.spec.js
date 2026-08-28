@@ -135,10 +135,28 @@ test("a11y: menú de perfil abierto", async ({ page }) => {
 // nombres accesibles, roles y foco.
 // ═══════════════════════════════════════════════════════════════
 
-test("a11y: diálogo de renombrar lista", async ({ page }) => {
+// Renombrar una lista ya no abre ningún diálogo: se edita sobre la propia
+// fila de la sidebar (mismo gesto que los títulos de subtarea). Aquí había
+// un audit del diálogo con campo de texto que entraba por ahí; se retira
+// porque ese diálogo ya NO es alcanzable en escritorio —crear una lista
+// también es inline, y #new-project-btn está oculto a propósito—, y solo
+// queda como recambio en móvil, donde montar el arranque cuesta más de lo
+// que aporta el audit.
+//
+// Lo que cubría no se pierde del todo: el armazón del diálogo (overlay,
+// .modal-box, .modal-btn) lo sigue auditando "confirmar borrado", y un
+// campo de texto dentro de una capa lo auditan "captura rápida" y
+// "búsqueda global". Lo que ya nadie mira es esa combinación exacta.
+
+test("a11y: renombrar una lista en línea", async ({ page }) => {
   await loadFresh(page, true);
-  await ctxMenu(page, /Renombrar|Rename/);
-  await auditModal(page, "modal-prompt-renombrar");
+  await page.dblclick(".project-item[data-project-id='p1'] .project-item-name");
+  await page.waitForSelector("input.project-inline-edit", { state: "visible", timeout: 5_000 });
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const issues = writeReport("rename-inline", results);
+  expect(issues, "Violaciones critical/serious en renombrar en línea").toEqual([]);
 });
 
 test("a11y: diálogo de confirmar borrado", async ({ page }) => {
