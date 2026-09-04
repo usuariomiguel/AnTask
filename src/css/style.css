@@ -4054,19 +4054,18 @@ button:focus-visible {
      abraza su contenido (inline-flex) y cada botón pinta su propia
      píldora dentro, en vez de repartirse el ancho a partes iguales. */
   .hoy-tabs:not([hidden]) {
-    display: inline-flex;
-    /* `.tasks-panel` es un flex en columna, y un ítem flex "blockifica"
-       su display: sin esto, el inline-flex se convierte en flex y el
-       carril se estira a todo el ancho en vez de abrazar sus píldoras. */
-    align-self: flex-start;
+    display: flex;
     align-items: center;
+    /* El carril mide lo que el calendario (regla compartida arriba), así
+       que las píldoras se centran dentro en vez de pegarse a la
+       izquierda. */
+    justify-content: center;
     gap: 2px;
-    margin: 16px 10px;
+    margin-block: 16px;
     padding: 6px;
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
-    max-width: calc(100% - 20px);
   }
 
   /* Dos opciones y nada más, así que se reparten el ancho: con `auto` se
@@ -4119,11 +4118,21 @@ button:focus-visible {
 }
 
 @media (max-width: 768px) {
+  /* Carril compartido con el conmutador Tareas|Hábitos: los dos miden lo
+     mismo y van centrados, así que se leen como una sola columna.
+     372px es el ancho que ya tenía esta tira por `max-content` (lo manda
+     su cabecera, no la rejilla); se conserva como TOPE y se acota al
+     ancho disponible, porque tal cual desbordaba 12px en pantallas de
+     360 — se salía por la derecha. */
+  .hoy-cal-strip:not([hidden]),
+  .hoy-tabs:not([hidden]) {
+    width: min(372px, 100% - 18px);
+    margin-inline: auto;
+  }
+
   .hoy-cal-strip:not([hidden]) {
     display: block;
     padding: 0 16px;
-    width: max-content;
-    margin: auto;
   }
 
   .hoy-cal-head {
