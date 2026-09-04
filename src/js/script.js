@@ -42,6 +42,7 @@ import {
   isDueOn,
   isDoneOn,
   setDoneOn,
+  mergeHabits,
 } from "./habits/model.js";
 import {
   loadProjects,
@@ -6511,7 +6512,8 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.querySelector("#_sc-cloud").addEventListener("click", function() {
     closeModal(overlay);
-    _syncApplyRemote(cloudData, uid);
+    // Elección explícita: aquí sí se descarta lo local, historiales incluidos.
+    _syncApplyRemote(cloudData, uid, { reemplazar: true });
   });
 
   box.querySelector("#_sc-local").addEventListener("click", function() {
@@ -6561,7 +6563,15 @@ function _syncOnRemoteChange(remote, remoteUpdatedAt) {
  * @param {{projects: any[], sections?: any[], habits?: any[]}} remote
  * @param {string|null} uid
  */
-async function _syncApplyRemote(remote, uid) {
+/**
+ * @param {{projects: any[], sections?: any[], habits?: any[]}} remote
+ * @param {string|null} uid
+ * @param {{reemplazar?: boolean}} [opts] — `reemplazar` descarta el estado
+ *   local en vez de fundirlo. Solo para cuando el usuario ha elegido
+ *   explícitamente "usar la nube" en el modal de conflicto: ahí fundir
+ *   sería desobedecer lo que acaba de pedir.
+ */
+async function _syncApplyRemote(remote, uid, opts) {
   try {
     var cleanProjects = (remote.projects || []).map(sanitizeProject);
     var remoteSections = remote.sections;
@@ -6569,7 +6579,17 @@ async function _syncApplyRemote(remote, uid) {
     // los escribe. `undefined` significa "no sé nada de esto", que no es
     // lo mismo que "está vacío" — en ese caso se deja lo que haya en
     // local en vez de borrarlo.
-    var remoteHabits = Array.isArray(remote.habits) ? sanitizeHabits(remote.habits) : null;
+    var remoteHabits = null;
+    if (Array.isArray(remote.habits)) {
+      remoteHabits = sanitizeHabits(remote.habits);
+      // Los historiales se UNEN, no se pisan: si este dispositivo marcó un
+      // día que el snapshot todavía no lleva, pisarlo borraría la marca y
+      // rompería una racha. Qué hábitos existen lo sigue mandando el
+      // remoto — ver mergeHabits() para el detalle y su contrapartida.
+      if (!(opts && opts.reemplazar)) {
+        remoteHabits = mergeHabits(habits, remoteHabits);
+      }
+    }
 
     // Write to localStorage first — if this throws we haven't touched memory yet.
     localStorage.removeItem(PROJECTS_KEY);

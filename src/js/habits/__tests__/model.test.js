@@ -8,6 +8,8 @@ import {
   setDoneOn,
   computeStreak,
   statsBetween,
+  mergeLogs,
+  mergeHabits,
 } from "../model.js";
 
 /** Hábito de prueba con valores por defecto sensatos. */
@@ -209,5 +211,96 @@ describe("statsBetween", () => {
   it("una ventana anterior al hábito da 0", () => {
     const x = h({ createdAt: "2026-06-01T00:00:00.000Z" });
     expect(statsBetween(x, "2026-01-01", "2026-01-31")).toEqual({ due: 0, done: 0 });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+describe("mergeLogs", () => {
+  it("une días de ambos lados", () => {
+    expect(mergeLogs({ "2026-09-01": 1 }, { "2026-09-02": 1 }))
+      .toEqual({ "2026-09-01": 1, "2026-09-02": 1 });
+  });
+
+  it("es conmutativa (da igual quién sincronice primero)", () => {
+    const a = { "2026-09-01": 1, "2026-09-03": 1 };
+    const b = { "2026-09-02": 1, "2026-09-03": 1 };
+    expect(mergeLogs(a, b)).toEqual(mergeLogs(b, a));
+  });
+
+  it("no pierde nada si un lado está vacío o falta", () => {
+    expect(mergeLogs({ "2026-09-01": 1 }, {})).toEqual({ "2026-09-01": 1 });
+    expect(mergeLogs(undefined, { "2026-09-01": 1 })).toEqual({ "2026-09-01": 1 });
+    expect(mergeLogs({ "2026-09-01": 1 }, null)).toEqual({ "2026-09-01": 1 });
+  });
+
+  it("ante cuentas distintas del mismo día gana la mayor", () => {
+    expect(mergeLogs({ "2026-09-01": 2 }, { "2026-09-01": 5 })).toEqual({ "2026-09-01": 5 });
+    expect(mergeLogs({ "2026-09-01": 5 }, { "2026-09-01": 2 })).toEqual({ "2026-09-01": 5 });
+  });
+
+  it("descarta basura por los dos lados", () => {
+    expect(mergeLogs({ "ayer": 1, "2026-09-01": 0 }, { "2026-09-02": 1 }))
+      .toEqual({ "2026-09-02": 1 });
+  });
+
+  it("no muta los originales", () => {
+    const a = { "2026-09-01": 1 };
+    const b = { "2026-09-02": 1 };
+    mergeLogs(a, b);
+    expect(a).toEqual({ "2026-09-01": 1 });
+    expect(b).toEqual({ "2026-09-02": 1 });
+  });
+});
+
+describe("mergeHabits", () => {
+  const hab = (id, log, over) => Object.assign({
+    id, name: id, schedule: "daily", everyNDays: null,
+    createdAt: "2026-01-01T00:00:00.000Z", archived: false, log: log || {},
+  }, over || {});
+
+  it("une el historial de un hábito que está en ambos lados", () => {
+    const locales = [hab("h1", { "2026-09-01": 1 })];
+    const remotos = [hab("h1", { "2026-09-02": 1 })];
+    const out = mergeHabits(locales, remotos);
+    expect(out).toHaveLength(1);
+    expect(out[0].log).toEqual({ "2026-09-01": 1, "2026-09-02": 1 });
+  });
+
+  it("NO pierde la marca local cuando llega un snapshot remoto sin ella", () => {
+    // El caso que motiva todo esto: dos dispositivos abiertos marcando.
+    const locales = [hab("h1", { "2026-09-04": 1 })];
+    const remotos = [hab("h1", {})];
+    expect(mergeHabits(locales, remotos)[0].log).toEqual({ "2026-09-04": 1 });
+  });
+
+  it("un hábito borrado en otro dispositivo NO resucita", () => {
+    const locales = [hab("h1"), hab("h2")];
+    const remotos = [hab("h1")];
+    expect(mergeHabits(locales, remotos).map((h) => h.id)).toEqual(["h1"]);
+  });
+
+  it("un hábito nuevo del remoto entra tal cual", () => {
+    const out = mergeHabits([], [hab("h9", { "2026-09-01": 1 })]);
+    expect(out.map((h) => h.id)).toEqual(["h9"]);
+    expect(out[0].log).toEqual({ "2026-09-01": 1 });
+  });
+
+  it("el resto de campos los manda el remoto", () => {
+    const locales = [hab("h1", {}, { name: "viejo" })];
+    const remotos = [hab("h1", {}, { name: "nuevo" })];
+    expect(mergeHabits(locales, remotos)[0].name).toBe("nuevo");
+  });
+
+  it("no muta los hábitos de entrada", () => {
+    const locales = [hab("h1", { "2026-09-01": 1 })];
+    const remotos = [hab("h1", { "2026-09-02": 1 })];
+    mergeHabits(locales, remotos);
+    expect(locales[0].log).toEqual({ "2026-09-01": 1 });
+    expect(remotos[0].log).toEqual({ "2026-09-02": 1 });
+  });
+
+  it("aguanta listas vacías o ausentes", () => {
+    expect(mergeHabits(undefined, undefined)).toEqual([]);
+    expect(mergeHabits([hab("h1")], [])).toEqual([]);
   });
 });

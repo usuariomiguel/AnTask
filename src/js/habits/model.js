@@ -171,3 +171,67 @@ export function statsBetween(habit, desdeISO, hastaISO) {
   }
   return out;
 }
+
+/**
+ * Une dos historiales por fecha.
+ *
+ * El log solo crece: cada entrada dice "este día se cumplió", nunca lo
+ * contrario. Eso hace que la unión sea la fusión correcta y que dé igual
+ * el orden de los argumentos — no hay conflicto posible entre dos
+ * dispositivos que marcan días distintos.
+ *
+ * Si el mismo día llega con cuentas distintas gana la mayor. Hoy siempre
+ * es 1, pero cuando el log cuente repeticiones ("5 de 8 vasos") el número
+ * más alto será el más completo.
+ *
+ * @param {Record<string, number>} [a]
+ * @param {Record<string, number>} [b]
+ * @returns {Record<string, number>}
+ */
+export function mergeLogs(a, b) {
+  /** @type {Record<string, number>} */
+  const out = {};
+  [a, b].forEach(function (src) {
+    if (!src || typeof src !== "object") return;
+    Object.keys(src).forEach(function (k) {
+      if (!RE_ISO.test(k)) return;
+      const v = Number(src[k]);
+      if (!Number.isFinite(v) || v <= 0) return;
+      if (!out[k] || v > out[k]) out[k] = v;
+    });
+  });
+  return out;
+}
+
+/**
+ * Funde los hábitos que llegan de la nube con los que hay en local.
+ *
+ * QUÉ hábitos existen lo decide el remoto, igual que con proyectos y
+ * secciones: así un hábito borrado en otro dispositivo desaparece aquí en
+ * vez de resucitar. Lo que NO se pisa es el historial — ese se une.
+ *
+ * El motivo: sin esto, marcar un hábito en el móvil y otro en el portátil
+ * con los dos abiertos hacía que el snapshot de uno borrase la marca del
+ * otro. En una tarea eso molesta; en un hábito rompe una racha visible,
+ * que es justo lo que da valor a la función.
+ *
+ * Contrapartida asumida: DESmarcar un día no viaja entre dos dispositivos
+ * abiertos a la vez — el que aún lo tenga marcado lo reintroduce al unir.
+ * Se prefiere eso a perder marcas: desmarcar es raro y su peor caso es un
+ * día de más, mientras que perder una marca corta una racha.
+ *
+ * @param {Habit[]} locales
+ * @param {Habit[]} remotos
+ * @returns {Habit[]}
+ */
+export function mergeHabits(locales, remotos) {
+  /** @type {Record<string, Habit>} */
+  const porId = {};
+  (locales || []).forEach(function (h) { if (h && h.id) porId[h.id] = h; });
+
+  return (remotos || []).map(function (r) {
+    const l = porId[r.id];
+    if (!l) return r;
+    return Object.assign({}, r, { log: mergeLogs(l.log, r.log) });
+  });
+}
