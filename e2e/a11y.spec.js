@@ -148,6 +148,39 @@ test("a11y: menú de perfil abierto", async ({ page }) => {
 // campo de texto dentro de una capa lo auditan "captura rápida" y
 // "búsqueda global". Lo que ya nadie mira es esa combinación exacta.
 
+test("a11y: historial de hábitos", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem("antask_consent", "essential");
+    localStorage.setItem("antask-onboarded", "1");
+    localStorage.setItem("antask_lang", "es");
+    localStorage.setItem("antask-mode", "full");
+    const hoy = new Date();
+    const menos = (n) => new Date(hoy.getTime() - n * 864e5).toISOString().slice(0, 10);
+    const log = {};
+    for (let i = 0; i < 20; i++) if (i % 4 !== 0) log[menos(i)] = 1;
+    localStorage.setItem("anso-projects", JSON.stringify([
+      { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
+        sectionId: null, archived: false, icon: "", color: "", tasks: [] },
+    ]));
+    localStorage.setItem("antask-habits", JSON.stringify([
+      { id: "h1", name: "Correr", schedule: "daily", everyNDays: null,
+        createdAt: new Date(hoy.getTime() - 20 * 864e5).toISOString(),
+        archived: false, log: log },
+    ]));
+  });
+  await page.goto("/");
+  await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
+  await page.evaluate(() => {
+    const b = document.getElementById("consent-banner");
+    if (b) b.style.display = "none";
+  });
+  await page.click(".project-item-today");
+  await page.click(".hoy-section--habits .hoy-section-action");
+  await auditModal(page, "historial-habitos");
+});
+
 test("a11y: renombrar una lista en línea", async ({ page }) => {
   await loadFresh(page, true);
   await page.dblclick(".project-item[data-project-id='p1'] .project-item-name");

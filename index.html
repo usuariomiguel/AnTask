@@ -716,6 +716,14 @@
               <span data-i18n="hoy.habits">Hábitos</span>
               <span class="hoy-tab-count" data-hoy-tab-count hidden></span>
             </button>
+            <!-- Acceso al historial. Vive aquí y no en la cabecera de la
+                 sección porque en móvil esa cabecera se oculta (la pestaña
+                 ya hace de rótulo, ver .hoy-section--headless). Solo se
+                 muestra con la solapa de Hábitos activa: en la de Tareas
+                 no viene a cuento. -->
+            <button type="button" class="hoy-tabs-hist" id="hoy-tabs-hist" hidden>
+              <i data-lucide="chart-column"></i>
+            </button>
           </div>
           <!-- El scroll vive en el contenedor a todo el ancho (scrollbar al
                borde del panel, como v1); la lista va centrada a 932px dentro. -->

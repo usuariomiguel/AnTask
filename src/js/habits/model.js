@@ -235,3 +235,90 @@ export function mergeHabits(locales, remotos) {
     return Object.assign({}, r, { log: mergeLogs(l.log, r.log) });
   });
 }
+
+/**
+ * Cuántos hábitos tocaban un día y cuántos se cumplieron.
+ *
+ * Es lo que da la INTENSIDAD del mapa de calor agregado: un día en que
+ * tocaban cuatro y hiciste dos no es igual que uno en que tocaba uno y lo
+ * hiciste. Sin esto solo se podría pintar hecho/no hecho.
+ *
+ * Los días anteriores a un hábito no cuentan para él (lo resuelve
+ * `isDueOn`), así que un hábito nuevo no ensucia el histórico de antes.
+ *
+ * @param {Habit[]} lista
+ * @param {string} dateISO
+ * @returns {{due: number, done: number, ratio: number}}
+ */
+export function dayAggregate(lista, dateISO) {
+  let due = 0;
+  let done = 0;
+  (lista || []).forEach(function (h) {
+    if (!isDueOn(h, dateISO)) return;
+    due++;
+    if (isDoneOn(h, dateISO)) done++;
+  });
+  return { due: due, done: done, ratio: due ? done / due : 0 };
+}
+
+/**
+ * Nivel de intensidad 0-4 para pintar una celda del mapa.
+ *
+ * 0 se reserva a "no tocaba nada": un día sin nada pendiente no es un
+ * fracaso y no debe leerse igual que uno fallado. Por eso el 1 empieza en
+ * ratio 0 CON algo pendiente.
+ *
+ * @param {{due: number, ratio: number}} agg
+ * @returns {0|1|2|3|4}
+ */
+export function heatLevel(agg) {
+  if (!agg || !agg.due) return 0;
+  if (agg.ratio <= 0) return 1;
+  if (agg.ratio < 0.5) return 2;
+  if (agg.ratio < 1) return 3;
+  return 4;
+}
+
+/**
+ * Serie de días [desde, hasta] con su agregado y su nivel, lista para
+ * pintar. Un solo recorrido: el render no vuelve a calcular nada.
+ *
+ * @param {Habit[]} lista
+ * @param {string} desdeISO
+ * @param {string} hastaISO
+ * @returns {Array<{date: string, due: number, done: number, level: number}>}
+ */
+export function heatSeries(lista, desdeISO, hastaISO) {
+  const out = [];
+  if (!RE_ISO.test(desdeISO) || !RE_ISO.test(hastaISO)) return out;
+  let cursor = desdeISO;
+  let vueltas = 0;
+  while (cursor <= hastaISO && vueltas < MAX_DIAS) {
+    const agg = dayAggregate(lista, cursor);
+    out.push({ date: cursor, due: agg.due, done: agg.done, level: heatLevel(agg) });
+    cursor = addDays(cursor, 1);
+    vueltas++;
+  }
+  return out;
+}
+
+/**
+ * Día de la semana con LUNES = 0, que es como se ordenan las filas del
+ * mapa de calor (y como se lee una semana en España).
+ *
+ * @param {string} dateISO
+ * @returns {number} 0 (lunes) … 6 (domingo)
+ */
+export function weekdayIndex(dateISO) {
+  if (!RE_ISO.test(dateISO)) return 0;
+  return (_fecha(dateISO).getUTCDay() + 6) % 7;
+}
+
+/**
+ * Lunes de la semana a la que pertenece una fecha.
+ * @param {string} dateISO
+ * @returns {string}
+ */
+export function weekStart(dateISO) {
+  return addDays(dateISO, -weekdayIndex(dateISO));
+}

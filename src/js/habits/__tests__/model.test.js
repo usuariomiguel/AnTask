@@ -10,6 +10,11 @@ import {
   statsBetween,
   mergeLogs,
   mergeHabits,
+  dayAggregate,
+  heatLevel,
+  heatSeries,
+  weekdayIndex,
+  weekStart,
 } from "../model.js";
 
 /** Hábito de prueba con valores por defecto sensatos. */
@@ -302,5 +307,99 @@ describe("mergeHabits", () => {
   it("aguanta listas vacías o ausentes", () => {
     expect(mergeHabits(undefined, undefined)).toEqual([]);
     expect(mergeHabits([hab("h1")], [])).toEqual([]);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+describe("dayAggregate", () => {
+  const diario = (id, log, createdAt) => ({
+    id, name: id, schedule: "daily", everyNDays: null,
+    createdAt: createdAt || "2026-01-01T00:00:00.000Z", archived: false, log: log || {},
+  });
+
+  it("cuenta los que tocaban y los cumplidos", () => {
+    const lista = [
+      diario("a", log("2026-02-01")),
+      diario("b", log("2026-02-01")),
+      diario("c", {}),
+    ];
+    expect(dayAggregate(lista, "2026-02-01")).toEqual({ due: 3, done: 2, ratio: 2 / 3 });
+  });
+
+  it("un hábito aún no creado no cuenta ese día", () => {
+    const lista = [diario("a", {}, "2026-03-01T00:00:00.000Z")];
+    expect(dayAggregate(lista, "2026-02-01")).toEqual({ due: 0, done: 0, ratio: 0 });
+  });
+
+  it("lista vacía no divide por cero", () => {
+    expect(dayAggregate([], "2026-02-01")).toEqual({ due: 0, done: 0, ratio: 0 });
+    expect(dayAggregate(undefined, "2026-02-01").ratio).toBe(0);
+  });
+});
+
+describe("heatLevel", () => {
+  it("sin nada pendiente es 0, no un fallo", () => {
+    expect(heatLevel({ due: 0, ratio: 0 })).toBe(0);
+  });
+
+  it("pendiente y nada hecho es 1 (distinto de 'no tocaba')", () => {
+    expect(heatLevel({ due: 3, ratio: 0 })).toBe(1);
+  });
+
+  it("escala con la proporción cumplida", () => {
+    expect(heatLevel({ due: 4, ratio: 0.25 })).toBe(2);
+    expect(heatLevel({ due: 4, ratio: 0.75 })).toBe(3);
+    expect(heatLevel({ due: 4, ratio: 1 })).toBe(4);
+  });
+
+  it("aguanta entradas vacías", () => {
+    expect(heatLevel(null)).toBe(0);
+  });
+});
+
+describe("heatSeries", () => {
+  it("devuelve un punto por día, extremos incluidos", () => {
+    const s = heatSeries([], "2026-02-01", "2026-02-05");
+    expect(s).toHaveLength(5);
+    expect(s[0].date).toBe("2026-02-01");
+    expect(s[4].date).toBe("2026-02-05");
+  });
+
+  it("marca el nivel de cada día", () => {
+    const lista = [{
+      id: "a", name: "a", schedule: "daily", everyNDays: null,
+      createdAt: "2026-02-01T00:00:00.000Z", archived: false,
+      log: { "2026-02-02": 1 },
+    }];
+    const s = heatSeries(lista, "2026-02-01", "2026-02-03");
+    expect(s.map((d) => d.level)).toEqual([1, 4, 1]);
+  });
+
+  it("rechaza rangos con formato inválido", () => {
+    expect(heatSeries([], "2026-2-1", "2026-02-05")).toEqual([]);
+  });
+
+  it("un rango invertido no da nada", () => {
+    expect(heatSeries([], "2026-02-05", "2026-02-01")).toEqual([]);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+describe("weekdayIndex / weekStart", () => {
+  it("el lunes es 0 y el domingo 6", () => {
+    // 2026-02-02 fue lunes.
+    expect(weekdayIndex("2026-02-02")).toBe(0);
+    expect(weekdayIndex("2026-02-03")).toBe(1);
+    expect(weekdayIndex("2026-02-08")).toBe(6);
+  });
+
+  it("weekStart retrocede al lunes de esa semana", () => {
+    expect(weekStart("2026-02-05")).toBe("2026-02-02");
+    expect(weekStart("2026-02-02")).toBe("2026-02-02");
+    expect(weekStart("2026-02-08")).toBe("2026-02-02");
+  });
+
+  it("weekStart cruza el cambio de mes", () => {
+    expect(weekStart("2026-03-01")).toBe("2026-02-23");
   });
 });

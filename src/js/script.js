@@ -44,6 +44,7 @@ import {
   setDoneOn,
   mergeHabits,
 } from "./habits/model.js";
+import { openHabitsHistory } from "./habits/render-history.js";
 import {
   loadProjects,
   loadSections,
@@ -4009,12 +4010,25 @@ function _renderHoyTabs() {
   // El FAB crea tareas en el Inbox: en la solapa de Hábitos no pinta
   // nada, y además el alta de hábito ya tiene su propia fila.
   if (mobileFab) mobileFab.classList.toggle("visible", _hoyTab !== "habits");
+
+  // Historial: solo en la solapa de Hábitos y solo si hay alguno que
+  // enseñar. Con la lista vacía abriría un mapa en blanco.
+  var histBtn = document.getElementById("hoy-tabs-hist");
+  if (histBtn) {
+    histBtn.hidden = _hoyTab !== "habits" || habits.length === 0;
+    histBtn.setAttribute("aria-label", t("hist.open"));
+    histBtn.title = t("hist.open");
+  }
 }
 
 (function _wireHoyTabs() {
   var host = document.getElementById("hoy-tabs");
   if (!host) return;
   host.addEventListener("click", function(e) {
+    if (e.target.closest("#hoy-tabs-hist")) {
+      openHabitsHistory(habits, _localDateISO(new Date()));
+      return;
+    }
     var btn = e.target.closest("[data-hoy-tab]");
     if (!btn || btn.dataset.hoyTab === _hoyTab) return;
     _hoyTab = btn.dataset.hoyTab;
@@ -4302,8 +4316,13 @@ function renderTodayView() {
   // Siempre visible, aunque no haya ninguno: su fila de alta es el único
   // camino para crear el primero.
   if (verHabitos) {
+  // El hueco de acción de la cabecera es justo el sitio del historial: en
+  // móvil `_hoySectionEl` colapsa la etiqueta a solo icono con su
+  // aria-label, así que no hace falta nada aparte para esa pantalla.
   var secHab = _hoySectionEl("habits", t("hoy.habits"),
-    habitsHechos + "/" + habitsHoy.length, null, null);
+    habitsHechos + "/" + habitsHoy.length,
+    habits.length > 0 ? t("hist.open") : null,
+    habits.length > 0 ? function() { openHabitsHistory(habits, _localDateISO(new Date())); } : null);
   habitsHoy.forEach(function(h) {
     secHab.list.appendChild(_renderHabitItem(h, today));
   });

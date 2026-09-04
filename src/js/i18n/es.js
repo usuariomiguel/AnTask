@@ -176,6 +176,18 @@ export const es = {
   "hoy.habit_freq_everyn_menu": "Cada varios días…",
   "hoy.habit_freq_prompt":    "¿Cada cuántos días? (2 o más)",
   "hoy.habit_done_toggle":    "Marcar hecho hoy",
+
+  // ── Historial de hábitos ──────────────────────────────────
+  "hist.title":               "Historial de hábitos",
+  "hist.open":                "Ver historial",
+  "hist.summary":             "{done} de {total} días completos",
+  "hist.less":                "Menos",
+  "hist.more":                "Más",
+  "hist.empty":               "Todavía no hay hábitos que seguir.",
+  "hist.recent":              "Últimos {n} días",
+  "hist.streak":              "Racha actual",
+  "hist.nothing_due":         "no tocaba nada",
+  "hist.row_sr":              "{name}: racha de {streak} días, {done} de {due} cumplidos en el periodo.",
   "capture.bar_hint":         "Pulsa para escribir",
   "capture.open":             "Abrir captura rápida",
   "inbox.group_none":         "Sin lista",

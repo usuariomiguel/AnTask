@@ -12512,3 +12512,203 @@ button {
     height: 100%;
   }
 }
+
+/* ─── HISTORIAL DE HÁBITOS ───────────────────────────────────── */
+/* El mapa reutiliza la rampa oliva de marca (--c-primary-*), que ya es
+   una escala de 8 pasos validada en ambos temas: no hace falta inventar
+   colores nuevos para la intensidad. */
+
+.hist-modal {
+  max-width: 560px;
+  width: min(560px, 92vw);
+}
+
+.hist-sub {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.9rem;
+}
+
+/* El mapa no se encoge para caber: estrujar celdas de 12px las vuelve
+   ilegibles. Si no cabe, se desplaza en horizontal dentro de su caja —
+   nunca hace scrollear la página entera. */
+.hm-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.hm-grid {
+  display: block;
+}
+
+/* Nivel 0 = "no tocaba nada". Deliberadamente NEUTRO: un día sin nada
+   pendiente no es un fracaso y no debe leerse como tal. */
+.hm-cell--0 { fill: var(--surface-raised); }
+/* Nivel 1 = tocaba y no se hizo nada. Rojo muy tenue: se distingue del
+   día vacío sin convertir el mapa en un muro de alarma. */
+.hm-cell--1 { fill: rgba(var(--c-overdue-rgb), 0.28); }
+.hm-cell--2 { fill: var(--c-primary-800); }
+.hm-cell--3 { fill: var(--c-primary-600); }
+.hm-cell--4 { fill: var(--c-primary-400); }
+
+/* En claro la rampa se INVIERTE: sobre la arena, los oliva oscuros son
+   los que destacan, así que el "más" tiene que ser el más oscuro. Sin
+   esto, las celdas llenas casi desaparecían sobre el fondo. */
+:root[data-theme="light"] .hm-cell--2 { fill: var(--c-primary-300); }
+:root[data-theme="light"] .hm-cell--3 { fill: var(--c-primary-600); }
+:root[data-theme="light"] .hm-cell--4 { fill: var(--c-primary-800); }
+
+.hm-key {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0.6rem 0 1.1rem;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
+.hm-key-label { margin: 0 3px; }
+
+/* Los cuadros de la leyenda son divs, no SVG, así que se pintan con
+   background y no con fill — de ahí el bloque aparte. */
+.hm-key-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--surface-raised);
+}
+.hm-key-cell.hm-cell--1 { background: rgba(var(--c-overdue-rgb), 0.28); }
+.hm-key-cell.hm-cell--2 { background: var(--c-primary-800); }
+.hm-key-cell.hm-cell--3 { background: var(--c-primary-600); }
+.hm-key-cell.hm-cell--4 { background: var(--c-primary-400); }
+:root[data-theme="light"] .hm-key-cell.hm-cell--2 { background: var(--c-primary-300); }
+:root[data-theme="light"] .hm-key-cell.hm-cell--3 { background: var(--c-primary-600); }
+:root[data-theme="light"] .hm-key-cell.hm-cell--4 { background: var(--c-primary-800); }
+
+.hist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 34vh;
+  overflow-y: auto;
+}
+
+.hist-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hist-row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.hist-name {
+  font-size: 0.88rem;
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.hist-pct {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* Tira por hábito: una celda por día, binaria. La intensidad no aplica
+   aquí — un hábito suelto solo puede estar hecho o no. */
+.hs-strip {
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.hs-cell {
+  flex: 1 1 0;
+  min-width: 2px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.hs-cell--none { background: var(--surface-raised); }
+.hs-cell--miss { background: rgba(var(--c-overdue-rgb), 0.30); }
+.hs-cell--done { background: var(--c-primary-500); }
+:root[data-theme="light"] .hs-cell--done { background: var(--c-primary-700); }
+
+/* Resumen en texto de cada fila: existe para quien usa lector de
+   pantalla, ya que la tira va marcada como decorativa. */
+.hist-row-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hist-empty {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin: 0.4rem 0 0;
+}
+
+@media (max-width: 768px) {
+  .hist-list { max-height: 40vh; }
+}
+
+/* Acceso al historial desde el conmutador de Hoy (móvil). Va pegado al
+   borde derecho, separado de las pestañas, para que no se lea como una
+   tercera solapa. */
+.hoy-tabs-hist {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.hoy-tabs-hist[hidden] { display: none; }
+
+.hoy-tabs-hist .lucide {
+  width: 17px;
+  height: 17px;
+}
+
+.hist-caption {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.04em);
+  color: var(--text-tertiary);
+  margin: 0 0 0.55rem;
+}
+
+/* Con la tira ya corta (30 días), las celdas tienen ancho de sobra: se
+   les da altura para que se lean como barras y no como una raya. */
+.hs-cell { height: 14px; border-radius: 2px; }
