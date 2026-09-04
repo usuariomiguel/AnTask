@@ -4075,6 +4075,11 @@ button:focus-visible {
      aunque compartieran padding. Mismo criterio que `.filter-segment`. */
   .hoy-tab {
     display: inline-flex;
+    /* Se reparten el carril a partes iguales. `min-width: 0` porque un
+       ítem flex no baja de su contenido por defecto: sin él, la píldora
+       más larga se llevaría más ancho que las demás. */
+    flex: 1;
+    min-width: 0;
     align-items: center;
     justify-content: center;
     padding: var(--sp-2) var(--sp-3);
@@ -12709,7 +12714,9 @@ button {
    escritorio: antes era un círculo suelto empujado al borde derecho, que
    con la cápsula abrazando su contenido ya no tenía a dónde ir. */
 .hoy-tabs-hist {
-  flex-shrink: 0;
+  /* A diferencia de las pestañas, esta no crece: es un icono, y estirarla
+     a un tercio del carril dejaría un cuadro casi vacío alrededor. */
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12760,16 +12767,19 @@ button {
     background: none;
   }
 
+  /* Mismo carril que el conmutador de Hoy y la tira de calendario, para
+     que las tres barras se lean como una sola columna. */
   html[data-mode="simple"] .list-filter-row--movil #filter-segments {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    margin: 16px 10px;
+    width: min(372px, 100% - 18px);
+    margin: 16px auto;
     padding: 6px;
     background: var(--surface-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
-    max-width: calc(100% - 20px);
   }
 
   /* Las mismas declaraciones que `.filter-segment` en escritorio: aquí
@@ -12777,6 +12787,8 @@ button {
      @media (min-width: 769px) y no llega a este lado. */
   html[data-mode="simple"] .list-filter-row--movil .filter-segment {
     display: inline-flex;
+    flex: 1;
+    min-width: 0;
     align-items: center;
     justify-content: center;
     padding: var(--sp-2) var(--sp-3);
