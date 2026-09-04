@@ -12712,3 +12712,63 @@ button {
 /* Con la tira ya corta (30 días), las celdas tienen ancho de sobra: se
    les da altura para que se lean como barras y no como una raya. */
 .hs-cell { height: 14px; border-radius: 2px; }
+
+/* ─── FILTROS EN MÓVIL (solo vista de lista) ─────────────────── */
+/* El modo simple oculta `.list-filter-row` entera. Esta clase, que pone
+   _syncFiltrosMovil() solo en la vista de lista, la reactiva para
+   enseñar Todas/Pendientes/Hechas — y nada más: el desplegable
+   "Filtrar" y los controles de apariencia se vuelven a excluir uno a
+   uno, porque en simple siguen sin tener sitio.
+
+   Estilo tomado de `.hoy-tabs` a propósito: son el mismo componente
+   —una barra segmentada en el mismo hueco— y deben leerse igual. Las
+   clases de `.filter-segments` no sirven aquí: viven enteras dentro de
+   un @media (min-width: 769px). */
+@media (max-width: 768px) {
+  html[data-mode="simple"] .list-filter-row--movil {
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  html[data-mode="simple"] .list-filter-row--movil #filter-segments {
+    display: flex;
+    gap: 3px;
+    margin: 16px 10px;
+    padding: 3px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-pill);
+  }
+
+  html[data-mode="simple"] .list-filter-row--movil .filter-segment {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  html[data-mode="simple"] .list-filter-row--movil .filter-segment.filter-opt--active {
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+    font-weight: 700;
+  }
+
+  /* Fuera de esta barra: el desplegable de 7 filtros y los controles de
+     apariencia que también cuelgan de la fila. */
+  html[data-mode="simple"] .list-filter-row--movil .filter-wrap,
+  html[data-mode="simple"] .list-filter-row--movil #list-filter-actions {
+    display: none;
+  }
+}

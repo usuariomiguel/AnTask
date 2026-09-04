@@ -2417,6 +2417,7 @@ function renderTasks() {
   _syncListSearchVisibility();
   _renderHoyCalStrip();
   _renderHoyTabs();
+  _syncFiltrosMovil();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
@@ -3981,6 +3982,25 @@ var _hoyTab = "tasks";
  * `_renderListChips`: un host vacío en el HTML que se rellena y se
  * muestra u oculta según la vista y el modo.
  */
+/**
+ * Los tres filtros (Todas/Pendientes/Hechas) en móvil.
+ *
+ * Solo en la vista de lista: en Hoy ese mismo hueco lo ocupa el
+ * conmutador Tareas|Hábitos, y apilar los dos dejaría dos barras
+ * segmentadas seguidas diciendo cosas distintas.
+ *
+ * El modo simple oculta la fila de filtros entera; aquí se reactiva solo
+ * para esto, y el CSS deja fuera a mano lo demás que vive en esa fila
+ * (el desplegable "Filtrar" con sus 7 opciones y los controles de
+ * apariencia), que en simple sigue sin tener sitio.
+ */
+function _syncFiltrosMovil() {
+  var fila = document.getElementById("list-filter-row");
+  if (!fila) return;
+  fila.classList.toggle("list-filter-row--movil",
+    isSimpleMobile() && activeView === "project");
+}
+
 function _renderHoyTabs() {
   var host = document.getElementById("hoy-tabs");
   if (!host) return;
