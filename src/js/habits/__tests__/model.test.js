@@ -15,6 +15,7 @@ import {
   heatSeries,
   weekdayIndex,
   weekStart,
+  perfectDays,
 } from "../model.js";
 
 /** Hábito de prueba con valores por defecto sensatos. */
@@ -401,5 +402,31 @@ describe("weekdayIndex / weekStart", () => {
 
   it("weekStart cruza el cambio de mes", () => {
     expect(weekStart("2026-03-01")).toBe("2026-02-23");
+  });
+});
+
+// ────────────────────────────────────────────────────────────────
+describe("perfectDays", () => {
+  const base = { createdAt: "2026-02-01T00:00:00.000Z" };
+
+  it("cuenta solo los días en que se cumplió TODO lo que tocaba", () => {
+    const lista = [
+      h(Object.assign({ id: "a" }, base, { log: log("2026-02-01", "2026-02-02") })),
+      h(Object.assign({ id: "b" }, base, { log: log("2026-02-01") })),
+    ];
+    // El 1 los dos, el 2 solo uno, el 3 ninguno.
+    expect(perfectDays(lista, "2026-02-01", "2026-02-03")).toBe(1);
+  });
+
+  it("un día en que no tocaba nada no es un día perfecto", () => {
+    const lista = [h(Object.assign({}, base, {
+      schedule: "everyN", everyNDays: 7, log: log("2026-02-01"),
+    }))];
+    // Solo el 1 y el 8 tocaban; el 8 está sin marcar.
+    expect(perfectDays(lista, "2026-02-01", "2026-02-08")).toBe(1);
+  });
+
+  it("sin hábitos es cero", () => {
+    expect(perfectDays([], "2026-02-01", "2026-02-28")).toBe(0);
   });
 });

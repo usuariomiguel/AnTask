@@ -4015,17 +4015,6 @@ function _renderHoyTabs() {
     btn.setAttribute("aria-pressed", String(activo));
   });
 
-  // El progreso de hábitos vive aquí y no en la cabecera de la sección:
-  // debajo de la pestaña "Hábitos" ese rótulo se repetía, así que la
-  // sección va sin cabecera y el contador se queda en la pestaña.
-  var hoyISO = _localDateISO(new Date());
-  var deHoy = _hoyHabitsDeHoy(hoyISO);
-  var pill = host.querySelector("[data-hoy-tab-count]");
-  if (pill) {
-    pill.hidden = deHoy.length === 0;
-    pill.textContent = deHoy.filter(function(h) { return isDoneOn(h, hoyISO); }).length +
-      "/" + deHoy.length;
-  }
 
   // El FAB crea tareas en el Inbox: en la solapa de Hábitos no pinta
   // nada, y además el alta de hábito ya tiene su propia fila.
@@ -4239,12 +4228,31 @@ function renderTodayView() {
       .replace("{count}", String(pendingStats));
   }
 
+  // Se declaran aquí arriba y no junto a su sección porque el anillo de la
+  // cabecera, unas líneas más abajo, ya los necesita: al ser `var`, tenerlos
+  // después los dejaba en `undefined` y tumbaba el render entero.
+  //
+  // Los hábitos de hoy no entran en `hoyDoneStats`/`totalHoyStats` —un
+  // hábito no es una tarea y no debe mover el progreso de las tareas, ver el
+  // typedef Habit en state/types.js—, pero sí en `allClear`: "Todo al día"
+  // encima de hábitos sin marcar sería mentira.
+  var habitsHoy = _hoyHabitsDeHoy(today);
+  var habitsHechos = habitsHoy.filter(function(h) { return isDoneOn(h, today); }).length;
+
   // Stats + anillo de progreso en la cabecera: siempre sobre el total real
   // del día, no sobre lo que deja ver el filtro seleccionado.
-  // El anillo y "N de M hechas" son de las TAREAS de hoy; en la solapa
-  // de Hábitos no pintan nada y estarían contando lo que no se ve.
-  if (isSimpleMobile() && _hoyTab === "habits") _removeHoyHeaderExtra();
-  else _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
+  // El anillo cuenta lo que la solapa está enseñando: en Hábitos, los
+  // hábitos que tocaban hoy; en Tareas, las tareas. Antes desaparecía en
+  // Hábitos porque seguía contando tareas, que era justo lo que no se
+  // veía; contarlo bien es mejor que quitarlo.
+  //
+  // Los hábitos no tienen "vencidas" —o toca hoy o no toca—, así que ese
+  // tercer dato va a cero y la segunda línea del bloque no se pinta.
+  if (isSimpleMobile() && _hoyTab === "habits") {
+    _renderHoyHeaderExtra(habitsHechos, habitsHoy.length, 0);
+  } else {
+    _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
+  }
 
   // ── Día concreto elegido en la tira de calendario (modo simple móvil) ──
   // Sustituye a los tres bloques de siempre por uno solo con las tareas de
@@ -4289,12 +4297,6 @@ function renderTodayView() {
     return;
   }
 
-  // Los hábitos de hoy no entran en `hoyDoneStats`/`totalHoyStats` ni en el
-  // anillo —un hábito no es una tarea y no debe mover ese progreso, ver el
-  // typedef Habit en state/types.js—, pero sí en `allClear`: "Todo al día"
-  // encima de hábitos sin marcar sería mentira.
-  var habitsHoy = _hoyHabitsDeHoy(today);
-  var habitsHechos = habitsHoy.filter(function(h) { return isDoneOn(h, today); }).length;
 
   // Con el conmutador puesto, cada pestaña enseña una cosa: los hábitos
   // dejan de ir debajo de las tareas y pasan a su propia solapa. En

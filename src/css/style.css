@@ -4103,19 +4103,6 @@ button:focus-visible {
     font-weight: var(--fw-semibold);
   }
 
-  /* El progreso de hábitos, en la propia pestaña: la sección va sin
-     cabecera porque el rótulo se repetía justo debajo. */
-  .hoy-tab-count {
-    margin-left: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.65;
-  }
-
-  .hoy-tab-count[hidden] {
-    display: none;
-  }
 
   .hoy-section--headless > .hoy-section-head {
     display: none;
@@ -8253,6 +8240,14 @@ body.task-dragging .project-item:not(.active):not(.project-item-archived) {
 
 .settings-row:last-child {
   border-bottom: none;
+}
+
+/* Filas que solo tienen sentido con teclado físico. La media query va
+   pegada a la regla base a propósito: en este archivo hay bloques @media
+   ANTES de las reglas que quieren pisar, y a igual especificidad gana la
+   última, así que separarlas la dejaría sin efecto. */
+@media (max-width: 768px) {
+  .settings-row--con-teclado { display: none; }
 }
 
 .settings-row--top {
@@ -12553,23 +12548,101 @@ button {
   width: min(560px, 92vw);
 }
 
+/* ── 1. Resumen del periodo ─────────────────────────────────────
+   El titular es el cumplimiento real, no los días perfectos: con varios
+   hábitos, cumplir todos menos uno cada día daba un cero y eso
+   presidiendo el panel castiga sin informar. */
+.hist-hero {
+  font-size: 1.15rem;
+  font-weight: var(--fw-semibold, 600);
+  color: var(--text-primary);
+  margin: 0 0 0.2rem;
+}
+
 .hist-sub {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
   margin: 0 0 0.9rem;
 }
 
-/* El mapa no se encoge para caber: estrujar celdas de 12px las vuelve
+/* ── Filtro de periodo ──────────────────────────────────────────
+   Con clases propias y no las de .filter-segment: aquellas viven
+   enteras dentro de @media (min-width: 769px) y en móvil no pintan
+   nada, así que había que redefinirlo todo igualmente. */
+.hist-range {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  margin: 0 0 1.1rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+}
+
+.hist-range-btn {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: var(--fw-medium, 500);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.hist-range-btn--on {
+  background: var(--c-primary-500);
+  color: var(--accent-on);
+  font-weight: var(--fw-semibold, 600);
+}
+
+/* ── 2. Mapa del último año ─────────────────────────────────────
+   Las etiquetas de día van FUERA del contenedor que hace scroll: si
+   entraran en el SVG, se irían con las columnas al desplazarlo y
+   dejarían de etiquetar nada. */
+.hm-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* La rejilla de siete filas replica el paso del mapa (11px de celda +
+   3 de hueco) para que cada rótulo caiga en su fila. El margen superior
+   salta la banda de meses. */
+.hm-dows {
+  display: grid;
+  grid-template-rows: repeat(7, 14px);
+  margin-top: 15px;
+  font-size: 0.62rem;
+  line-height: 11px;
+  color: var(--text-tertiary);
+  flex: 0 0 auto;
+}
+
+/* El mapa no se encoge para caber: estrujar las celdas las vuelve
    ilegibles. Si no cabe, se desplaza en horizontal dentro de su caja —
    nunca hace scrollear la página entera. */
 .hm-scroll {
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 4px;
+  min-width: 0;
 }
 
 .hm-grid {
   display: block;
+}
+
+.hm-mes {
+  fill: var(--text-tertiary);
+  font-size: 9px;
 }
 
 /* Nivel 0 = "no tocaba nada". Deliberadamente NEUTRO: un día sin nada
@@ -12593,7 +12666,7 @@ button {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin: 0.6rem 0 1.1rem;
+  margin: 0.6rem 0 1.2rem;
   font-size: 0.72rem;
   color: var(--text-tertiary);
 }
@@ -12616,13 +12689,14 @@ button {
 :root[data-theme="light"] .hm-key-cell.hm-cell--3 { background: var(--c-primary-600); }
 :root[data-theme="light"] .hm-key-cell.hm-cell--4 { background: var(--c-primary-800); }
 
+/* ── 3. Listado por hábito ──────────────────────────────────────── */
 .hist-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.75rem;
   max-height: 34vh;
   overflow-y: auto;
 }
@@ -12652,16 +12726,37 @@ button {
 .hist-stats {
   display: flex;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: 0.7rem;
   flex-shrink: 0;
   font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
-.hist-pct {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-tertiary);
+/* La racha es el dato caliente de la fila: va en el color de aviso
+   —que ya viene resuelto por tema, salmón en oscuro y teja en claro—
+   y en seminegrita, para que se lea antes que el porcentaje. */
+.hist-streak {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--c-overdue);
+  font-weight: var(--fw-semibold, 600);
 }
+
+/* La llama es un SVG de lucide, no el emoji: el emoji lo pinta la
+   fuente del sistema con su color propio y se quedaba blanco por mucho
+   que se le pusiera un color. El SVG hereda currentColor. */
+.hist-flame {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+  /* Los iconos son cajas alineadas a la base del texto; sin esto la
+     llama se apoya en la línea y queda un pelo alta respecto al número. */
+  align-self: center;
+}
+
+.hist-pct { color: var(--text-tertiary); }
 
 /* Tira por hábito: una celda por día, binaria. La intensidad no aplica
    aquí — un hábito suelto solo puede estar hecho o no. */
@@ -12671,20 +12766,22 @@ button {
   overflow: hidden;
 }
 
+/* Con la tira corta (30 días), las celdas tienen ancho de sobra: se les
+   da altura para que se lean como barras y no como una raya. */
 .hs-cell {
   flex: 1 1 0;
   min-width: 2px;
-  height: 8px;
-  border-radius: 1px;
+  height: 14px;
+  border-radius: 2px;
 }
 
 .hs-cell--none { background: var(--surface-raised); }
-.hs-cell--miss { background: rgba(var(--c-overdue-rgb), 0.30); }
+.hs-cell--miss { background: rgba(var(--c-overdue-rgb), 0.42); }
 .hs-cell--done { background: var(--c-primary-500); }
 :root[data-theme="light"] .hs-cell--done { background: var(--c-primary-700); }
 
 /* Resumen en texto de cada fila: existe para quien usa lector de
-   pantalla, ya que la tira va marcada como decorativa. */
+   pantalla, ya que el mapa va marcado como una sola imagen. */
 .hist-row-sr {
   position: absolute;
   width: 1px;
@@ -12704,7 +12801,10 @@ button {
 }
 
 @media (max-width: 768px) {
-  .hist-list { max-height: 40vh; }
+  .hist-list { max-height: 38vh; }
+  /* El nombre ya se recorta con puntos suspensivos; lo que no puede
+     encogerse son los tres números de la derecha. */
+  .hist-stats { gap: 0.55rem; }
 }
 
 /* Acceso al historial desde el conmutador de Hoy (móvil). Va pegado al
@@ -12743,10 +12843,6 @@ button {
   color: var(--text-tertiary);
   margin: 0 0 0.55rem;
 }
-
-/* Con la tira ya corta (30 días), las celdas tienen ancho de sobra: se
-   les da altura para que se lean como barras y no como una raya. */
-.hs-cell { height: 14px; border-radius: 2px; }
 
 /* ─── FILTROS EN MÓVIL (solo vista de lista) ─────────────────── */
 /* El modo simple oculta `.list-filter-row` entera. Esta clase, que pone

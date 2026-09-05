@@ -469,7 +469,9 @@
                   </div>
                   <span class="settings-mono-value">1.0</span>
                 </div>
-                <div class="settings-row">
+                <!-- Sin teclado físico no hay atajos que consultar: la fila se
+                     oculta por debajo de 768px. -->
+                <div class="settings-row settings-row--con-teclado">
                   <span class="settings-row-ico"><i data-lucide="keyboard"></i></span>
                   <div class="settings-row-label" data-i18n="profile.shortcuts">Atajos de teclado</div>
                   <button type="button" class="settings-mono-value settings-mono-value--btn" id="settings-shortcuts-link">?</button>
@@ -714,7 +716,6 @@
             </button>
             <button type="button" class="hoy-tab" data-hoy-tab="habits" aria-pressed="false">
               <span data-i18n="hoy.habits">Hábitos</span>
-              <span class="hoy-tab-count" data-hoy-tab-count hidden></span>
             </button>
             <!-- Acceso al historial. Vive aquí y no en la cabecera de la
                  sección porque en móvil esa cabecera se oculta (la pestaña

@@ -322,3 +322,23 @@ export function weekdayIndex(dateISO) {
 export function weekStart(dateISO) {
   return addDays(dateISO, -weekdayIndex(dateISO));
 }
+
+/**
+ * Días del periodo en que se cumplió TODO lo que tocaba.
+ *
+ * Es la métrica que antes presidía el panel y ahora va de segunda: como
+ * titular es demasiado dura —con tres hábitos, cumplir dos cada día da
+ * cero— pero como dato de apoyo sí dice algo que el porcentaje no.
+ *
+ * @param {Habit[]} lista
+ * @param {string} desdeISO
+ * @param {string} hastaISO
+ * @returns {number}
+ */
+export function perfectDays(lista, desdeISO, hastaISO) {
+  let n = 0;
+  heatSeries(lista, desdeISO, hastaISO).forEach(function (d) {
+    if (d.due > 0 && d.done === d.due) n++;
+  });
+  return n;
+}
