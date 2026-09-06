@@ -4877,11 +4877,16 @@ function renderTodayItem(task, project, todayStr, tone) {
   // que actúa: una píldora compacta con flecha, pulsable en cualquier
   // tamaño de pantalla. "Sin fecha" no tiene píldora que reaprovechar, así
   // que la suya dice "Hoy" directamente.
-  if (dateLabel) {
+  // En "Para hoy" no se pinta la fecha: ahí solo entran tareas cuyo
+  // `dueDate` ES hoy (ver el reparto en `todaysRaw`), así que la píldora
+  // decía "Hoy" dentro de una sección que ya se titula así. Ocupaba sitio
+  // para repetir el encabezado. En el resto de secciones sí aporta —una
+  // vencida dice cuánto lleva, una sugerida dice para cuándo es— y en la
+  // tira de calendario las tareas de otro día llegan con otro `tone`.
+  if (dateLabel && tone !== "today") {
     var dateText = dateLabel;
     var dEl = document.createElement("span");
     dEl.className = "today-date-pill" +
-      (tone === "today" ? " today-date-pill--today" : "") +
       (overdue ? " today-date-pill--overdue" : "");
     if (overdue && !done) {
       dEl.innerHTML = '<span class="today-date-label"></span><i data-lucide="arrow-right"></i>';

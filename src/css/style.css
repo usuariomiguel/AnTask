@@ -9880,14 +9880,6 @@ button {
   border: 1px solid var(--border-subtle);
 }
 
-.today-date-pill--today {
-  background: var(--accent-tint);
-  color: var(--c-primary-300);
-}
-
-:root[data-theme="light"] .today-date-pill--today {
-  color: var(--c-primary-600);
-}
 
 /* La propia fecha mueve la tarea a hoy — sin botón de texto aparte que
    duplicara la acción y ocupara más sitio que la fecha misma. Pulsable
