@@ -2,7 +2,7 @@
 import { es } from "./es.js";
 import { en } from "./en.js";
 
-const LANG_KEY = "antask_lang";
+const LANG_KEY = "antrack_lang";
 const SUPPORTED = ["es", "en"];
 
 /** @type {Record<string, Record<string, string>>} */

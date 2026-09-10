@@ -5,14 +5,14 @@
 export const PROJECTS_KEY     = "anso-projects";
 export const ACTIVE_KEY       = "anso-active-project";
 export const METADATA_KEY     = "anso-meta";
-export const TASK_PREFS_KEY   = "antask-task-prefs";
+export const TASK_PREFS_KEY   = "antrack-task-prefs";
 export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";
-export const PROFILE_KEY      = "antask-profile";
-export const ROW_STYLE_KEY    = "antask-row-style";
-export const TWO_COLUMNS_KEY  = "antask-two-columns";
-export const MODE_KEY         = "antask-mode";
-export const HABITS_KEY       = "antask-habits";
+export const PROFILE_KEY      = "antrack-profile";
+export const ROW_STYLE_KEY    = "antrack-row-style";
+export const TWO_COLUMNS_KEY  = "antrack-two-columns";
+export const MODE_KEY         = "antrack-mode";
+export const HABITS_KEY       = "antrack-habits";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

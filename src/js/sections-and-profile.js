@@ -432,8 +432,8 @@ import { loadSync } from "./sync-loader.js";
   /* Expuestas para la pantalla «Perfil» de móvil. No se duplican allí:
      doSignIn carga el módulo de sincronización bajo demanda y distingue
      popup cerrado, popup bloqueado y dominio no autorizado. */
-  window.antaskSignIn  = doSignIn;
-  window.antaskSignOut = doSignOut;
+  window.antrackSignIn  = doSignIn;
+  window.antrackSignOut = doSignOut;
   [pfSigninBtn, document.getElementById("settings-signin-btn")].forEach(function(btn) {
     if (btn) btn.addEventListener("click", doSignIn);
   });

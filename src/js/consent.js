@@ -3,7 +3,7 @@
 // Almacena la elección en localStorage bajo la clave CONSENT_KEY.
 // Valores posibles: "all" | "essential" | null (sin respuesta aún).
 
-const CONSENT_KEY = "antask_consent";
+const CONSENT_KEY = "antrack_consent";
 
 /** @param {"all"|"essential"} value */
 export function setConsent(value) {
@@ -56,7 +56,7 @@ export function showConsentBannerIfNeeded(onDecision) {
  * @param {"all"|"essential"} value
  */
 function _notifyDecided(value) {
-  document.dispatchEvent(new CustomEvent("antask:consent-decided", { detail: value }));
+  document.dispatchEvent(new CustomEvent("antrack:consent-decided", { detail: value }));
 }
 
 /** @param {HTMLElement} banner */

@@ -14,7 +14,7 @@
 
 import { PROJECTS_KEY } from "./state/keys.js";
 
-const SYNC_FLAG = "antask-sync-enabled";
+const SYNC_FLAG = "antrack-sync-enabled";
 
 /**
  * ¿Hay indicios de que este dispositivo ya tiene sincronización?

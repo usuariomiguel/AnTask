@@ -200,8 +200,8 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         // haya completado el login o no.
         var vinoDeRedirect = false;
         try {
-          vinoDeRedirect = sessionStorage.getItem("antask-redirect-pending") === "1";
-          sessionStorage.removeItem("antask-redirect-pending");
+          vinoDeRedirect = sessionStorage.getItem("antrack-redirect-pending") === "1";
+          sessionStorage.removeItem("antrack-redirect-pending");
         } catch (e) { /* sessionStorage bloqueado: sin aviso, no rompe nada */ }
 
         // ¿Es la vuelta de un enlace de email de inicio de sesión sin
@@ -211,13 +211,13 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         // por la pantalla de consentimiento de Google en absoluto.
         if (isSignInWithEmailLink(auth, window.location.href)) {
           var savedEmail = null;
-          try { savedEmail = localStorage.getItem("antask-email-for-signin"); } catch (e) {}
+          try { savedEmail = localStorage.getItem("antrack-email-for-signin"); } catch (e) {}
           Promise.resolve(savedEmail || modalPrompt(
             "¿Con qué email pediste el enlace?", "", "tu@email.com"
           )).then(function (email) {
             if (!email) return;
             return signInWithEmailLink(auth, email, window.location.href).then(function () {
-              try { localStorage.removeItem("antask-email-for-signin"); } catch (e) {}
+              try { localStorage.removeItem("antrack-email-for-signin"); } catch (e) {}
               // Limpia el enlace de la URL — si no, un refresco reintenta
               // el mismo oobCode ya consumido y falla.
               history.replaceState(null, "", window.location.pathname);
@@ -289,7 +289,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           // el caso "resultado nulo silencioso" en init(): si getRedirectResult()
           // vuelve sin usuario y sin error pero esta marca sigue puesta, es que
           // el redirect se completó en Google y la app perdió el estado al volver.
-          try { sessionStorage.setItem("antask-redirect-pending", "1"); } catch (e) {}
+          try { sessionStorage.setItem("antrack-redirect-pending", "1"); } catch (e) {}
           return signInWithRedirect(auth, provider);
         }
         return signInWithPopup(auth, provider);
@@ -313,7 +313,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           handleCodeInApp: true,
         };
         return sendSignInLinkToEmail(auth, email, actionCodeSettings).then(function () {
-          try { localStorage.setItem("antask-email-for-signin", email); } catch (e) {}
+          try { localStorage.setItem("antrack-email-for-signin", email); } catch (e) {}
         });
       },
 

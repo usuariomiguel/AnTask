@@ -390,7 +390,7 @@ export const es = {
   // ── Onboarding ────────────────────────────────────────────
 
   // ── Consent banner ────────────────────────────────────────
-  "consent.text":             "antask guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?",
+  "consent.text":             "AnTrack guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?",
   "consent.privacy_link":     "Política de privacidad",
   "consent.accept":           "Aceptar analytics",
   "consent.decline":          "Solo lo esencial",
@@ -401,7 +401,7 @@ export const es = {
   "backup.restored_one":      "Workspace restaurado con {count} proyecto.",
   "backup.restored_other":    "Workspace restaurado con {count} proyectos.",
   "backup.restored_with_secs":"Workspace restaurado con {count} proyecto(s) y {sec} sección(es).",
-  "backup.invalid_format":    "Formato no válido. Asegúrate de importar un backup generado por antask.",
+  "backup.invalid_format":    "Formato no válido. Asegúrate de importar un backup generado por AnTrack.",
   "backup.need_active":       "Selecciona un proyecto antes de importar un backup de proyecto individual.",
   "backup.parse_error":       "No se pudo importar. Revisa que el archivo sea un JSON válido.",
 

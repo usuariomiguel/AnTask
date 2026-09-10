@@ -49,7 +49,7 @@ self.addEventListener("fetch", (event) => {
       .then((response) => {
         if (response && response.status === 200 && response.type === "basic") {
           const clone = response.clone();
-          caches.open("antask-runtime-v1").then((cache) => {
+          caches.open("antrack-runtime-v1").then((cache) => {
             try { cache.put(event.request, clone); } catch (_) {}
           });
         }
@@ -86,7 +86,7 @@ self.addEventListener("notificationclick", (event) => {
           url.pathname.endsWith("/") ||
           url.pathname.endsWith("/index.html")
         ) {
-          client.postMessage({ type: "antask-notif-click", data });
+          client.postMessage({ type: "antrack-notif-click", data });
           return client.focus();
         }
       }

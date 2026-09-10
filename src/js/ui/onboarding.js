@@ -11,12 +11,12 @@
 import { createModalBase, closeModal } from "./modal.js";
 import { isSimpleMobile } from "./mode.js";
 
-const STORAGE_KEY = "antask-onboarded";
+const STORAGE_KEY = "antrack-onboarded";
 
 const STEPS = [
   {
     icon:    "sparkles",
-    title:   "Bienvenido a antask",
+    title:   "Bienvenido a AnTrack",
     bodyHTML:
       '<p class="onb-lead">Una app de tareas con tres ideas:</p>' +
       '<ul class="onb-bullets">' +

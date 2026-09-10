@@ -245,7 +245,7 @@ let habits          = loadHabits();
 
 // Las notas se retiraron: borra de una vez su clave para no dejar datos
 // huérfanos ocupando la cuota de localStorage.
-try { localStorage.removeItem("antask-notes"); } catch (_) {}
+try { localStorage.removeItem("antrack-notes"); } catch (_) {}
 // Las recurrentes completadas se quedan marcadas hasta que llega su
 // siguiente vuelta; al arrancar se comprueba si ya toca reabrirlas.
 if (_reactivarRecurrentes()) saveProjects();
@@ -417,7 +417,7 @@ setTimeout(function () {
 // Al dispararse un recordatorio, notifications.js ya ha limpiado
 // `task.reminderAt` en memoria (mismo objeto que `projects`, por
 // referencia) — falta guardarlo y quitar la campana de la fila.
-window.addEventListener("antask:reminderfired", function () {
+window.addEventListener("antrack:reminderfired", function () {
   saveAndRender();
 });
 
@@ -466,7 +466,7 @@ window.addEventListener("antask:reminderfired", function () {
   if (consentAnswered()) {
     launch();
   } else {
-    document.addEventListener("antask:consent-decided", launch, { once: true });
+    document.addEventListener("antrack:consent-decided", launch, { once: true });
   }
 })();
 
@@ -1185,8 +1185,8 @@ function showProfileMenu() {
       // Sesión: se llama a la función real, no al botón del drawer. Trae la
       // carga bajo demanda del módulo de sincronización y el tratamiento de
       // popup cerrado / bloqueado / dominio no autorizado.
-      case "signin":    if (window.antaskSignIn)  window.antaskSignIn();  break;
-      case "signout":   if (window.antaskSignOut) window.antaskSignOut(); break;
+      case "signin":    if (window.antrackSignIn)  window.antrackSignIn();  break;
+      case "signout":   if (window.antrackSignOut) window.antrackSignOut(); break;
       // "close" no necesita caso: closeSheet(overlay) ya se disparó arriba.
     }
   });
@@ -1486,7 +1486,7 @@ function activateProject(id) {
   // lista, ninguna pestaña quedaba marcada.
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
   // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antaskNavShow) window._antaskNavShow();
+  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 /**
@@ -1516,7 +1516,7 @@ function activateTodayView() {
   if (mobileHeaderTitle) mobileHeaderTitle.textContent = t("view.today_title");
   if (mobileHeaderCount) mobileHeaderCount.textContent = "";
 
-  document.title = t("view.today_title") + " — antask";
+  document.title = t("view.today_title") + " — AnTrack";
   if (projectTitleEl)  projectTitleEl.textContent  = t("view.today_title");
   if (projectSubtitle) {
     // Fecha larga como en el prototipo: "Sábado, 18 de julio"
@@ -1541,7 +1541,7 @@ function activateTodayView() {
   renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
   // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antaskNavShow) window._antaskNavShow();
+  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 
@@ -2728,8 +2728,8 @@ function _renderTasksFooter(project, isInbox) {
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0
-    ? "(" + pending + ") " + project.name + " — antask"
-    : project.name + " — antask";
+    ? "(" + pending + ") " + project.name + " — AnTrack"
+    : project.name + " — AnTrack";
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
@@ -5124,12 +5124,12 @@ function _showRecurToast(days, nextDate) {
  *  nunca si el usuario ha pedido menos movimiento. */
 function _shouldHintSwipe() {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  try { return !localStorage.getItem("antask_swipe_hinted"); } catch (_) { return false; }
+  try { return !localStorage.getItem("antrack_swipe_hinted"); } catch (_) { return false; }
 }
 
 /** Marca el tutorial como visto. */
 function _markSwipeHinted() {
-  try { localStorage.setItem("antask_swipe_hinted", "1"); } catch (_) {}
+  try { localStorage.setItem("antrack_swipe_hinted", "1"); } catch (_) {}
 }
 
 function initSwipeGesture(node, task, project) {
@@ -5817,7 +5817,7 @@ function showCalendarPanel() {
   renderCalendar();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
   // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antaskNavShow) window._antaskNavShow();
+  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 function _restoreMainPanel() {
@@ -5831,7 +5831,7 @@ function _restoreMainPanel() {
   if (isVirtualView) renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
   // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antaskNavShow) window._antaskNavShow();
+  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 function _setActiveViewTab(view) {
@@ -6215,7 +6215,7 @@ function _initNavAutoHide() {
      funciones que activan vista, no `renderTasks()`: ahí saltaría en
      cada repintado —marcar una tarea, por ejemplo— y la barra estaría
      apareciendo sola todo el rato. */
-  window._antaskNavShow = function() {
+  window._antrackNavShow = function() {
     ultimoY = scroller.scrollTop;
     ocultar(false);
   };
@@ -6354,7 +6354,7 @@ function _updateProfileMenu(user) {
     if (pfSignoutBtn) pfSignoutBtn.addEventListener("click", function() { window.AnsoSync?.signOut?.(); });
   } else {
     baseInitial = "A";
-    baseName = "antask";
+    baseName = "antrack";
     if (pfSub)       pfSub.textContent       = t("profile.local");
     if (pfSubTop)    pfSubTop.textContent    = t("profile.local_storage");
     if (settingsSub) settingsSub.textContent = t("profile.local_storage");

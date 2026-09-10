@@ -11,7 +11,7 @@
 
 import { THEME_KEY } from "../state/keys.js";
 
-export const ACCENT_KEY     = "antask-accent";
+export const ACCENT_KEY     = "antrack-accent";
 export const ACCENT_DEFAULT = "oliva";
 export const ACCENTS = ["oliva", "arcilla", "terracota", "miel", "marea", "vino"];
 

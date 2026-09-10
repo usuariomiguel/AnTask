@@ -96,9 +96,9 @@ window.AnsoNotif = (function() {
   function fireTest() {
     if (!isEnabled()) return false;
     _showNotification(
-      "antask · " + t("notif.test_label"),
+      "AnTrack · " + t("notif.test_label"),
       t("notif.test_body"),
-      "antask-test-" + Date.now()
+      "antrack-test-" + Date.now()
     );
     return true;
   }
@@ -216,7 +216,7 @@ window.AnsoNotif = (function() {
       _showNotification(
         d.overdue ? t("notif.task_overdue") : t("notif.task_due_today"),
         "[" + d.projectName + "] " + d.taskText,
-        "antask-due-" + d.taskId + "-" + dateTag,
+        "antrack-due-" + d.taskId + "-" + dateTag,
         { projectId: d.projectId, taskId: d.taskId }
       );
       return;
@@ -231,7 +231,7 @@ window.AnsoNotif = (function() {
       title = overdue + " " + t("notif.digest_overdue").toLowerCase() +
               " · " + (due.length - overdue) + " " + t("notif.digest_today").toLowerCase();
     }
-    _showNotification(title, lines.join("\n"), "antask-daily-" + dateTag);
+    _showNotification(title, lines.join("\n"), "antrack-daily-" + dateTag);
   }
 
   function _showNotification(title, body, tag, data) {
@@ -281,7 +281,7 @@ window.AnsoNotif = (function() {
     });
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", function(event) {
-        if (!event.data || event.data.type !== "antask-notif-click") return;
+        if (!event.data || event.data.type !== "antrack-notif-click") return;
         var data = event.data.data || {};
         if (data.projectId && window.location) {
           var url = new URL(window.location.href);
@@ -399,7 +399,7 @@ window.AnsoNotif = (function() {
     _showNotification(
       t("notif.reminder_title") + ": " + task.text.slice(0, 70),
       "[" + (project.name || t("notif.unknown_project")) + "]",
-      "antask-reminder-" + task.id + "-" + (task.reminderAt || ""),
+      "antrack-reminder-" + task.id + "-" + (task.reminderAt || ""),
       { projectId: project.id, taskId: task.id }
     );
     // El aviso ya se ha dado: la campana de la fila no debe seguir
@@ -410,7 +410,7 @@ window.AnsoNotif = (function() {
     // notifications.js no puede hacer por su cuenta (no conoce
     // saveProjects/renderTasks). Ver el listener en script.js.
     task.reminderAt = null;
-    window.dispatchEvent(new CustomEvent("antask:reminderfired", { detail: { taskId: task.id } }));
+    window.dispatchEvent(new CustomEvent("antrack:reminderfired", { detail: { taskId: task.id } }));
   }
 
   function cancelTaskReminder(taskId) {
