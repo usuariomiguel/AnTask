@@ -1,4 +1,4 @@
-# Política de Privacidad de antask
+# Política de Privacidad de AnTrack
 
 _Última actualización: mayo de 2026_
 
@@ -6,14 +6,14 @@ _Última actualización: mayo de 2026_
 
 ## 1. Responsable del tratamiento
 
-**Antask**
+**AnTrack**
 **Email de contacto:** ansonfull@gmail.com
 
 ---
 
 ## 2. Qué datos tratamos y por qué
 
-antask es una aplicación **local-first**: la gran mayoría de tus datos nunca salen de tu dispositivo.
+AnTrack es una aplicación **local-first**: la gran mayoría de tus datos nunca salen de tu dispositivo.
 
 ### 2.1 Modo local (sin cuenta)
 

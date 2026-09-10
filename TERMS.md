@@ -1,4 +1,4 @@
-# Términos de Servicio de antask
+# Términos de Servicio de AnTrack
 
 _Última actualización: mayo de 2026_
 
@@ -6,15 +6,15 @@ _Última actualización: mayo de 2026_
 
 ## 1. Aceptación
 
-Al acceder o usar antask ("la aplicación", "el servicio") aceptas estos Términos de Servicio ("Términos"). Si no los aceptas, no uses la aplicación.
+Al acceder o usar AnTrack ("la aplicación", "el servicio") aceptas estos Términos de Servicio ("Términos"). Si no los aceptas, no uses la aplicación.
 
-El servicio es ofrecido por **Antask** ("nosotros", "el proveedor"), contactable en **ansonfull@gmail.com**.
+El servicio es ofrecido por **AnTrack** ("nosotros", "el proveedor"), contactable en **ansonfull@gmail.com**.
 
 ---
 
 ## 2. Descripción del servicio
 
-antask es una aplicación web de gestión de tareas y notas con las siguientes características:
+AnTrack es una aplicación web de gestión de tareas y notas con las siguientes características:
 
 - **Modo local:** los datos se almacenan exclusivamente en tu dispositivo mediante `localStorage`. No requiere registro.
 - **Modo sincronizado (opcional):** previa autenticación con Google, los datos se sincronizan entre dispositivos vía Firebase Firestore.
@@ -24,7 +24,7 @@ antask es una aplicación web de gestión de tareas y notas con las siguientes c
 
 ## 3. Uso permitido
 
-Puedes usar antask para:
+Puedes usar AnTrack para:
 
 - Gestionar tus tareas, proyectos y notas personales o profesionales.
 - Instalarlo como PWA en tus dispositivos.
@@ -51,7 +51,7 @@ La función de sincronización utiliza Google Sign-In. Al activarla:
 
 ## 5. Propiedad intelectual
 
-El código fuente de antask se distribuye bajo licencia **MIT** (ver [LICENSE](./LICENSE)). Eres libre de usar, modificar y distribuir el código según los términos de dicha licencia.
+El código fuente de AnTrack se distribuye bajo licencia **MIT** (ver [LICENSE](./LICENSE)). Eres libre de usar, modificar y distribuir el código según los términos de dicha licencia.
 
 El contenido que introduces en la aplicación (tareas, notas, etc.) es tuyo. No reclamamos ningún derecho sobre él.
 
