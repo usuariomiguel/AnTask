@@ -1,6 +1,6 @@
-# antask
+# AnTrack
 
-> Tus tareas, tu día. Una app de tareas rápida, local-first, con captura por lenguaje natural.
+> Tareas y hábitos. Una app rápida, local-first, con captura por lenguaje natural y seguimiento de rachas.
 
 ![HTML](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
 ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
@@ -13,9 +13,9 @@
 
 ---
 
-## ¿Qué es antask?
+## ¿Qué es AnTrack?
 
-**antask** es una aplicación web para gestionar tareas del día a día. Local-first: todo lo que escribes se guarda en el `localStorage` del navegador y la app funciona sin conexión después del primer arranque. Opcionalmente puedes iniciar sesión con Google para sincronizar entre dispositivos vía Firebase Firestore.
+**AnTrack** es una aplicación web para gestionar tareas y hábitos del día a día. Local-first: todo lo que escribes se guarda en el `localStorage` del navegador y la app funciona sin conexión después del primer arranque. Opcionalmente puedes iniciar sesión con Google para sincronizar entre dispositivos vía Firebase Firestore.
 
 Tres ideas guían el producto:
 
@@ -60,6 +60,15 @@ prioridad:   importante
 | Prioridad | `p1` (marca la tarea como importante — sin niveles) |
 
 Chips de preview en vivo muestran lo detectado mientras escribes.
+
+### Hábitos
+
+- Crear y rastrear hábitos diarios o cada N días
+- **Historial visual**: mapa de calor del último año + estadísticas por periodo (7/30/90 días)
+- **Racha y porcentaje** para cada hábito
+- **Sincronización inteligente**: marcas de dispositivos distintos se unen sin conflictos
+- **Resumen agregado**: proporción de hábitos completados y días perfectos
+- Filtro por período que afecta resumen y porcentajes (el mapa siempre muestra el año completo)
 
 ### Organización
 
