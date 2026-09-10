@@ -32,12 +32,12 @@ async function loadFresh(page, seed) {
   await page.goto("/");
   await page.evaluate((seed) => {
     localStorage.clear();
-    localStorage.setItem("antask_consent", "essential");
+    localStorage.setItem("antrack_consent", "essential");
     // El tour de onboarding taparía la pantalla auditada
-    localStorage.setItem("antask-onboarded", "1");
+    localStorage.setItem("antrack-onboarded", "1");
     // Idioma fijo: la config de Playwright no fija locale, así que sin
     // esto los tests que buscan por texto dependerían de la máquina.
-    localStorage.setItem("antask_lang", "es");
+    localStorage.setItem("antrack_lang", "es");
     if (seed) {
       localStorage.setItem("anso-projects", JSON.stringify([
         { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
@@ -152,10 +152,10 @@ test("a11y: historial de hábitos", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
     localStorage.clear();
-    localStorage.setItem("antask_consent", "essential");
-    localStorage.setItem("antask-onboarded", "1");
-    localStorage.setItem("antask_lang", "es");
-    localStorage.setItem("antask-mode", "full");
+    localStorage.setItem("antrack_consent", "essential");
+    localStorage.setItem("antrack-onboarded", "1");
+    localStorage.setItem("antrack_lang", "es");
+    localStorage.setItem("antrack-mode", "full");
     const hoy = new Date();
     const menos = (n) => new Date(hoy.getTime() - n * 864e5).toISOString().slice(0, 10);
     const log = {};
@@ -164,7 +164,7 @@ test("a11y: historial de hábitos", async ({ page }) => {
       { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
         sectionId: null, archived: false, icon: "", color: "", tasks: [] },
     ]));
-    localStorage.setItem("antask-habits", JSON.stringify([
+    localStorage.setItem("antrack-habits", JSON.stringify([
       { id: "h1", name: "Correr", schedule: "daily", everyNDays: null,
         createdAt: new Date(hoy.getTime() - 20 * 864e5).toISOString(),
         archived: false, log: log },

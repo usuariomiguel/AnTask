@@ -13,8 +13,8 @@ async function freshLoad(page) {
     localStorage.clear();
     // Evita que el tour de onboarding y el banner de consentimiento
     // intercepten los clicks del test en un perfil recién limpiado.
-    localStorage.setItem("antask-onboarded", "1");
-    localStorage.setItem("antask_consent", "essential");
+    localStorage.setItem("antrack-onboarded", "1");
+    localStorage.setItem("antrack_consent", "essential");
   });
   await page.goto("/");
 

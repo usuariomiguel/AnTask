@@ -1,7 +1,7 @@
 {
-  "name": "antask",
-  "short_name": "antask",
-  "description": "Gestor de tareas y proyectos instalable como PWA.",
+  "name": "AnTrack",
+  "short_name": "AnTrack",
+  "description": "Gestor de tareas y hábitos instalable como PWA.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
