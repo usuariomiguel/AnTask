@@ -4644,7 +4644,7 @@ body.tasks-compact .task-text {
 }
 
 :root[data-theme="light"] .subtask-item {
-  background: rgba(80, 55, 10, 0.02);
+  background: var(--row-hover);
   border-color: rgba(80, 55, 10, 0.07);
 }
 
