@@ -93,7 +93,7 @@
   --c-overdue-rgb: 176, 71, 63;
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
-  --row-hover: rgba(255, 238, 214, 0.055);
+  --surface-canvas: rgba(255, 238, 214, 0.055);
   /* hover de fila */
   --kbd-bg: rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
@@ -364,7 +364,7 @@
   --c-overdue: #b0473f;
 
   /* Interacción */
-  --row-hover: #f3e8c9;
+  --surface-canvas: #f3e8c9;
   --kbd-bg: #f0e0b8;
   --task-hover: rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
@@ -562,8 +562,8 @@
 }
 
 .global-search-btn .lucide {
-  width: 13px;
-  height: 13px;
+  width: 18px;
+  height: 18px;
   stroke-width: 2;
 }
 
@@ -1557,7 +1557,7 @@ body {
   padding: 9px 11px;
   border: 1px solid var(--border-default);
   border-radius: var(--r-sm);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   color: var(--text-secondary);
   font-size: 0.8125rem;
   font-family: var(--font-sans);
@@ -1617,7 +1617,7 @@ body {
   padding: 9px 11px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   color: var(--text-secondary);
   font-size: 0.8125rem;
   /* Explícito: sin esto heredaba el 600 de la regla base de `button`,
@@ -2296,7 +2296,7 @@ body {
   padding: 8px 10px;
   border-radius: var(--r-md);
   border: 1px solid var(--border-default);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   color: var(--text-secondary);
   font-family: inherit;
   font-size: 0.82rem;
@@ -2340,7 +2340,7 @@ body {
   padding: 6px 12px 6px 6px;
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
-  background: var(--surface-input);
+  background: var(--surface-canvas);
   color: var(--text-tertiary);
   font-size: 0.82rem;
   cursor: pointer;
@@ -2348,8 +2348,8 @@ body {
 }
 
 .task-detail-delete .lucide {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Mismo tratamiento que .capture-bar-ico/.global-search-ico/
@@ -2361,9 +2361,7 @@ body {
   width: 37px;
   height: 100%;
   border-radius: 26px;
-  background: var(--c-danger);
   flex-shrink: 0;
-  color: var(--accent-on);
 }
 
 /* Móvil: el panel se convierte en pantalla completa, con cabecera
@@ -2867,7 +2865,7 @@ button:focus-visible {
   font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-tight);
   color: var(--text-secondary);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
   padding: var(--sp-2) var(--sp-3);
@@ -3127,7 +3125,7 @@ button:focus-visible {
   color: var(--text-tertiary);
   /* Mismo fondo+borde+radio que .filter-segment (Todas/Pendientes/Hechas):
      un solo lenguaje de "botón suelto en el header" en vez de dos. */
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
   cursor: pointer;
@@ -3158,7 +3156,7 @@ button:focus-visible {
   width: 40px;
   height: 40px;
   color: var(--text-tertiary);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
   cursor: pointer;
@@ -3203,7 +3201,7 @@ button:focus-visible {
   width: 40px;
   height: 40px;
   color: var(--text-tertiary);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
   cursor: pointer;
@@ -3839,7 +3837,7 @@ button:focus-visible {
 }
 
 .list-chip:active {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
 }
 
 /* La activa se queda marcada en vez de desaparecer (v1): fondo teñido, texto
@@ -3923,7 +3921,7 @@ button:focus-visible {
   }
 
   .task-list-edit-btn:active {
-    background: var(--row-hover);
+    background: var(--surface-canvas);
     color: var(--text-secondary);
   }
 
@@ -4086,7 +4084,7 @@ button:focus-visible {
     min-height: 30px;
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
-    background: var(--row-hover);
+    background: var(--surface-canvas);
     color: var(--text-secondary);
     font-family: var(--font-sans);
     font-size: var(--fs-sm);
@@ -4419,7 +4417,7 @@ button:focus-visible {
      cualquier tamaño de pantalla. */
   width: 36px;
   height: 36px;
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border: 1px solid var(--text-tertiary);
   border-radius: var(--r-pill);
   cursor: pointer;
@@ -4644,7 +4642,7 @@ body.tasks-compact .task-text {
 }
 
 :root[data-theme="light"] .subtask-item {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   border-color: rgba(80, 55, 10, 0.07);
 }
 
@@ -5382,7 +5380,7 @@ input.inline-edit {
   flex-shrink: 0;
   padding: 0 10px;
   border-radius: 25px;
-  background: color-mix(in srgb, var(--c-recur) 10%, var(--row-hover));
+  background: color-mix(in srgb, var(--c-recur) 10%, var(--surface-canvas));
   border: 1px solid color-mix(in srgb, var(--c-recur) 35%, transparent);
   height: 25px;
 }
@@ -6752,7 +6750,7 @@ body.project-dragging .project-item {
   width: 100%;
   height: 50px;
   margin-top: 22px;
-  background: var(--surface-input);
+  background: var(--surface-canvas);
   border: 1px solid var(--border-default);
   color: var(--text-tertiary);
   padding: 6px;
@@ -6780,8 +6778,6 @@ body.project-dragging .project-item {
   width: 37px;
   height: 37px;
   border-radius: 50%;
-  background: var(--grad-primary);
-  color: var(--accent-on);
   flex-shrink: 0;
 }
 
@@ -9748,7 +9744,7 @@ button {
   display: grid;
   place-items: center;
   opacity: 0.7;
-  background: var(--row-hover);
+  background: var(--surface-canvas);
 }
 
 .today-check:checked {
@@ -9800,7 +9796,6 @@ button {
   gap: 3px;
   flex-shrink: 0;
   padding: 6px;
-  background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
 }
@@ -11721,7 +11716,7 @@ button {
        activo) o en hover (fondo tenue), parecía más pequeño aunque
        compartiera el mismo padding. Con la píldora siempre puesta, los
        tres miden igual se toquen o no. */
-    background: var(--row-hover);
+    background: var(--surface-canvas);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
     padding: var(--sp-2) var(--sp-3);
@@ -12816,7 +12811,7 @@ button {
   min-height: 30px;
   border-radius: var(--r-pill);
   border: 1px solid var(--border-default);
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -12883,7 +12878,7 @@ button {
     min-height: 30px;
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
-    background: var(--row-hover);
+    background: var(--surface-canvas);
     color: var(--text-secondary);
     font-family: var(--font-sans);
     font-size: var(--fs-sm);
