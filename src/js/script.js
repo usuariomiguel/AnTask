@@ -999,15 +999,23 @@ exportBtn.addEventListener("click", function() {
   // a aparecer, y archivarlas es precisamente decir que ya no se quieren
   // a la vista. Siguen guardadas en este dispositivo, solo no viajan.
   const exportables = projects.filter(function(p) { return !p.archived; });
-  if (exportables.length === 0) {
+  // Un espacio con hábitos pero sin listas también es exportable: antes
+  // esta salida temprana solo miraba proyectos.
+  if (exportables.length === 0 && habits.length === 0) {
     modalAlert(t("task.nothing_to_export"), "info");
     return;
   }
+  // `account` no sirve para restaurar nada: está para que el fichero diga
+  // DE QUIÉN es. Con dos cuentas (Google y correo) los backups salían
+  // indistinguibles y era imposible saber cuál tenías delante.
+  var _u = window.AnsoSync?.getUser?.() ?? null;
   const backup = {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
+    account: _u ? { uid: _u.uid, email: _u.email || null } : null,
     projects: exportables,
     sections: sections,
+    habits: habits,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1028,7 +1036,7 @@ importFile.addEventListener("change", async function() {
     const parsed = JSON.parse(content);
 
     // ── Backup de workspace completo (version 2) ──
-    if (parsed.version === 2 && Array.isArray(parsed.projects)) {
+    if ((parsed.version === 2 || parsed.version === 3) && Array.isArray(parsed.projects)) {
       const confirmed = await modalConfirm(
         t("backup.restore_confirm"),
         t("backup.restore_title")
@@ -1042,6 +1050,13 @@ importFile.addEventListener("change", async function() {
           return { id: s.id, name: s.name, collapsed: !!s.collapsed };
         });
         saveSections();
+      }
+      // Los hábitos llegan desde la versión 3. Un backup v2 no los trae, y
+      // entonces no se tocan los que ya haya: `undefined` es "no sé nada
+      // de esto", no "está vacío" — mismo criterio que _syncApplyRemote.
+      if (Array.isArray(parsed.habits)) {
+        habits = sanitizeHabits(parsed.habits);
+        saveHabits();
       }
       // Los backups antiguos traen `standaloneNotes`: se ignoran sin fallar.
       activeProjectId = projects.length > 0 ? projects[0].id : null;
@@ -6023,7 +6038,10 @@ function saveHabits() {
   if (!ok) return;
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
-  window.AnsoSync?.scheduleSave?.(_workspace());
+  // El argumento afirma que la lista local es la verdad, aunque quede
+  // vacía: el usuario acaba de tocarla. Sin esto, borrar el último
+  // hábito no viajaría nunca a los demás dispositivos.
+  window.AnsoSync?.scheduleSave?.(_workspace(true));
 }
 
 function saveProjects() {
@@ -6443,6 +6461,51 @@ function _hasRealTasks(list) {
   });
 }
 
+/**
+ * ¿Hay algo que perder en este espacio de trabajo?
+ *
+ * Cuenta tareas Y hábitos. Antes las comparaciones de "quién gana" al
+ * sincronizar miraban solo `p.tasks.length`, así que un dispositivo con
+ * tareas pero sin hábitos se declaraba "con contenido", ganaba el
+ * desempate y subía `habits: []`. Como en mergeHabits() es el remoto
+ * quien decide QUÉ hábitos existen, esa lista vacía los borraba en
+ * todos los dispositivos.
+ *
+ * @param {any[]} proyectos
+ * @param {any[]} [habitos]
+ * @returns {boolean}
+ */
+function _tieneContenido(proyectos, habitos) {
+  return _hasRealTasks(proyectos) || (Array.isArray(habitos) && habitos.length > 0);
+}
+
+/**
+ * Impide que un dispositivo sin hábitos borre los de la nube al subir.
+ *
+ * Una lista vacía no significa "he borrado todos mis hábitos", significa
+ * casi siempre "aquí nunca hubo ninguno" — un portátil recién estrenado,
+ * por ejemplo. Antes de subir, si este dispositivo no tiene ninguno y la
+ * nube sí, se adoptan los de la nube en vez de aplastarlos.
+ *
+ * Contrapartida asumida, la misma que ya acepta mergeLogs(): borrar
+ * TODOS los hábitos en un dispositivo no viaja a otro que aún los tenga,
+ * que los reintroduciría. Se prefiere eso a perderlos: vaciar la lista
+ * entera es rarísimo y se deshace en un minuto; perder meses de racha,
+ * no.
+ *
+ * @param {{habits?: any[]}|null} cloudData
+ * @param {string|null} uid
+ */
+function _noPisarHabitosDeLaNube(cloudData, uid) {
+  if (habits.length > 0) return;
+  if (!cloudData || !Array.isArray(cloudData.habits) || cloudData.habits.length === 0) return;
+  habits = sanitizeHabits(cloudData.habits);
+  try {
+    localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+    if (uid) localStorage.setItem(_acctHabitsKey(uid), JSON.stringify(habits));
+  } catch (e) { /* cuota llena: el guardado normal ya avisa */ }
+}
+
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
@@ -6455,6 +6518,7 @@ function _syncOnFirstConnect(cloudData) {
     // Dispositivo ya usado con esta cuenta → comparar caché vs nube
     if (!cloudData || !Array.isArray(cloudData.projects)) {
       // Nube vacía → subir caché local
+      _primeraSincroHecha = true;
       try {
         projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
         sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
@@ -6471,8 +6535,9 @@ function _syncOnFirstConnect(cloudData) {
     var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
     var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
     var cachedProjects  = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]");
-    var cloudHasContent = _hasRealTasks(cloudData.projects);
-    var localHasContent = _hasRealTasks(cachedProjects);
+    var cachedHabits    = JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]");
+    var cloudHasContent = _tieneContenido(cloudData.projects, cloudData.habits);
+    var localHasContent = _tieneContenido(cachedProjects, cachedHabits);
 
     // Una caché local VACÍA con marca de tiempo más reciente no debe ganar
     // nunca a datos reales de la nube: solo dice "aquí no se guardó nada
@@ -6492,6 +6557,8 @@ function _syncOnFirstConnect(cloudData) {
         localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
         renderSidebar(); renderTasks();
       } catch(e) {}
+      _noPisarHabitosDeLaNube(cloudData, uid);
+      _primeraSincroHecha = true;
       window.AnsoSync?.scheduleSave?.(_workspace());
     }
     return;
@@ -6500,10 +6567,11 @@ function _syncOnFirstConnect(cloudData) {
   // ── Primera vez con esta cuenta en este dispositivo ───────────
   // Solo cuenta como "datos anónimos" si hay tareas reales.
   // Proyectos vacíos auto-creados (Inbox) no deben disparar el modal de conflicto.
-  var hasAnonymousData = projects.some(function(p) { return p.tasks && p.tasks.length > 0; });
+  var hasAnonymousData = _tieneContenido(projects, habits);
 
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local
+    _primeraSincroHecha = true;
     _saveAccountCache(uid);
     if (projects.length > 0) window.AnsoSync?.scheduleSave?.(_workspace());
     return;
@@ -6525,7 +6593,12 @@ function _syncOnFirstConnect(cloudData) {
   if (Math.abs(cloudTime2 - anonTime) < 15000) {
     // Menos de 15 s de diferencia → misma sesión, usar la más reciente
     if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData, uid);
-    else { _saveAccountCache(uid); window.AnsoSync?.scheduleSave?.(_workspace()); }
+    else {
+      _noPisarHabitosDeLaNube(cloudData, uid);
+      _primeraSincroHecha = true;
+      _saveAccountCache(uid);
+      window.AnsoSync?.scheduleSave?.(_workspace());
+    }
     return;
   }
 
@@ -6564,6 +6637,11 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.querySelector("#_sc-local").addEventListener("click", function() {
     closeModal(overlay);
+    // "Usar lo local" habla de las TAREAS, que es lo que compara el
+    // diálogo y lo único que enseña. No es permiso para tirar unos
+    // hábitos que este dispositivo ni siquiera tiene.
+    _noPisarHabitosDeLaNube(cloudData, uid);
+    _primeraSincroHecha = true;
     _saveAccountCache(uid);
     window.AnsoSync?.scheduleSave?.(_workspace());
   });
@@ -6654,12 +6732,17 @@ async function _syncApplyRemote(remote, uid, opts) {
     if (remoteHabits) habits = remoteHabits;
 
     if (uid) _saveAccountCache(uid);
+    _primeraSincroHecha = true;
 
     renderSidebar();
-    var proj = getActiveProject();
-    if (proj) {
-      renderTasks();
-    }
+    // Sin condición: renderTasks() ya decide solo qué pintar —la vista
+    // Hoy, el Inbox, o vaciar la lista si no hay proyecto—. Antes esto
+    // estaba detrás de un `if (getActiveProject())`, y en Hoy NO hay
+    // proyecto activo: los datos de la nube entraban en memoria y en
+    // localStorage, pero la pantalla se quedaba con lo de antes. El
+    // usuario veía cero hábitos teniéndolos ya cargados, y de ahí a
+    // "se me han borrado" y a tocar cosas que sí destruyen hay un paso.
+    renderTasks();
     updateSaveStatus(new Date().toISOString());
     _checkStorageWarning();
   } catch (e) {

@@ -357,13 +357,17 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
         if (_saveTimer) clearTimeout(_saveTimer);
         _saveTimer = setTimeout(function () {
           _syncPaused = true;
-          setDoc(docRef(), {
+          // `habits` solo va si el llamante lo incluye. Omitirlo no es lo
+          // mismo que mandar []: con merge, un campo ausente se queda como
+          // esté en la nube, y un array vacío lo BORRA. Ver _workspace().
+          var payload = {
             projects:        workspace.projects,
             sections:        workspace.sections || [],
-            habits:          workspace.habits  || [],
             updatedAt:       serverTimestamp(),
             version:         3,
-          }, {
+          };
+          if (Array.isArray(workspace.habits)) payload.habits = workspace.habits;
+          setDoc(docRef(), payload, {
             // Sin `merge` este setDoc REEMPLAZA el documento entero, así que
             // un cliente que no conozca algún campo lo borra de la nube al
             // guardar — y con la PWA instalada es normal que un dispositivo
