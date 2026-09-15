@@ -9819,7 +9819,7 @@ button {
    como consecuencia de haber completado y no como parte del mismo golpe.
    Se enciende al crecer —fondo lleno un instante— y vuelve a su sitio. */
 .today-item--celebrate .habit-streak {
-  animation: streak-up 520ms var(--ease-spring) 180ms both;
+  animation: streak-up 720ms var(--ease-spring) 100ms both;
 }
 
 @keyframes streak-up {
@@ -9830,7 +9830,7 @@ button {
   }
 
   32% {
-    transform: scale(1.24);
+    transform: scale(1.25);
     background: var(--c-primary-500);
     color: var(--accent-on);
   }
