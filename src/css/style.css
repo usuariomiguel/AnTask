@@ -9988,7 +9988,7 @@ button {
 }
 
 .hoy-section--habits .hoy-section-title {
-  color: var(--c-recur);
+  color: var(--text-primary);
 }
 
 /* En móvil el botón no cabe junto al título —"Programar todas hoy"
