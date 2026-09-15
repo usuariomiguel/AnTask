@@ -2140,6 +2140,7 @@ body {
    La lista de proyectos y "Más" (archivados) del sidebar quedan
    ocultas ahí, no borradas (siguen ahí para modo completo/escritorio). */
 @media (max-width: 768px) {
+
   html[data-mode="simple"] #project-list,
   html[data-mode="simple"] #sidebar-more-group {
     display: none;
@@ -2224,6 +2225,7 @@ body {
   html[data-mode="simple"] .today-item:has(.today-meta:not(:empty)) {
     min-height: 0;
   }
+
   /* Una tarea sin fecha ni repetir se encogía a su contenido mínimo
      (checkbox+texto, ~35px) mientras que una con fecha medía ~52px por
      la propia píldora — la lista se veía con filas de alturas distintas
@@ -2232,14 +2234,17 @@ body {
   html[data-mode="simple"] .today-item {
     min-height: 52px;
   }
+
   html[data-mode="simple"] .task-main-row,
   html[data-mode="simple"] .today-item {
     grid-template-columns: auto minmax(0, 1fr) auto max-content;
   }
+
   html[data-mode="simple"] .task-text,
   html[data-mode="simple"] .today-text {
     grid-area: 1 / 2;
   }
+
   html[data-mode="simple"] .task-chips,
   html[data-mode="simple"] .today-meta {
     grid-area: 1 / 3;
@@ -2251,10 +2256,12 @@ body {
     border: none;
     padding: 0;
   }
+
   html[data-mode="simple"] .task-due-container,
   html[data-mode="simple"] .today-date-pill {
     grid-area: 1 / 4;
   }
+
   /* La casilla ocupaba 2 filas (1/1/3/2) para centrarse cuando SÍ había
      segunda fila de chips — aquí ya no la hay nunca, así que esa 2ª fila
      implícita seguía generándose vacía solo para que la casilla y la
@@ -2264,9 +2271,11 @@ body {
   html[data-mode="simple"] .today-check {
     grid-area: 1 / 1;
   }
+
   html[data-mode="simple"] .task-summary .task-toggle-wrap {
     height: auto;
   }
+
   /* Repetir con el mismo alto/padding que la píldora de fecha, para que
      ambas se lean como parte de la misma fila y no una más "aplastada"
      que la otra. */
@@ -2311,8 +2320,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   border-radius: var(--r-md);
   border: 2px solid var(--border-default);
@@ -4042,6 +4051,7 @@ button:focus-visible {
 }
 
 @media (max-width: 768px) {
+
   /* Misma cápsula que el segmentado de filtros en escritorio: el carril
      abraza su contenido (inline-flex) y cada botón pinta su propia
      píldora dentro, en vez de repartirse el ancho a partes iguales. */
@@ -4096,12 +4106,13 @@ button:focus-visible {
   }
 
 
-  .hoy-section--headless > .hoy-section-head {
+  .hoy-section--headless>.hoy-section-head {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
+
   /* Carril compartido con el conmutador Tareas|Hábitos: los dos miden lo
      mismo y van centrados, así que se leen como una sola columna.
      372px es el ancho que ya tenía esta tira por `max-content` (lo manda
@@ -4410,8 +4421,8 @@ button:focus-visible {
   /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
      la de Hoy son el mismo control y no deben verse distintas. 36px en
      cualquier tamaño de pantalla. */
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   background: var(--surface-canvas);
   border: 2px solid var(--text-tertiary);
   border-radius: var(--r-pill);
@@ -4420,8 +4431,8 @@ button:focus-visible {
   opacity: 0.7;
   flex-shrink: 0;
   transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              opacity var(--dur-fast) var(--ease-out);
+    border-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 /* Al pasar por encima de la fila el checkbox se ilumina, igual que
@@ -4509,7 +4520,7 @@ button:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color var(--dur-base) var(--ease-out),
-              opacity var(--dur-base) var(--ease-out);
+    opacity var(--dur-base) var(--ease-out);
 }
 
 .task-item .task-text {
@@ -4564,6 +4575,7 @@ button:focus-visible {
    como una píldora vacía — su propio fondo+borde+radio pill, sin
    contenido, se veía como un círculo hueco suelto al borde de la fila. */
 @media (min-width: 769px) {
+
   /* .due-badge queda fuera de esta lista a propósito: ya no vive dentro
      de .task-meta (ver .task-due-container, ahora hermano suyo), así que
      nunca puede ser el contenido que la salva de quedarse vacía. */
@@ -6548,10 +6560,11 @@ body.project-dragging .project-item {
   }
 
   @media (prefers-reduced-motion: no-preference) {
+
     .mobile-bottom-nav,
     .mobile-fab.visible {
       transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-                  opacity 0.18s ease;
+        opacity 0.18s ease;
     }
   }
 
@@ -6723,7 +6736,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .mobile-bottom-btn:active,
-:root[data-theme="light"] .mobile-bottom-btn.active {
+  :root[data-theme="light"] .mobile-bottom-btn.active {
     color: var(--c-primary-600);
   }
 
@@ -6745,6 +6758,7 @@ body.project-dragging .project-item {
   html[data-mode="simple"] .mobile-bottom-nav {
     grid-template-columns: repeat(3, 1fr);
   }
+
   html[data-mode="simple"] #bnav-search-btn,
   html[data-mode="simple"] #bnav-profile-btn {
     display: none;
@@ -8201,7 +8215,9 @@ body.task-dragging .project-item:not(.active) {
    ANTES de las reglas que quieren pisar, y a igual especificidad gana la
    última, así que separarlas la dejaría sin efecto. */
 @media (max-width: 768px) {
-  .settings-row--con-teclado { display: none; }
+  .settings-row--con-teclado {
+    display: none;
+  }
 }
 
 .settings-row--top {
@@ -8370,6 +8386,7 @@ body.task-dragging .project-item:not(.active) {
    mostrar, así que sus filas de Ajustes se ocultan a la vez. En
    escritorio siguen intactas. Revertir: quitar este bloque. */
 @media (max-width: 768px) {
+
   .settings-row:has(#settings-mode-seg),
   .settings-row:has(#settings-rowstyle-seg) {
     display: none;
@@ -8522,6 +8539,7 @@ body.task-dragging .project-item:not(.active) {
    de escritorio — todas las secciones se muestran a la vez (ver
    openSettingsModal en sections-and-profile.js). ────────────────── */
 @media (max-width: 768px) {
+
   /* La caja y sus tarjetas usaban las dos `--surface-card`, así que las
      tarjetas no se despegaban del fondo. Con `canvas` detrás queda la
      misma jerarquía que en la lista de tareas: tarjeta clara sobre
@@ -9697,8 +9715,8 @@ button {
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   margin: 0;
   border-radius: 50%;
   border: 2px solid var(--text-tertiary);
@@ -9709,8 +9727,8 @@ button {
   opacity: 0.7;
   background: var(--surface-canvas);
   transition: background var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out),
-              opacity var(--dur-fast) var(--ease-out);
+    border-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .today-check:checked {
@@ -9735,9 +9753,17 @@ button {
 }
 
 @keyframes check-pop {
-  0%   { transform: scale(1); }
-  38%  { transform: scale(0.84); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  38% {
+    transform: scale(0.84);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Desmarcar: la casilla se suelta hacia FUERA en vez de hundirse, sin
@@ -9750,9 +9776,17 @@ button {
 }
 
 @keyframes check-release {
-  0%   { transform: scale(1); }
-  32%  { transform: scale(1.09); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  32% {
+    transform: scale(1.09);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* El tick de Hoy era una máscara CSS en un ::after, y una máscara no se
@@ -9766,8 +9800,11 @@ button {
    apoyo, no el asunto de la fila— y solo se hace notar el día que crece. */
 .habit-streak {
   flex-shrink: 0;
-  min-width: 24px;
-  padding: 2px 7px;
+  height: 34px;
+  width: 34px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
   border-radius: var(--r-pill);
   background: var(--accent-tint);
   color: var(--c-primary-500);
@@ -9791,11 +9828,13 @@ button {
     background: var(--accent-tint);
     color: var(--c-primary-500);
   }
+
   32% {
     transform: scale(1.24);
     background: var(--c-primary-500);
     color: var(--accent-on);
   }
+
   100% {
     transform: scale(1);
     background: var(--accent-tint);
@@ -9812,7 +9851,7 @@ button {
   color: var(--text-primary);
   letter-spacing: -0.025em;
   transition: color var(--dur-base) var(--ease-out),
-              opacity var(--dur-base) var(--ease-out);
+    opacity var(--dur-base) var(--ease-out);
   line-height: 1.4;
   /* Una sola línea, como la fila de una lista: `.today-text` no tenía
      ningún límite y un título largo crecía hasta cuatro líneas. */
@@ -10200,6 +10239,7 @@ button {
 }
 
 @media (max-width: 768px) {
+
   /* Mismo umbral de zoom de Safari que en `.list-search-input`: por
      debajo de 16px, Safari hace zoom automático al enfocar el campo. */
   .hoy-quickadd-input {
@@ -10212,7 +10252,7 @@ button {
      que cuelga del bloque de sección entero (hermano del <ul>), no un
      hermano de .today-item dentro de la lista — ver _hoyQuickAddEl() en
      script.js. El selector correcto es este. */
-  .hoy-section-list + .hoy-quickadd {
+  .hoy-section-list+.hoy-quickadd {
     margin-top: 3px;
   }
 }
@@ -11197,8 +11237,15 @@ button {
 /* Entra deslizándose desde la dirección de la que viene (Siguiente/Atrás),
    no con un salto instantáneo — --onb-dir lo fija onboarding.js por paso. */
 @keyframes onbStepIn {
-  from { opacity: 0; transform: translateX(var(--onb-dir, 16px)); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(var(--onb-dir, 16px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .onb-step {
@@ -11341,7 +11388,9 @@ button {
 }
 
 @keyframes onbCaretBlink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 .onb-syntax-arrow {
@@ -11379,9 +11428,19 @@ button {
 }
 
 @keyframes onbChipPop {
-  0%   { opacity: 0; transform: scale(0.5) translateY(6px); }
-  65%  { opacity: 1; transform: scale(1.08) translateY(0); }
-  100% { transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(6px);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.08) translateY(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Ráfaga de puntitos al pulsar "Empezar" — _burst() en onboarding.js los
@@ -11399,8 +11458,15 @@ button {
 }
 
 @keyframes onbBurst {
-  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4);
+    opacity: 0;
+  }
 }
 
 .onb-chip-date {
@@ -12035,7 +12101,7 @@ button {
        más estrecha que él, se desbordaba hacia la izquierda y quedaba
        más pegado al borde que en Hoy (.today-check, sin este
        envoltorio, que sencillamente ocupa lo que mide). */
-    width: 36px;
+    width: 34px;
     /* Alto CERO a propósito. Al ocupar las dos filas, Chrome reparte el
        alto del elemento a partes iguales entre las pistas que abarca: con
        22px, la segunda pista se quedaba con 11 aunque estuviera vacía, y
@@ -12305,8 +12371,8 @@ button {
      coarse`; aquí solo se corrige su inset. */
   .task-toggle,
   .today-check {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-width: 2px;
   }
 
@@ -12534,7 +12600,7 @@ button {
      icono solo necesita heredar el tono de aviso, suelto. */
   .task-detail-delete-ico {
     display: none;
-    }
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -12676,20 +12742,42 @@ button {
 
 /* Nivel 0 = "no tocaba nada". Deliberadamente NEUTRO: un día sin nada
    pendiente no es un fracaso y no debe leerse como tal. */
-.hm-cell--0 { fill: var(--surface-raised); }
+.hm-cell--0 {
+  fill: var(--surface-raised);
+}
+
 /* Nivel 1 = tocaba y no se hizo nada. Rojo muy tenue: se distingue del
    día vacío sin convertir el mapa en un muro de alarma. */
-.hm-cell--1 { fill: rgba(var(--c-overdue-rgb), 0.28); }
-.hm-cell--2 { fill: var(--c-primary-800); }
-.hm-cell--3 { fill: var(--c-primary-600); }
-.hm-cell--4 { fill: var(--c-primary-400); }
+.hm-cell--1 {
+  fill: rgba(var(--c-overdue-rgb), 0.28);
+}
+
+.hm-cell--2 {
+  fill: var(--c-primary-800);
+}
+
+.hm-cell--3 {
+  fill: var(--c-primary-600);
+}
+
+.hm-cell--4 {
+  fill: var(--c-primary-400);
+}
 
 /* En claro la rampa se INVIERTE: sobre la arena, los oliva oscuros son
    los que destacan, así que el "más" tiene que ser el más oscuro. Sin
    esto, las celdas llenas casi desaparecían sobre el fondo. */
-:root[data-theme="light"] .hm-cell--2 { fill: var(--c-primary-300); }
-:root[data-theme="light"] .hm-cell--3 { fill: var(--c-primary-600); }
-:root[data-theme="light"] .hm-cell--4 { fill: var(--c-primary-800); }
+:root[data-theme="light"] .hm-cell--2 {
+  fill: var(--c-primary-300);
+}
+
+:root[data-theme="light"] .hm-cell--3 {
+  fill: var(--c-primary-600);
+}
+
+:root[data-theme="light"] .hm-cell--4 {
+  fill: var(--c-primary-800);
+}
 
 .hm-key {
   display: flex;
@@ -12700,7 +12788,9 @@ button {
   color: var(--text-tertiary);
 }
 
-.hm-key-label { margin: 0 3px; }
+.hm-key-label {
+  margin: 0 3px;
+}
 
 /* Los cuadros de la leyenda son divs, no SVG, así que se pintan con
    background y no con fill — de ahí el bloque aparte. */
@@ -12710,13 +12800,34 @@ button {
   border-radius: 2px;
   background: var(--surface-raised);
 }
-.hm-key-cell.hm-cell--1 { background: rgba(var(--c-overdue-rgb), 0.28); }
-.hm-key-cell.hm-cell--2 { background: var(--c-primary-800); }
-.hm-key-cell.hm-cell--3 { background: var(--c-primary-600); }
-.hm-key-cell.hm-cell--4 { background: var(--c-primary-400); }
-:root[data-theme="light"] .hm-key-cell.hm-cell--2 { background: var(--c-primary-300); }
-:root[data-theme="light"] .hm-key-cell.hm-cell--3 { background: var(--c-primary-600); }
-:root[data-theme="light"] .hm-key-cell.hm-cell--4 { background: var(--c-primary-800); }
+
+.hm-key-cell.hm-cell--1 {
+  background: rgba(var(--c-overdue-rgb), 0.28);
+}
+
+.hm-key-cell.hm-cell--2 {
+  background: var(--c-primary-800);
+}
+
+.hm-key-cell.hm-cell--3 {
+  background: var(--c-primary-600);
+}
+
+.hm-key-cell.hm-cell--4 {
+  background: var(--c-primary-400);
+}
+
+:root[data-theme="light"] .hm-key-cell.hm-cell--2 {
+  background: var(--c-primary-300);
+}
+
+:root[data-theme="light"] .hm-key-cell.hm-cell--3 {
+  background: var(--c-primary-600);
+}
+
+:root[data-theme="light"] .hm-key-cell.hm-cell--4 {
+  background: var(--c-primary-800);
+}
 
 /* ── 3. Listado por hábito ──────────────────────────────────────── */
 .hist-list {
@@ -12785,7 +12896,9 @@ button {
   align-self: center;
 }
 
-.hist-pct { color: var(--text-tertiary); }
+.hist-pct {
+  color: var(--text-tertiary);
+}
 
 /* Tira por hábito: una celda por día, binaria. La intensidad no aplica
    aquí — un hábito suelto solo puede estar hecho o no. */
@@ -12804,10 +12917,21 @@ button {
   border-radius: 2px;
 }
 
-.hs-cell--none { background: var(--surface-raised); }
-.hs-cell--miss { background: rgba(var(--c-overdue-rgb), 0.42); }
-.hs-cell--done { background: var(--c-primary-500); }
-:root[data-theme="light"] .hs-cell--done { background: var(--c-primary-700); }
+.hs-cell--none {
+  background: var(--surface-raised);
+}
+
+.hs-cell--miss {
+  background: rgba(var(--c-overdue-rgb), 0.42);
+}
+
+.hs-cell--done {
+  background: var(--c-primary-500);
+}
+
+:root[data-theme="light"] .hs-cell--done {
+  background: var(--c-primary-700);
+}
 
 /* Resumen en texto de cada fila: existe para quien usa lector de
    pantalla, ya que el mapa va marcado como una sola imagen. */
@@ -12830,10 +12954,15 @@ button {
 }
 
 @media (max-width: 768px) {
-  .hist-list { max-height: 38vh; }
+  .hist-list {
+    max-height: 38vh;
+  }
+
   /* El nombre ya se recorta con puntos suspensivos; lo que no puede
      encogerse son los tres números de la derecha. */
-  .hist-stats { gap: 0.55rem; }
+  .hist-stats {
+    gap: 0.55rem;
+  }
 }
 
 /* Acceso al historial desde el conmutador de Hoy (móvil). Va pegado al
@@ -12858,7 +12987,9 @@ button {
   cursor: pointer;
 }
 
-.hoy-tabs-hist[hidden] { display: none; }
+.hoy-tabs-hist[hidden] {
+  display: none;
+}
 
 .hoy-tabs-hist .lucide {
   width: 17px;
