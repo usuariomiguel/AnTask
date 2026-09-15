@@ -174,6 +174,13 @@ export const en = {
   "hoy.habit_freq_prompt":    "Every how many days? (2 or more)",
   "hoy.habit_done_toggle":    "Mark done today",
 
+  // ── Habits view ───────────────────────────────────────────
+  "sidebar.habits":           "Habits",
+  "habits.count_one":         "{count} habit",
+  "habits.count_other":       "{count} habits",
+  "habits.other_days":        "Other days",
+  "habits.not_due":           "Not due today",
+
   // ── Historial de hábitos ──────────────────────────────────
   "hist.title":               "Habit history",
   "hist.open":                "View history",

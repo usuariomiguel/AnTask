@@ -1573,6 +1573,48 @@ function activateTodayView() {
   if (window._antrackNavShow) window._antrackNavShow();
 }
 
+/**
+ * Activa la vista virtual "Hábitos": todos los hábitos, los que tocan hoy
+ * arriba. Monta sobre el mismo panel y la misma lista que Hoy en vez de un
+ * panel propio, así que filas, casillas y animaciones son las mismas sin
+ * duplicar nada. El subtítulo con el número de hábitos lo escribe
+ * renderHabitsView, porque cambia cada vez que se crea o se borra uno.
+ */
+function activateHabitsView() {
+  activeView = "habits";
+  activeProjectId = null;
+  localStorage.removeItem(ACTIVE_KEY);
+
+  _closeAllAltPanels();
+
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (mobileFab) mobileFab.classList.add("visible");
+  tasksPanel.hidden = false;
+  _setActiveViewTab("tasks");
+
+  if (taskForm) taskForm.style.display = "none";
+
+  var mobileHeader = document.getElementById("mobile-header");
+  var mobileHeaderTitle = document.getElementById("mobile-header-title");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeader) mobileHeader.classList.add("mobile-header--project");
+  if (mobileHeaderTitle) mobileHeaderTitle.textContent = t("sidebar.habits");
+  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
+
+  document.title = t("sidebar.habits") + " — AnTrack";
+  if (projectTitleEl) projectTitleEl.textContent = t("sidebar.habits");
+
+  // Todas/Pendientes/Hechas filtran tareas; aquí no hay ninguna.
+  currentFilter = "all";
+  _syncFilterPanel("all");
+
+  closeTaskDetail();
+  renderSidebar();
+  renderTasks();
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  if (window._antrackNavShow) window._antrackNavShow();
+}
+
 
 /**
  * Pinta los items fijos al tope de la sidebar: vista "Hoy" + proyecto Inbox.
@@ -1604,6 +1646,22 @@ function renderPinnedItems(inboxProject) {
     showTodayMenu(e.clientX, e.clientY);
   });
   projectListEl.appendChild(hoy);
+
+  // ── Item "Hábitos" — vista virtual ─────────────────────────────
+  // El contador es lo que QUEDA por marcar hoy, no el total de hábitos:
+  // igual que Hoy, la píldora avisa de algo pendiente, y a cero se va.
+  var habitosPendientes = _habitosPendientesHoy(today);
+  var hab = document.createElement("li");
+  hab.className = "project-item project-item-pinned project-item-habits" +
+    (activeView === "habits" ? " active" : "");
+  hab.innerHTML =
+    '<div class="project-item-top">' +
+      '<span class="project-item-icon project-item-icon--system"><i data-lucide="repeat"></i></span>' +
+      '<span class="project-item-name">' + t("sidebar.habits") + '</span>' +
+      (habitosPendientes > 0 ? '<span class="project-item-count">' + habitosPendientes + '</span>' : "") +
+    '</div>';
+  hab.addEventListener("click", function() { activateHabitsView(); });
+  projectListEl.appendChild(hab);
 
   // ── Item Inbox — proyecto real, fijado ─────────────────────────
   if (inboxProject) {
@@ -1754,6 +1812,13 @@ function syncSidebarRail() {
 
   if (todayCount > 0) todayBtn.setAttribute("data-attention", "");
   else                todayBtn.removeAttribute("data-attention");
+
+  const habitsBtn = document.getElementById("sidebar-rail-habits");
+  if (habitsBtn) {
+    habitsBtn.classList.toggle("active", activeView === "habits");
+    if (_habitosPendientesHoy(today) > 0) habitsBtn.setAttribute("data-attention", "");
+    else                                  habitsBtn.removeAttribute("data-attention");
+  }
   if (pending > 0)    inboxBtn.setAttribute("data-attention", "");
   else                inboxBtn.removeAttribute("data-attention");
 
@@ -2371,9 +2436,20 @@ function renderTasks() {
   _renderHoyTabs();
   _syncFiltrosMovil();
 
+  // Los filtros de la barra (Todas/Pendientes/Hechas) son de tareas, y en
+  // Hábitos no hay ninguna que filtrar: se quitan en vez de dejar botones
+  // que no hacen nada.
+  var filterSegments = document.getElementById("filter-segments");
+  if (filterSegments) filterSegments.classList.toggle("filter-segments--off", activeView === "habits");
+
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
     renderTodayView();
+    _restaurarScroll();
+    return;
+  }
+  if (activeView === "habits") {
+    renderHabitsView();
     _restaurarScroll();
     return;
   }
@@ -4392,7 +4468,7 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   head.className = "hoy-section-head";
   // Icono por tono, como el prototipo: sol para hoy, aviso para lo vencido
   // y bandeja para lo que no tiene fecha. Sustituye al punto de color.
-  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "repeat" };
+  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "repeat", "habits-later": "calendar-clock" };
   head.insertAdjacentHTML("beforeend",
     '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
@@ -4490,6 +4566,73 @@ function _hoyHabitsDeHoy(todayISO) {
   return habits.filter(function(h) { return isDueOn(h, todayISO); });
 }
 
+/** Hábitos que tocan hoy y siguen sin marcar: el aviso de la sidebar y del rail. */
+function _habitosPendientesHoy(todayISO) {
+  return _hoyHabitsDeHoy(todayISO).filter(function(h) { return !isDoneOn(h, todayISO); }).length;
+}
+
+/**
+ * Vista "Hábitos": los que tocan hoy arriba, con su alta, y debajo los que
+ * no tocan hoy. Reutiliza las secciones, filas y alta de Hoy.
+ *
+ * Los de otros días se enseñan con la casilla desactivada en vez de
+ * esconderlos: la vista es el sitio donde ver TODOS, y es desde aquí
+ * donde se editan o se borran. Marcarlos hoy no se permite porque sumaría
+ * un día que no tocaba y la racha dejaría de contar lo que promete.
+ */
+function renderHabitsView() {
+  taskList.innerHTML = "";
+  taskList.classList.remove("task-list--project", "task-list--grupos");
+  taskList.classList.add("task-list--hoy");
+  var today = _localDateISO(new Date());
+
+  // Los archivados se quedan fuera: archivar es precisamente sacarlos de la
+  // vista, y `isDueOn` ya los descarta de los de hoy.
+  var activos = habits.filter(function(h) { return !h.archived; });
+  var deHoy   = activos.filter(function(h) { return isDueOn(h, today); });
+  var otros   = activos.filter(function(h) { return !isDueOn(h, today); });
+  var hechos  = deHoy.filter(function(h) { return isDoneOn(h, today); }).length;
+
+  var cuenta = (activos.length === 1 ? t("habits.count_one") : t("habits.count_other"))
+    .replace("{count}", String(activos.length));
+  if (projectSubtitle)  projectSubtitle.textContent  = cuenta;
+  if (projectSubtitleM) projectSubtitleM.textContent = cuenta;
+  if (taskCounter)      taskCounter.textContent      = cuenta;
+
+  // El anillo de la derecha mide el día, no el total: lo que tocaba hoy
+  // frente a lo ya marcado, igual que en la solapa Hábitos del móvil.
+  _renderHoyHeaderExtra(hechos, deHoy.length, 0);
+
+  var abrirHistorial = activos.length > 0
+    ? function() { openHabitsHistory(habits, _localDateISO(new Date())); }
+    : null;
+  var secHoy = _hoySectionEl("habits", t("hoy.for_today"), hechos + "/" + deHoy.length,
+    abrirHistorial ? t("hist.open") : null, abrirHistorial);
+  deHoy.forEach(function(h) {
+    secHoy.list.appendChild(_renderHabitItem(h, today));
+  });
+  // Fuera de la lista, como en Hoy: la lista es la tarjeta redondeada y su
+  // `overflow: hidden` se comería el borde del alta.
+  secHoy.li.appendChild(_hoyHabitAddEl());
+  taskList.appendChild(secHoy.li);
+
+  if (otros.length > 0) {
+    var secOtros = _hoySectionEl("habits-later", t("habits.other_days"), String(otros.length), null, null);
+    otros.forEach(function(h) {
+      secOtros.list.appendChild(_renderHabitItem(h, today, true));
+    });
+    taskList.appendChild(secOtros.li);
+  }
+
+  if (window.lucide) lucide.createIcons();
+
+  if (_hoyHabitAddRefocus) {
+    _hoyHabitAddRefocus = false;
+    var qh = taskList.querySelector(".hoy-quickadd--habit .hoy-quickadd-input");
+    if (qh) qh.focus();
+  }
+}
+
 /**
  * Fila de un hábito. Reaprovecha el CSS de `.today-item` (misma caja,
  * misma casilla) en vez de un juego de clases paralelo.
@@ -4497,8 +4640,8 @@ function _hoyHabitsDeHoy(todayISO) {
  * Sin `initSwipeGesture`: ese gesto lee `task.done`/`task.dueDate` y sus
  * dos acciones son "mover a hoy" y borrar, que no significan nada aquí.
  */
-function _renderHabitItem(habit, todayISO) {
-  var hecho = isDoneOn(habit, todayISO);
+function _renderHabitItem(habit, todayISO, noTocaHoy) {
+  var hecho = !noTocaHoy && isDoneOn(habit, todayISO);
   // Se consume al leerlo: la celebración es de este repintado y de ninguno
   // más, o volvería a saltar cada vez que la lista se vuelve a pintar.
   var tocado  = _justToggledId === habit.id;
@@ -4509,20 +4652,26 @@ function _renderHabitItem(habit, todayISO) {
   var li = document.createElement("li");
   li.className = "today-item today-item--habit" +
     (hecho ? " today-item--done" : "") +
+    (noTocaHoy ? " today-item--notdue" : "") +
     (celebra ? " today-item--celebrate" : "") +
     (reabre ? " today-item--reopen" : "");
 
-  var check = _todayCheckEl(hecho, t("hoy.habit_done_toggle"));
+  var check = _todayCheckEl(hecho, noTocaHoy ? t("habits.not_due") : t("hoy.habit_done_toggle"));
   var cb = check.cb;
+  // Un día que no tocaba no se puede marcar: sumaría a la racha algo que
+  // `computeStreak` no cuenta, y el historial enseñaría días fantasma.
+  cb.disabled = !!noTocaHoy;
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
     setDoneOn(habit, todayISO, cb.checked);
     _justToggledId   = habit.id;
     _justToggledDone = cb.checked;
     saveHabits();
-    // Sin renderSidebar(): los hábitos no salen ahí ni cuentan en los
-    // contadores de listas (ver el typedef Habit en state/types.js).
     renderTasks();
+    // Los hábitos no cuentan en los contadores de LISTAS (ver el typedef
+    // Habit en state/types.js), pero sí en su propio ítem de la sidebar y
+    // en el aviso del rail, que se quedarían con la cifra de antes.
+    renderSidebar();
   });
 
   var text = document.createElement("span");
@@ -4587,6 +4736,7 @@ function _hoyHabitAddEl() {
     saveHabits();
     _hoyHabitAddRefocus = true;
     renderTasks();
+    renderSidebar();
   }
 
   input.addEventListener("input", function() { btn.hidden = input.value.trim() === ""; });
@@ -4613,6 +4763,7 @@ function _showHabitMenu(habit, anchor) {
         habit.name = limpio;
         saveHabits();
         renderTasks();
+        renderSidebar();
       },
     },
     {
@@ -4622,6 +4773,7 @@ function _showHabitMenu(habit, anchor) {
         habit.everyNDays = null;
         saveHabits();
         renderTasks();
+        renderSidebar();
       },
     },
     {
@@ -4636,6 +4788,7 @@ function _showHabitMenu(habit, anchor) {
         habit.everyNDays = Math.min(num, 365);
         saveHabits();
         renderTasks();
+        renderSidebar();
       },
     },
     null,
@@ -4654,6 +4807,7 @@ function _showHabitMenu(habit, anchor) {
         habits = habits.filter(function(h) { return h.id !== habit.id; });
         saveHabits();
         renderTasks();
+        renderSidebar();
       },
     },
   ];
@@ -5884,7 +6038,7 @@ function showCalendarPanel() {
 }
 
 function _restoreMainPanel() {
-  var isVirtualView = (activeView === "today");
+  var isVirtualView = (activeView === "today" || activeView === "habits");
   // Si el proyecto que estaba abierto ya no existe, "Hoy" hace de red de
   // seguridad: sin estado vacío, el panel se quedaría en blanco.
   if (!isVirtualView && !getActiveProject()) { activateTodayView(); return; }
@@ -6299,6 +6453,7 @@ function _initNavAutoHide() {
   const railAvatar       = document.getElementById("sidebar-rail-avatar");
   const railSearch       = document.getElementById("sidebar-rail-search");
   const railToday        = document.getElementById("sidebar-rail-today");
+  const railHabits       = document.getElementById("sidebar-rail-habits");
   const railInbox        = document.getElementById("sidebar-rail-inbox");
 
   function setSidebarCollapsed(collapsed) {
@@ -6315,6 +6470,7 @@ function _initNavAutoHide() {
   if (railAvatar)     railAvatar.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
   if (railToday)      railToday.addEventListener("click",      function () { activateTodayView(); });
+  if (railHabits)     railHabits.addEventListener("click",     function () { activateHabitsView(); });
   if (railInbox)      railInbox.addEventListener("click",      function () { activateProject(INBOX_ID); });
 
   // Restaurar estado solo en escritorio

@@ -1150,8 +1150,10 @@ body {
   color: var(--text-secondary);
 }
 
-/* Contador de "Hoy" — píldora de atención rellena (olivo), como en v1. */
-.project-item-today .project-item-count {
+/* Contador de "Hoy" y de "Hábitos" — píldora de atención rellena (olivo),
+   como en v1. Las dos cuentan lo que queda pendiente hoy. */
+.project-item-today .project-item-count,
+.project-item-habits .project-item-count {
   background: var(--c-primary-500);
   color: var(--accent-on);
   font-weight: var(--fw-bold);
@@ -1165,7 +1167,8 @@ body {
 /* Activo: la regla genérica .project-item.active .project-item-count baja el
    color a secondary y sobre el pill olivo el número queda ilegible. Lo forzamos
    de vuelta a accent-on para que el "N" del pill se lea siempre. */
-.project-item-today.active .project-item-count {
+.project-item-today.active .project-item-count,
+.project-item-habits.active .project-item-count {
   color: var(--accent-on);
 }
 
@@ -10100,6 +10103,29 @@ button {
 
 .hoy-section--habits .hoy-section-title {
   color: var(--c-recur);
+}
+
+/* Vista Hábitos, "Otros días": los que no tocan hoy. Rótulo neutro y no
+   morado —no reclaman nada hoy— y casilla apagada, porque está
+   desactivada (ver _renderHabitItem). El nombre NO se atenúa: sigue siendo
+   texto que leer, y bajarle la opacidad lo dejaría por debajo de AA. */
+.hoy-section--habits-later .hoy-section-title {
+  color: var(--text-secondary);
+}
+
+.today-item--notdue .task-toggle-wrap {
+  opacity: 0.4;
+}
+
+.today-item--notdue .today-check {
+  cursor: default;
+}
+
+/* Todas/Pendientes/Hechas filtran tareas y en Hábitos no hay ninguna.
+   Por id: `.filter-segments` se redeclara con display propio en varios
+   @media y una clase sola perdería contra alguno. */
+#filter-segments.filter-segments--off {
+  display: none;
 }
 
 /* En móvil el botón no cabe junto al título —"Programar todas hoy"
