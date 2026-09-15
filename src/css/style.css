@@ -179,14 +179,26 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 238, 214, 0.04);
 
   /* ─── MOTION ────────────────────────────────────────────────── */
-  --ease-in-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Tres curvas, cada una con su papel — no son intercambiables:
+       out    → algo entra o responde a un gesto. Arranca rápido y frena:
+                se lee como "ya está ahí" antes de acabar de llegar.
+       spring → entradas que deben aterrizar con peso. Rebasa el destino
+                un 5% y vuelve. Para recompensas, no para navegación:
+                usada de más, la app parece de goma.
+       in-out → recorridos largos y simétricos (plegados, paneles).
+     OJO: `--ease-out` se llamaba `--ease-in-out` y pisaba al de abajo,
+     así que sus cuatro consumidores llevaban meses cayendo al `ease` por
+     defecto del navegador. El nombre es el arreglo. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
   --dur-fast: 120ms;
   --dur-base: 200ms;
+  --dur-slow: 320ms;
   /* Plegado/desplegado de las columnas del shell (sidebar y panel de
      detalle). Curva y duración del prototipo v1. */
   --shell-collapse: 0.32s cubic-bezier(0.45, 0.05, 0.2, 1);
-  --dur-slow: 320ms;
 
   /* ─── Z-INDEX ───────────────────────────────────────────────── */
   --z-base: 1;
@@ -357,7 +369,12 @@
   --c-warning: #b58236;
   --c-danger: #b0524a;
   --c-info: #3d6e85;
-  --c-recur: #7c4fd6;
+  /* Dos puntos más oscuro que el #7c4fd6 de antes: sobre el papel del
+     tema claro aquel se quedaba en 4.35:1 y el rótulo de Hábitos —12px en
+     negrita— no llegaba a AA. Se oscurece el token en vez de quitarle el
+     morado al rótulo: el morado ES lo que identifica lo recurrente, y
+     subirlo aquí arregla de paso el resto de sus usos. */
+  --c-recur: #7448cc;
 
   /* Vencido — en claro el rojo baja de tono para leer sobre papel.
      El canal RGB no cambia: el tinte ya era este en ambos temas. */
@@ -1223,29 +1240,6 @@ body {
   overflow: hidden;
   position: relative;
   background: var(--surface-canvas);
-}
-
-/* Difuminado al pie del panel: la lista sigue deslizándose por debajo
-   de la barra de captura (escritorio) / del menú inferior y el FAB
-   (móvil), pero llega desenfocada en vez de cortada en seco. Esos
-   controles tienen su propio fondo sólido y z-index por encima —
-   quedan nítidos y destacan sobre el fondo borroso, no se confunden
-   con las filas. `pointer-events: none` para no robarle el toque a lo
-   que hay debajo; el degradado en la máscara evita un corte duro
-   arriba del todo. */
-.main-panel::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 110px;
-  pointer-events: none;
-  z-index: 20;
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
-  mask-image: linear-gradient(to top, black, transparent);
-  -webkit-mask-image: linear-gradient(to top, black, transparent);
 }
 
 /* El panel central usa `--surface-canvas` en ambos temas: es la capa
@@ -4373,7 +4367,8 @@ button:focus-visible {
   height: 100%;
 }
 
-.task-summary .task-toggle-wrap {
+.task-summary .task-toggle-wrap,
+.today-item .task-toggle-wrap {
   flex-shrink: 0;
 }
 
@@ -4424,6 +4419,9 @@ button:focus-visible {
   position: relative;
   opacity: 0.7;
   flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
 }
 
 /* Al pasar por encima de la fila el checkbox se ilumina, igual que
@@ -4455,21 +4453,43 @@ button:focus-visible {
   stroke-linejoin: round;
 }
 
+/* 21 ≈ la longitud del path (6.4 del trazo corto + 13.8 del largo). El
+   tick nace "sin dibujar" y la transición lo recorre en los dos sentidos.
+   Va con `transition` y no con `animation` a propósito: una transición no
+   arranca en el primer pintado, así que al abrir la app lo ya hecho sale
+   con el tick puesto en vez de redibujarse todo de golpe. */
 .task-check path {
-  stroke-dasharray: none;
+  stroke-dasharray: 21;
+  stroke-dashoffset: 21;
+  transition: stroke-dashoffset 200ms var(--ease-out);
+}
+
+/* Al marcar el trazo arranca 70ms tarde, con el círculo ya hundiéndose:
+   saliendo a la vez se leen como un solo bulto, y escalonados se lee la
+   causa — primero se pulsa, luego aparece la marca. Al desmarcar manda la
+   regla de arriba, sin retardo y algo más corta: deshacer no se hace
+   esperar. */
+.task-toggle:checked~.task-check path,
+.today-check:checked~.task-check path {
   stroke-dashoffset: 0;
+  transition: stroke-dashoffset 260ms var(--ease-out) 70ms;
 }
 
 /* El tick solo se ve con la casilla marcada. Es un SVG hermano del
    input, no un ::after suyo, así que sin esta regla se pintaba siempre:
    pasaba desapercibido porque su trazo es del color de la tarjeta, y
-   asomaba en cuanto el hover cambiaba el fondo de la fila. */
+   asomaba en cuanto el hover cambiaba el fondo de la fila.
+   El retardo al ocultar lo mantiene visible mientras el trazo se borra;
+   al marcar no hay nada que esperar, y allí se quita. */
 .task-check {
   opacity: 0;
+  transition: opacity 0s linear 200ms;
 }
 
-.task-toggle:checked~.task-check {
+.task-toggle:checked~.task-check,
+.today-check:checked~.task-check {
   opacity: 1;
+  transition: none;
 }
 
 :root[data-theme="light"] .task-toggle:checked {
@@ -4488,6 +4508,8 @@ button:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--dur-base) var(--ease-out),
+              opacity var(--dur-base) var(--ease-out);
 }
 
 .task-item .task-text {
@@ -4617,33 +4639,51 @@ body.tasks-compact .task-text {
 }
 
 /* ─── SUBTASKS ───────────────────────────────────────────────── */
+/* Un solo bloque con filetes, no una tarjeta por fila: con caja propia
+   cada subtarea, la lista pesaba visualmente más que la tarea de la que
+   cuelga. El borde y el fondo son de la lista; cada fila solo pone el
+   filete que la separa de la siguiente. */
 .subtask-list {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-input);
+  /* Recorta la primera y la última fila contra el radio del bloque: sin
+     esto sus esquinas asoman cuadradas por fuera. */
+  overflow: hidden;
 }
 
-/* Las subtareas siguen el mismo lenguaje que las filas de tarea:
-   tarjeta con borde tenue, elevación al pasar por encima y casilla
-   circular de acento. Antes se salían del sistema —casilla cuadrada
-   nativa del navegador, desplazamiento lateral en hover y tachado al
-   completar— y cantaban al lado del resto del panel. */
+/* Sin subtareas no hay bloque que enmarcar y el aviso va suelto: si no,
+   quedaba una caja vacía con un "sin subtareas" dentro. */
+.subtask-list:has(.subtask-empty) {
+  border: none;
+  background: none;
+}
+
+:root[data-theme="light"] .subtask-list {
+  background: var(--surface-canvas);
+  border-color: rgba(80, 55, 10, 0.07);
+}
+
 .subtask-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--r-md);
   padding: 7px 10px;
-  background: var(--surface-input);
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.subtask-item:last-child {
+  border-bottom: none;
 }
 
 :root[data-theme="light"] .subtask-item {
-  background: var(--surface-canvas);
-  border-color: rgba(80, 55, 10, 0.07);
+  border-bottom-color: rgba(80, 55, 10, 0.07);
 }
 
 /* Misma casilla circular que .task-toggle, un punto más pequeña por
@@ -5857,15 +5897,6 @@ body.project-dragging .project-item {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-  }
-
-  /* Sin difuminado al pie en móvil: con la lista convertida en tarjeta
-     con borde propio (ver .task-list-scroll más abajo), la capa borrosa
-     emborronaba también ese borde y el hueco de alrededor en vez de
-     limpiar la transición. En escritorio se mantiene (ver
-     .main-panel::after en el bloque base). */
-  .main-panel::after {
-    content: none;
   }
 
   .tasks-panel {
@@ -9499,6 +9530,11 @@ button {
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
+    /* Las transiciones se quedaban fuera del reset, así que quien pide
+       menos movimiento seguía viendo cada cambio de estado deslizarse.
+       0.001ms y no `none`: así `transitionend` sigue llegando y no se
+       cuelga nada que esté esperándolo. */
+    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }
@@ -9672,6 +9708,9 @@ button {
   place-items: center;
   opacity: 0.7;
   background: var(--surface-canvas);
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
 }
 
 .today-check:checked {
@@ -9680,13 +9719,88 @@ button {
   opacity: 1;
 }
 
-.today-check:checked::after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  background: var(--accent-on);
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
-  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center / contain no-repeat;
+/* El hundido al marcar — el mismo en los tres sitios donde se completa:
+   tarea de lista, tarea de Hoy y hábito. Va en la fila recién completada
+   y no en `:checked` a secas porque en Hoy cada repintado recrea el DOM
+   ya marcado: con el selector de estado, abrir la app disparaba el pop de
+   TODO lo hecho a la vez. La clase la pone quien completa, guiándose por
+   `_justCompletedId`.
+
+   Se hunde el WRAP y no el círculo: el tick es un SVG hermano en
+   position:absolute, así que escalando solo el input se quedaría a su
+   tamaño mientras el círculo encoge, y asomaría por fuera. */
+.today-item--celebrate .task-toggle-wrap,
+.task-item--celebrate .task-toggle-wrap {
+  animation: check-pop 400ms var(--ease-spring);
+}
+
+@keyframes check-pop {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(0.84); }
+  100% { transform: scale(1); }
+}
+
+/* Desmarcar: la casilla se suelta hacia FUERA en vez de hundirse, sin
+   rebote y algo más corta. El gesto inverso se lee como rectificar, no
+   como logro; con el mismo rebote alegre, deshacer premiaba igual que
+   hacer. */
+.today-item--reopen .task-toggle-wrap,
+.task-item--reopen .task-toggle-wrap {
+  animation: check-release 320ms var(--ease-out);
+}
+
+@keyframes check-release {
+  0%   { transform: scale(1); }
+  32%  { transform: scale(1.09); }
+  100% { transform: scale(1); }
+}
+
+/* El tick de Hoy era una máscara CSS en un ::after, y una máscara no se
+   puede recorrer con stroke-dashoffset: por eso aquí aparecía de golpe
+   mientras en las listas se dibujaba. Ahora Hoy monta el MISMO `.task-check`
+   en el DOM (ver _todayCheckEl), así que hay un solo tick en toda la app,
+   con un solo tamaño y un solo trazo. Las reglas viven con las de
+   `.task-check`, más arriba. */
+
+/* Racha: días seguidos cumpliendo el hábito. Discreta en reposo —es un
+   apoyo, no el asunto de la fila— y solo se hace notar el día que crece. */
+.habit-streak {
+  flex-shrink: 0;
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
+  color: var(--c-primary-500);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+/* Llega la última (180ms), cuando el tick ya se ha dibujado: así se lee
+   como consecuencia de haber completado y no como parte del mismo golpe.
+   Se enciende al crecer —fondo lleno un instante— y vuelve a su sitio. */
+.today-item--celebrate .habit-streak {
+  animation: streak-up 520ms var(--ease-spring) 180ms both;
+}
+
+@keyframes streak-up {
+  0% {
+    transform: scale(1);
+    background: var(--accent-tint);
+    color: var(--c-primary-500);
+  }
+  32% {
+    transform: scale(1.24);
+    background: var(--c-primary-500);
+    color: var(--accent-on);
+  }
+  100% {
+    transform: scale(1);
+    background: var(--accent-tint);
+    color: var(--c-primary-500);
+  }
 }
 
 .today-text {
@@ -9697,6 +9811,8 @@ button {
   padding-left: 9px;
   color: var(--text-primary);
   letter-spacing: -0.025em;
+  transition: color var(--dur-base) var(--ease-out),
+              opacity var(--dur-base) var(--ease-out);
   line-height: 1.4;
   /* Una sola línea, como la fila de una lista: `.today-text` no tenía
      ningún límite y un título largo crecía hasta cuatro líneas. */
@@ -12199,8 +12315,7 @@ button {
     inset: -11px;
   }
 
-  .task-check,
-  .today-check:checked::after {
+  .task-check {
     width: 12px;
     height: 12px;
   }

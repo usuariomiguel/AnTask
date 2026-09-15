@@ -43,6 +43,7 @@ import {
   isDoneOn,
   setDoneOn,
   mergeHabits,
+  computeStreak,
 } from "./habits/model.js";
 import { openHabitsHistory } from "./habits/render-history.js";
 import {
@@ -303,6 +304,20 @@ let projectDropIndicator = null;
 // ─── UNDO ESTADO ─────────────────────────────────────────────
 let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indices }
 let _undoTimer = null;
+
+// ─── ANIMACIÓN AL MARCAR / DESMARCAR ─────────────────────────
+// Lo último que ha cambiado de estado —tarea o hábito, sus ids no se
+// pisan— y en qué dirección, para que solo esa fila se anime. Se guarda
+// el id y no una clase sobre el nodo porque marcar en Hoy repinta la
+// lista entera: el nodo que recibiría la clase deja de existir antes de
+// llegar a animarse. Lo consume y lo limpia quien pinta la fila.
+//
+// Las dos direcciones NO comparten gesto: marcar hunde la casilla y
+// rebota, desmarcar la suelta hacia fuera y vuelve, sin rebote. Completar
+// es un logro y se celebra; reabrir es rectificar, y premiarlo igual
+// acabaría animando a deshacer.
+let _justToggledId   = null;
+let _justToggledDone = false;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
 let taskPrefs         = loadTaskPrefs();
@@ -2734,6 +2749,23 @@ function _updateTaskNode(node, task) {
   text.textContent    = task.text;
   node.classList.toggle("done", task.done);
 
+  // A diferencia de Hoy, esta fila NO se recrea al marcarla: se refresca
+  // en sitio. Así que la clase se pone aquí y se retira sola al acabar,
+  // porque si se quedara pegada la animación no volvería a dispararse.
+  // Se filtra por nombre: `animationend` burbujea, y cualquier otra
+  // animación de la fila la cortaría antes de tiempo.
+  if (_justToggledId === task.id) {
+    const clase = _justToggledDone ? "task-item--celebrate" : "task-item--reopen";
+    const anim  = _justToggledDone ? "check-pop" : "check-release";
+    _justToggledId = null;
+    node.classList.add(clase);
+    node.addEventListener("animationend", function onToggleEnd(e) {
+      if (e.animationName !== anim) return;
+      node.classList.remove(clase);
+      node.removeEventListener("animationend", onToggleEnd);
+    });
+  }
+
   // Los chips se rehacen a base de vaciar y volver a crear el nodo, así que
   // repintarlos sin necesidad reinicia sus transiciones y provoca un
   // parpadeo en TODA la lista cada vez que se toca una sola tarea. Con una
@@ -2810,10 +2842,14 @@ function _buildTaskNode(task, project, showList) {
     });
 
     checkbox.addEventListener("click", function(e) { e.stopPropagation(); });
-    // Sin animación de fila: marcar aplica y repinta en el acto. Antes se
-    // esperaba a que corriese (460ms al completar, 220 al descompletar).
+    // El cambio se aplica y repinta en el acto. Antes se esperaba a que
+    // corriese una animación de fila (460ms al completar, 220 al
+    // descompletar) y marcar varias seguidas se sentía pegajoso; la
+    // celebración de ahora es solo visual y no retiene nada.
     checkbox.addEventListener("change", function() {
       task.done = checkbox.checked;
+      _justToggledId   = task.id;
+      _justToggledDone = task.done;
       _logCompletado(task, task.done);
       if (task.done && task.recurDays) {
         // La tarea SE QUEDA marcada y con su fecha: completarla no la hacía
@@ -4444,8 +4480,8 @@ function _hoyQuickAddEl(todayStr, placeholder) {
 
 // ── Hábitos en Hoy (fase 2a) ─────────────────────────────────
 // La tubería de datos ya venía hecha (loadHabits/saveHabits/sync); esto
-// es lo primero que la usa. Sin rachas todavía: `computeStreak` y
-// `statsBetween` esperan a tener historial real que enseñar.
+// es lo primero que la usa. `statsBetween` sigue esperando a tener
+// historial que enseñar; la racha ya sale en la propia fila.
 
 var _hoyHabitAddRefocus = false;
 
@@ -4463,18 +4499,26 @@ function _hoyHabitsDeHoy(todayISO) {
  */
 function _renderHabitItem(habit, todayISO) {
   var hecho = isDoneOn(habit, todayISO);
+  // Se consume al leerlo: la celebración es de este repintado y de ninguno
+  // más, o volvería a saltar cada vez que la lista se vuelve a pintar.
+  var tocado  = _justToggledId === habit.id;
+  var celebra = tocado && _justToggledDone;
+  var reabre  = tocado && !_justToggledDone;
+  if (tocado) _justToggledId = null;
 
   var li = document.createElement("li");
-  li.className = "today-item today-item--habit" + (hecho ? " today-item--done" : "");
+  li.className = "today-item today-item--habit" +
+    (hecho ? " today-item--done" : "") +
+    (celebra ? " today-item--celebrate" : "") +
+    (reabre ? " today-item--reopen" : "");
 
-  var cb = document.createElement("input");
-  cb.type = "checkbox";
-  cb.className = "today-check";
-  cb.checked = hecho;
-  cb.setAttribute("aria-label", t("hoy.habit_done_toggle"));
+  var check = _todayCheckEl(hecho, t("hoy.habit_done_toggle"));
+  var cb = check.cb;
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
     setDoneOn(habit, todayISO, cb.checked);
+    _justToggledId   = habit.id;
+    _justToggledDone = cb.checked;
     saveHabits();
     // Sin renderSidebar(): los hábitos no salen ahí ni cuentan en los
     // contadores de listas (ver el typedef Habit en state/types.js).
@@ -4485,8 +4529,20 @@ function _renderHabitItem(habit, todayISO) {
   text.className = "today-text";
   text.textContent = habit.name;
 
-  li.appendChild(cb);
+  li.appendChild(check.wrap);
   li.appendChild(text);
+
+  // La racha se enseña a partir de dos días: con uno no hay nada que
+  // sostener todavía, y la píldora saldría en todas las filas el primer
+  // día de cada hábito sin decir nada.
+  var racha = computeStreak(habit, todayISO);
+  if (racha >= 2) {
+    var streakEl = document.createElement("span");
+    streakEl.className = "habit-streak";
+    streakEl.textContent = String(racha);
+    streakEl.title = t("hist.streak");
+    li.appendChild(streakEl);
+  }
 
   // Cada N días: se dice en la propia fila, o no hay forma de saber por
   // qué un hábito aparece unos días sí y otros no.
@@ -4678,6 +4734,45 @@ function _removeHoyHeaderExtra() {
 }
 
 
+/**
+ * Casilla de Hoy y de hábitos: el input más el MISMO tick SVG que las
+ * filas de lista sacan de la plantilla de index.html.
+ *
+ * El tick era aquí una máscara CSS sobre un ::after, y una máscara no se
+ * puede recorrer con stroke-dashoffset: aparecía de golpe mientras en las
+ * listas se dibujaba, y encima a otro tamaño. Con el SVG en el DOM las
+ * tres vistas comparten tick, medida y trazo, y basta el CSS de
+ * `.task-check` para todas.
+ *
+ * @param {boolean} checked
+ * @param {string} ariaLabel
+ * @returns {{wrap: HTMLElement, cb: HTMLInputElement}}
+ */
+function _todayCheckEl(checked, ariaLabel) {
+  var wrap = document.createElement("span");
+  wrap.className = "task-toggle-wrap";
+
+  var cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.className = "today-check";
+  cb.checked = checked;
+  cb.setAttribute("aria-label", ariaLabel);
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "task-check");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  var path = document.createElementNS(NS, "path");
+  path.setAttribute("d", "M5 12.5l4.5 4.5L19 7");
+  svg.appendChild(path);
+
+  wrap.appendChild(cb);
+  wrap.appendChild(svg);
+  return { wrap: wrap, cb: cb };
+}
+
 function renderTodayItem(task, project, todayStr, tone) {
   // Cuando la tarea NO tiene fecha (caso smart list "Sin fecha" o sección
   // "sugeridas"), el badge de fecha se omite y no marcamos overdue.
@@ -4693,11 +4788,19 @@ function renderTodayItem(task, project, todayStr, tone) {
     : formatDueWeekday(task.dueDate);
   var overdue = hasDate && diff < 0;
   var done = !!task.done;
+  // Se consume al leerlo: la animación es de este repintado y de ninguno
+  // más, o volvería a saltar cada vez que la lista se vuelve a pintar.
+  var tocado  = _justToggledId === task.id;
+  var celebra = tocado && _justToggledDone;
+  var reabre  = tocado && !_justToggledDone;
+  if (tocado) _justToggledId = null;
 
   var li = document.createElement("li");
   li.className = "today-item" +
     (tone ? " today-item--" + tone : "") +
     (done ? " today-item--done" : "") +
+    (celebra ? " today-item--celebrate" : "") +
+    (reabre ? " today-item--reopen" : "") +
     (overdue ? " today-overdue" : "") +
     // Misma marca que .task-item en Inbox/listas: sin esto, abrir el
     // panel de detalle de una tarea desde Hoy no resaltaba su fila.
@@ -4706,16 +4809,15 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.style.setProperty("--task-accent", _projectColor(project));
 
   // Checkbox para marcar hecha / reabrir
-  var cb = document.createElement("input");
-  cb.type = "checkbox";
-  cb.className = "today-check";
-  cb.checked = done;
-  cb.setAttribute("aria-label", done ? t("hoy.reopen") : "Marcar como hecha");
+  var check = _todayCheckEl(done, done ? t("hoy.reopen") : "Marcar como hecha");
+  var cb = check.cb;
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
     if (!cb.checked) {
       // Reabrir una tarea hecha hoy (visible en la sección "Para hoy")
       task.done = false;
+      _justToggledId   = task.id;
+      _justToggledDone = false;
       _logCompletado(task, false);
       saveProjects();
       renderTasks();
@@ -4726,6 +4828,8 @@ function renderTodayItem(task, project, todayStr, tone) {
     // las hacía desaparecer de Hoy nada más completarlas. Reaparecen
     // pendientes cuando llega su vuelta (`_reactivarRecurrentes`).
     task.done = true;
+    _justToggledId   = task.id;
+    _justToggledDone = true;
     _logCompletado(task, true);
     saveProjects();
     renderTasks();
@@ -4737,7 +4841,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   text.className = "today-text";
   text.textContent = task.text;
 
-  li.appendChild(cb);
+  li.appendChild(check.wrap);
   li.appendChild(text);
 
   // Chips y acciones en un contenedor: en escritorio es display:contents
@@ -5533,11 +5637,37 @@ function undoDelete() {
     });
   }
 
+  // Cierra los desplegables de la barra de vista, menos el que se le pase.
+  //
+  // Los cuatro frenan la propagación del click en su botón para que el
+  // cierre global (el listener de `document`, al final de este IIFE) no
+  // los tape nada más abrirlos. El efecto colateral era que saltar de uno
+  // a otro dejaba los dos abiertos, porque ese cierre global no llegaba a
+  // correr nunca: así que cada botón cierra a sus vecinos a mano.
+  function _closeViewBarPanels(excepto) {
+    if (filterPanel && filterPanel !== excepto) {
+      filterPanel.hidden = true;
+      if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
+    }
+    if (moreActionsPanel && moreActionsPanel !== excepto) {
+      moreActionsPanel.hidden = true;
+    }
+    if (rowStylePanel && rowStylePanel !== excepto) {
+      rowStylePanel.hidden = true;
+      if (rowStyleBtn) rowStyleBtn.setAttribute("aria-expanded", "false");
+    }
+    if (taskPrefsPanel && taskPrefsPanel !== excepto) {
+      taskPrefsPanel.hidden = true;
+      if (taskPrefsBtn) taskPrefsBtn.setAttribute("aria-expanded", "false");
+    }
+  }
+
   var filterTriggerBtn = document.getElementById("filter-trigger-btn");
   var filterPanel      = document.getElementById("filter-panel");
   if (filterTriggerBtn && filterPanel) {
     filterTriggerBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+      _closeViewBarPanels(filterPanel);
 
       // En móvil, hoja en vez de desplegable (handoff móvil v1, «Filtrar»).
       // El valor lleva el prefijo "filter:" porque `sheetPick` es genérico
@@ -5580,6 +5710,7 @@ function undoDelete() {
   if (moreActionsBtn && moreActionsPanel) {
     moreActionsBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+      _closeViewBarPanels(moreActionsPanel);
       moreActionsPanel.hidden = !moreActionsPanel.hidden;
     });
     moreActionsPanel.addEventListener("click", function() {
@@ -5618,6 +5749,7 @@ function undoDelete() {
         return;
       }
 
+      _closeViewBarPanels(rowStylePanel);
       var opening = rowStylePanel.hidden;
       rowStylePanel.hidden = !opening;
       rowStyleBtn.setAttribute("aria-expanded", opening ? "true" : "false");
@@ -5641,6 +5773,7 @@ function undoDelete() {
     _syncTaskPrefsPanel();
     taskPrefsBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+      _closeViewBarPanels(taskPrefsPanel);
       var opening = taskPrefsPanel.hidden;
       if (opening) _syncTaskPrefsPanel();
       taskPrefsPanel.hidden = !opening;
@@ -5673,11 +5806,7 @@ function undoDelete() {
 
   // ── Close dropdowns on outside click ─────────────────────────
   document.addEventListener("click", function() {
-    if (filterPanel)      filterPanel.hidden = true;
-    if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
-    if (moreActionsPanel) moreActionsPanel.hidden = true;
-    if (rowStylePanel)    { rowStylePanel.hidden = true; if (rowStyleBtn) rowStyleBtn.setAttribute("aria-expanded", "false"); }
-    if (taskPrefsPanel)   { taskPrefsPanel.hidden = true; if (taskPrefsBtn) taskPrefsBtn.setAttribute("aria-expanded", "false"); }
+    _closeViewBarPanels(null);
   });
 })();
 
