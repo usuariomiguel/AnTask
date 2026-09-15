@@ -1,27 +1,5 @@
 // @ts-check
-// Utilidades de localStorage: escritura segura y monitorización de cuota.
-
-/**
- * Estima el porcentaje de localStorage usado (0-100).
- * Basado en el límite habitual de ~5 MB (5 × 1024 × 1024 bytes).
- * Cada carácter JS ocupa 2 bytes en UTF-16.
- *
- * @returns {number} 0-100
- */
-export function getStorageUsagePct() {
-  try {
-    var total = 0;
-    for (var i = 0; i < localStorage.length; i++) {
-      var key = localStorage.key(i) || "";
-      var val = localStorage.getItem(key) || "";
-      total += (key.length + val.length) * 2;
-    }
-    var limitBytes = 5 * 1024 * 1024;
-    return Math.min(100, Math.round((total / limitBytes) * 100));
-  } catch (_) {
-    return 0;
-  }
-}
+// Utilidades de localStorage: escritura segura ante cuota llena.
 
 /**
  * Escribe en localStorage. Si la cuota se supera, llama a `onQuota`

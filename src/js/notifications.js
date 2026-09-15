@@ -363,7 +363,7 @@ window.AnsoNotif = (function() {
     var MAX_DELAY = 2147483647;
 
     projectList.forEach(function (p) {
-      if (!p || p.archived) return;
+      if (!p) return;
       (p.tasks || []).forEach(function (t) {
         if (!t || t.done || !t.reminderAt) return;
         if (_isReminderFired(t)) return;         // ya avisado — no repetir

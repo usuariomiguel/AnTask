@@ -1187,16 +1187,6 @@
       } else {
         applySimpleModeNav();
       }
-
-      // Grupo "Más" (Archivados): abierto en desktop (sidebar
-      // siempre visible, no tiene sentido esconder), cerrado en móvil
-      // (drawer compacto). Sin esto, los wrappers internos quedarían
-      // ocultos en desktop por el comportamiento nativo de <details>.
-      var moreGroup = document.getElementById("sidebar-more-group");
-      if (moreGroup) {
-        if (!isMobile()) moreGroup.setAttribute("open", "");
-      }
-
     })();
     </script>
     <!-- El Service Worker lo registra automáticamente vite-plugin-pwa. -->

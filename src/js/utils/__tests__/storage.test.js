@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { safeLsSet, getStorageUsagePct } from "../storage.js";
+import { safeLsSet } from "../storage.js";
 
 // jsdom incluye localStorage, pero tiene un límite muy alto en tests.
 // Usamos vi.spyOn para simular el comportamiento que queremos probar.
@@ -69,34 +69,5 @@ describe("safeLsSet — cuota superada", () => {
     safeLsSet("k", "v", onQuota);
 
     expect(onQuota).toHaveBeenCalledOnce();
-  });
-});
-
-describe("getStorageUsagePct", () => {
-  it("devuelve 0 con localStorage vacío", () => {
-    expect(getStorageUsagePct()).toBe(0);
-  });
-
-  it("devuelve un número entre 0 y 100", () => {
-    localStorage.setItem("test", "a".repeat(1000));
-    const pct = getStorageUsagePct();
-    expect(pct).toBeGreaterThanOrEqual(0);
-    expect(pct).toBeLessThanOrEqual(100);
-  });
-
-  it("aumenta al añadir más datos", () => {
-    const antes = getStorageUsagePct();
-    localStorage.setItem("grande", "x".repeat(50_000));
-    const despues = getStorageUsagePct();
-    expect(despues).toBeGreaterThan(antes);
-  });
-
-  it("nunca supera 100 aunque localStorage esté lleno", () => {
-    // Simula un estado que excedería el límite teórico
-    vi.spyOn(localStorage.__proto__, "length", "get").mockReturnValue(1);
-    vi.spyOn(localStorage.__proto__, "key").mockReturnValue("k");
-    vi.spyOn(localStorage.__proto__, "getItem").mockReturnValue("x".repeat(5 * 1024 * 1024));
-
-    expect(getStorageUsagePct()).toBe(100);
   });
 });

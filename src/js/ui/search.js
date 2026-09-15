@@ -56,7 +56,6 @@ function highlightMatch(text, q) {
 function recolectar(deps) {
   const out = [];
   (deps.getProjects() || []).forEach(function (project) {
-    if (project.archived) return;
     (project.tasks || []).forEach(function (task) {
       out.push({ task: task, project: project });
     });

@@ -26,7 +26,7 @@ let _isOpen = false;
  *   cuando no había proyecto activo y se usa Inbox por defecto.
  * @property {() => any[]} [getLists]
  *   Devuelve todos los proyectos elegibles desde el selector de
- *   lista (Inbox primero, luego el resto sin archivar).
+ *   lista (Inbox primero, luego el resto).
  * @property {string} [inboxId]
  *   Id del proyecto Inbox — solo para el matiz de color del chip.
  * @property {(project: any, text: string, overrides: {priority?: string, dueDate?: string, recurDays?: number}) => void} onCreate

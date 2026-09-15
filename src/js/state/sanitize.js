@@ -156,7 +156,6 @@ export function sanitizeProject(p) {
     createdAt: p.createdAt || new Date().toISOString(),
     tasks:     sanitizeTasks(p.tasks),
     sectionId: typeof p.sectionId === "string" ? p.sectionId : null,
-    archived:  !!p.archived,
     icon:      typeof p.icon === "string" ? p.icon : "",
     color:     typeof p.color === "string" ? p.color : "",
   };

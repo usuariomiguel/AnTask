@@ -7,7 +7,7 @@ import { generateId }                       from "./utils/id.js";
 import { parseNaturalLanguage }             from "./utils/nl-parse.js";
 import { buildNLChipsHTML, formatDueLabel, formatRecurLabel } from "./utils/nl-chips.js";
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
-import { safeLsSet, getStorageUsagePct }    from "./utils/storage.js";
+import { safeLsSet }                        from "./utils/storage.js";
 import {
   createModalBase,
   closeModal,
@@ -223,12 +223,9 @@ const taskList         = document.getElementById("task-list");
 
 // ─── MOBILE FAB REFS ─────────────────────────────────────────
 const mobileFab    = document.getElementById("mobile-fab");
-const taskCounter      = document.getElementById("task-counter");
-const saveStatus       = document.getElementById("save-status");
 const clearDoneBtn     = document.getElementById("clear-done");
 const exportBtn        = document.getElementById("export-btn");
 const importFile       = document.getElementById("import-file");
-const filterButtons    = document.querySelectorAll("[data-filter]");
 const template         = document.getElementById("task-item-template");
 
 // ─── ESTADO ──────────────────────────────────────────────────
@@ -250,7 +247,6 @@ try { localStorage.removeItem("antrack-notes"); } catch (_) {}
 // Las recurrentes completadas se quedan marcadas hasta que llega su
 // siguiente vuelta; al arrancar se comprueba si ya toca reabrirlas.
 if (_reactivarRecurrentes()) saveProjects();
-_checkStorageWarning();
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
@@ -319,7 +315,7 @@ let _undoTimer = null;
 let _justToggledId   = null;
 let _justToggledDone = false;
 
-// ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
+// ─── PREFERENCIAS Y PERFIL ────────────────────────────────────
 let taskPrefs         = loadTaskPrefs();
 let userProfile       = loadProfile();
 
@@ -508,8 +504,6 @@ if (shortcutsBtn) {
   shortcutsBtn.addEventListener("click", function() { showShortcutsHelp(); });
 }
 
-var _closePanelBtn = document.getElementById("close-panel-btn");
-if (_closePanelBtn) _closePanelBtn.addEventListener("click", function() { activateProject(null); });
 
 // ─── ATAJOS DE TECLADO GLOBALES ───────────────────────────────
 document.addEventListener("keydown", function(e) {
@@ -1009,13 +1003,9 @@ clearDoneBtn.addEventListener("click", function() {
 
 // ─── EXPORTAR (workspace completo) ───────────────────────────
 exportBtn.addEventListener("click", function() {
-  // Las listas archivadas se quedan fuera: al restaurar el backup volvían
-  // a aparecer, y archivarlas es precisamente decir que ya no se quieren
-  // a la vista. Siguen guardadas en este dispositivo, solo no viajan.
-  const exportables = projects.filter(function(p) { return true; });
   // Un espacio con hábitos pero sin listas también es exportable: antes
   // esta salida temprana solo miraba proyectos.
-  if (exportables.length === 0 && habits.length === 0) {
+  if (projects.length === 0 && habits.length === 0) {
     modalAlert(t("task.nothing_to_export"), "info");
     return;
   }
@@ -1027,7 +1017,7 @@ exportBtn.addEventListener("click", function() {
     version: 3,
     exportedAt: new Date().toISOString(),
     account: _u ? { uid: _u.uid, email: _u.email || null } : null,
-    projects: exportables,
+    projects: projects,
     sections: sections,
     habits: habits,
   };
@@ -1197,7 +1187,7 @@ function showProfileMenu() {
     const btn = e.target.closest("[data-goto],[data-act],[data-edit]");
     if (!btn) return;
     if (btn.dataset.edit) {
-      // El menú completo (renombrar, color, archivar, ELIMINAR) — antes
+      // El menú completo (renombrar, color, ELIMINAR) — antes
       // solo renombraba, así que en móvil no había forma de borrar una
       // lista. Se ancla al lápiz ANTES de cerrar la hoja: una vez cerrada,
       // el botón sale del DOM y pierde su posición en pantalla.
@@ -1276,9 +1266,6 @@ function _renderListChips() {
   const host = document.getElementById("list-chips");
   if (!host) return;
 
-  // Las archivadas no salen: archivar es sacar una lista de la vista, y en
-  // móvil estos chips SON la navegación entre listas. Asomaban aquí aunque
-  // sus tareas ya se filtraban bien del resto de vistas.
   // El "+" tiene que verse aunque no haya ninguna lista aún: es la única
   // forma de crear la primera desde el Inbox en móvil.
   const lists = projects.filter(function(p) {
@@ -1509,7 +1496,6 @@ function activateProject(id) {
   closeTaskDetail();
   renderSidebar();
   renderTasks();
-  updateSaveStatus(loadMetadata().lastSavedAt);
   // La barra inferior no se sincronizaba al entrar en un proyecto —solo lo
   // hacían Hoy y el calendario—, así que al arrancar en Inbox, o al abrir una
   // lista, ninguna pestaña quedaba marcada.
@@ -1799,7 +1785,6 @@ function syncSidebarRail() {
   let todayCount = 0;
   let pending    = 0;
   projects.forEach(function(p) {
-    if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
       if (tk.done) return;
       pending++;
@@ -1864,8 +1849,6 @@ function renderSidebar() {
   }
 
   if (window.lucide) lucide.createIcons();
-  // Archivados se renderiza SIEMPRE — la cabecera aparece aunque la lista
-  // esté vacía, para que el "scaffolding" del sidebar quede estable.
   syncSidebarRail();
 }
 
@@ -1904,10 +1887,9 @@ function _segmentedRingDash(total, done, C, strokeWidth) {
   return { track: track, fill: fill };
 }
 
-function renderProjectItem(project, isArchived, parentEl) {
-  const target = parentEl || projectListEl;
+function renderProjectItem(project) {
   const li = document.createElement("li");
-  li.className = "project-item" + (isArchived ? " project-item-archived" : "");
+  li.className = "project-item";
   li.dataset.projectId = project.id;
   if (project.id === activeProjectId) li.classList.add("active");
 
@@ -1989,35 +1971,33 @@ function renderProjectItem(project, isArchived, parentEl) {
   });
   initProjectDragDrop(li, project.id);
 
-  if (!isArchived) {
-    li.addEventListener("dragover", function(e) {
-      if (!dragSrcId || dragSrcProjectId) return;
-      if (project.id === activeProjectId) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      li.classList.add("project-task-drop-target");
-    });
-    li.addEventListener("dragleave", function(e) {
-      if (!li.contains(e.relatedTarget)) {
-        li.classList.remove("project-task-drop-target");
-      }
-    });
-    li.addEventListener("drop", function(e) {
+  li.addEventListener("dragover", function(e) {
+    if (!dragSrcId || dragSrcProjectId) return;
+    if (project.id === activeProjectId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    li.classList.add("project-task-drop-target");
+  });
+  li.addEventListener("dragleave", function(e) {
+    if (!li.contains(e.relatedTarget)) {
       li.classList.remove("project-task-drop-target");
-      if (!dragSrcId || dragSrcProjectId) return;
-      if (project.id === activeProjectId) return;
-      e.preventDefault();
-      const srcProject = getActiveProject();
-      if (!srcProject) return;
-      const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
-      if (taskIdx === -1) return;
-      const [moved] = srcProject.tasks.splice(taskIdx, 1);
-      project.tasks.push(moved);
-      saveAndRender();
-    });
-  }
+    }
+  });
+  li.addEventListener("drop", function(e) {
+    li.classList.remove("project-task-drop-target");
+    if (!dragSrcId || dragSrcProjectId) return;
+    if (project.id === activeProjectId) return;
+    e.preventDefault();
+    const srcProject = getActiveProject();
+    if (!srcProject) return;
+    const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
+    if (taskIdx === -1) return;
+    const [moved] = srcProject.tasks.splice(taskIdx, 1);
+    project.tasks.push(moved);
+    saveAndRender();
+  });
 
-  target.appendChild(li);
+  projectListEl.appendChild(li);
 }
 
 // ── Context menu for projects ────────────────────────────────────────────────
@@ -2475,7 +2455,7 @@ function renderTasks() {
   });
   if (isInbox) {
     projects.forEach(function(p) {
-      if (p.id === INBOX_ID || p.archived) return;
+      if (p.id === INBOX_ID) return;
       getVisibleTasks(p).forEach(function(tk) {
         items.push({ task: tk, project: p });
       });
@@ -2749,8 +2729,6 @@ function _renderTasksFooter(project, isInbox) {
     });
   }
   const pending = poolTasks.filter(function(t) { return !t.done; }).length;
-  if (taskCounter) taskCounter.textContent = (pending === 1 ? t("task.counter_one") : t("task.counter_other"))
-    .replace("{count}", String(pending));
   projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
   _setMobileSubtitle(pending);
   var mobileHeaderCount = document.getElementById("mobile-header-count");
@@ -4267,14 +4245,6 @@ function renderTodayView() {
   todays.sort(byDue);
   nodate.sort(function(a, b) { return prioOf(a) - prioOf(b); });
 
-  var pendingStats = totalHoyStats - hoyDoneStats;
-
-  // Contador en el footer
-  if (taskCounter) {
-    taskCounter.textContent = (pendingStats === 1 ? t("today.counter_one") : t("today.counter_other"))
-      .replace("{count}", String(pendingStats));
-  }
-
   // Se declaran aquí arriba y no junto a su sección porque el anillo de la
   // cabecera, unas líneas más abajo, ya los necesita: al ser `var`, tenerlos
   // después los dejaba en `undefined` y tumbaba el render entero.
@@ -4597,7 +4567,6 @@ function renderHabitsView() {
     .replace("{count}", String(activos.length));
   if (projectSubtitle)  projectSubtitle.textContent  = cuenta;
   if (projectSubtitleM) projectSubtitleM.textContent = cuenta;
-  if (taskCounter)      taskCounter.textContent      = cuenta;
 
   // El anillo de la derecha mide el día, no el total: lo que tocaba hoy
   // frente a lo ya marcado, igual que en la solapa Hábitos del móvil.
@@ -5793,7 +5762,7 @@ function undoDelete() {
 
   // Cierra los desplegables de la barra de vista, menos el que se le pase.
   //
-  // Los cuatro frenan la propagación del click en su botón para que el
+  // Los tres frenan la propagación del click en su botón para que el
   // cierre global (el listener de `document`, al final de este IIFE) no
   // los tape nada más abrirlos. El efecto colateral era que saltar de uno
   // a otro dejaba los dos abiertos, porque ese cierre global no llegaba a
@@ -5802,9 +5771,6 @@ function undoDelete() {
     if (filterPanel && filterPanel !== excepto) {
       filterPanel.hidden = true;
       if (filterTriggerBtn) filterTriggerBtn.classList.remove("open");
-    }
-    if (moreActionsPanel && moreActionsPanel !== excepto) {
-      moreActionsPanel.hidden = true;
     }
     if (rowStylePanel && rowStylePanel !== excepto) {
       rowStylePanel.hidden = true;
@@ -5855,20 +5821,6 @@ function undoDelete() {
     filterPanel.addEventListener("click", function(e) {
       var btn = e.target.closest("[data-filter]");
       if (btn) { applyFilter(btn.dataset.filter); filterPanel.hidden = true; if (filterTriggerBtn) filterTriggerBtn.classList.remove("open"); }
-    });
-  }
-
-  // ── More-actions panel toggle ─────────────────────────────────
-  var moreActionsBtn   = document.getElementById("more-actions-btn");
-  var moreActionsPanel = document.getElementById("more-actions-panel");
-  if (moreActionsBtn && moreActionsPanel) {
-    moreActionsBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      _closeViewBarPanels(moreActionsPanel);
-      moreActionsPanel.hidden = !moreActionsPanel.hidden;
-    });
-    moreActionsPanel.addEventListener("click", function() {
-      moreActionsPanel.hidden = true;
     });
   }
 
@@ -6204,22 +6156,6 @@ function _showQuotaModal() {
   });
 }
 
-/** Actualiza el indicador de uso en el footer cuando supera el 75%. */
-function _checkStorageWarning() {
-  var pct = getStorageUsagePct();
-  var el = document.getElementById("save-status");
-  if (!el) return;
-  if (pct >= 90) {
-    el.textContent = t("save.storage_warn").replace("{pct}", String(pct));
-    el.style.color = "var(--c-danger, #ef4444)";
-  } else if (pct >= 75) {
-    el.textContent = t("save.storage_info").replace("{pct}", String(pct));
-    el.style.color = "var(--c-warning, #f97316)";
-  } else {
-    el.style.color = "";
-  }
-}
-
 /**
  * El estado que viaja a la nube, construido en un único sitio.
  *
@@ -6251,14 +6187,12 @@ function saveProjects() {
   if (!ok) return;
   const now = new Date().toISOString();
   localStorage.setItem(METADATA_KEY, JSON.stringify({ lastSavedAt: now }));
-  updateSaveStatus(now);
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
   window.AnsoSync?.scheduleSave?.(_workspace());
   if (window.AnsoNotif?.scheduleTaskReminders) {
     window.AnsoNotif.scheduleTaskReminders(projects);
   }
-  _checkStorageWarning();
 }
 
 
@@ -6295,17 +6229,6 @@ function saveSections() {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (user) _saveAccountCache(user.uid);
   window.AnsoSync?.scheduleSave?.(_workspace());
-}
-
-function updateSaveStatus(lastSavedAt) {
-  if (!saveStatus) return; // el footer de estado se retiró de la UI
-  if (!lastSavedAt) { saveStatus.textContent = "–"; return; }
-  const date = new Date(lastSavedAt);
-  const locale = getLang() === "en" ? "en-GB" : "es-ES";
-  if (Number.isNaN(date.getTime())) { saveStatus.textContent = t("toast.saved"); return; }
-  saveStatus.textContent = t("toast.last_saved") + " " + date.toLocaleString(locale, {
-    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-  });
 }
 
 // initializeTheme() / applyTheme() viven en ./ui/theme.js
@@ -6447,7 +6370,6 @@ function _initNavAutoHide() {
   const sidebarEl        = document.querySelector(".sidebar");
   const mainPanel        = document.getElementById("main-panel");
   const collapseBtn      = document.getElementById("sidebar-collapse-btn");
-  const expandBtn        = document.getElementById("sidebar-expand-btn");
   // Rail colapsado (v1): marca y avatar despliegan; buscar/Hoy/Inbox navegan.
   const railExpand       = document.getElementById("sidebar-rail-expand");
   const railAvatar       = document.getElementById("sidebar-rail-avatar");
@@ -6465,7 +6387,6 @@ function _initNavAutoHide() {
   }
 
   if (collapseBtn)    collapseBtn.addEventListener("click",    function () { setSidebarCollapsed(true); });
-  if (expandBtn)      expandBtn.addEventListener("click",      function () { setSidebarCollapsed(false); });
   if (railExpand)     railExpand.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railAvatar)     railAvatar.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
@@ -6947,8 +6868,6 @@ async function _syncApplyRemote(remote, uid, opts) {
     // usuario veía cero hábitos teniéndolos ya cargados, y de ahí a
     // "se me han borrado" y a tocar cosas que sí destruyen hay un paso.
     renderTasks();
-    updateSaveStatus(new Date().toISOString());
-    _checkStorageWarning();
   } catch (e) {
     console.warn("AnsoSync: error aplicando cambios remotos:", e);
   }

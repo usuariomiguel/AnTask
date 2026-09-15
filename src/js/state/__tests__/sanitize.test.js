@@ -139,12 +139,11 @@ describe("sanitizeProject", () => {
   it("normaliza proyecto válido", () => {
     const p = sanitizeProject({
       id: "p1", name: " Mi proyecto ", tasks: [],
-      sectionId: "sec1", archived: false,
+      sectionId: "sec1",
     });
     expect(p.id).toBe("p1");
     expect(p.name).toBe("Mi proyecto");
     expect(p.sectionId).toBe("sec1");
-    expect(p.archived).toBe(false);
   });
 
   it("nombre por defecto si falta", () => {
@@ -157,10 +156,8 @@ describe("sanitizeProject", () => {
     expect(p.name.length).toBe(60);
   });
 
-  it("archived coerciona truthy correctamente", () => {
-    expect(sanitizeProject({ archived: 1 }).archived).toBe(true);
-    expect(sanitizeProject({ archived: 0 }).archived).toBe(false);
-    expect(sanitizeProject({}).archived).toBe(false);
+  it("descarta el campo archived de datos anteriores", () => {
+    expect(sanitizeProject({ archived: true })).not.toHaveProperty("archived");
   });
 });
 

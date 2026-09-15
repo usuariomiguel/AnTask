@@ -63,7 +63,6 @@
  * @property {string}        [createdAt]      - ISO timestamp
  * @property {Task[]}        tasks
  * @property {string|null}   [sectionId]      - ID de la sección a la que pertenece (o null)
- * @property {boolean}       [archived]
  * @property {string}        [icon]           - Emoji
  * @property {string}        [color]          - Hex color
  */

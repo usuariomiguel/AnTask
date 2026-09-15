@@ -64,10 +64,6 @@ export const es = {
   "settings.appearance.rowstyle_desc": "Limpio: filas planas. Tarjetas: con fondo y separación.",
   "settings.appearance.accent":        "Color de acento",
   "settings.appearance.accent_desc":   "Define el carácter de la interfaz.",
-  "settings.appearance.container":        "Contenedor",
-  "settings.appearance.container_desc":   "Paneles pegados o flotando sobre el lienzo.",
-  "settings.appearance.shell_attached":   "Pegado",
-  "settings.appearance.shell_floating":   "Flotante",
 
   "settings.notifications.tasks":      "Avisos de tareas",
   "settings.notifications.tasks_desc": "Recordatorios cuando una tarea vence.",
@@ -98,7 +94,7 @@ export const es = {
   "settings.data.delete_all_confirm":  "Vas a eliminar TODAS tus listas y tareas de forma permanente. Esto no se puede deshacer. ¿Seguro que quieres continuar?",
 
   "settings.about.version":            "Versión",
-  "settings.about.version_desc":       "Antask para escritorio.",
+  "settings.about.version_desc":       "AnTrack para escritorio.",
   "settings.about.session":            "Sesión",
   "settings.about.session_desc":       "Cierra la sesión en este dispositivo.",
 
@@ -116,8 +112,6 @@ export const es = {
   "toast.task_deleted":       "Tarea eliminada",
   "toast.undo":               "Deshacer",
   "toast.task_recurred":      "↻ Tarea regenerada",
-  "toast.saved":              "Guardado",
-  "toast.last_saved":         "Último guardado:",
 
   // ── Valores por defecto ───────────────────────────────────
   "default.unnamed":          "Sin nombre",
@@ -138,9 +132,6 @@ export const es = {
   // ── Hoy (vista) ───────────────────────────────────────────
   "today.empty_title_full":   "Todo al día",
   "today.empty_sub_full":     "No tienes nada vencido ni ninguna tarea para hoy.",
-  "today.counter_one":        "{count} tarea para hoy",
-  "today.counter_other":      "{count} tareas para hoy",
-  "today.go_to_project":      "Ir al proyecto",
 
   "hoy.overdue":              "Vencidas",
   "hoy.for_today":            "Para hoy",
@@ -163,11 +154,9 @@ export const es = {
   "hoy.day_quickadd_ph":      "Añadir una tarea para este día…",
   "hoy.habits":               "Hábitos",
   "hoy.tab_tasks":            "Tareas",
-  "hoy.habits_add":           "Nuevo hábito",
   "hoy.habit_name_ph":        "Añadir un hábito…",
   "hoy.habit_rename_prompt":  "Nombre del hábito",
   "hoy.habit_confirm_delete": "¿Eliminar el hábito <strong>{name}</strong> y todo su historial?",
-  "hoy.habit_freq":           "Frecuencia",
   "hoy.habit_freq_daily":     "Cada día",
   "hoy.habit_freq_everyn":    "Cada {n} días",
   "hoy.habit_freq_everyn_menu": "Cada varios días…",
@@ -264,7 +253,6 @@ export const es = {
   "detail.note":              "Nota",
   "detail.note_placeholder":  "Añade notas o detalles…",
   "detail.priority":          "Prioridad",
-  "detail.priority_none":     "Ninguna",
   "detail.priority_important": "Importante",
   "detail.due_date":          "Fecha",
   "detail.no_date":           "Sin fecha",
@@ -285,7 +273,6 @@ export const es = {
   "modal.cancel":             "Cancelar",
   "modal.save":               "Guardar",
   "modal.close":              "Cerrar",
-  "modal.done":               "Listo",
   "modal.accept":             "Aceptar",
   "modal.understood":         "Entendido",
   "modal.clear":              "Quitar",
@@ -348,7 +335,6 @@ export const es = {
   // ── Captura rápida ────────────────────────────────────────
   "quick_capture.title":      "Captura rápida",
   "quick_capture.placeholder":"p. ej. Llamar a pablo mañana",
-  "quick_capture.key_space":  "Espacio",
   "quick_capture.hint_type":          "Escribe",
   "quick_capture.hint_autocomplete":  "para autocompletar",
   "quick_capture.submit":     "Añadir tarea",
@@ -431,8 +417,6 @@ export const es = {
   "empty.tasks.sub_default":  "Crea la primera para esta lista.",
   "empty.inbox.title":        "Inbox limpio.",
   "empty.inbox.sub":          "Todo procesado — captura algo nuevo cuando llegue.",
-  "task.counter_one":         "{count} pendiente",
-  "task.counter_other":       "{count} pendientes",
   "empty.cta.add_task":       "Nueva tarea",
 
   // ── Today badges (sidebar) ────────────────────────────────
@@ -466,8 +450,6 @@ export const es = {
   "sync.conflict_body_other_other": "Tienes <strong>{local} proyectos locales</strong> y <strong>{cloud} proyectos en la nube</strong>. ¿Cuáles quieres usar?",
 
   // ── Save status ───────────────────────────────────────────
-  "save.storage_warn":        "⚠ Almacenamiento al {pct}% — exporta tu workspace",
-  "save.storage_info":        "Almacenamiento al {pct}%",
 
   // ── Project templates ─────────────────────────────────────
   "tpl.modal.title":          "Nuevo proyecto",
