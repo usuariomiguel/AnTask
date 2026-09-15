@@ -3253,12 +3253,11 @@ button:focus-visible {
      de renombrar (`input.inline-edit`) se excluye explícitamente. */
   user-select: none;
   position: relative;
-  /* `backwards`, no `both`: con `both` la animación conserva su fotograma
-     final para siempre y —las animaciones ganan a las reglas normales—
-     dejaba clavados `opacity` y `transform`, anulando tanto el atenuado de
-     .task-item.done como la elevación del hover. El fotograma final ya es
-     el estado natural de la fila, así que no hace falta retenerlo. */
-  animation: itemIn 0.22s var(--ease-out) backwards;
+  /* Sin animación de entrada. Tuvo una (`itemIn`) que nunca llegó a
+     ejecutarse porque su curva apuntaba a un token inexistente; al
+     arreglar el token cobró vida y hacía saltar las filas pendientes al
+     abrir cada lista y al desmarcar (que quitaba el `animation: none` de
+     .done y la volvía a arrancar). */
   box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
@@ -4136,30 +4135,6 @@ button:focus-visible {
   margin-top: 0;
 }
 
-@keyframes itemIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes itemOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
 /* ─── TASK MAIN ROW ──────────────────────────────────────────── */
 .task-main-row {
   display: flex;
@@ -4324,21 +4299,12 @@ button:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color var(--dur-base) var(--ease-out),
-    opacity var(--dur-base) var(--ease-out);
 }
 
 .task-item .task-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.task-item.done {
-  /* Sin `opacity` de fila: apagarla entera atenuaba también la casilla,
-     los chips y el fondo. Completar solo debe apagar el TÍTULO — el resto
-     de la fila se lee igual que antes, y nunca se tacha. */
-  animation: none;
 }
 
 .task-item.done::before {
@@ -4349,9 +4315,7 @@ button:focus-visible {
 /* Completada: solo se apaga el color, el peso ya es el mismo ligero de
    siempre — como en .today-item--done .today-text. Sin tachado. */
 .task-item.done .task-text {
-  color: var(--text-tertiary);
   font-weight: var(--fw-semiregular);
-  opacity: 0.6;
 }
 
 /* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
@@ -9425,8 +9389,6 @@ button {
   padding-left: 9px;
   color: var(--text-primary);
   letter-spacing: -0.025em;
-  transition: color var(--dur-base) var(--ease-out),
-    opacity var(--dur-base) var(--ease-out);
   line-height: 1.4;
   /* Una sola línea, como la fila de una lista: `.today-text` no tenía
      ningún límite y un título largo crecía hasta cuatro líneas. */
@@ -9437,9 +9399,78 @@ button {
 
 /* Igual que en las listas: completar apaga el título, no la fila. */
 .today-item--done .today-text {
-  color: var(--text-tertiary);
   font-weight: var(--fw-semiregular);
-  opacity: 0.6;
+}
+
+/* Completar apaga el título barriendo de izquierda a derecha, en vez de
+   bajar de golpe. El título se pinta con un degradado recortado a las
+   letras: a la izquierda el color de hecha (el tertiary al 60%, lo mismo
+   que daban antes color + opacity), a la derecha el de siempre. Desplazar
+   el fondo mueve la frontera por el texto; el 45–55% la difumina para que
+   no se lea como un corte.
+
+   Va sobre `.title-ink`, un span en línea dentro del título, y no sobre el
+   contenedor: éste ocupa la fila entera, y con un título corto la frontera
+   cruzaba las letras en un instante y el resto del recorrido pasaba sobre
+   espacio vacío (ver _setRowTitle).
+
+   Listas: la fila persiste al marcar, así que basta una transición, y
+   las transiciones no arrancan en el primer pintado (lo ya hecho sale
+   apagado sin barrer). Al marcar arranca 70ms tarde, con el tick; al
+   desmarcar vuelve más rápido y sin esperar. */
+.title-ink {
+  background-image: linear-gradient(90deg,
+    color-mix(in srgb, var(--text-tertiary) 60%, transparent) 45%,
+    var(--text-primary) 55%);
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background-position 260ms var(--ease-out);
+}
+
+.task-item.done .title-ink,
+.today-item--done .title-ink {
+  background-position: 0 0;
+  transition: background-position 480ms var(--ease-in-out) 70ms;
+}
+
+/* La elipsis de un título truncado la pinta el contenedor, no el span:
+   se apaga con él para no quedarse con el color de pendiente. */
+.task-item.done .task-text,
+.today-item--done .today-text {
+  color: color-mix(in srgb, var(--text-tertiary) 60%, transparent);
+}
+
+/* Hoy y hábitos recrean la fila al marcar: el nodo nuevo nace ya en su
+   estado final y no hay transición que ver. Ahí el barrido lo pone la
+   clase de celebrar/reabrir (ver _justToggledId). */
+.today-item--celebrate .title-ink {
+  animation: text-sweep-done 480ms var(--ease-in-out) 70ms both;
+}
+
+.today-item--reopen .title-ink {
+  animation: text-sweep-undo 260ms var(--ease-out) both;
+}
+
+@keyframes text-sweep-done {
+  from { background-position: 100% 0; }
+  to   { background-position: 0 0; }
+}
+
+@keyframes text-sweep-undo {
+  from { background-position: 0 0; }
+  to   { background-position: 100% 0; }
+}
+
+/* En colores forzados (alto contraste de Windows) el navegador quita los
+   fondos, y con el relleno transparente el título desaparecería. */
+@media (forced-colors: active) {
+  .title-ink {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 /* Chips/acciones de la fila: misma línea en escritorio, segunda línea

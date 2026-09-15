@@ -2795,12 +2795,33 @@ function duplicateTask(task, project) {
  * Actualiza el estado visible de un nodo de tarea sin tocar
  * listeners. Asume que el nodo ya fue construido por _buildTaskNode.
  */
+/**
+ * Escribe el título de una fila dentro de su `.title-ink`, el span en
+ * línea donde se pinta el barrido de completar. Va en un span y no en el
+ * contenedor porque éste ocupa toda la fila: el degradado se repartía
+ * sobre ese ancho y un título corto se apagaba en una fracción del
+ * recorrido. Un elemento en línea mide lo que miden sus letras.
+ *
+ * Reutiliza el span si ya está: las filas de lista se refrescan en sitio
+ * al marcarlas y el barrido es una transición, que solo corre sobre un
+ * elemento que ya existía. Un span recién creado nace en su estado final.
+ */
+function _setRowTitle(el, text) {
+  var ink = el.childNodes.length === 1 && el.firstElementChild;
+  if (!ink || !ink.classList.contains("title-ink")) {
+    ink = document.createElement("span");
+    ink.className = "title-ink";
+    el.replaceChildren(ink);
+  }
+  if (ink.textContent !== text) ink.textContent = text;
+}
+
 function _updateTaskNode(node, task) {
   const checkbox = node.querySelector(".task-toggle");
   const text     = node.querySelector(".task-text");
 
   checkbox.checked    = task.done;
-  text.textContent    = task.text;
+  _setRowTitle(text, task.text);
   node.classList.toggle("done", task.done);
 
   // A diferencia de Hoy, esta fila NO se recrea al marcarla: se refresca
@@ -4645,7 +4666,7 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
 
   var text = document.createElement("span");
   text.className = "today-text";
-  text.textContent = habit.name;
+  _setRowTitle(text, habit.name);
 
   li.appendChild(check.wrap);
   li.appendChild(text);
@@ -4962,7 +4983,7 @@ function renderTodayItem(task, project, todayStr, tone) {
 
   var text = document.createElement("span");
   text.className = "today-text";
-  text.textContent = task.text;
+  _setRowTitle(text, task.text);
 
   li.appendChild(check.wrap);
   li.appendChild(text);
@@ -5140,7 +5161,7 @@ function startInlineEdit(textSpan, task) {
       task.text = newText;
       saveAndRender();
     } else {
-      textSpan.textContent = current;
+      _setRowTitle(textSpan, current);
     }
   }
   input.addEventListener("keydown", function(e) {
