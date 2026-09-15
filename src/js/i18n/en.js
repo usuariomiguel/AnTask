@@ -14,9 +14,6 @@ export const en = {
   "sidebar.add_list":         "Add list",
   "sidebar.list_name":        "List name",
   "pmenu.lists":              "Lists",
-  "sidebar.archived":         "Archived",
-  "sidebar.archived_empty":   "Nothing archived",
-  "sidebar.more":             "More",
 
   // ── Profile ───────────────────────────────────────────────
   "profile.local":            "Local",
@@ -222,11 +219,8 @@ export const en = {
   "project.rename":           "Rename list",
   "project.edit_this_list":   "Edit this list",
   "project.rename_prompt":    "Rename list",
-  "project.restore":          "Restore list",
   "project.delete":           "Delete list",
-  "project.delete_permanent": "Delete permanently",
   "project.confirm_delete":   "Delete list <strong>{name}</strong> and all its tasks?",
-  "project.confirm_delete_permanent": "Permanently delete <strong>{name}</strong> and all its tasks? This cannot be undone.",
   "project.change_color":     "Change color",
   "project.color_picker_title":"List color",
   "project.color_clear":      "No color",

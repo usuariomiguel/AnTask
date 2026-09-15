@@ -6460,17 +6460,6 @@ body.project-dragging .project-item {
     transform: rotate(-90deg);
   }
 
-  /* Cuando "Más" está colapsado, ocultar los wrappers que contiene */
-  .sidebar-more-group:not([open]) .archived-section-wrap {
-    display: none;
-  }
-
-  /* En "Más" abierto, Archivados pierde su border-top propio porque el
-     grupo ya lo aporta */
-  .sidebar-more-group .archived-section-wrap {
-    border-top: none;
-  }
-
   /* ── Mobile bottom navigation ───────────────────────────────
      Pastilla flotante sólida (sin blur/transparencia) con 3 destinos
      (Hoy · Inbox · Perfil), radio 28px, borde y sombra amplia. El +
@@ -7514,70 +7503,8 @@ kbd {
   }
 }
 
-/* ─── PROYECTOS ARCHIVADOS ──────────────────────────────────── */
-.archived-section-wrap {
-  border-top: 2px solid var(--b-subtle);
-  flex-shrink: 0;
-}
-
-.archived-section-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  width: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  border-radius: var(--r-xs);
-  user-select: none;
-  font-family: var(--font-sans);
-}
-
-.archived-section-toggle i {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2;
-  flex-shrink: 0;
-  color: var(--t-muted);
-}
-
-.archived-section-toggle span:not(.archived-section-count) {
-  font-size: 12.5px;
-  font-weight: var(--fw-semibold);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text-tertiary);
-  flex: 1;
-}
-
-.archived-section-count {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.archived-project-list {
-  list-style: none;
-  max-height: 180px;
-  overflow-y: auto;
-  padding: 0.25rem var(--sp-2);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.15) transparent;
-}
-
-.project-item-archived {
-  opacity: 0.50;
-}
-
 /* Task drag → project sidebar drop targets */
-body.task-dragging .project-item:not(.active):not(.project-item-archived) {
+body.task-dragging .project-item:not(.active) {
   outline: 1px dashed rgba(163, 179, 102, 0.30);
   outline-offset: -1px;
 }

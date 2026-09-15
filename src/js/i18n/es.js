@@ -14,9 +14,6 @@ export const es = {
   "sidebar.add_list":         "Añadir lista",
   "sidebar.list_name":        "Nombre de la lista",
   "pmenu.lists":              "Listas",
-  "sidebar.archived":         "Archivados",
-  "sidebar.archived_empty":   "Sin archivados",
-  "sidebar.more":             "Más",
 
   // ── Perfil ────────────────────────────────────────────────
   "profile.local":            "Local",
@@ -222,11 +219,8 @@ export const es = {
   "project.rename":           "Renombrar lista",
   "project.edit_this_list":   "Editar esta lista",
   "project.rename_prompt":    "Cambiar nombre de la lista",
-  "project.restore":          "Restaurar lista",
   "project.delete":           "Eliminar lista",
-  "project.delete_permanent": "Eliminar permanentemente",
   "project.confirm_delete":   "¿Eliminar la lista <strong>{name}</strong> y todas sus tareas?",
-  "project.confirm_delete_permanent": "¿Eliminar permanentemente <strong>{name}</strong> y todas sus tareas? Esta acción no se puede deshacer.",
   "project.change_color":     "Cambiar color",
   "project.color_picker_title":"Color de la lista",
   "project.color_clear":      "Sin color",

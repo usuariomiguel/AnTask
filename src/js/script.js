@@ -139,7 +139,7 @@ function openQuickCapture(opts) {
     },
     getLists: function() {
       var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
-      var others = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
+      var others = projects.filter(function(p) { return p.id !== INBOX_ID; });
       return inbox ? [inbox].concat(others) : others;
     },
     inboxId: INBOX_ID,
@@ -305,7 +305,6 @@ let _undoStack = null;  // { projectId, task, index } | { projectId, tasks, indi
 let _undoTimer = null;
 
 // ─── ARCHIVO DE PROYECTOS ─────────────────────────────────────
-let _archivedExpanded  = false;
 let taskPrefs         = loadTaskPrefs();
 let userProfile       = loadProfile();
 
@@ -998,7 +997,7 @@ exportBtn.addEventListener("click", function() {
   // Las listas archivadas se quedan fuera: al restaurar el backup volvían
   // a aparecer, y archivarlas es precisamente decir que ya no se quieren
   // a la vista. Siguen guardadas en este dispositivo, solo no viajan.
-  const exportables = projects.filter(function(p) { return !p.archived; });
+  const exportables = projects.filter(function(p) { return true; });
   // Un espacio con hábitos pero sin listas también es exportable: antes
   // esta salida temprana solo miraba proyectos.
   if (exportables.length === 0 && habits.length === 0) {
@@ -1268,7 +1267,7 @@ function _renderListChips() {
   // El "+" tiene que verse aunque no haya ninguna lista aún: es la única
   // forma de crear la primera desde el Inbox en móvil.
   const lists = projects.filter(function(p) {
-    return p.id !== INBOX_ID && !p.archived;
+    return p.id !== INBOX_ID;
   });
   if (activeView !== "project") {
     host.hidden = true;
@@ -1596,7 +1595,6 @@ function renderPinnedItems(inboxProject) {
     // El Inbox muestra el pool completo → su contador también.
     var pending = 0;
     projects.forEach(function(p) {
-      if (p.archived) return;
       (p.tasks || []).forEach(function(t) { if (!t.done) pending++; });
     });
     var inbox = document.createElement("li");
@@ -1761,7 +1759,7 @@ function renderSidebar() {
   projectListEl.innerHTML = "";
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
-  const realActive   = projects.filter(function(p) { return !p.archived && p.id !== INBOX_ID; });
+  const realActive   = projects.filter(function(p) { return p.id !== INBOX_ID; });
 
   // ── Items fijados al tope: Hoy + Inbox ───────────────────────
   projectListEl.appendChild(_sidebarSectionLabel(t("sidebar.pinned_section")));
@@ -1788,49 +1786,9 @@ function renderSidebar() {
   if (window.lucide) lucide.createIcons();
   // Archivados se renderiza SIEMPRE — la cabecera aparece aunque la lista
   // esté vacía, para que el "scaffolding" del sidebar quede estable.
-  renderArchivedWidget();
   syncSidebarRail();
 }
 
-function renderArchivedWidget() {
-  var wrap = document.getElementById("archived-section");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-
-  var archived = projects.filter(function(p) { return p.archived; });
-  var isEmpty  = archived.length === 0;
-
-  var toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "archived-section-toggle" + (isEmpty ? " archived-section-toggle--empty" : "");
-  toggle.innerHTML =
-    '<i data-lucide="' + (_archivedExpanded ? "chevron-down" : "chevron-right") + '"></i>' +
-    '<i data-lucide="archive"></i>' +
-    '<span>' + t("sidebar.archived") + '</span>' +
-    (isEmpty ? '' : '<span class="archived-section-count">' + archived.length + '</span>');
-  toggle.addEventListener("click", function() {
-    _archivedExpanded = !_archivedExpanded;
-    renderArchivedWidget();
-    if (window.lucide) lucide.createIcons({ nodes: [wrap] });
-  });
-  wrap.appendChild(toggle);
-
-  if (_archivedExpanded) {
-    if (isEmpty) {
-      var empty = document.createElement("p");
-      empty.className = "sidebar-section-empty";
-      empty.textContent = t("sidebar.archived_empty");
-      wrap.appendChild(empty);
-    } else {
-      var list = document.createElement("ul");
-      list.className = "archived-project-list";
-      archived.forEach(function(p) { renderProjectItem(p, true, list); });
-      wrap.appendChild(list);
-    }
-  }
-
-  if (window.lucide) lucide.createIcons({ nodes: [wrap] });
-}
 
 /**
  * Patrón de dasharray para un anillo SVG segmentado: un arco por unidad
@@ -2179,72 +2137,37 @@ function startProjectInlineEdit(project) {
 async function showProjectMenu(project, anchor) {
   closeCtxMenu();
 
-  var archiveItems = project.archived
-    ? [
-        {
-          _id: "restore",
-          label: t("project.restore"),
-          action: function() {
-            project.archived = false;
-            saveProjects();
-            renderSidebar();
-          }
-        },
-        null,
-        {
-          _id: "delete-permanent",
-          label: t("project.delete_permanent"),
-          danger: true,
-          action: async function() {
-            var ok = await modalConfirm(
-              t("project.confirm_delete_permanent").replace("{name}", escHtml(project.name)),
-              t("modal.delete")
-            );
-            if (!ok) return;
-            projects = projects.filter(function(p) { return p.id !== project.id; });
-            if (activeProjectId === project.id) {
-              var active = projects.filter(function(p) { return !p.archived; });
-              activeProjectId = active.length > 0 ? active[0].id : null;
-            }
-            saveProjects();
-            renderSidebar();
-            renderTasks();
-          }
+  var items = [
+    {
+      label: t("project.change_color"),
+      action: function() { showColorPicker(project); }
+    },
+    {
+      label: t("project.rename"),
+      action: function() { return renameProject(project); }
+    },
+    null,
+    {
+      _id: "delete",
+      label: t("project.delete"),
+      danger: true,
+      action: async function() {
+        var ok = await modalConfirm(
+          t("project.confirm_delete").replace("{name}", escHtml(project.name)),
+          t("modal.delete")
+        );
+        if (!ok) return;
+        projects = projects.filter(function(p) { return p.id !== project.id; });
+        if (activeProjectId === project.id) {
+          var active = projects.filter(function(p) { return p.id !== INBOX_ID; });
+          activeProjectId = active.length > 0 ? active[0].id : null;
         }
-      ]
-    : [
-        {
-          label: t("project.change_color"),
-          action: function() { showColorPicker(project); }
-        },
-        {
-          label: t("project.rename"),
-          action: function() { return renameProject(project); }
-        },
-        null,
-        {
-          _id: "delete",
-          label: t("project.delete"),
-          danger: true,
-          action: async function() {
-            var ok = await modalConfirm(
-              t("project.confirm_delete").replace("{name}", escHtml(project.name)),
-              t("modal.delete")
-            );
-            if (!ok) return;
-            projects = projects.filter(function(p) { return p.id !== project.id; });
-            if (activeProjectId === project.id) {
-              var active = projects.filter(function(p) { return !p.archived; });
-              activeProjectId = active.length > 0 ? active[0].id : null;
-            }
-            saveProjects();
-            renderSidebar();
-            renderTasks();
-          }
-        }
-      ];
-
-  var items = archiveItems;
+        saveProjects();
+        renderSidebar();
+        renderTasks();
+      }
+    }
+  ];
 
   // El proyecto Inbox no se puede eliminar.
   if (project.id === INBOX_ID) {
@@ -2273,7 +2196,6 @@ async function showTodayMenu(x, y) {
   var today = _localDateISO(new Date());
   var pending = [];
   projects.forEach(function(p) {
-    if (p.archived) return;
     (p.tasks || []).forEach(function(t) {
       if (!t.done && t.dueDate && t.dueDate <= today) pending.push({ task: t, project: p });
     });
@@ -2732,7 +2654,7 @@ function _renderTasksFooter(project, isInbox) {
   if (isInbox) {
     poolTasks = [];
     projects.forEach(function(p) {
-      if (!p.archived) poolTasks = poolTasks.concat(p.tasks || []);
+      poolTasks = poolTasks.concat(p.tasks || []);
     });
   }
   const pending = poolTasks.filter(function(t) { return !t.done; }).length;
@@ -3663,7 +3585,7 @@ function _openProjectPopover(fieldEl, anchorBtn) {
   const currentProjectId = openTask.project.id;
 
   _openFieldPopover(fieldEl, anchorBtn, "up", function(pop, close) {
-    const rowsHtml = projects.filter(function(p) { return !p.archived; }).map(function(p) {
+    const rowsHtml = projects.map(function(p) {
       const active = p.id === currentProjectId;
       return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-project-id="' + p.id + '"' +
           ' style="--dot-color:' + escHtml(_projectColor(p)) + '">' +
@@ -3973,7 +3895,6 @@ function _hoyCalMondayOf(iso) {
 function _hoyCalTareasPorDia() {
   var map = new Map();
   projects.forEach(function(p) {
-    if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
       if (!tk.dueDate) return;
       map.set(tk.dueDate, (map.get(tk.dueDate) || 0) + 1);
@@ -4189,7 +4110,6 @@ function renderTodayView() {
   // para el progreso) / sin fecha como sugeridas.
   var overdueRaw = [], todaysRaw = [], nodateRaw = [];
   projects.forEach(function(p) {
-    if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
       if (!tk.dueDate) { nodateRaw.push({ task: tk, project: p }); return; }
       if (tk.dueDate < today) { overdueRaw.push({ task: tk, project: p }); }
@@ -4277,7 +4197,6 @@ function renderTodayView() {
   if (isSimpleMobile() && _hoySelectedDate) {
     var delDia = [];
     projects.forEach(function(p) {
-      if (p.archived) return;
       (p.tasks || []).forEach(function(tk) {
         if (tk.dueDate === _hoySelectedDate) delDia.push({ task: tk, project: p });
       });
