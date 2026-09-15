@@ -12236,7 +12236,7 @@ button {
     max-height: 88vh;
     margin: 6px;
     border-radius: 40px;
-    background: var(--surface-canvas);
+    background: var(--surface-card);
     padding-bottom: max(15px, env(safe-area-inset-bottom, 0px));
     animation: qcSheetIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
