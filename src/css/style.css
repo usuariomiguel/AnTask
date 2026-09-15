@@ -852,7 +852,7 @@ body {
    Espejo de .task-detail-rail: marca arriba (despliega), separador,
    buscar + navegación fijada, y avatar abajo (despliega). */
 .sidebar-rail {
-  display: flex;
+  display: none;
   width: 62px;
   height: 100%;
   flex-shrink: 0;
