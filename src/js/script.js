@@ -1560,46 +1560,6 @@ function activateTodayView() {
 
 
 /**
- * Activa la vista "Hábitos" — muestra todos los hábitos.
- */
-function activateHabitsView() {
-  activeView = "habits";
-  activeProjectId = null;
-  localStorage.removeItem(ACTIVE_KEY);
-
-  _closeAllAltPanels();
-
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  if (mobileFab) mobileFab.classList.add("visible");
-  const habitsPanel = document.getElementById("habits-panel");
-  if (habitsPanel) habitsPanel.hidden = false;
-  if (tasksPanel) tasksPanel.hidden = true;
-
-  if (taskForm) taskForm.style.display = "none";
-
-  var mobileHeader = document.getElementById("mobile-header");
-  var mobileHeaderTitle = document.getElementById("mobile-header-title");
-  var mobileHeaderCount = document.getElementById("mobile-header-count");
-  if (mobileHeader) mobileHeader.classList.add("mobile-header--project");
-  if (mobileHeaderTitle) mobileHeaderTitle.textContent = t("sidebar.habits");
-  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
-
-  document.title = t("sidebar.habits") + " — AnTrack";
-  if (projectTitleEl)  projectTitleEl.textContent  = t("sidebar.habits");
-  if (projectSubtitle) projectSubtitle.textContent = "";
-  if (projectSubtitleM) projectSubtitleM.textContent = "";
-
-  currentFilter = "all";
-  _syncFilterPanel("all");
-
-  closeTaskDetail();
-  renderSidebar();
-  renderHabitsList();
-  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  if (window._antrackNavShow) window._antrackNavShow();
-}
-
-/**
  * Pinta los items fijos al tope de la sidebar: vista "Hoy" + proyecto Inbox.
  * Se redibujan en cada renderSidebar().
  */
@@ -1759,7 +1719,6 @@ function _commitAddList(value) {
  */
 function syncSidebarRail() {
   const todayBtn = document.getElementById("sidebar-rail-today");
-  const habitsBtn = document.getElementById("sidebar-rail-habits");
   const inboxBtn = document.getElementById("sidebar-rail-inbox");
   if (!todayBtn || !inboxBtn) return;
 
@@ -1767,6 +1726,7 @@ function syncSidebarRail() {
   let todayCount = 0;
   let pending    = 0;
   projects.forEach(function(p) {
+    if (p.archived) return;
     (p.tasks || []).forEach(function(tk) {
       if (tk.done) return;
       pending++;
@@ -1775,7 +1735,6 @@ function syncSidebarRail() {
   });
 
   todayBtn.classList.toggle("active", activeView === "today");
-  if (habitsBtn) habitsBtn.classList.toggle("active", activeView === "habits");
   inboxBtn.classList.toggle("active", activeView === "project" && activeProjectId === INBOX_ID);
 
   if (todayCount > 0) todayBtn.setAttribute("data-attention", "");
@@ -2708,29 +2667,6 @@ function _renderTasksFooter(project, isInbox) {
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — AnTrack"
     : project.name + " — AnTrack";
-}
-
-/** Renderiza la lista de hábitos en la vista de Hábitos. */
-function renderHabitsList() {
-  const habitsList = document.getElementById("habits-list");
-  if (!habitsList) return;
-  habitsList.innerHTML = "";
-
-  const todayISO = _localDateISO(new Date());
-
-  if (habits.length === 0) {
-    const empty = document.createElement("li");
-    empty.className = "habits-list-empty";
-    empty.textContent = t("hoy.no_habits");
-    habitsList.appendChild(empty);
-    return;
-  }
-
-  habits.forEach(function(habit) {
-    habitsList.appendChild(_renderHabitItem(habit, todayISO));
-  });
-
-  if (window.lucide) lucide.createIcons({ nodes: [habitsList] });
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
@@ -5795,7 +5731,6 @@ var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
 
 window.showCalendarPanel = showCalendarPanel;
 window.activateTodayView = activateTodayView;
-window.activateHabitsView = activateHabitsView;
 
 function showCalendarPanel() {
   var calPanel = document.getElementById("cal-panel");
@@ -6251,8 +6186,6 @@ function _initNavAutoHide() {
   if (railAvatar)     railAvatar.addEventListener("click",     function () { setSidebarCollapsed(false); });
   if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
   if (railToday)      railToday.addEventListener("click",      function () { activateTodayView(); });
-  var railHabits      = document.getElementById("sidebar-rail-habits");
-  if (railHabits)     railHabits.addEventListener("click",     function () { activateHabitsView(); });
   if (railInbox)      railInbox.addEventListener("click",      function () { activateProject(INBOX_ID); });
 
   // Restaurar estado solo en escritorio

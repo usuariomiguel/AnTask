@@ -7,7 +7,6 @@ export const en = {
   "sidebar.inbox":            "Inbox",
   "inbox.tasks_label":        "Tasks",
   "sidebar.today":            "Today",
-  "sidebar.habits":           "Habits",
   "sidebar.hide_sidebar":     "Hide sidebar",
   "sidebar.show_sidebar":     "Expand sidebar",
   "sidebar.pinned_section":   "Views",
