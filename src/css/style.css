@@ -3236,7 +3236,6 @@ button:focus-visible {
      puede pasar de 48px, aunque lleve chip de fecha/prioridad; ver el
      recorte de `.task-meta`/`.due-badge` más abajo para que quepan sin
      desbordar. En móvil manda el min-height propio de ese @media (abajo). */
-  max-height: 48px;
   align-content: center;
   background: var(--surface-card);
   border: 2px solid var(--border-default);
@@ -4312,11 +4311,10 @@ button:focus-visible {
   box-shadow: none !important;
 }
 
-/* Completada: solo se apaga el color, el peso ya es el mismo ligero de
-   siempre — como en .today-item--done .today-text. Sin tachado. */
-.task-item.done .task-text {
-  font-weight: var(--fw-semiregular);
-}
+/* Completar solo apaga el color: ni tachado ni cambio de peso. El peso
+   bajaba aquí a `semiregular`, que en escritorio es el mismo de siempre y
+   no se notaba, pero en móvil el título pendiente pesa 550 y adelgazaba
+   de golpe al marcar, robándole presencia al barrido. */
 
 /* ─── METADATA DE FILA (solo lectura) ─────────────────────────── */
 /* Mismo patrón que `.filter-segments`: una barra compartida con 3px de
@@ -4330,7 +4328,6 @@ button:focus-visible {
   flex-shrink: 0;
   flex-wrap: nowrap;
   padding: 6px;
-  background: var(--surface-card);
   border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
 }
@@ -9389,10 +9386,8 @@ button {
   text-overflow: ellipsis;
 }
 
-/* Igual que en las listas: completar apaga el título, no la fila. */
-.today-item--done .today-text {
-  font-weight: var(--fw-semiregular);
-}
+/* Igual que en las listas: completar apaga el título, no la fila, y sin
+   tocarle el peso (ver .task-item.done .task-text). */
 
 /* Completar apaga el título barriendo de izquierda a derecha, en vez de
    bajar de golpe. El título se pinta con un degradado recortado a las
@@ -9971,7 +9966,7 @@ button {
   padding: 6px;
   border-radius: 33px;
   cursor: text;
-  background: color-mix(in srgb, var(--surface-card) 50%, transparent);
+  background: var(--surface-card);
   border: 2px solid var(--border-default);
   font-family: var(--font-body);
   box-shadow: 0 20px 50px -18px rgba(40, 30, 15, 0.34);
@@ -11551,10 +11546,10 @@ button {
 
   /* Mismo peso que .task-item .task-text (Inbox/listas): el título de
      Hoy se quedaba en el peso normal de la ficha (300) mientras Inbox
-     pesaba 550. Sin tocar completadas (`.today-item--done`, línea 9692
-     de este archivo) — misma especificidad y posterior en cascada, así
-     que ganaría aquí si no se excluye. */
-  .today-item:not(.today-item--done) .today-text {
+     pesaba 550. También en las completadas: antes se excluían y al marcar
+     el título adelgazaba de golpe, que era justo lo que se comía el
+     barrido. */
+  .today-item .today-text {
     font-weight: 550;
   }
 
