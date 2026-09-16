@@ -46,6 +46,7 @@ import {
   computeStreak,
 } from "./habits/model.js";
 import { openHabitsHistory } from "./habits/render-history.js";
+import { sugerenciasPara } from "./utils/title-hints.js";
 import {
   loadProjects,
   loadSections,
@@ -56,6 +57,7 @@ import {
 } from "./state/persistence.js";
 import {
   IMPORTANT_LABEL,
+  RECUR_LABEL,
   labelChip,
   renderDueBadge,
   renderRecurBadge,
@@ -2740,6 +2742,163 @@ function _renderTasksFooter(project, isInbox) {
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
+// ─── HUECOS VACÍOS DE LA FILA (escritorio) ───────────────────
+// En escritorio cada tipo de chip tiene su columna fija, y cuando una
+// tarea no lo tiene queda un hueco. Ese hueco se aprovecha para dos
+// cosas:
+//
+//  · Sugerencias. Si el título insinúa una repetición ("informe
+//    mensual") o que es importante ("URGENTE: …"), el hueco enseña un
+//    fantasma punteado que se acepta de un clic o se descarta con la ✕.
+//    La lógica vive en utils/title-hints.js.
+//  · Brotes. El resto de huecos no enseña nada en reposo y, al pasar el
+//    ratón por la fila, brota su acción: + fecha, repetir, importante.
+//
+// Móvil no entra: su fila no tiene columnas y se edita con su popover.
+
+// Los descartes son POR DISPOSITIVO a propósito: guardarlos en la tarea
+// los haría viajar, pero tocaría el modelo de datos y lo que se
+// sincroniza, y no merece la pena arriesgar eso por una sugerencia.
+const DESCARTES_KEY = "antrack-sugerencias-descartadas";
+
+// Se consultan una vez por fila en cada repintado; releer y parsear el
+// JSON de localStorage en cada una sobraba. Se invalida al escribir.
+var _descartesCache = null;
+
+/** @returns {Record<string, string[]>} */
+function _leerDescartes() {
+  if (_descartesCache) return _descartesCache;
+  try {
+    const v = JSON.parse(localStorage.getItem(DESCARTES_KEY) || "{}");
+    _descartesCache = v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch (_) {
+    _descartesCache = {};
+  }
+  return _descartesCache;
+}
+
+function _descartesDe(taskId) {
+  const v = _leerDescartes()[taskId];
+  return Array.isArray(v) ? v : [];
+}
+
+function _descartarSugerencia(taskId, clave) {
+  const todos = Object.assign({}, _leerDescartes());
+  const lista = Array.isArray(todos[taskId]) ? todos[taskId].slice() : [];
+  if (lista.indexOf(clave) === -1) lista.push(clave);
+  todos[taskId] = lista;
+  // Se podan las tareas que ya no existen: si no, la clave crecería para
+  // siempre con ids de tareas borradas.
+  const vivas = new Set();
+  projects.forEach(function(pr) { (pr.tasks || []).forEach(function(tk) { vivas.add(tk.id); }); });
+  Object.keys(todos).forEach(function(id) { if (!vivas.has(id)) delete todos[id]; });
+  _descartesCache = todos;
+  try { localStorage.setItem(DESCARTES_KEY, JSON.stringify(todos)); } catch (_) { /* cuota: sin persistir */ }
+}
+
+/**
+ * Botón de brote: invisible en reposo, brota al pasar el ratón por la fila.
+ *
+ * Fuera del tabulador y del árbol accesible: es un atajo de ratón, no la
+ * única vía —el panel de detalle hace lo mismo—, y con foco cada fila
+ * sumaría tres paradas invisibles al recorrer la lista con el teclado.
+ */
+function _brote(tipo, iconoHtml, titulo, texto) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "chip-brote";
+  b.dataset.brote = tipo;
+  b.tabIndex = -1;
+  b.setAttribute("aria-hidden", "true");
+  b.title = titulo;
+  b.innerHTML = iconoHtml;
+  if (texto) {
+    const s = document.createElement("span");
+    s.className = "chip-brote-texto";
+    s.textContent = texto;
+    b.appendChild(s);
+  }
+  return b;
+}
+
+/**
+ * Fantasma de sugerencia: un chip punteado con "?" que se acepta de un
+ * clic, más una ✕ que solo asoma al pasar el ratón o al tabular.
+ * A diferencia del brote sí es accesible: es información, no un atajo.
+ */
+function _fantasma(tipo, clave, iconoHtml, etiqueta, descripcion) {
+  const w = document.createElement("span");
+  w.className = "chip-sugerencia chip-sugerencia--" + tipo;
+
+  const ok = document.createElement("button");
+  ok.type = "button";
+  ok.className = "chip-sugerencia-aceptar";
+  ok.dataset.sugerencia = clave;
+  const aria = t("sugerencia.aplicar").replace("{label}", descripcion);
+  ok.setAttribute("aria-label", aria);
+  ok.title = aria;
+  ok.innerHTML = iconoHtml;
+  if (etiqueta) {
+    const s = document.createElement("span");
+    s.textContent = etiqueta;
+    ok.appendChild(s);
+  }
+  const q = document.createElement("span");
+  q.className = "chip-sugerencia-q";
+  q.setAttribute("aria-hidden", "true");
+  q.textContent = "?";
+  ok.appendChild(q);
+
+  const x = document.createElement("button");
+  x.type = "button";
+  x.className = "chip-sugerencia-descartar";
+  x.dataset.sugerenciaDescartar = clave;
+  x.setAttribute("aria-label", t("sugerencia.descartar"));
+  x.title = t("sugerencia.descartar");
+  x.innerHTML = '<i data-lucide="x"></i>';
+
+  w.appendChild(ok);
+  w.appendChild(x);
+  return w;
+}
+
+/** Rellena los huecos de fecha, repetir e importante de una fila. */
+function _pintarHuecos(task, node, simpleRow) {
+  const cRecur = node.querySelector(".task-recur-container");
+  const cPrio  = node.querySelector(".task-priority-container");
+  const cFecha = node.querySelector(".task-due-container");
+  [cRecur, cPrio, cFecha].forEach(function(c) {
+    if (c) c.querySelectorAll(".chip-brote, .chip-sugerencia").forEach(function(el) { el.remove(); });
+  });
+  if (simpleRow) return;
+
+  // Sin `done` a propósito. Completar no repinta los chips —reiniciaría su
+  // apagado en cadena, ver `firmaChips`—, así que si esto dependiera de
+  // `done`, una tarea reabierta se quedaría sin sugerencias hasta el
+  // siguiente cambio de título. Se pintan siempre y el CSS las esconde
+  // en las filas hechas.
+  const sug = sugerenciasPara(
+    { text: task.text, recurDays: task.recurDays, priority: task.priority },
+    _descartesDe(task.id)
+  );
+  const sugRecur = sug.find(function(x) { return x.campo === "recur"; });
+  const sugImp   = sug.find(function(x) { return x.campo === "importante"; });
+
+  if (cRecur && taskPrefs.showRecur !== false && !cRecur.querySelector(".recur-badge")) {
+    cRecur.appendChild(sugRecur
+      ? _fantasma("recur", sugRecur.clave, '<i data-lucide="repeat"></i>', sugRecur.valor + "d", RECUR_LABEL(sugRecur.valor))
+      : _brote("recur", '<i data-lucide="repeat"></i>', t("brote.recur")));
+  }
+  if (cPrio && taskPrefs.showPriority !== false && !cPrio.querySelector(".priority-badge")) {
+    cPrio.appendChild(sugImp
+      ? _fantasma("importante", sugImp.clave, '<i data-lucide="flag"></i>', "", IMPORTANT_LABEL())
+      : _brote("importante", '<i data-lucide="flag"></i>', t("brote.importante")));
+  }
+  if (cFecha && !cFecha.querySelector(".due-badge")) {
+    cFecha.appendChild(_brote("fecha", "", t("brote.fecha"), t("brote.fecha_corto")));
+  }
+}
+
 function renderPriorityBadge(task, container) {
   if (!container) return;
   container.innerHTML = "";
@@ -2859,6 +3018,10 @@ function _updateTaskNode(node, task) {
     // repintar los chips aunque la tarea en sí no haya cambiado.
     taskPrefs.showPriority, taskPrefs.showReminder, taskPrefs.showList, taskPrefs.showRecur,
     isSimpleMobile(),
+    // Las sugerencias salen del título y dependen de lo descartado:
+    // cambiar cualquiera de los dos tiene que repintar los huecos.
+    task.text || "",
+    _descartesDe(task.id).join(","),
   ].join("|");
   if (node._firmaChips !== firmaChips) {
     node._firmaChips = firmaChips;
@@ -2878,6 +3041,7 @@ function _updateTaskNode(node, task) {
     renderDueBadge(task, node.querySelector(".task-due-container"));
     if (!simpleRow && taskPrefs.showRecur === false) node.querySelector(".task-recur-container").innerHTML = "";
     else renderRecurBadge(task, node.querySelector(".task-recur-container"));
+    _pintarHuecos(task, node, simpleRow);
   }
 
   // El panel de detalle (columna derecha) sustituye a la expansión en la
@@ -2908,6 +3072,47 @@ function _buildTaskNode(task, project, showList) {
 
     const checkbox = node.querySelector(".task-toggle");
     const text     = node.querySelector(".task-text");
+
+    // Brotes y sugerencias de los huecos vacíos (ver _pintarHuecos). Son
+    // <button>, y el clic de la fila ya ignora los botones, así que no
+    // abren el detalle por su cuenta.
+    function onHueco(e) {
+      const descartar = e.target.closest("[data-sugerencia-descartar]");
+      const aceptar   = e.target.closest("[data-sugerencia]");
+      const brote     = e.target.closest("[data-brote]");
+      if (!descartar && !aceptar && !brote) return;
+      e.stopPropagation();
+
+      if (descartar) {
+        _descartarSugerencia(task.id, descartar.dataset.sugerenciaDescartar);
+        renderTasks();
+        return;
+      }
+      if (aceptar) {
+        const clave = aceptar.dataset.sugerencia;
+        // Lo mismo que hace el popover de repetir: solo `recurDays`, sin
+        // inventarse una fecha.
+        if (clave === "importante") task.priority = "high";
+        else if (clave.indexOf("recur:") === 0) task.recurDays = parseInt(clave.slice(6), 10);
+        saveAndRender();
+        return;
+      }
+
+      const tipo = brote.dataset.brote;
+      if (tipo === "importante") {
+        task.priority = "high";
+        saveAndRender();
+        return;
+      }
+      // Fecha y repetir no se reconstruyen dentro de la fila: se abre el
+      // detalle con su campo ya desplegado, y así se reutilizan tal cual el
+      // calendario, los atajos y las opciones de repetición.
+      openTaskDetail(task.id, project.id);
+      const campo = document.getElementById(tipo === "fecha" ? "task-detail-date-btn" : "task-detail-recur-btn");
+      if (campo) campo.click();
+    }
+    node.querySelector(".task-meta").addEventListener("click", onHueco);
+    node.querySelector(".task-due-container").addEventListener("click", onHueco);
 
     // Badge de fecha vencida: pulsable, mueve la tarea a hoy sin abrir el panel.
     node.querySelector(".task-due-container").addEventListener("click", function(e) {

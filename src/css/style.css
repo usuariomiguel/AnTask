@@ -5164,6 +5164,13 @@ input.inline-edit {
    mono, sin píldora") y quedaba desigual al lado de una fecha que sí
    la lleva; ahora todas las etiquetas de la fila comparten el mismo
    lenguaje visual. */
+/* Huecos de la fila (sugerencias y brotes): solo escritorio. Aquí se
+   apagan por defecto y el bloque de escritorio los enciende. */
+.chip-brote,
+.chip-sugerencia {
+  display: none;
+}
+
 .recur-badge {
   display: inline-flex;
   align-items: center;
@@ -9753,6 +9760,188 @@ button {
     grid-column: 4;
     justify-self: end;
     min-width: 0;
+  }
+
+  /* ── Huecos vacíos: sugerencias y brotes (ver _pintarHuecos) ──
+     Una sugerencia reserva su columna igual que un chip de verdad, o el
+     fantasma no tendría dónde caer. Solo cuentan las filas sin hacer: en
+     las hechas el fantasma existe pero va oculto, y reservar 60px para
+     algo que no se ve sería el espacio muerto que las columnas evitan. */
+  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--importante) { --col-importante: 30px; }
+  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--recur) { --col-repetir: 60px; }
+
+  /* El brote no reserva nada: si su columna no existe (nadie en la vista
+     tiene ese chip) se queda fuera, porque ocuparía sitio y desplazaría
+     la fila entera al pasar el ratón. En dos columnas el metadato fluye
+     y pasaría lo mismo. En filas hechas no hay nada que proponer. */
+  .task-list:not(:has(.recur-badge, .task-item:not(.done) .chip-sugerencia--recur)) .chip-brote[data-brote="recur"],
+  .task-list:not(:has(.priority-badge, .task-item:not(.done) .chip-sugerencia--importante)) .chip-brote[data-brote="importante"],
+  .task-list[data-columns="2"] .chip-brote,
+  .task-item.done :is(.chip-brote, .chip-sugerencia) {
+    display: none;
+  }
+
+  /* Brote: nada en reposo. Tampoco recibe clics mientras no se ve: un clic
+     en lo que parece hueco vacío tiene que seguir abriendo el detalle,
+     no disparar una acción invisible. */
+  .chip-brote {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .chip-brote .lucide {
+    width: 13px;
+    height: 13px;
+    stroke-width: 2.2;
+  }
+
+  .task-item:hover .chip-brote {
+    opacity: 0.6;
+    pointer-events: auto;
+  }
+
+  /* El brote con TEXTO va entero: a 0.6 su "+ fecha" se quedaba por debajo
+     de AA. Los de solo icono pueden ir atenuados porque no hay texto que
+     leer, y así se sigue notando que son un fantasma. */
+  .task-item:hover .chip-brote[data-brote="fecha"] {
+    opacity: 1;
+  }
+
+  .task-item:hover .chip-brote:hover {
+    opacity: 1;
+    color: var(--c-primary-400);
+  }
+
+  :root[data-theme="light"] .task-item:hover .chip-brote:hover {
+    color: var(--c-primary-600);
+  }
+
+  /* "Brota": sube desde un poco más abajo y más pequeño, con un rebote
+     corto. Sin movimiento para quien lo tiene reducido — ahí solo aparece. */
+  @media (prefers-reduced-motion: no-preference) {
+    .chip-brote {
+      transform: translateY(4px) scale(0.8);
+      transition: opacity 160ms ease, transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.4), color 120ms ease;
+    }
+
+    .task-item:hover .chip-brote {
+      transform: none;
+    }
+
+    /* En cascada, de izquierda a derecha, como si brotasen de uno en uno. */
+    .task-item:hover .chip-brote[data-brote="importante"] { transition-delay: 0ms; }
+    .task-item:hover .chip-brote[data-brote="recur"]      { transition-delay: 40ms; }
+    .task-item:hover .chip-brote[data-brote="fecha"]      { transition-delay: 80ms; }
+  }
+
+  /* Sugerencia: el chip que falta, dibujado a lápiz — borde punteado y un
+     "?" que respira. El texto va en tinta secundaria y no apagado: es
+     algo que se pulsa y tiene que leerse con contraste. El icono lleva
+     el color de su campo como pista de qué se va a poner. */
+  .chip-sugerencia {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .chip-sugerencia-aceptar {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 3px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 6px;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+
+  .chip-sugerencia-aceptar .lucide {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.2;
+  }
+
+  .chip-sugerencia--recur .lucide { color: var(--c-recur); }
+  .chip-sugerencia--importante .lucide { color: var(--c-pink); }
+  :root[data-theme="light"] .chip-sugerencia--importante .lucide { color: #9a3a33; }
+
+  .chip-sugerencia-aceptar:hover {
+    border-style: solid;
+    border-color: var(--c-primary-500);
+    background: var(--accent-tint);
+  }
+
+  .chip-sugerencia-q {
+    color: var(--text-tertiary);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chip-sugerencia-q {
+      animation: sugerencia-respira 2.4s ease-in-out infinite;
+    }
+  }
+
+  @keyframes sugerencia-respira {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
+  }
+
+  /* La ✕ asoma en la esquina solo al pasar el ratón o al llegar con el
+     tabulador, para que la sugerencia en reposo sea un chip y no un chip
+     con botón de cerrar pegado. */
+  .chip-sugerencia-descartar {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+
+  .chip-sugerencia-descartar .lucide {
+    width: 9px;
+    height: 9px;
+    stroke-width: 3;
+  }
+
+  .chip-sugerencia:hover .chip-sugerencia-descartar,
+  .chip-sugerencia:focus-within .chip-sugerencia-descartar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .chip-sugerencia-descartar:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
   }
 
   /* Hoy en color solo en las listas. En la vista Hoy la sección ya se
