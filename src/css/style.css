@@ -4306,7 +4306,16 @@ button:focus-visible {
   border-color: var(--c-primary-500);
 }
 
-.task-text {
+/* Título de fila: Inbox/listas (.task-text) y Hoy (.today-text) son el
+   mismo componente y comparten una sola regla. Una sola línea, cortada
+   con puntos suspensivos: sin límite, un título largo de Hoy llegaba a
+   crecer hasta cuatro líneas.
+
+   Hoy llevaba además `letter-spacing: -0.025em`, que ya no aplicaba en
+   ningún sitio: en escritorio lo pisa el tracking común y en móvil
+   `letter-spacing: normal`. Por eso no se conserva. */
+.task-text,
+.today-text {
   flex: 1;
   min-width: 0;
   font-size: 15.5px;
@@ -9398,21 +9407,6 @@ button {
   }
 }
 
-.today-text {
-  flex: 1;
-  min-width: 0;
-  font-size: 15.5px;
-  font-weight: var(--fw-semiregular);
-  padding-left: 9px;
-  color: var(--text-primary);
-  letter-spacing: -0.025em;
-  line-height: 1.4;
-  /* Una sola línea, como la fila de una lista: `.today-text` no tenía
-     ningún límite y un título largo crecía hasta cuatro líneas. */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* Igual que en las listas: completar apaga el título, no la fila, y sin
    tocarle el peso (ver .task-item.done .task-text). */
@@ -9729,9 +9723,35 @@ button {
     justify-items: end;
   }
 
-  .task-list:not([data-columns="2"]) :is(.task-priority-container, .today-meta > .priority-badge) { grid-column: 1; }
+  /* Todo en la misma fila de la rejilla. En Hoy los chips cuelgan sueltos de
+     `.today-meta` y cada uno pide su columna, pero sin fila explícita el
+     auto-placement manda a una fila NUEVA cualquier elemento que pida una
+     columna anterior a la del último colocado. Con repetir (columna 3) ya
+     pintado, el brote de bandera (columna 1) saltaba debajo, arrastraba al
+     chip de lista y la tarea crecía a dos líneas. */
+  .task-list:not([data-columns="2"]) .today-meta > * {
+    grid-row: 1;
+  }
+
+  /* Los contenedores de chip de Inbox centran a su hijo. Eran cajas `block`
+     y el chip se apoyaba en la línea base del texto, que le dejaba hueco de
+     descendentes debajo: bandera y repetir quedaban 2px por encima de la
+     fecha, que sí va en un contenedor flex.
+
+     El de lista va aparte y fuera del Inbox agrupado: allí se oculta con
+     `display: none` porque la cabecera del grupo ya dice la lista, y con
+     el mismo selector que los demás este `display: flex` ganaba en
+     especificidad y lo volvía a sacar — metido en una columna de 0px,
+     encima de la fecha. */
+  .task-list:not([data-columns="2"]) :is(.task-priority-container, .task-reminder-container, .task-recur-container),
+  .task-list:not([data-columns="2"]):not(.task-list--grupos) .task-list-container {
+    display: flex;
+    align-items: center;
+  }
+
+  .task-list:not([data-columns="2"]) :is(.task-priority-container, .today-meta > :is(.priority-badge, .chip-sugerencia--importante, .chip-brote[data-brote="importante"])) { grid-column: 1; }
   .task-list:not([data-columns="2"]) :is(.task-reminder-container, .today-meta > .reminder-badge) { grid-column: 2; }
-  .task-list:not([data-columns="2"]) :is(.task-recur-container, .today-recur) { grid-column: 3; }
+  .task-list:not([data-columns="2"]) :is(.task-recur-container, .today-recur, .today-meta > :is(.chip-sugerencia--recur, .chip-brote[data-brote="recur"])) { grid-column: 3; }
 
   /* La lista, a la izquierda de su hueco y no a la derecha: los nombres
      tienen largos muy distintos y así arrancan todos en la misma x. */
@@ -9781,23 +9801,33 @@ button {
      fantasma no tendría dónde caer. Solo cuentan las filas sin hacer: en
      las hechas el fantasma existe pero va oculto, y reservar 60px para
      algo que no se ve sería el espacio muerto que las columnas evitan. */
-  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--importante) { --col-importante: 30px; }
-  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--recur) { --col-repetir: 60px; }
+  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 30px; }
+  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 60px; }
 
   /* El brote no reserva nada: si su columna no existe (nadie en la vista
      tiene ese chip) se queda fuera, porque ocuparía sitio y desplazaría
      la fila entera al pasar el ratón. En dos columnas el metadato fluye
      y pasaría lo mismo. En filas hechas no hay nada que proponer. */
-  .task-list:not(:has(.recur-badge, .task-item:not(.done) .chip-sugerencia--recur)) .chip-brote[data-brote="recur"],
-  .task-list:not(:has(.priority-badge, .task-item:not(.done) .chip-sugerencia--importante)) .chip-brote[data-brote="importante"],
+  .task-list:not(:has(.recur-badge, :is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur)) .chip-brote[data-brote="recur"],
+  .task-list:not(:has(.priority-badge, :is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante)) .chip-brote[data-brote="importante"],
   .task-list[data-columns="2"] .chip-brote,
-  .task-item.done :is(.chip-brote, .chip-sugerencia) {
+  :is(.task-item.done, .today-item--done) :is(.chip-brote, .chip-sugerencia) {
     display: none;
   }
 
-  /* Brote: nada en reposo. Tampoco recibe clics mientras no se ve: un clic
-     en lo que parece hueco vacío tiene que seguir abriendo el detalle,
-     no disparar una acción invisible. */
+  /* Brote: en reposo rellena su hueco muy tenue, como la celda vacía de
+     una tabla, para que la fila se lea completa. Al pasar el ratón cobra
+     fuerza. Tenue y no a la misma intensidad que en hover a propósito: en
+     una lista larga serían decenas de iconos compitiendo con los chips de
+     verdad, y las sugerencias dejarían de destacar.
+
+     La intensidad en reposo es una sola variable: subirla es tocar un
+     número. Es clicable desde el reposo porque ya se ve: un hueco visible
+     que no respondiera parecería roto. */
+  .task-list {
+    --brote-reposo: 0.28;
+  }
+
   .chip-brote {
     display: inline-flex;
     align-items: center;
@@ -9812,8 +9842,7 @@ button {
     color: var(--text-tertiary);
     white-space: nowrap;
     cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
+    opacity: var(--brote-reposo);
   }
 
   .chip-brote .lucide {
@@ -9822,43 +9851,55 @@ button {
     stroke-width: 2.2;
   }
 
-  .task-item:hover .chip-brote {
-    opacity: 0.6;
-    pointer-events: auto;
-  }
-
-  /* El brote con TEXTO va entero: a 0.6 su "+ fecha" se quedaba por debajo
-     de AA. Los de solo icono pueden ir atenuados porque no hay texto que
-     leer, y así se sigue notando que son un fantasma. */
-  .task-item:hover .chip-brote[data-brote="fecha"] {
+  /* Al pasar el ratón, todos a opacidad completa. Antes bandera y repetir
+     subían a 0.6 y la fecha a 1 —su texto a 0.6 no llegaba a AA—, y la
+     fecha se veía más fuerte que el resto. Bajarla no se puede sin perder
+     contraste, así que suben todos. Siguen distinguiéndose de los chips
+     reales: no llevan texto (repetir sin "7d") ni color (la bandera real va
+     en rosa). */
+  :is(.task-item, .today-item):hover .chip-brote {
     opacity: 1;
   }
 
-  .task-item:hover .chip-brote:hover {
+  /* El texto del brote de fecha solo sale al pasar el ratón. En reposo
+     queda el icono: un "+ fecha" repetido en cada tarea sin fecha se leía
+     como ruido, y a la opacidad de reposo el texto no llegaría a AA. El
+     hueco de fecha tiene ancho fijo, así que aparecer no desplaza nada. */
+  .chip-brote-texto {
+    display: none;
+  }
+
+  :is(.task-item, .today-item):hover .chip-brote-texto {
+    display: inline;
+  }
+
+
+  :is(.task-item, .today-item):hover .chip-brote:hover {
     opacity: 1;
     color: var(--c-primary-400);
   }
 
-  :root[data-theme="light"] .task-item:hover .chip-brote:hover {
+  :root[data-theme="light"] :is(.task-item, .today-item):hover .chip-brote:hover {
     color: var(--c-primary-600);
   }
 
-  /* "Brota": sube desde un poco más abajo y más pequeño, con un rebote
-     corto. Sin movimiento para quien lo tiene reducido — ahí solo aparece. */
+  /* "Brota": en reposo está un punto más pequeño y al pasar el ratón
+     crece con un rebote corto. Sin movimiento para quien lo tiene
+     reducido — ahí solo cambia la intensidad. */
   @media (prefers-reduced-motion: no-preference) {
     .chip-brote {
-      transform: translateY(4px) scale(0.8);
+      transform: scale(0.88);
       transition: opacity 160ms ease, transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.4), color 120ms ease;
     }
 
-    .task-item:hover .chip-brote {
+    :is(.task-item, .today-item):hover .chip-brote {
       transform: none;
     }
 
     /* En cascada, de izquierda a derecha, como si brotasen de uno en uno. */
-    .task-item:hover .chip-brote[data-brote="importante"] { transition-delay: 0ms; }
-    .task-item:hover .chip-brote[data-brote="recur"]      { transition-delay: 40ms; }
-    .task-item:hover .chip-brote[data-brote="fecha"]      { transition-delay: 80ms; }
+    :is(.task-item, .today-item):hover .chip-brote[data-brote="importante"] { transition-delay: 0ms; }
+    :is(.task-item, .today-item):hover .chip-brote[data-brote="recur"]      { transition-delay: 40ms; }
+    :is(.task-item, .today-item):hover .chip-brote[data-brote="fecha"]      { transition-delay: 80ms; }
   }
 
   /* Sugerencia: el chip que falta, dibujado a lápiz — borde punteado y un
@@ -9982,7 +10023,7 @@ button {
   .today-date-pill--action {
     justify-content: center;
     gap: 5px;
-    padding: 7px 10px;
+    padding: 5px 10px;
     border: 2px solid transparent;
     border-radius: var(--r-pill);
   }
@@ -10235,10 +10276,10 @@ button {
   }
 
   .task-list:not([data-columns="2"]):has(.priority-badge),
-  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--importante) { --col-importante: 34px; }
+  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 34px; }
   .task-list:not([data-columns="2"]):has(.reminder-badge) { --col-alerta: 34px; }
   .task-list:not([data-columns="2"]):has(.recur-badge),
-  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--recur) { --col-repetir: 70px; }
+  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 70px; }
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
@@ -12176,22 +12217,19 @@ button {
    Excepción de la propia ficha: el porcentaje del anillo va a 10px.
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* Título de fila en móvil, el mismo en Hoy y en Inbox/listas: «Título
+     de tarea en fila: 15px». El peso queda en 550 y no en el 500 de la
+     ficha porque el usuario pidió engordar los títulos, y una misma fila
+     no puede pesar distinto según la vista. También en las completadas:
+     si adelgazaran al marcar, se comerían el barrido. */
+  .task-item .task-text,
   .today-item .today-text {
     font-size: 15px;
+    font-weight: 550;
     letter-spacing: normal;
-    /* Una sola línea, truncada — igual que en las listas. */
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-  }
-
-  /* Mismo peso que .task-item .task-text (Inbox/listas): el título de
-     Hoy se quedaba en el peso normal de la ficha (300) mientras Inbox
-     pesaba 550. También en las completadas: antes se excluían y al marcar
-     el título adelgazaba de golpe, que era justo lo que se comía el
-     barrido. */
-  .today-item .today-text {
-    font-weight: 550;
   }
 
   .today-item .priority-badge,
@@ -12208,15 +12246,8 @@ button {
   }
 
   /* ── Inbox y listas ──────────────────────────────────────────
-     La fila de tarea es el mismo componente que en Hoy, así que va a
-     la misma escala: «Título de tarea en fila: 15px». El peso queda
-     en 550 igual que `.today-text` — la ficha pide 500, pero el
-     usuario pidió engordar los títulos y una misma fila no puede
-     pesar distinto según la pantalla. */
-  .task-item .task-text {
-    font-size: 15px;
-    font-weight: 550;
-  }
+     El título comparte regla con Hoy (ver .today-item .today-text más
+     arriba). */
 
   /* «Chips y contadores: 12px». Iban a 10.5-11px, por debajo del
      mínimo firme de la ficha. */

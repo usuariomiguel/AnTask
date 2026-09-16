@@ -2751,8 +2751,9 @@ function _renderTasksFooter(project, isInbox) {
 //    mensual") o que es importante ("URGENTE: …"), el hueco enseña un
 //    fantasma punteado que se acepta de un clic o se descarta con la ✕.
 //    La lógica vive en utils/title-hints.js.
-//  · Brotes. El resto de huecos no enseña nada en reposo y, al pasar el
-//    ratón por la fila, brota su acción: + fecha, repetir, importante.
+//  · Brotes. El resto de huecos se rellena en reposo con su acción muy
+//    tenue —fecha, repetir, importante— y al pasar el ratón por la fila
+//    cobra fuerza.
 //
 // Móvil no entra: su fila no tiene columnas y se edita con su popover.
 
@@ -2797,7 +2798,7 @@ function _descartarSugerencia(taskId, clave) {
 }
 
 /**
- * Botón de brote: invisible en reposo, brota al pasar el ratón por la fila.
+ * Botón de brote: tenue en reposo, cobra fuerza al pasar el ratón por la fila.
  *
  * Fuera del tabulador y del árbol accesible: es un atajo de ratón, no la
  * única vía —el panel de detalle hace lo mismo—, y con foco cada fila
@@ -2895,7 +2896,83 @@ function _pintarHuecos(task, node, simpleRow) {
       : _brote("importante", '<i data-lucide="flag"></i>', t("brote.importante")));
   }
   if (cFecha && !cFecha.querySelector(".due-badge")) {
-    cFecha.appendChild(_brote("fecha", "", t("brote.fecha"), t("brote.fecha_corto")));
+    cFecha.appendChild(_brote("fecha", '<i data-lucide="calendar-plus"></i>', t("brote.fecha"), t("brote.fecha_corto")));
+  }
+}
+
+/**
+ * Lo que hace cada brote o sugerencia al pulsarlo. Es el mismo en Inbox
+ * y en Hoy, así que se crea aquí una vez por fila en vez de repetirlo.
+ *
+ * Son <button>, y el clic de ambas filas ya ignora los botones: no
+ * abren el detalle por su cuenta.
+ */
+function _manejadorHuecos(task, project) {
+  return function(e) {
+    const descartar = e.target.closest("[data-sugerencia-descartar]");
+    const aceptar   = e.target.closest("[data-sugerencia]");
+    const brote     = e.target.closest("[data-brote]");
+    if (!descartar && !aceptar && !brote) return;
+    e.stopPropagation();
+
+    if (descartar) {
+      _descartarSugerencia(task.id, descartar.dataset.sugerenciaDescartar);
+      renderTasks();
+      return;
+    }
+    if (aceptar) {
+      const clave = aceptar.dataset.sugerencia;
+      // Lo mismo que hace el popover de repetir: solo `recurDays`, sin
+      // inventarse una fecha.
+      if (clave === "importante") task.priority = "high";
+      else if (clave.indexOf("recur:") === 0) task.recurDays = parseInt(clave.slice(6), 10);
+      saveAndRender();
+      return;
+    }
+
+    const tipo = brote.dataset.brote;
+    if (tipo === "importante") {
+      task.priority = "high";
+      saveAndRender();
+      return;
+    }
+    // Fecha y repetir no se reconstruyen dentro de la fila: se abre el
+    // detalle con su campo ya desplegado, y así se reutilizan tal cual el
+    // calendario, los atajos y las opciones de repetición.
+    openTaskDetail(task.id, project.id);
+    const campo = document.getElementById(tipo === "fecha" ? "task-detail-date-btn" : "task-detail-recur-btn");
+    if (campo) campo.click();
+  };
+}
+
+/**
+ * Huecos de una fila de Hoy. Distinta de _pintarHuecos porque aquí no hay
+ * contenedores por chip: los chips cuelgan directamente de `.today-meta`
+ * y el CSS los coloca en su columna por clase, así que brotes y fantasmas
+ * van al mismo sitio y se colocan igual.
+ *
+ * Sin brote de fecha, a diferencia de Inbox: en Hoy toda fila ya tiene su
+ * fecha (Vencidas), su píldora "Mover a hoy" (Sin fecha) o es de hoy por
+ * definición (Para hoy). No queda ningún hueco de fecha que rellenar.
+ */
+function _pintarHuecosHoy(task, meta, simpleRow) {
+  if (simpleRow || !meta) return;
+  const sug = sugerenciasPara(
+    { text: task.text, recurDays: task.recurDays, priority: task.priority },
+    _descartesDe(task.id)
+  );
+  const sugRecur = sug.find(function(x) { return x.campo === "recur"; });
+  const sugImp   = sug.find(function(x) { return x.campo === "importante"; });
+
+  if (taskPrefs.showPriority !== false && !task.priority) {
+    meta.appendChild(sugImp
+      ? _fantasma("importante", sugImp.clave, '<i data-lucide="flag"></i>', "", IMPORTANT_LABEL())
+      : _brote("importante", '<i data-lucide="flag"></i>', t("brote.importante")));
+  }
+  if (taskPrefs.showRecur !== false && !task.recurDays) {
+    meta.appendChild(sugRecur
+      ? _fantasma("recur", sugRecur.clave, '<i data-lucide="repeat"></i>', sugRecur.valor + "d", RECUR_LABEL(sugRecur.valor))
+      : _brote("recur", '<i data-lucide="repeat"></i>', t("brote.recur")));
   }
 }
 
@@ -3073,44 +3150,8 @@ function _buildTaskNode(task, project, showList) {
     const checkbox = node.querySelector(".task-toggle");
     const text     = node.querySelector(".task-text");
 
-    // Brotes y sugerencias de los huecos vacíos (ver _pintarHuecos). Son
-    // <button>, y el clic de la fila ya ignora los botones, así que no
-    // abren el detalle por su cuenta.
-    function onHueco(e) {
-      const descartar = e.target.closest("[data-sugerencia-descartar]");
-      const aceptar   = e.target.closest("[data-sugerencia]");
-      const brote     = e.target.closest("[data-brote]");
-      if (!descartar && !aceptar && !brote) return;
-      e.stopPropagation();
-
-      if (descartar) {
-        _descartarSugerencia(task.id, descartar.dataset.sugerenciaDescartar);
-        renderTasks();
-        return;
-      }
-      if (aceptar) {
-        const clave = aceptar.dataset.sugerencia;
-        // Lo mismo que hace el popover de repetir: solo `recurDays`, sin
-        // inventarse una fecha.
-        if (clave === "importante") task.priority = "high";
-        else if (clave.indexOf("recur:") === 0) task.recurDays = parseInt(clave.slice(6), 10);
-        saveAndRender();
-        return;
-      }
-
-      const tipo = brote.dataset.brote;
-      if (tipo === "importante") {
-        task.priority = "high";
-        saveAndRender();
-        return;
-      }
-      // Fecha y repetir no se reconstruyen dentro de la fila: se abre el
-      // detalle con su campo ya desplegado, y así se reutilizan tal cual el
-      // calendario, los atajos y las opciones de repetición.
-      openTaskDetail(task.id, project.id);
-      const campo = document.getElementById(tipo === "fecha" ? "task-detail-date-btn" : "task-detail-recur-btn");
-      if (campo) campo.click();
-    }
+    // Brotes y sugerencias de los huecos vacíos (ver _pintarHuecos).
+    const onHueco = _manejadorHuecos(task, project);
     node.querySelector(".task-meta").addEventListener("click", onHueco);
     node.querySelector(".task-due-container").addEventListener("click", onHueco);
 
@@ -5247,6 +5288,12 @@ function renderTodayItem(task, project, todayStr, tone) {
     tieneRecur = !!recurWrap.firstChild;
     if (tieneRecur) meta.appendChild(recurWrap);
   }
+
+  // Brotes y sugerencias en los huecos vacíos, como en Inbox. Hoy recrea
+  // la fila en cada repintado, así que no hace falta firma que los
+  // invalide: se pintan de cero cada vez.
+  _pintarHuecosHoy(task, meta, simpleRow);
+  meta.addEventListener("click", _manejadorHuecos(task, project));
 
   // Etiqueta de lista (el `LabelTag` de v1) — aquí además es pulsable
   // y lleva al proyecto, que es lo que ya hacía esta vista. Las tareas
