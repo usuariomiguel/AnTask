@@ -9705,9 +9705,20 @@ button {
     margin-left: 12px;
   }
 
+  /* La fecha va a la IZQUIERDA de su hueco, como la lista: con ella a la
+     derecha, "Hoy" dejaba un agujero a su izquierda y "sáb 26 sept" no, y
+     el hueco con repetir saltaba de 54px a 123px según la fila. Así todas
+     arrancan en la misma x, el hueco es fijo y la parte irregular queda
+     al borde, donde da aire en vez de pegar el texto a 9px de la tarjeta.
+
+     El margen se suma al ancho en vez de comérselo: la píldora de vencida
+     (texto + flecha) mide ~120px y con 132 útiles se habría estrujado.
+     `--col-fecha` no se toca porque la rejilla de Hoy también la usa. */
   .task-list:not([data-columns="2"]) .task-due-container {
-    width: var(--col-fecha);
+    width: calc(var(--col-fecha) + 16px);
     min-width: 0;
+    padding-left: 16px;
+    justify-content: flex-start;
   }
 
   /* En Hoy la fecha cuelga de la fila, sin contenedor que dimensionar, y
