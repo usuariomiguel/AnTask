@@ -1659,6 +1659,21 @@ body {
   box-shadow: 0 6px 22px rgba(80, 55, 10, 0.12);
 }
 
+/* En escritorio el popover FLOTA sobre los campos del detalle, así que
+   necesita un fondo opaco. `--surface-canvas` ya no lo es en oscuro: el
+   commit "colors" renombró la declaración de `--row-hover` a
+   `--surface-canvas`, y como va después en el `:root`, pisa el #201a13
+   del lienzo con un velo translúcido al 5,5 % — el calendario dejaba ver
+   "No se repite", las subtareas y la lista a través.
+
+   Mismo fondo que `.ctx-menu`, que es su capa hermana. En móvil no hace
+   falta: ahí el popover se despliega en línea y no tapa nada. */
+@media (min-width: 769px) {
+  .field-popover {
+    background: #2c241b;
+  }
+}
+
 /* El popover de lista de la captura rápida vive en document.body con
    position:fixed (ver quick-capture.js), no dentro del modal — sin
    z-index propio se quedaba con el 40 de la base, muy por debajo del
