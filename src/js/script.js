@@ -56,6 +56,7 @@ import {
 } from "./state/persistence.js";
 import {
   IMPORTANT_LABEL,
+  labelChip,
   renderDueBadge,
   renderRecurBadge,
   renderListBadge,
@@ -2749,7 +2750,7 @@ function renderPriorityBadge(task, container) {
   // Ya no hay niveles: una bandera roja es "importante", sin más.
   const badge = document.createElement("span");
   badge.className = "priority-badge";
-  badge.title = IMPORTANT_LABEL();
+  labelChip(badge, IMPORTANT_LABEL());
   badge.innerHTML = '<i data-lucide="flag"></i>';
   container.appendChild(badge);
 }
@@ -2761,7 +2762,7 @@ function renderReminderBadge(task, container) {
   if (!task.reminderAt) return;
   const badge = document.createElement("span");
   badge.className = "reminder-badge";
-  badge.title = t("detail.reminder");
+  labelChip(badge, t("chip.reminder_label"));
   badge.innerHTML = '<i data-lucide="bell"></i>';
   container.appendChild(badge);
 }
@@ -2821,6 +2822,7 @@ function _updateTaskNode(node, task) {
   const text     = node.querySelector(".task-text");
 
   checkbox.checked    = task.done;
+  checkbox.setAttribute("aria-label", _toggleLabel(task.done));
   _setRowTitle(text, task.text);
   node.classList.toggle("done", task.done);
 
@@ -3752,6 +3754,7 @@ function _renderTaskDetail() {
   const els  = _detailPanelEls;
 
   els.toggle.checked = task.done;
+  els.toggle.setAttribute("aria-label", _toggleLabel(task.done));
   if (document.activeElement !== els.title)   els.title.value   = task.text;
   if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
   els.title.classList.toggle("done", task.done);
@@ -4892,6 +4895,16 @@ function _removeHoyHeaderExtra() {
  * @param {string} ariaLabel
  * @returns {{wrap: HTMLElement, cb: HTMLInputElement}}
  */
+/**
+ * Etiqueta de la casilla de completar. Dice lo que hará al pulsarla, no el
+ * estado: "Marcar como hecha" o, si ya lo está, "Reabrir tarea". Estaba
+ * escrita a mano en español en la plantilla, el detalle y Hoy, y se oía
+ * igual con la app en inglés.
+ */
+function _toggleLabel(done) {
+  return done ? t("hoy.reopen") : t("task.toggle_done");
+}
+
 function _todayCheckEl(checked, ariaLabel) {
   var wrap = document.createElement("span");
   wrap.className = "task-toggle-wrap";
@@ -4953,7 +4966,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   li.style.setProperty("--task-accent", _projectColor(project));
 
   // Checkbox para marcar hecha / reabrir
-  var check = _todayCheckEl(done, done ? t("hoy.reopen") : "Marcar como hecha");
+  var check = _todayCheckEl(done, _toggleLabel(done));
   var cb = check.cb;
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
@@ -5004,7 +5017,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     // Ya no hay niveles: la bandera roja es la única marca de "importante".
     pEl.className = "priority-badge";
-    pEl.title = IMPORTANT_LABEL();
+    labelChip(pEl, IMPORTANT_LABEL());
     pEl.innerHTML = '<i data-lucide="flag"></i>';
     meta.appendChild(pEl);
   }
@@ -5013,9 +5026,21 @@ function renderTodayItem(task, project, todayStr, tone) {
     var rEl = document.createElement("span");
     // Mismo chip que la fila del task-list — comparten clase, no una copia.
     rEl.className = "reminder-badge";
-    rEl.title = t("detail.reminder");
+    labelChip(rEl, t("chip.reminder_label"));
     rEl.innerHTML = '<i data-lucide="bell"></i>';
     meta.appendChild(rEl);
+  }
+
+  // Repetición: mismo chip mono que en el task-list. Completar no lo
+  // esconde —igual que la prioridad y la fecha— solo apaga el título.
+  // Va antes que la lista: mismo orden que la plantilla de index.html.
+  var tieneRecur = false;
+  if (taskPrefs.showRecur !== false) {
+    var recurWrap = document.createElement("span");
+    recurWrap.className = "today-recur";
+    renderRecurBadge(task, recurWrap);
+    tieneRecur = !!recurWrap.firstChild;
+    if (tieneRecur) meta.appendChild(recurWrap);
   }
 
   // Etiqueta de lista (el `LabelTag` de v1) — aquí además es pulsable
@@ -5031,7 +5056,10 @@ function renderTodayItem(task, project, todayStr, tone) {
     // elegido (las importadas de un .json) salían con el chip gris mientras
     // la franja de acento de su propia fila sí iba coloreada.
     projBadge.style.setProperty("--proj-color", _projectColor(project));
-    projBadge.title = "Ir al proyecto " + project.name;
+    // El texto visible es solo el nombre: sin esto un lector anunciaba
+    // "Rutina, botón" sin decir qué hace.
+    projBadge.title = t("chip.go_to_list").replace("{name}", project.name);
+    projBadge.setAttribute("aria-label", projBadge.title);
     projBadge.addEventListener("click", function(e) {
       e.stopPropagation();
       activateProject(project.id);
@@ -5040,17 +5068,6 @@ function renderTodayItem(task, project, todayStr, tone) {
       }
     });
     meta.appendChild(projBadge);
-  }
-
-  // Repetición: mismo chip mono que en el task-list. Completar no lo
-  // esconde —igual que la prioridad y la fecha— solo apaga el título.
-  var tieneRecur = false;
-  if (taskPrefs.showRecur !== false) {
-    var recurWrap = document.createElement("span");
-    recurWrap.className = "today-recur";
-    renderRecurBadge(task, recurWrap);
-    tieneRecur = !!recurWrap.firstChild;
-    if (tieneRecur) meta.appendChild(recurWrap);
   }
 
   // Mover/programar a hoy: antes era un botón con texto ("Mover a hoy",

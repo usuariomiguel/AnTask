@@ -17,6 +17,24 @@ import { t } from "../i18n/index.js";
 // la única etiqueta visible ahora es esta.
 export const IMPORTANT_LABEL = () => t("detail.priority_important");
 
+/** Frase completa de una repetición ("Se repite cada 7 días"): el chip solo enseña "7d". */
+export const RECUR_LABEL = (days) => days === 1
+  ? t("chip.recur_label_one")
+  : t("chip.recur_label_other").replace("{n}", String(days));
+
+/**
+ * Los chips de la fila son iconos o abreviaturas ("7d") que un lector de
+ * pantalla no puede interpretar: el SVG de lucide va oculto y `title` no
+ * se anuncia de forma fiable. `role="img"` con su etiqueta hace que el
+ * chip se lea como una sola cosa con nombre. El `title` se queda con el
+ * mismo texto para el tooltip del ratón.
+ */
+export function labelChip(el, label) {
+  el.setAttribute("role", "img");
+  el.setAttribute("aria-label", label);
+  el.title = label;
+}
+
 // ─── LISTA (proyecto) ───────────────────────────────────────
 /**
  * Etiqueta con la lista a la que pertenece la tarea — el `LabelTag` del
@@ -85,7 +103,7 @@ export function renderRecurBadge(task, container) {
   if (!task.recurDays) return;
   const badge = document.createElement("span");
   badge.className = "recur-badge";
-  badge.title = t("detail.recur");
+  labelChip(badge, RECUR_LABEL(task.recurDays));
   badge.innerHTML = '<i data-lucide="repeat"></i><span class="recur-badge-label"></span>';
   badge.querySelector(".recur-badge-label").textContent = task.recurDays + "d";
   container.appendChild(badge);

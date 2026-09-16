@@ -101,6 +101,7 @@ export const en = {
   // ── Task input ────────────────────────────────────────────
   "task.input.placeholder":   "New task…",
   "task.add_btn":             "Add",
+  "task.toggle_done":         "Mark as done",
 
 
   // ── Bottom nav (mobile) ───────────────────────────────────
@@ -259,6 +260,10 @@ export const en = {
   "detail.recur":             "Repeat",
   "detail.no_recur":          "Doesn't repeat",
   "detail.reminder":          "Reminder",
+  "chip.reminder_label":      "Has a reminder",
+  "chip.recur_label_one":     "Repeats every day",
+  "chip.recur_label_other":   "Repeats every {n} days",
+  "chip.go_to_list":          "Go to list {name}",
   "detail.no_reminder":       "No reminder",
   "detail.subtasks":          "Subtasks",
   "detail.subtask_placeholder": "Add subtask…",

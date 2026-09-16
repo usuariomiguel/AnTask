@@ -775,7 +775,7 @@
           <div class="task-detail-body" id="task-detail-body">
             <div class="task-detail-title-row">
               <span class="task-toggle-wrap task-detail-toggle-wrap">
-                <input type="checkbox" class="task-toggle" id="task-detail-toggle" aria-label="Marcar tarea como completada" />
+                <input type="checkbox" class="task-toggle" id="task-detail-toggle" aria-label="Marcar como hecha" data-i18n-aria="task.toggle_done" />
                 <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
               </span>
               <textarea class="task-detail-title" id="task-detail-title" rows="2" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
@@ -897,13 +897,16 @@
         <div class="task-main-row">
           <div class="task-summary">
             <span class="task-toggle-wrap">
-              <input type="checkbox" class="task-toggle" aria-label="Marcar tarea como completada" />
+              <input type="checkbox" class="task-toggle" />
               <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
             </span>
             <span class="task-text"></span>
           </div>
-          <!-- Orden de v1: prioridad → lista → repetición → fecha (la fecha
-               siempre pegada al borde, como en el prototipo). -->
+          <!-- Orden: importante → alerta → repetir → lista → fecha. La lista
+               va la última de los chips porque es el más largo y el único
+               que se trunca; así los cortos quedan alineados entre filas.
+               La fecha siempre pegada al borde. El mismo orden se repite
+               en renderTodayItem (vista Hoy). -->
           <div class="task-meta">
             <!-- Los chips van agrupados para poder separarlos de la fecha en
                  móvil, donde el prototipo los baja a una segunda línea y ancla
@@ -912,8 +915,8 @@
             <span class="task-chips">
               <span class="task-priority-container"></span>
               <span class="task-reminder-container"></span>
-              <span class="task-list-container"></span>
               <span class="task-recur-container"></span>
+              <span class="task-list-container"></span>
             </span>
           </div>
           <!-- Fuera de .task-meta y con su propio estilo, como

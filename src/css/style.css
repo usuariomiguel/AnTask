@@ -366,7 +366,11 @@
 
   /* Semantic */
   --c-success: #3f8a7d;
-  --c-warning: #b58236;
+  /* Antes #b58236, que sobre el papel se quedaba en 3.29:1: servía de
+     tinte de fondo, pero el metadato de fila lo usa como color de TEXTO
+     (fecha de hoy, 12px) y ahí no llegaba a AA. #855c22 da 5.76:1 sobre
+     la tarjeta y 4.84:1 sobre el lienzo de las filas "Limpio". */
+  --c-warning: #855c22;
   --c-danger: #b0524a;
   --c-info: #3d6e85;
   /* Dos puntos más oscuro que el #7c4fd6 de antes: sobre el papel del
@@ -5154,9 +5158,11 @@ input.inline-edit {
   font-weight: var(--fw-regular);
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  /* Mismo morado que .task-detail-field-btn--recur-set en el panel de
-     detalle — la recurrencia se lee igual en la fila que en el panel. */
-  color: var(--c-recur);
+  /* Tinta terciaria y no morado: en la fila repetir es un dato más, y el
+     color queda para vencido/hoy (ver METADATO DE FILA — ESCRITORIO). Va
+     en la regla base para que móvil lo comparta con escritorio. El morado
+     sigue en el panel de detalle (.task-detail-field-btn--recur-set). */
+  color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
   padding: 0 6px;
@@ -9105,7 +9111,7 @@ button {
 .project-item-pinned .project-item-icon .lucide {
   width: 17px;
   height: 17px;
-  stroke-width: 2.7;
+  stroke-width: 1.7;
 }
 
 .project-item-pinned.active .project-item-icon {
@@ -9598,6 +9604,360 @@ button {
 
 .today-date-pill--action:active {
   background: color-mix(in srgb, var(--c-primary-500) 26%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   METADATO DE FILA — ESCRITORIO
+   ═══════════════════════════════════════════════════════════════ */
+/* Un solo tratamiento para todo metadato: texto en tinta 2/3, sin fondo
+   ni borde. El color queda reservado a dos cosas: vencido/hoy y la
+   acción primaria. Lo que se pulsa (mover a hoy) sí lleva caja: sin ella
+   un botón se lee como un dato. La bandera de "importante" conserva su rojo porque
+   no hay niveles de prioridad: la bandera ES el dato. La lista se
+   identifica con un punto de su color, sin teñir el chip entero.
+
+   Solo escritorio y al final de las reglas de chips a propósito: en
+   móvil las filas tienen su propio lenguaje de píldoras y no se toca, y
+   aquí tiene que ganar por cascada a las reglas base de arriba. */
+@media (min-width: 769px) {
+
+  /* Sin barra envolviendo los chips: eran cajas dentro de cajas. El gap
+     es para el modo de dos columnas; con columnas fijas la separación va
+     dentro del ancho de cada pista. */
+  .task-meta,
+  .today-meta {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    gap: 12px;
+  }
+
+  /* Fecha: es un dato, así que mono y cifras tabulares. */
+  .due-badge,
+  .today-date-pill {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  /* Fecha con ancho mínimo, alineada a la derecha. Es lo que queda en el
+     modo de dos columnas, donde la fila mide la mitad y no hay sitio para
+     reservar huecos fijos (ver las columnas fijas justo debajo). */
+  .task-due-container {
+    min-width: 96px;
+    justify-content: flex-end;
+  }
+
+  .today-date-pill {
+    min-width: 96px;
+    text-align: right;
+    justify-content: flex-end;
+  }
+
+  /* ── Columnas fijas del metadato (una sola columna de filas) ──
+     Cada tipo de chip tiene su hueco y la fecha el suyo, y se reservan
+     aunque la fila no tenga ese chip: si no, el que falta desplaza a los
+     demás y la columna se rompe. El contenedor de chips es una rejilla
+     con una pista por tipo; una pista existe aunque no haya nada dentro,
+     que es justo el hueco reservado.
+
+     Cada hueco se reserva solo si ALGUNA fila de la vista tiene ese chip
+     (`:has()` sobre la lista): en una lista concreta nunca sale el chip
+     de lista, y reservarle 172px en cada fila sería espacio muerto. En
+     el Inbox agrupado tampoco, porque la cabecera del grupo ya lo dice.
+     Los anchos llevan dentro los 12px de separación con el anterior. */
+  .task-list:not([data-columns="2"]) {
+    --col-importante: 0px;
+    --col-alerta: 0px;
+    --col-repetir: 0px;
+    --col-lista: 0px;
+    --col-fecha: 132px;
+  }
+
+  .task-list:not([data-columns="2"]):has(.priority-badge) { --col-importante: 30px; }
+  .task-list:not([data-columns="2"]):has(.reminder-badge) { --col-alerta: 30px; }
+  .task-list:not([data-columns="2"]):has(.recur-badge) { --col-repetir: 60px; }
+  .task-list:not([data-columns="2"]):not(.task-list--grupos):has(.task-list-badge) { --col-lista: 172px; }
+
+  .task-list:not([data-columns="2"]) :is(.task-meta, .today-meta) {
+    display: grid;
+    grid-template-columns: var(--col-importante) var(--col-alerta) var(--col-repetir) var(--col-lista);
+    column-gap: 0;
+    align-items: center;
+    justify-items: end;
+  }
+
+  .task-list:not([data-columns="2"]) :is(.task-priority-container, .today-meta > .priority-badge) { grid-column: 1; }
+  .task-list:not([data-columns="2"]) :is(.task-reminder-container, .today-meta > .reminder-badge) { grid-column: 2; }
+  .task-list:not([data-columns="2"]) :is(.task-recur-container, .today-recur) { grid-column: 3; }
+
+  /* La lista, a la izquierda de su hueco y no a la derecha: los nombres
+     tienen largos muy distintos y así arrancan todos en la misma x. */
+  .task-list:not([data-columns="2"]) :is(.task-list-container, .today-meta > .task-list-badge) {
+    grid-column: 4;
+    justify-self: start;
+    margin-left: 12px;
+  }
+
+  .task-list:not([data-columns="2"]) .task-due-container {
+    width: var(--col-fecha);
+    min-width: 0;
+  }
+
+  /* En Hoy la fecha cuelga de la fila, sin contenedor que dimensionar, y
+     "Para hoy" ni la pinta. La fila pasa a rejilla con la fecha en su
+     propia pista fija; en hábitos, racha y frecuencia caen en las mismas
+     pistas que chips y fecha. */
+  .task-list:not([data-columns="2"]) .today-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto var(--col-fecha);
+    column-gap: var(--sp-1);
+  }
+
+  .task-list:not([data-columns="2"]) .today-item > .today-text { grid-column: 2; }
+  .task-list:not([data-columns="2"]) .today-item > :is(.today-meta, .habit-streak) { grid-column: 3; }
+
+  .task-list:not([data-columns="2"]) .today-item > .today-date-pill {
+    grid-column: 4;
+    justify-self: end;
+    min-width: 0;
+  }
+
+  /* Hoy en color solo en las listas. En la vista Hoy la sección ya se
+     llama "Para hoy", y pintar todas sus fechas de ámbar sería ruido. */
+  .due-today,
+  :root[data-theme="light"] .due-today {
+    color: var(--c-warning);
+  }
+
+  .due-overdue,
+  .today-date-pill--overdue {
+    color: var(--c-overdue);
+    font-weight: 700;
+  }
+
+  /* Excepción a lo plano: lo que se PULSA. La fecha vencida y "Mover a
+     hoy" no informan, mueven la tarea a hoy; sin caja se leían como una
+     fecha más y la flecha sola no avisaba de que eran botones. Llevan la
+     píldora de las acciones de sección ("Mover todas a hoy", "Programar
+     todas hoy") en pequeño y con su mismo tono, así que se leen como la
+     versión de una sola fila de ese botón. */
+  .due-badge--action,
+  .today-date-pill--overdue,
+  .today-date-pill--action {
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border: 2px solid transparent;
+    border-radius: var(--r-pill);
+  }
+
+  .due-badge--action,
+  .today-date-pill--overdue {
+    border-color: rgba(var(--c-overdue-rgb), 0.32);
+    background: rgba(var(--c-overdue-rgb), 0.09);
+  }
+
+  .due-badge--action:hover,
+  .today-date-pill--overdue:hover {
+    background: rgba(var(--c-overdue-rgb), 0.16);
+  }
+
+  /* Es un verbo, no un dato: sin mono, con el peso de los botones. */
+  .today-date-pill--action {
+    font-family: var(--font-sans);
+    font-weight: 650;
+    border-color: rgba(143, 174, 116, 0.40);
+    background: rgba(143, 174, 116, 0.10);
+    color: #a9c48e;
+  }
+
+  :root[data-theme="light"] .today-date-pill--action {
+    border-color: rgba(74, 118, 68, 0.32);
+    background: rgba(74, 118, 68, 0.08);
+    color: #4a7644;
+  }
+
+  .today-date-pill--action:hover {
+    background: rgba(143, 174, 116, 0.18);
+  }
+
+  :root[data-theme="light"] .today-date-pill--action:hover {
+    background: rgba(74, 118, 68, 0.15);
+  }
+
+  .due-badge--action:active,
+  .today-date-pill--overdue:active,
+  .today-date-pill--action:active {
+    opacity: 0.75;
+  }
+
+  .task-list-badge {
+    display: inline-block;
+    max-width: 160px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-secondary);
+  }
+
+  .task-list-badge::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 999px;
+    background: var(--proj-color, var(--text-tertiary));
+    vertical-align: 1px;
+  }
+
+  /* En Hoy la lista es un enlace a su lista, pero va plana como el resto
+     del metadato. La pista es la de un enlace, no una caja (que volvería a
+     cargar la fila): subrayado discreto y tinta principal al pasar por
+     encima o al llegar con el teclado. El subrayado va sobre el texto, así
+     que el punto de color queda fuera. */
+  .today-project-badge:hover,
+  .today-project-badge:focus-visible {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  }
+
+  .recur-badge {
+    height: auto;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  /* Iconos un punto por encima de la base (13/12/11px): a 13px de texto
+     se quedaban chicos al lado. Caben en sus columnas fijas sin tocar
+     anchos: bandera y alerta en 30px, repetir en 60px, y la pastilla de
+     vencida más larga (≈128px) dentro de los 132px de la fecha. */
+  :is(.priority-badge, .reminder-badge) .lucide {
+    width: 15px;
+    height: 15px;
+  }
+
+  :is(.recur-badge, .due-badge) .lucide {
+    width: 14px;
+    height: 14px;
+  }
+
+  .due-badge--action .due-badge-arrow,
+  :is(.today-date-pill--overdue, .today-date-pill--action) .lucide {
+    width: 13px;
+    height: 13px;
+  }
+
+  .priority-badge,
+  .reminder-badge {
+    width: auto;
+    height: auto;
+  }
+
+  .reminder-badge {
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-tertiary);
+  }
+
+  /* Hechas: todo el metadato baja a tinta terciaria, bandera y punto de
+     lista incluidos. Por color y no con opacity en la fila, que apilaría
+     atenuadores y dejaría el título por debajo de 4.5:1.
+     `.today-item.today-item--done` con la clase repetida a propósito: con
+     una sola perdía contra `:root[data-theme="light"] .priority-badge` y
+     la bandera de una hecha seguía roja en Hoy en tema claro. */
+  .task-item.done :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge),
+  .today-item.today-item--done :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .today-date-pill) {
+    color: var(--text-tertiary);
+    /* Al 75% y no al 60% del título: así la fila se lee cerrada y el
+       título sigue siendo lo más tenue, pero fecha y lista siguen por
+       encima de 4.5:1. */
+    opacity: 0.75;
+    transition-duration: 260ms;
+    transition-delay: var(--ola);
+  }
+
+  .task-item.done .task-list-badge::before,
+  .today-item--done .task-list-badge::before {
+    background: var(--text-tertiary);
+    transition: background-color 260ms var(--ease-out) var(--ola);
+  }
+
+  /* Una acción en una fila hecha conserva la caja (sigue siendo pulsable)
+     pero pierde el tinte, para no dejar rojo o verde saturado en ella. */
+  .task-item.done .due-badge--action,
+  .today-item.today-item--done :is(.today-date-pill--overdue, .today-date-pill--action) {
+    border-color: var(--border-subtle);
+    background: none;
+    color: var(--text-tertiary);
+  }
+
+  /* ── La ola de completar ──
+     Los chips se apagan en cadena, cada columna un poco después que la
+     anterior, empezando cuando el barrido del título va por su tramo
+     final. Se lee como una sola ola que cruza la fila entera hasta la
+     fecha. `--ola` es el retardo de cada columna; lo recogen la regla de
+     hechas (arriba) y la animación de Hoy (abajo).
+
+     Listas: la fila persiste al marcar, así que basta con transiciones y
+     la ola lleva color, opacidad y el tinte de las pastillas. La
+     transición base, sin retardo y más corta, es la de desmarcar:
+     deshacer no hace esperar. */
+  .priority-badge { --ola: 430ms; }
+  .reminder-badge { --ola: 480ms; }
+  .recur-badge { --ola: 530ms; }
+  .task-list-badge { --ola: 580ms; }
+  :is(.due-badge, .today-date-pill) { --ola: 630ms; }
+
+  .task-item :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .due-badge),
+  .today-item :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .today-date-pill) {
+    transition: color 200ms var(--ease-out),
+      opacity 200ms var(--ease-out),
+      background-color 200ms var(--ease-out),
+      border-color 200ms var(--ease-out);
+  }
+
+  .task-list-badge::before {
+    transition: background-color 200ms var(--ease-out);
+  }
+
+  /* Hoy recrea la fila al marcar: nace ya con los colores de hecha, sin
+     transición posible, así que ahí la ola solo anima la opacidad. Para
+     llevar también el color habría que repetir en keyframes el color de
+     cada chip en cada tema, y es mucho que mantener para lo que se ve. */
+  .today-item--celebrate :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .today-date-pill) {
+    animation: chip-ola 260ms var(--ease-out) var(--ola) both;
+  }
+
+  .today-item--reopen :is(.priority-badge, .reminder-badge, .task-list-badge, .recur-badge, .today-date-pill) {
+    animation: chip-ola-undo 200ms var(--ease-out) both;
+  }
+
+  @keyframes chip-ola {
+    from { opacity: 1; }
+    to   { opacity: 0.75; }
+  }
+
+  @keyframes chip-ola-undo {
+    from { opacity: 0.75; }
+    to   { opacity: 1; }
+  }
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
