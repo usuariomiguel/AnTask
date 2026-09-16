@@ -9643,6 +9643,20 @@ button {
    aquí tiene que ganar por cascada a las reglas base de arriba. */
 @media (min-width: 769px) {
 
+  /* Título de la fila: el mismo en Inbox/listas (.task-text) y en Hoy
+     (.today-text). Ya eran casi gemelos —15.5px, mismo peso y relleno— y
+     solo diferían en el tracking: Hoy iba a -0.025em y las listas sin
+     nada, así que una misma tarea se leía distinta según la vista.
+
+     Solo escritorio: en móvil los títulos van a 15px por la ficha, y a
+     17.5 cortaría casi todos en el ancho de un teléfono. La vista
+     compacta (body.tasks-compact) conserva su tamaño menor a propósito. */
+  .task-text,
+  .today-text {
+    font-size: 17.5px;
+    letter-spacing: -0.05rem;
+  }
+
   /* Sin barra envolviendo los chips: eran cajas dentro de cajas. El gap
      es para el modo de dos columnas; con columnas fijas la separación va
      dentro del ancho de cada pista. */
@@ -10173,6 +10187,58 @@ button {
     from { opacity: 0.75; }
     to   { opacity: 1; }
   }
+}
+
+/* ── Pantallas grandes (≥1440px): chips con más presencia ────────
+   Con el título a 17.5px, los iconos de 14-15px se quedaban chicos al
+   lado en una pantalla ancha. Suben a 18×18 y el texto de los chips a
+   14px para que no quede enano junto a ellos. La flecha de la píldora de
+   vencida sube menos (15px): es un signo dentro del texto, no un icono
+   de chip, y a 18 pesaría más que la propia fecha.
+
+   Las columnas fijas se ensanchan con ellos. Van con los MISMOS
+   selectores que las de arriba, :has() incluido, para empatar en
+   especificidad y ganar por orden: con otros selectores, o perderían o
+   reservarían columnas que ninguna fila usa. */
+@media (min-width: 1440px) {
+  :is(.priority-badge, .reminder-badge, .recur-badge) .lucide,
+  .chip-brote .lucide {
+    width: 18px;
+    height: 18px;
+  }
+
+  .due-badge--action .due-badge-arrow,
+  :is(.today-date-pill--overdue, .today-date-pill--action) .lucide {
+    width: 15px;
+    height: 15px;
+  }
+
+  .due-badge,
+  .today-date-pill,
+  .recur-badge,
+  .task-list-badge,
+  .chip-brote {
+    font-size: 14px;
+  }
+
+  .chip-sugerencia-aceptar {
+    font-size: 13px;
+  }
+
+  .chip-sugerencia-aceptar .lucide {
+    width: 16px;
+    height: 16px;
+  }
+
+  .task-list:not([data-columns="2"]) {
+    --col-fecha: 142px;
+  }
+
+  .task-list:not([data-columns="2"]):has(.priority-badge),
+  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--importante) { --col-importante: 34px; }
+  .task-list:not([data-columns="2"]):has(.reminder-badge) { --col-alerta: 34px; }
+  .task-list:not([data-columns="2"]):has(.recur-badge),
+  .task-list:not([data-columns="2"]):has(.task-item:not(.done) .chip-sugerencia--recur) { --col-repetir: 70px; }
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */
