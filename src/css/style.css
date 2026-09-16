@@ -3245,38 +3245,49 @@ button:focus-visible {
 
 /* ─── TASK ITEM ──────────────────────────────────────────────── */
 /* Estilo "tarjetas" del rediseño Tierra: cada fila es una tarjeta
-   elevada (fondo card + borde sutil + sombra pequeña + radio 8px). */
+   elevada (fondo card + borde sutil + sombra pequeña + radio 8px).
+
+   La fila de Inbox/listas (.task-item) y la de Hoy (.today-item) son el
+   mismo componente en dos vistas: lo común va en una sola regla y cada
+   una conserva aparte solo lo que la distingue. */
+.task-item,
+.today-item {
+  padding: 6px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  /* La fila entera es un único objetivo clicable: seleccionar texto al
+     tocarla (doble clic, arrastrar) molestaba más que ayudaba. El campo
+     de renombrar (`input.inline-edit`) se excluye explícitamente. */
+  user-select: none;
+  /* Ancla para que `.task-swipe-act` (position:absolute, inset:0, ver
+     initSwipeGesture en script.js) mida el alto de ESTA fila y no el del
+     ancestro posicionado más cercano. */
+  position: relative;
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
+}
+
 .task-item {
   display: grid;
   gap: 0;
-  padding: 6px;
   /* 48px en escritorio/tablet, como TOPE fijo (checkbox de 30px + 6px de
      aire arriba y abajo, dentro del padding de la fila) — ninguna fila
      puede pasar de 48px, aunque lleve chip de fecha/prioridad; ver el
      recorte de `.task-meta`/`.due-badge` más abajo para que quepan sin
      desbordar. En móvil manda el min-height propio de ese @media (abajo). */
   align-content: center;
-  background: var(--surface-card);
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-md);
   /* Hueco entre filas — 3px, el mismo en tarjetas/limpio, agrupado o no,
      en Hoy/Inbox/listas y en 1 o 2 columnas (ver los overrides de
      data-row-style="limpio" y data-columns="2" más abajo). */
   margin-bottom: 3px;
-  cursor: pointer;
   max-width: 100%;
   overflow: hidden;
-  /* La fila entera es un único objetivo clicable: seleccionar texto al
-     tocarla (doble clic, arrastrar) molestaba más que ayudaba. El campo
-     de renombrar (`input.inline-edit`) se excluye explícitamente. */
-  user-select: none;
-  position: relative;
   /* Sin animación de entrada. Tuvo una (`itemIn`) que nunca llegó a
      ejecutarse porque su curva apuntaba a un token inexistente; al
      arreglar el token cobró vida y hacía saltar las filas pendientes al
      abrir cada lista y al desmarcar (que quitaba el `animation: none` de
      .done y la volvía a arrancar). */
-  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
 }
 
 /* Sin animación de entrada en el Inbox agrupado. Ahí una fila cambia de
@@ -3312,10 +3323,14 @@ button:focus-visible {
 
 /* Limpio — filas planas sin tarjeta, sólo realce en hover. Sin hueco
    entre filas (gap: 0), a diferencia de tarjetas (3px). */
-.task-list[data-row-style="limpio"] .task-item {
+.task-list[data-row-style="limpio"] .task-item,
+.task-list[data-row-style="limpio"] .today-item {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
+}
+
+.task-list[data-row-style="limpio"] .task-item {
   margin-bottom: 0;
 }
 
@@ -4143,12 +4158,6 @@ button:focus-visible {
   overflow: visible;
 }
 
-.task-list[data-row-style="limpio"] .today-item {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 .task-list[data-row-style="limpio"] .hoy-section-list .today-item+.today-item {
   margin-top: 0;
 }
@@ -4211,21 +4220,19 @@ button:focus-visible {
   }
 }
 
-/* Custom checkbox — circle (30px en escritorio/tablet, como el prototipo
-   Tierra; en móvil manda el tamaño propio del @media de abajo) */
-.task-toggle {
+/* Casilla de completar, redonda. La de Inbox/listas (.task-toggle) y la
+   de Hoy (.today-check) son el mismo control y no deben verse distintas:
+   lo común va en una sola regla. En móvil manda el tamaño propio del
+   @media de abajo. */
+.task-toggle,
+.today-check {
   appearance: none;
   -webkit-appearance: none;
-  /* Mismo tamaño y grosor que `.today-check`: la casilla de una lista y
-     la de Hoy son el mismo control y no deben verse distintas. 36px en
-     cualquier tamaño de pantalla. */
   width: 34px;
   height: 34px;
   background: var(--surface-canvas);
   border: 2px solid var(--text-tertiary);
-  border-radius: var(--r-pill);
   cursor: pointer;
-  position: relative;
   opacity: 0.7;
   flex-shrink: 0;
   transition: background var(--dur-fast) var(--ease-out),
@@ -4233,12 +4240,18 @@ button:focus-visible {
     opacity var(--dur-fast) var(--ease-out);
 }
 
+.task-toggle {
+  border-radius: var(--r-pill);
+  position: relative;
+}
+
 /* Al pasar por encima de la fila el checkbox se ilumina, igual que
    .today-check en la vista Hoy: opacidad completa, color de acento y un
    anillo alrededor. El anillo se reserva al estado sin marcar para no
    pisar el resplandor y la animación que ya tiene el marcado. */
 
-.task-toggle:checked {
+.task-toggle:checked,
+.today-check:checked {
   background: var(--c-primary-500);
   border-color: var(--c-primary-500);
   opacity: 1;
@@ -4328,12 +4341,6 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
-.task-item .task-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .task-item.done::before {
   background: var(--border-default) !important;
   box-shadow: none !important;
@@ -4349,15 +4356,19 @@ button:focus-visible {
    relleno y borde propio; cada etiqueta de dentro solo pone fondo
    cuando tiene un estado que contar (hoy, vencida, prioridad) — el
    resto vive del fondo de la barra, no del suyo propio. */
-.task-meta {
+.task-meta,
+.today-meta {
   display: flex;
   align-items: center;
   gap: 3px;
   flex-shrink: 0;
-  flex-wrap: nowrap;
   padding: 6px;
   border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
+}
+
+.task-meta {
+  flex-wrap: nowrap;
 }
 
 /* Los contenedores vacíos no deben abrir hueco entre chips. */
@@ -5067,7 +5078,12 @@ input.inline-edit {
    Misma píldora teñida que usa la vista Hoy (.today-date-pill),
    para que la fecha se vea igual en cualquier lista. Se conserva el
    icono de calendario delante, a diferencia del chip de Hoy.        */
-.task-due-container {
+
+/* Contenedores de chip: los de fecha y lista de Inbox/listas y el de
+   repetir de Hoy se comportan igual. */
+.task-due-container,
+.task-list-container,
+.today-recur {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
@@ -5077,10 +5093,10 @@ input.inline-edit {
    fondo neutro, borde, color) — ya no hay tinte por color de proyecto:
    ahora vive fuera de .task-meta, así que no es "un chip más" del
    cluster y no debe leerse teñido como el resto. Solo se conserva el
-   icono de calendario delante, la única diferencia a propósito. */
-.due-badge {
-  display: inline-flex;
-  align-items: center;
+   icono de calendario delante, la única diferencia a propósito. Lo común
+   con .today-date-pill va en una sola regla. */
+.due-badge,
+.today-date-pill {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: var(--fw-semiregular);
@@ -5091,6 +5107,11 @@ input.inline-edit {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   border: 2px solid var(--border-subtle);
+}
+
+.due-badge {
+  display: inline-flex;
+  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   gap: 3px;
@@ -5144,11 +5165,6 @@ input.inline-edit {
    Solo en filas cuya lista no se deduce del contexto (Inbox plano o
    bloque de completadas). Mono compacto, teñido del color de la
    lista cuando lo tiene.                                            */
-.task-list-container {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
 
 .task-list-badge {
   display: inline-flex;
@@ -5923,13 +5939,6 @@ body.project-dragging .project-item {
     align-items: center;
   }
 
-  /* Una sola línea, truncada con elipsis — el usuario pidió que las
-     filas no crezcan a dos líneas en móvil. */
-  .task-item .task-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
   .task-summary {
     flex: 0 0 100%;
@@ -6854,7 +6863,8 @@ mark.search-hl {
 /* Fila con el panel de detalle abierto: borde de acento y tinte de fondo
    (antes solo llevaba el borde, y con la lista llena costaba distinguir
    cuál era la fila abierta de verdad). */
-.task-item.detail-open {
+.task-item.detail-open,
+.today-item.detail-open {
   background: rgba(163, 179, 102, 0.09);
   border-color: rgba(163, 179, 102, 0.38) !important;
 }
@@ -9241,65 +9251,25 @@ button {
 }
 
 /* ── Vista Hoy: items ──────────────────────────────────────── */
+/* Lo común con .task-item va en su regla (ver TASK ITEM); aquí solo lo
+   propio de la fila de Hoy. */
 .today-item {
   list-style: none;
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  padding: 6px;
   /* Mismo valor que .task-item — ver el porqué ahí. */
   max-height: 58px;
   margin-bottom: 6px;
-  background: var(--surface-card);
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-md);
-  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.05);
-  cursor: pointer;
-  /* Mismo motivo que .task-item: la fila es un objetivo clicable, no
-     texto para seleccionar. */
-  user-select: none;
-  /* Ancla para que `.task-swipe-act` (position:absolute, inset:0, ver
-     initSwipeGesture en script.js) mida el alto de ESTA fila y no el
-     del ancestro posicionado más cercano que hubiera sin esto —
-     .task-item ya lo tenía por el mismo motivo. */
-  position: relative;
 }
 
-/* Fila con el panel de detalle abierto — mismo trato que .task-item en
-   Inbox/listas (antes esta marca no existía aquí: abrir una tarea desde
-   Hoy no resaltaba su fila). */
-.today-item.detail-open {
-  background: rgba(163, 179, 102, 0.09);
-  border-color: rgba(163, 179, 102, 0.38) !important;
-}
 
-/* Checkbox circular como el prototipo — 36px en cualquier tamaño de
-   pantalla (en móvil manda el mismo valor repetido en el @media de
-   abajo, no se pisan, es el mismo número). */
+/* Casilla de Hoy: lo común con .task-toggle va en su regla (ver ahí). */
 .today-check {
-  appearance: none;
-  -webkit-appearance: none;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
   margin: 0;
   border-radius: 50%;
-  border: 2px solid var(--text-tertiary);
-  background: transparent;
-  cursor: pointer;
   display: grid;
   place-items: center;
-  opacity: 0.7;
-  background: var(--surface-canvas);
-  transition: background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
-}
-
-.today-check:checked {
-  border-color: var(--c-primary-500);
-  background: var(--c-primary-500);
-  opacity: 1;
 }
 
 /* El hundido al marcar — el mismo en los tres sitios donde se completa:
@@ -9482,20 +9452,9 @@ button {
   }
 }
 
-/* Chips/acciones de la fila: misma línea en escritorio, segunda línea
- * con sangría en móvil (donde no caben junto al texto).
- * En escritorio, misma barra compartida que `.task-meta` y los
- * filtros: 3px de relleno y borde propio, cada etiqueta de dentro con
- * su fondo y 3px entre ellas. */
-.today-meta {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  padding: 6px;
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-pill);
-}
+/* Chips/acciones de la fila de Hoy: en escritorio comparten la barra de
+ * `.task-meta` (ver ahí); en móvil bajan a una segunda línea con
+ * sangría, porque no caben junto al texto. */
 
 @media (max-width: 768px) {
   .today-item {
@@ -9547,31 +9506,12 @@ button {
   cursor: pointer;
 }
 
-/* Repetición: mismo chip mono que en el task-list (.recur-badge). */
-.today-recur {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
 
-/* Pill de fecha a la derecha, tintada por tono */
+/* Pill de fecha a la derecha. Tipografía, relleno y borde los comparte con
+   .due-badge (ver ahí); aquí solo lo propio de Hoy. */
 .today-date-pill {
   flex-shrink: 0;
-  /* Mismo mono que el resto de tags de la fila (.recur-badge, .due-badge...) —
-     antes solo lo llevaba en móvil (ver @media más abajo) y en escritorio
-     heredaba la fuente de texto normal, desentonando con sus vecinos. */
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: var(--fw-semiregular);
-  padding: 10px 10px;
-  border-radius: 25px;
-  background: var(--surface-input);
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  border: 2px solid var(--border-subtle);
 }
-
 
 /* La propia fecha mueve la tarea a hoy — sin botón de texto aparte que
    duplicara la acción y ocupara más sitio que la fecha misma. Pulsable
@@ -12232,9 +12172,14 @@ button {
     overflow: hidden;
   }
 
+  /* «Chips y contadores: 12px», en Hoy y en Inbox/listas. Iban a
+     10.5-11px, por debajo del mínimo firme de la ficha. */
   .today-item .priority-badge,
   .today-item .task-list-badge,
-  .today-item .recur-badge-label {
+  .today-item .recur-badge-label,
+  .task-item .priority-badge,
+  .task-item .task-list-badge,
+  .task-item .recur-badge-label {
     font-size: 12px;
   }
 
@@ -12246,16 +12191,8 @@ button {
   }
 
   /* ── Inbox y listas ──────────────────────────────────────────
-     El título comparte regla con Hoy (ver .today-item .today-text más
-     arriba). */
-
-  /* «Chips y contadores: 12px». Iban a 10.5-11px, por debajo del
-     mínimo firme de la ficha. */
-  .task-item .priority-badge,
-  .task-item .task-list-badge,
-  .task-item .recur-badge-label {
-    font-size: 12px;
-  }
+     El título y el tamaño de los chips comparten regla con Hoy (ver
+     más arriba). */
 
   /* Mismo tamaño que la píldora de fecha de Hoy (.today-date-pill): 12px,
      radio 25px — antes eran más pequeñas y de formas distintas entre las
