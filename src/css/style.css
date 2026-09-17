@@ -2235,13 +2235,12 @@ body {
   }
 }
 
-.task-detail-subtasks {
-  margin-bottom: 8px;
-}
-
+/* El campo de añadir va encima de la lista: las nuevas entran al
+   principio, justo debajo de donde se escriben. */
 .task-detail-subtask-form {
   display: flex;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 .task-detail-subtask-form input {
@@ -10079,6 +10078,18 @@ button {
     height: auto;
   }
 
+  /* La bandera se quita con un clic, igual que el brote la pone (ver
+     _bandera_quitable). Al pasar por encima anticipa el resultado: pierde
+     el color y queda en la tinta del brote, que es como se verá el hueco
+     cuando ya no sea importante. */
+  .priority-badge[data-quitar] {
+    cursor: pointer;
+  }
+
+  .priority-badge[data-quitar]:hover {
+    color: var(--text-tertiary);
+  }
+
   .reminder-badge {
     border-radius: 0;
     background: none;
@@ -12049,6 +12060,7 @@ button {
   height: 14px;
   stroke-width: 2.2;
   flex-shrink: 0;
+  color: var(--c-recur);
 }
 
 .hoy-section--overdue .hoy-section-ico {

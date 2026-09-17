@@ -2863,6 +2863,18 @@ function _fantasma(tipo, clave, iconoHtml, etiqueta, descripcion) {
   return w;
 }
 
+/**
+ * La bandera de importante se quita con un clic sobre ella, igual que el
+ * brote la pone. Sigue siendo un chip informativo para el lector de
+ * pantalla ("Importante"): como el brote, quitarla así es un atajo de
+ * ratón y el panel de detalle es la vía accesible. El tooltip sí dice lo
+ * que hará el clic.
+ */
+function _bandera_quitable(el) {
+  el.dataset.quitar = "importante";
+  el.title = t("chip.remove_important");
+}
+
 /** Rellena los huecos de fecha, repetir e importante de una fila. */
 function _pintarHuecos(task, node, simpleRow) {
   const cRecur = node.querySelector(".task-recur-container");
@@ -2912,8 +2924,26 @@ function _manejadorHuecos(task, project) {
     const descartar = e.target.closest("[data-sugerencia-descartar]");
     const aceptar   = e.target.closest("[data-sugerencia]");
     const brote     = e.target.closest("[data-brote]");
-    if (!descartar && !aceptar && !brote) return;
+    // Quitar solo en escritorio, como los brotes que ponen la bandera: en
+    // móvil la fila entera se toca para abrirla, y la bandera está en medio.
+    // Se comprueba antes de frenar el clic para que ahí siga abriendo.
+    const quitar    = window.matchMedia("(min-width: 769px)").matches && e.target.closest("[data-quitar]");
+    if (!descartar && !aceptar && !brote && !quitar) return;
     e.stopPropagation();
+
+    if (quitar) {
+      task.priority = null;
+      // Quitarla a mano es rechazar la sugerencia: si el título la pide
+      // ("urgente", "importante"…), sin esto el hueco volvía a proponerla
+      // en el mismo instante.
+      const volveria = sugerenciasPara(
+        { text: task.text, recurDays: task.recurDays, priority: null },
+        _descartesDe(task.id)
+      ).some(function(x) { return x.campo === "importante"; });
+      if (volveria) _descartarSugerencia(task.id, "importante");
+      saveAndRender();
+      return;
+    }
 
     if (descartar) {
       _descartarSugerencia(task.id, descartar.dataset.sugerenciaDescartar);
@@ -2987,6 +3017,7 @@ function renderPriorityBadge(task, container) {
   const badge = document.createElement("span");
   badge.className = "priority-badge";
   labelChip(badge, IMPORTANT_LABEL());
+  _bandera_quitable(badge);
   badge.innerHTML = '<i data-lucide="flag"></i>';
   container.appendChild(badge);
 }
@@ -5264,6 +5295,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     // Ya no hay niveles: la bandera roja es la única marca de "importante".
     pEl.className = "priority-badge";
     labelChip(pEl, IMPORTANT_LABEL());
+    _bandera_quitable(pEl);
     pEl.innerHTML = '<i data-lucide="flag"></i>';
     meta.appendChild(pEl);
   }

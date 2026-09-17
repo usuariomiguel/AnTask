@@ -261,6 +261,7 @@ export const en = {
   "detail.no_recur":          "Doesn't repeat",
   "detail.reminder":          "Reminder",
   "chip.reminder_label":      "Has a reminder",
+  "chip.remove_important":   "Remove important",
   "chip.recur_label_one":     "Repeats every day",
   "chip.recur_label_other":   "Repeats every {n} days",
   "chip.go_to_list":          "Go to list {name}",
