@@ -2115,9 +2115,9 @@ function _animarSegmentoAnillo(fila, projectId, done, total, R, STROKE) {
 
   var C = 2 * Math.PI * R;
   var slot = C / total;
-  var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE).fill.split(" ")[0]);
+  var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE, ANILLO_HUECO).fill.split(" ")[0]);
   // El trazo fijo pinta los segmentos que no cambian; el que cambia va aparte.
-  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, enCurso.indice, C, STROKE).fill);
+  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, enCurso.indice, C, STROKE, ANILLO_HUECO).fill);
 
   var trazo = fill.cloneNode(false);
   trazo.setAttribute("class", "project-ring-fill project-ring-trazo");
@@ -2136,7 +2136,7 @@ function _animarSegmentoAnillo(fila, projectId, done, total, R, STROKE) {
   anim.onfinish = function() {
     if (_anillosEnCurso[projectId] === registro) delete _anillosEnCurso[projectId];
     // Al terminar queda el anillo estático de siempre, sin trazo suelto.
-    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, done, C, STROKE).fill);
+    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, done, C, STROKE, ANILLO_HUECO).fill);
     trazo.remove();
   };
 }
@@ -2155,10 +2155,18 @@ function _animarSegmentoAnillo(fila, projectId, done, total, R, STROKE) {
  * arco antes que hueco: con extremos redondeados un arco casi nulo sigue
  * viéndose como un punto, pero un hueco casi nulo deja de verse del todo.
  */
-function _segmentedRingDash(total, done, C, strokeWidth) {
+// Separación visible entre arcos de los anillos de las listas (sidebar) y de
+// subtareas (casilla), para que los dos se lean igual.
+var ANILLO_HUECO = 1.8;
+
+function _segmentedRingDash(total, done, C, strokeWidth, huecoVisible) {
   if (total <= 0) return { track: "none", fill: "0 " + C.toFixed(2) };
   var slot = C / total;
-  var targetGap = strokeWidth * 1.3;
+  // `huecoVisible`: separación que debe quedar a la vista entre arcos, ya
+  // descontados los remates redondos. Sin él, el hueco de siempre (1.3 veces
+  // el trazo), que en un anillo grande como el de la casilla se reducía a
+  // 0.6px y el primer y el último arco parecían soldados.
+  var targetGap = huecoVisible != null ? strokeWidth + huecoVisible : strokeWidth * 1.3;
   var minSeg = strokeWidth * 0.15;
   var gap = Math.max(0, Math.min(targetGap, slot - minSeg));
   var seg = slot - gap;
@@ -2193,7 +2201,7 @@ function renderProjectItem(project) {
   const R = 8;
   const STROKE = 2;
   const C = 2 * Math.PI * R;
-  const dash = _segmentedRingDash(_total, _done, C, STROKE);
+  const dash = _segmentedRingDash(_total, _done, C, STROKE, ANILLO_HUECO);
   li.dataset.ringDone = String(_done);
   li.dataset.ringTotal = String(_total);
 
@@ -3389,6 +3397,7 @@ function _updateTaskNode(node, task) {
 
   checkbox.checked    = task.done;
   checkbox.setAttribute("aria-label", _toggleLabel(task.done));
+  _pintarAnilloSubtareas(checkbox.parentElement, task);
   _setRowTitle(text, task.text);
   node.classList.toggle("done", task.done);
 
@@ -4331,6 +4340,7 @@ function _renderTaskDetail() {
 
   els.toggle.checked = task.done;
   els.toggle.setAttribute("aria-label", _toggleLabel(task.done));
+  _pintarAnilloSubtareas(els.toggle.parentElement, task);
   if (document.activeElement !== els.title)   els.title.value   = task.text;
   if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
   els.title.classList.toggle("done", task.done);
@@ -5483,6 +5493,99 @@ function _toggleLabel(done) {
   return done ? t("hoy.reopen") : t("task.toggle_done");
 }
 
+/**
+ * Anillo de subtareas en la casilla de completar. Con subtareas y sin
+ * completar, el borde del círculo pasa a ser un anillo segmentado (un arco
+ * por subtarea, las hechas en color de acento), el mismo lenguaje que el
+ * anillo de las listas en la sidebar. Sin subtareas o ya hecha, se quita y
+ * queda la casilla de siempre. El SVG va encima del input sin tocar su
+ * tamaño ni su zona táctil; el borde del input se vuelve transparente.
+ */
+function _pintarAnilloSubtareas(wrap, task) {
+  if (!wrap) return;
+  var subs = task.subtasks || [];
+  var anillo = wrap.querySelector(".task-subring");
+  if (!subs.length || task.done) {
+    if (wrap._anilloAnim) wrap._anilloAnim.anim.cancel();
+    wrap._anilloAnim = null;
+    if (anillo) anillo.remove();
+    wrap.classList.remove("con-subtareas");
+    delete wrap.dataset.subtareas;
+    return;
+  }
+  var total = subs.length;
+  var hechas = subs.filter(function(s) { return s.done; }).length;
+  var R = 16, STROKE = 2, HUECO = ANILLO_HUECO;
+  var C = 2 * Math.PI * R;
+  var previo = wrap.dataset.subtareas ? wrap.dataset.subtareas.split("/").map(Number) : null;
+
+  // Una animación en marcha hacia este mismo estado sigue su curso: el panel
+  // de detalle y la lista pueden repintar la misma casilla seguidos.
+  if (wrap._anilloAnim) {
+    if (wrap._anilloAnim.hasta === hechas && wrap._anilloAnim.total === total) return;
+    wrap._anilloAnim.anim.cancel();
+    wrap._anilloAnim.trazo.remove();
+    wrap._anilloAnim = null;
+  }
+
+  if (!anillo) {
+    var NS = "http://www.w3.org/2000/svg";
+    anillo = document.createElementNS(NS, "svg");
+    anillo.setAttribute("class", "task-subring");
+    anillo.setAttribute("viewBox", "0 0 34 34");
+    anillo.setAttribute("aria-hidden", "true");
+    anillo.setAttribute("focusable", "false");
+    ["task-subring-track", "task-subring-fill"].forEach(function(clase) {
+      var c = document.createElementNS(NS, "circle");
+      c.setAttribute("class", clase);
+      c.setAttribute("cx", "17");
+      c.setAttribute("cy", "17");
+      c.setAttribute("r", String(R));
+      c.setAttribute("fill", "none");
+      c.setAttribute("stroke-width", String(STROKE));
+      c.setAttribute("stroke-linecap", "round");
+      c.setAttribute("vector-effect", "non-scaling-stroke");
+      c.setAttribute("transform", "rotate(-90 17 17)");
+      anillo.appendChild(c);
+    });
+    wrap.insertBefore(anillo, wrap.querySelector(".task-check"));
+  }
+  var pista = anillo.children[0];
+  var fill = anillo.children[1];
+  pista.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).track);
+  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).fill);
+  wrap.classList.add("con-subtareas");
+  wrap.dataset.subtareas = hechas + "/" + total;
+
+  // Al marcar o desmarcar una subtarea su arco se traza o se recoge, igual
+  // que el anillo de las listas en la sidebar (ver _animarSegmentoAnillo).
+  if (!previo || previo[1] !== total || Math.abs(previo[0] - hechas) !== 1) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var sube = hechas > previo[0];
+  var indice = Math.min(hechas, previo[0]);
+  var slot = C / total;
+  var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE, HUECO).fill.split(" ")[0]);
+  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, indice, C, STROKE, HUECO).fill);
+  var trazo = fill.cloneNode(false);
+  trazo.setAttribute("class", "task-subring-fill task-subring-trazo");
+  trazo.setAttribute("stroke-dashoffset", (-(indice * slot)).toFixed(2));
+  anillo.appendChild(trazo);
+  var lleno = seg.toFixed(2) + " " + C.toFixed(2);
+  var vacio = "0 " + C.toFixed(2);
+  var anim = trazo.animate([
+    { strokeDasharray: sube ? vacio : lleno, opacity: sube ? 0 : 1 },
+    { opacity: 1, offset: 0.2 },
+    { strokeDasharray: sube ? lleno : vacio, opacity: sube ? 1 : 0 },
+  ], { duration: 320, easing: "cubic-bezier(0.3, 0.7, 0.2, 1)", fill: "forwards" });
+  var registro = wrap._anilloAnim = { anim: anim, trazo: trazo, hasta: hechas, total: total };
+  anim.onfinish = function() {
+    if (wrap._anilloAnim !== registro) return;
+    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).fill);
+    trazo.remove();
+    wrap._anilloAnim = null;
+  };
+}
+
 function _todayCheckEl(checked, ariaLabel) {
   var wrap = document.createElement("span");
   wrap.className = "task-toggle-wrap";
@@ -5544,8 +5647,14 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Color del proyecto → el check de completar usa este acento.
   li.style.setProperty("--task-accent", _projectColor(project));
 
+  // Para refrescar su anillo de subtareas sin repintar Hoy. No es
+  // data-task-id a propósito: el render de listas reutiliza los nodos que lo
+  // llevan y una fila de Hoy no es una de las suyas.
+  li.dataset.hoyTaskId = task.id;
+
   // Checkbox para marcar hecha / reabrir
   var check = _todayCheckEl(done, _toggleLabel(done));
+  _pintarAnilloSubtareas(check.wrap, task);
   var cb = check.cb;
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
@@ -6792,6 +6901,13 @@ function saveAndRender() {
 function saveAndRenderDetail() {
   saveProjects();
   if (openDetailTaskId) _renderTaskDetail();
+  // El panel no repinta la lista, pero marcar o añadir una subtarea cambia
+  // el anillo de la casilla en la fila: se retoca solo ese.
+  var abierta = _getOpenDetailTask();
+  if (abierta && taskList) {
+    taskList.querySelectorAll('[data-task-id="' + abierta.task.id + '"] .task-toggle-wrap, [data-hoy-task-id="' + abierta.task.id + '"] .task-toggle-wrap')
+      .forEach(function(wrap) { _pintarAnilloSubtareas(wrap, abierta.task); });
+  }
 }
 
 // ─── PERSISTENCIA ────────────────────────────────────────────

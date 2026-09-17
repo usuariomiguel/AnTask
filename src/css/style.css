@@ -4329,6 +4329,39 @@ button:focus-visible {
   transition: none;
 }
 
+/* Anillo de subtareas (ver _pintarAnilloSubtareas en script.js): sustituye
+   al borde del círculo mientras la tarea tiene subtareas y está pendiente.
+   Mismo centro, radio y grosor que el borde, así que no cambia nada de
+   tamaño; el pendiente conserva el gris al 70 % del borde de siempre y lo
+   hecho va en acento. */
+.task-subring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 34px;
+  height: 34px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.task-detail-toggle-wrap .task-subring {
+  width: 28px;
+  height: 28px;
+}
+
+.task-toggle-wrap.con-subtareas :is(.task-toggle, .today-check):not(:checked) {
+  border-color: transparent;
+}
+
+.task-subring-track {
+  stroke: var(--text-tertiary);
+  opacity: 0.7;
+}
+
+.task-subring-fill {
+  stroke: var(--c-primary-500);
+}
+
 :root[data-theme="light"] .task-toggle:checked {
   background: var(--c-primary-500);
   border-color: var(--c-primary-500);
