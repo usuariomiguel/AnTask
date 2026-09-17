@@ -5500,7 +5500,8 @@ function _todayCheckEl(checked, ariaLabel) {
   svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("focusable", "false");
   var path = document.createElementNS(NS, "path");
-  path.setAttribute("d", "M5 12.5l4.5 4.5L19 7");
+  path.setAttribute("d", "M4.2 12.8c1.1.6 2.4 2 3.6 3.6.6.8 1.1 1.3 1.5 1.1.4-.2 1-1.2 1.8-2.6C13 11.2 16.2 6.9 20.6 4.4");
+  path.setAttribute("pathLength", "21");
   svg.appendChild(path);
 
   wrap.appendChild(cb);

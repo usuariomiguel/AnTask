@@ -1464,8 +1464,8 @@ body {
 /* El tick (25px) estaba pensado para el círculo de 38px de las filas;
    a 28px se salía casi hasta el borde. Misma proporción, escalado. */
 .task-detail-toggle-wrap .task-check {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
 .task-detail-title {
@@ -4275,14 +4275,17 @@ button:focus-visible {
   position: absolute;
   inset: 0;
   margin: auto;
-  /* Misma proporción que antes (25px sobre un círculo de 38px) aplicada
-     al círculo de 30px: ~2/3 de su diámetro. */
-  width: 15px;
-  height: 15px;
+  /* Tick trazado a mano (bajada curva, gancho y subida larga que casi
+     toca el borde): a 15px no se distinguía del geométrico, así que crece
+     a ~60% del círculo y engorda un poco el trazo, como un boli. El path
+     lleva pathLength="21" para que el dasharray de abajo siga valiendo. */
+  width: 20px;
+  height: 20px;
+  overflow: visible;
   pointer-events: none;
   fill: none;
   stroke: var(--accent-on);
-  stroke-width: 2;
+  stroke-width: 2.3;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -12612,8 +12615,8 @@ button {
   }
 
   .task-check {
-    width: 12px;
-    height: 12px;
+    width: 17px;
+    height: 17px;
   }
 }
 
