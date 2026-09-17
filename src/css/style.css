@@ -7511,7 +7511,7 @@ body.task-dragging .project-item:not(.active) {
   width: 100%;
   padding: 6px;
   background: transparent;
-  border: 2px solid transparent;
+  border: 2px solid var(--border-default);
   border-radius: var(--r-md);
   cursor: pointer;
   text-align: left;
