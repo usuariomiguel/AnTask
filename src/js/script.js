@@ -2305,6 +2305,9 @@ function closeCtxMenu() {
     _ctxMenu.remove();
     _ctxMenu = null;
   }
+  document.querySelectorAll(".project-item.menu-abierto").forEach(function(li) {
+    li.classList.remove("menu-abierto");
+  });
   if (_ctxCloseHandler) {
     document.removeEventListener("mousedown", _ctxCloseHandler);
     _ctxCloseHandler = null;
@@ -2535,6 +2538,10 @@ async function showProjectMenu(project, anchor) {
   var menu = _buildCtxMenu(items);
   positionCtxMenu(menu, anchor);
   _ctxMenu = menu;
+  // El «···» se esconde fuera del hover (ver HOVERS DE LA SIDEBAR): con el
+  // menú abierto tiene que seguir visible aunque el ratón ya esté en el menú.
+  var filaMenu = anchor && anchor.closest ? anchor.closest(".project-item") : null;
+  if (filaMenu) filaMenu.classList.add("menu-abierto");
 
   requestAnimationFrame(function() {
     _ctxCloseHandler = function(e) {
