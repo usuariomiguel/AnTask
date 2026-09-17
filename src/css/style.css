@@ -1064,6 +1064,18 @@ body {
   pointer-events: none;
 }
 
+/* Son dos fantasmas superpuestos, uno con el fondo y otro con la barra, para
+   que cada uno viaje a su ritmo (ver _deslizarIndicador). Cada uno se queda
+   solo con su mitad; la geometría es idéntica en los dos porque la barra se
+   coloca respecto a la caja de la fila. */
+.project-item.sidebar-activo-fantasma--fondo::before {
+  opacity: 0;
+}
+
+.project-item.sidebar-activo-fantasma--barra {
+  background: transparent;
+}
+
 .project-item.active.activo-en-transito {
   background: transparent;
 }

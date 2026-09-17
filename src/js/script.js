@@ -1859,6 +1859,9 @@ function _sidebarSinAnimar() {
 
 function _posicionIndicador() {
   var el = _indicadorActivo ? _indicadorActivo.fantasma : projectListEl.querySelector(".project-item.active");
+  // La barra va por detrás del fondo: a mitad de viaje no están en el mismo
+  // sitio, así que cada uno apunta el suyo y no se deduce del otro.
+  var elBarra = _indicadorActivo ? _indicadorActivo.fantasmaBarra : el;
   var desde = null;
   if (el && el.isConnected && !_sidebarSinAnimar()) {
     // offsetTop y no getBoundingClientRect: a partir de 1600px la app lleva
@@ -1867,19 +1870,23 @@ function _posicionIndicador() {
     // completar una tarea, moviera el indicador unos píxeles sin cambiar de
     // vista. El desplazamiento a mitad de viaje se suma desde el transform.
     var viaje = _indicadorActivo ? new DOMMatrixReadOnly(getComputedStyle(el).transform).m42 : 0;
+    var viajeBarra = _indicadorActivo ? new DOMMatrixReadOnly(getComputedStyle(elBarra).transform).m42 : 0;
     desde = {
       clave: _indicadorActivo ? _indicadorActivo.clave : _claveActiva(el),
       top: el.offsetTop + viaje,
+      topBarra: elBarra.offsetTop + viajeBarra,
       fondo: getComputedStyle(el).backgroundColor,
-      barra: getComputedStyle(el, "::before").backgroundColor,
+      barra: getComputedStyle(elBarra, "::before").backgroundColor,
     };
   }
   // El render va a sacar el fantasma del DOM: se para donde esté y el
   // siguiente viaje arranca desde ahí.
   if (_indicadorActivo) {
     _indicadorActivo.anim.cancel();
+    _indicadorActivo.animBarra.cancel();
     if (_indicadorActivo.pseudo) _indicadorActivo.pseudo.cancel();
     _indicadorActivo.fantasma.remove();
+    _indicadorActivo.fantasmaBarra.remove();
     _indicadorActivo = null;
   }
   return desde;
@@ -1893,33 +1900,65 @@ function _deslizarIndicador(desde) {
 
   var fondo = getComputedStyle(nuevo).backgroundColor;
   var barra = getComputedStyle(nuevo, "::before").backgroundColor;
-  var fantasma = document.createElement("li");
-  fantasma.className = "project-item active sidebar-activo-fantasma";
-  fantasma.setAttribute("aria-hidden", "true");
   var color = nuevo.style.getPropertyValue("--project-color");
-  if (color) fantasma.style.setProperty("--project-color", color);
-  fantasma.style.top = destino + "px";
-  fantasma.style.left = nuevo.offsetLeft + "px";
-  fantasma.style.width = nuevo.offsetWidth + "px";
-  fantasma.style.height = nuevo.offsetHeight + "px";
-  projectListEl.appendChild(fantasma);
+
+  // Dos fantasmas y no uno: la barra es el ::before del fantasma, y dentro
+  // del mismo elemento no puede ir a otro ritmo que su fondo. Separados, el
+  // fondo llega a su sitio y la barra entra después, como arrastrada.
+  var molde = function(clase) {
+    var li = document.createElement("li");
+    li.className = "project-item active sidebar-activo-fantasma " + clase;
+    li.setAttribute("aria-hidden", "true");
+    if (color) li.style.setProperty("--project-color", color);
+    li.style.top = destino + "px";
+    li.style.left = nuevo.offsetLeft + "px";
+    li.style.width = nuevo.offsetWidth + "px";
+    li.style.height = nuevo.offsetHeight + "px";
+    projectListEl.appendChild(li);
+    return li;
+  };
+  var fantasma = molde("sidebar-activo-fantasma--fondo");
+  var fantasmaBarra = molde("sidebar-activo-fantasma--barra");
   nuevo.classList.add("activo-en-transito");
 
-  var tiempo = { duration: 220, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" };
   var anim = fantasma.animate([
     { transform: "translateY(" + (desde.top - destino) + "px)", backgroundColor: desde.fondo },
     { transform: "translateY(0)", backgroundColor: fondo },
-  ], tiempo);
+  ], { duration: 220, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
+
+  // La barra sale 70ms más tarde y tarda 310: 160ms de cola por detrás del
+  // fondo. Con fill backwards para que durante la espera se quede donde
+  // estaba, en vez de saltar ya al destino (sin animación no hay transform).
+  var tiempoBarra = {
+    duration: 310,
+    delay: 70,
+    easing: "cubic-bezier(0.25, 0.72, 0.2, 1)",
+    fill: "backwards",
+  };
+  var animBarra = fantasmaBarra.animate([
+    { transform: "translateY(" + (desde.topBarra - destino) + "px)" },
+    { transform: "translateY(0)" },
+  ], tiempoBarra);
   var pseudo = null;
   try {
-    pseudo = fantasma.animate([{ backgroundColor: desde.barra }, { backgroundColor: barra }],
-      Object.assign({ pseudoElement: "::before" }, tiempo));
+    pseudo = fantasmaBarra.animate([{ backgroundColor: desde.barra }, { backgroundColor: barra }],
+      Object.assign({ pseudoElement: "::before" }, tiempoBarra));
   } catch (_) { /* sin pseudoElement: la barra toma el color final sin fundido */ }
 
-  _indicadorActivo = { fantasma: fantasma, anim: anim, pseudo: pseudo, clave: _claveActiva(nuevo) };
-  anim.onfinish = function() {
-    if (!_indicadorActivo || _indicadorActivo.anim !== anim) return;
+  _indicadorActivo = {
+    fantasma: fantasma,
+    fantasmaBarra: fantasmaBarra,
+    anim: anim,
+    animBarra: animBarra,
+    pseudo: pseudo,
+    clave: _claveActiva(nuevo),
+  };
+  // Se limpia con la barra, que es la última en llegar; hasta entonces el
+  // activo real sigue con su fondo y su barra escondidos.
+  animBarra.onfinish = function() {
+    if (!_indicadorActivo || _indicadorActivo.animBarra !== animBarra) return;
     fantasma.remove();
+    fantasmaBarra.remove();
     var real = projectListEl.querySelector(".activo-en-transito");
     if (real) real.classList.remove("activo-en-transito");
     _indicadorActivo = null;
