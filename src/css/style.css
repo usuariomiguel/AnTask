@@ -1043,7 +1043,11 @@ body {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  margin-right: 9px;
+  /* 2px y no 9: con 9 el nombre de una lista empezaba 9px más a la derecha
+     que el de Hoy/Hábitos/Inbox. No es 0 porque el anillo llena sus 20px
+     y el icono de las vistas dibuja 17px dentro de los suyos: con 2px el
+     hueco entre lo dibujado y el texto es el mismo en las dos secciones. */
+  margin-right: 2px;
 }
 
 .project-ring svg {

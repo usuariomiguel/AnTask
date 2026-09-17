@@ -1645,7 +1645,7 @@ function renderPinnedItems(inboxProject) {
     (activeView === "habits" ? " active" : "");
   hab.innerHTML =
     '<div class="project-item-top">' +
-      '<span class="project-item-icon project-item-icon--system"><i data-lucide="repeat"></i></span>' +
+      '<span class="project-item-icon project-item-icon--system"><i data-lucide="sprout"></i></span>' +
       '<span class="project-item-name">' + t("sidebar.habits") + '</span>' +
       (habitosPendientes > 0 ? '<span class="project-item-count">' + habitosPendientes + '</span>' : "") +
     '</div>';
@@ -4739,7 +4739,9 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   head.className = "hoy-section-head";
   // Icono por tono, como el prototipo: sol para hoy, aviso para lo vencido
   // y bandeja para lo que no tiene fecha. Sustituye al punto de color.
-  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "repeat", "habits-later": "calendar-clock" };
+  // Hábitos con brote y no con `repeat`: ese es el icono de repetir una
+  // tarea, y compartirlo hacía que las dos cosas se leyeran como una.
+  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "sprout", "habits-later": "calendar-clock" };
   head.insertAdjacentHTML("beforeend",
     '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
