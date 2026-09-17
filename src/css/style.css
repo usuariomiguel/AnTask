@@ -1039,6 +1039,32 @@ body {
 /* (Sin overrides light para .project-item: la sidebar es oscura en ambos
    temas en el rediseño Tierra, así que aplican las reglas base.) */
 
+/* Indicador que se desliza al cambiar de vista (ver _deslizarIndicador en
+   script.js). El fantasma es un .project-item.active absoluto que viaja
+   por detrás de las filas; mientras tanto el activo real esconde su fondo
+   y su barra para no pintarse dos veces. La lista es su contenedor y
+   aísla el z-index negativo para que quede detrás del texto y no detrás
+   de la sidebar. */
+.project-list {
+  position: relative;
+  isolation: isolate;
+}
+
+.project-item.sidebar-activo-fantasma {
+  position: absolute;
+  z-index: -1;
+  margin: 0;
+  pointer-events: none;
+}
+
+.project-item.active.activo-en-transito {
+  background: transparent;
+}
+
+.project-item.active.activo-en-transito::before {
+  opacity: 0;
+}
+
 .project-item-name {
   font-size: 13px;
   font-weight: var(--fw-medium);
@@ -9101,13 +9127,22 @@ button {
   overflow: hidden;
 }
 
-.project-item-count.count-flip {
+.project-item-count.count-flip,
+.count-parte.count-flip {
   animation: count-roll-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* En las listas el contador «hechas/total» gira por partes: cada cifra va
+   en su propia caja y solo se mueve la que cambia; la barra se queda
+   quieta. El recorte lo sigue haciendo el overflow del contador. */
+.count-parte {
+  display: inline-block;
 }
 
 /* ─── REDUCED MOTION ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .project-item-count.count-flip {
+  .project-item-count.count-flip,
+  .count-parte.count-flip {
     animation: none !important;
   }
 

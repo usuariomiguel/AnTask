@@ -292,6 +292,9 @@ let currentFilter      = "all";
 // que estar declarado ANTES. Si se declara más abajo, un `const` da
 // ReferenceError por TDZ y un `var` se lee como undefined.
 var _sidebarPrevCounts = {};
+var _sidebarPrevRings = {};
+var _indicadorActivo = null;   // { fantasma, anim, pseudo, clave } mientras se desliza
+var _anillosEnCurso = {};      // id de lista → { inicio, sube, indice, total }
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
 let openDetailProjectId = null;
@@ -1791,11 +1794,14 @@ function syncSidebarRail() {
 function renderSidebar() {
   // Capture previous counts so we can animate changes
   _sidebarPrevCounts = {};
+  _sidebarPrevRings = {};
   projectListEl.querySelectorAll("[data-project-id]").forEach(function(li) {
     var id = li.dataset.projectId;
     var span = li.querySelector(".project-item-count");
     if (id && span) _sidebarPrevCounts[id] = span.textContent;
+    if (id && li.dataset.ringTotal) _sidebarPrevRings[id] = { done: +li.dataset.ringDone, total: +li.dataset.ringTotal };
   });
+  var indicadorDesde = _posicionIndicador();
   projectListEl.innerHTML = "";
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
@@ -1824,7 +1830,152 @@ function renderSidebar() {
   }
 
   if (window.lucide) lucide.createIcons();
+  _deslizarIndicador(indicadorDesde);
   syncSidebarRail();
+}
+
+// ── Indicador de la vista activa ─────────────────────────────
+// Al cambiar de vista, el fondo y la barrita del activo viajan desde el
+// elemento anterior en vez de saltar. La sidebar se reconstruye entera en
+// cada render, así que no se puede animar el propio <li>: se mide dónde
+// estaba el activo (o el fantasma, si un render llega a mitad de viaje)
+// y un <li> fantasma absoluto hace el recorrido por detrás mientras el
+// activo real esconde su fondo. Al terminar se retira y queda el estado
+// de siempre.
+
+function _claveActiva(li) {
+  if (!li) return null;
+  if (li.dataset.projectId) return li.dataset.projectId;
+  if (li.classList.contains("project-item-today")) return "today";
+  if (li.classList.contains("project-item-habits")) return "habits";
+  return null;
+}
+
+function _sidebarSinAnimar() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
+  // Móvil: la lista vive en un cajón que se cierra al elegir, nadie lo vería.
+  if (window.matchMedia("(max-width: 768px)").matches) return true;
+  var sb = projectListEl.closest(".sidebar");
+  return !projectListEl.offsetParent || Boolean(sb && sb.classList.contains("sidebar-collapsed"));
+}
+
+function _posicionIndicador() {
+  var el = _indicadorActivo ? _indicadorActivo.fantasma : projectListEl.querySelector(".project-item.active");
+  var desde = null;
+  if (el && el.isConnected && !_sidebarSinAnimar()) {
+    var caja = projectListEl.getBoundingClientRect();
+    var r = el.getBoundingClientRect();
+    desde = {
+      clave: _indicadorActivo ? _indicadorActivo.clave : _claveActiva(el),
+      top: r.top - caja.top + projectListEl.scrollTop,
+      fondo: getComputedStyle(el).backgroundColor,
+      barra: getComputedStyle(el, "::before").backgroundColor,
+    };
+  }
+  // El render va a sacar el fantasma del DOM: se para donde esté y el
+  // siguiente viaje arranca desde ahí.
+  if (_indicadorActivo) {
+    _indicadorActivo.anim.cancel();
+    if (_indicadorActivo.pseudo) _indicadorActivo.pseudo.cancel();
+    _indicadorActivo.fantasma.remove();
+    _indicadorActivo = null;
+  }
+  return desde;
+}
+
+function _deslizarIndicador(desde) {
+  var nuevo = projectListEl.querySelector(".project-item.active");
+  if (!desde || !nuevo || _sidebarSinAnimar()) return;
+  var destino = nuevo.offsetTop;
+  if (desde.clave === _claveActiva(nuevo) && Math.abs(desde.top - destino) < 1) return;
+
+  var fondo = getComputedStyle(nuevo).backgroundColor;
+  var barra = getComputedStyle(nuevo, "::before").backgroundColor;
+  var fantasma = document.createElement("li");
+  fantasma.className = "project-item active sidebar-activo-fantasma";
+  fantasma.setAttribute("aria-hidden", "true");
+  var color = nuevo.style.getPropertyValue("--project-color");
+  if (color) fantasma.style.setProperty("--project-color", color);
+  fantasma.style.top = destino + "px";
+  fantasma.style.left = nuevo.offsetLeft + "px";
+  fantasma.style.width = nuevo.offsetWidth + "px";
+  fantasma.style.height = nuevo.offsetHeight + "px";
+  projectListEl.appendChild(fantasma);
+  nuevo.classList.add("activo-en-transito");
+
+  var tiempo = { duration: 220, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" };
+  var anim = fantasma.animate([
+    { transform: "translateY(" + (desde.top - destino) + "px)", backgroundColor: desde.fondo },
+    { transform: "translateY(0)", backgroundColor: fondo },
+  ], tiempo);
+  var pseudo = null;
+  try {
+    pseudo = fantasma.animate([{ backgroundColor: desde.barra }, { backgroundColor: barra }],
+      Object.assign({ pseudoElement: "::before" }, tiempo));
+  } catch (_) { /* sin pseudoElement: la barra toma el color final sin fundido */ }
+
+  _indicadorActivo = { fantasma: fantasma, anim: anim, pseudo: pseudo, clave: _claveActiva(nuevo) };
+  anim.onfinish = function() {
+    if (!_indicadorActivo || _indicadorActivo.anim !== anim) return;
+    fantasma.remove();
+    var real = projectListEl.querySelector(".activo-en-transito");
+    if (real) real.classList.remove("activo-en-transito");
+    _indicadorActivo = null;
+  };
+}
+
+// ── Anillo de progreso: el segmento que cambia se dibuja ─────
+// Al completar una tarea su segmento se traza en vez de aparecer; al
+// desmarcarla se recoge. Solo con un paso de ±1 y el mismo total: si
+// además cambia el número de tareas el anillo se redibuja entero y no hay
+// un segmento concreto que animar. Si un render llega a mitad, sigue desde
+// donde iba (_anillosEnCurso) en vez de saltar al final.
+var ANILLO_MS = 320;
+
+function _animarSegmentoAnillo(fila, projectId, done, total, R, STROKE) {
+  var prev = _sidebarPrevRings[projectId];
+  var enCurso = _anillosEnCurso[projectId];
+  var ahora = performance.now();
+  if (enCurso && (enCurso.total !== total || enCurso.hasta !== done || ahora - enCurso.inicio >= ANILLO_MS)) {
+    delete _anillosEnCurso[projectId];
+    enCurso = null;
+  }
+  if (!enCurso) {
+    if (!prev || prev.total !== total || Math.abs(done - prev.done) !== 1 || _sidebarSinAnimar()) return;
+    enCurso = _anillosEnCurso[projectId] = {
+      inicio: ahora, sube: done > prev.done, indice: Math.min(done, prev.done), total: total, hasta: done,
+    };
+  }
+  var svg = fila.querySelector(".project-ring svg");
+  var fill = fila.querySelector(".project-ring-fill");
+  if (!svg || !fill) return;
+
+  var C = 2 * Math.PI * R;
+  var slot = C / total;
+  var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE).fill.split(" ")[0]);
+  // El trazo fijo pinta los segmentos que no cambian; el que cambia va aparte.
+  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, enCurso.indice, C, STROKE).fill);
+
+  var trazo = fill.cloneNode(false);
+  trazo.setAttribute("class", "project-ring-fill project-ring-trazo");
+  trazo.setAttribute("stroke-dashoffset", (-(enCurso.indice * slot)).toFixed(2));
+  svg.appendChild(trazo);
+
+  var lleno = seg.toFixed(2) + " " + C.toFixed(2);
+  var vacio = "0 " + C.toFixed(2);
+  var anim = trazo.animate([
+    { strokeDasharray: enCurso.sube ? vacio : lleno, opacity: enCurso.sube ? 0 : 1 },
+    { opacity: 1, offset: 0.2 },
+    { strokeDasharray: enCurso.sube ? lleno : vacio, opacity: enCurso.sube ? 1 : 0 },
+  ], { duration: ANILLO_MS, easing: "cubic-bezier(0.3, 0.7, 0.2, 1)", fill: "forwards" });
+  anim.currentTime = Math.min(ANILLO_MS, ahora - enCurso.inicio);
+  var registro = enCurso;
+  anim.onfinish = function() {
+    if (_anillosEnCurso[projectId] === registro) delete _anillosEnCurso[projectId];
+    // Al terminar queda el anillo estático de siempre, sin trazo suelto.
+    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, done, C, STROKE).fill);
+    trazo.remove();
+  };
 }
 
 
@@ -1880,6 +2031,8 @@ function renderProjectItem(project) {
   const STROKE = 2;
   const C = 2 * Math.PI * R;
   const dash = _segmentedRingDash(_total, _done, C, STROKE);
+  li.dataset.ringDone = String(_done);
+  li.dataset.ringTotal = String(_total);
 
   const ringEl = document.createElement("span");
   ringEl.className = "project-ring";
@@ -1906,12 +2059,23 @@ function renderProjectItem(project) {
     startProjectInlineEdit(project);
   });
 
+  // Hechas y total van en su propio span para que solo gire la cifra que
+  // cambia: al completar una tarea se mueve el «1» de «1/4», no la barra
+  // ni el total.
   const countSpan = document.createElement("span");
-  const newCountText = done + "/" + total;
   countSpan.className = "project-item-count";
-  countSpan.textContent = newCountText;
-  if (_sidebarPrevCounts[project.id] !== undefined && _sidebarPrevCounts[project.id] !== newCountText) {
-    countSpan.classList.add("count-flip");
+  const hechasSpan = document.createElement("span");
+  hechasSpan.className = "count-parte";
+  hechasSpan.textContent = String(done);
+  const totalSpan = document.createElement("span");
+  totalSpan.className = "count-parte";
+  totalSpan.textContent = String(total);
+  countSpan.append(hechasSpan, "/", totalSpan);
+  const prevCount = _sidebarPrevCounts[project.id];
+  if (prevCount !== undefined) {
+    const partes = prevCount.split("/");
+    if (partes[0] !== String(done))  hechasSpan.classList.add("count-flip");
+    if (partes[1] !== String(total)) totalSpan.classList.add("count-flip");
   }
 
   const kebabBtn = document.createElement("button");
@@ -1931,6 +2095,7 @@ function renderProjectItem(project) {
   topRow.appendChild(nameSpan);
   topRow.appendChild(countSpan);
   topRow.appendChild(kebabBtn);
+  _animarSegmentoAnillo(topRow, project.id, _done, _total, R, STROKE);
 
   // Color del proyecto: explícito o fallback derivado del id (hash → hue
    // determinista). Alimenta el arco del anillo de progreso.
