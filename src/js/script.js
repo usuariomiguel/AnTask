@@ -1863,11 +1863,15 @@ function _posicionIndicador() {
   var el = _indicadorActivo ? _indicadorActivo.fantasma : projectListEl.querySelector(".project-item.active");
   var desde = null;
   if (el && el.isConnected && !_sidebarSinAnimar()) {
-    var caja = projectListEl.getBoundingClientRect();
-    var r = el.getBoundingClientRect();
+    // offsetTop y no getBoundingClientRect: a partir de 1600px la app lleva
+    // `zoom: 1.1` y el rect sale escalado mientras que offsetTop (con el que
+    // se coloca el destino) no. Mezclarlos hacía que cada render, p. ej. al
+    // completar una tarea, moviera el indicador unos píxeles sin cambiar de
+    // vista. El desplazamiento a mitad de viaje se suma desde el transform.
+    var viaje = _indicadorActivo ? new DOMMatrixReadOnly(getComputedStyle(el).transform).m42 : 0;
     desde = {
       clave: _indicadorActivo ? _indicadorActivo.clave : _claveActiva(el),
-      top: r.top - caja.top + projectListEl.scrollTop,
+      top: el.offsetTop + viaje,
       fondo: getComputedStyle(el).backgroundColor,
       barra: getComputedStyle(el, "::before").backgroundColor,
     };
