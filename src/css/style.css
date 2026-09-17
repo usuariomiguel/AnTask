@@ -13431,6 +13431,63 @@ button {
     background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
   }
 
+  /* El relevo entre el contador y el «···» ESCALONADO. Los dos cruzaban a
+     la vez en 0.12s y se leía como un corte seco: primero se va el que
+     sale, y el que entra arranca 80ms después creciendo desde el 82 % y
+     deslizándose 3px, con un rebote corto. Al quitar el ratón pasa lo
+     mismo al revés, sin tener que duplicar nada: una transición se toma
+     del estado de DESTINO, así que basta con que la regla de reposo lleve
+     la de salir —rápida y sin retardo— y la base la de entrar.
+
+     Con las propiedades individuales `scale`/`translate` y no con
+     `transform`: el «···» ya usa `translate: 0 -50%` para centrarse y un
+     `transform` lo dejaría descolgado.
+
+     Solo cambia CÓMO aparecen, no cuándo ni dónde: mismo hueco, sin que
+     nada se mueva de sitio. */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Destino: «···» a la vista (con el ratón encima, foco o menú abierto). */
+    .project-kebab-btn {
+      scale: 1;
+      transition:
+        opacity 0.22s ease 0.08s,
+        scale 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.35) 0.08s,
+        translate 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.35) 0.08s,
+        background-color 0.12s ease,
+        color 0.12s ease;
+    }
+
+    /* Destino: «···» fuera. Se va rápido y sin esperar, para dejar sitio. */
+    .project-item:not(.menu-abierto):not(:hover):not(:focus-within) .project-kebab-btn,
+    body.task-dragging .project-kebab-btn,
+    body.project-dragging .project-kebab-btn {
+      scale: 0.82;
+      translate: 3px -50%;
+      transition:
+        opacity 0.13s ease,
+        scale 0.18s ease,
+        translate 0.18s ease;
+    }
+
+    /* Destino: contador a la vista. Entra con el mismo retardo que el «···». */
+    .project-item-count:has(> .count-parte) {
+      scale: 1;
+      transition:
+        opacity 0.22s ease 0.08s,
+        scale 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.35) 0.08s;
+    }
+
+    /* Destino: contador fuera. */
+    body:not(.task-dragging):not(.project-dragging) .project-item:hover .project-item-count:has(> .count-parte),
+    .project-item:focus-within .project-item-count:has(> .count-parte),
+    .project-item.menu-abierto .project-item-count:has(> .count-parte) {
+      scale: 0.9;
+      transition:
+        opacity 0.13s ease,
+        scale 0.18s ease;
+    }
+  }
+
   /* 3. Buscar. */
   .global-search-btn:hover {
     border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
