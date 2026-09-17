@@ -95,6 +95,13 @@
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   --surface-canvas: rgba(255, 238, 214, 0.055);
   /* hover de fila */
+  /* Bases opacas de las dos capas que llevan grano (ver GRANO DE PAPEL, al
+     final): toda caja que se apoya en ellas pinta su tinte encima de su
+     base en vez de dejarlo translúcido, así el grano queda solo en el
+     fondo desnudo y nunca dentro de un botón, pista o contador. En oscuro
+     el canvas es crema al 5,5 % sobre el desk; aquí va ya compuesto. */
+  --capa-desk: var(--surface-desk);
+  --capa-canvas: color-mix(in srgb, rgb(255 238 214) 5.5%, var(--surface-desk));
   --kbd-bg: rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
   --task-hover: rgba(163, 179, 102, 0.10);
@@ -386,6 +393,7 @@
 
   /* Interacción */
   --surface-canvas: #f3e8c9;
+  --capa-canvas: var(--surface-canvas);
   --kbd-bg: #f0e0b8;
   --task-hover: rgba(111, 122, 61, 0.10);
   --task-hover-border: rgba(111, 122, 61, 0.36);
@@ -770,7 +778,7 @@ body {
   height: 40px;
   padding: 0;
   border-radius: var(--r-xs);
-  background: transparent;
+  background: var(--capa-desk);
   border: 2px solid var(--border-subtle);
   color: var(--text-tertiary);
   cursor: pointer;
@@ -1010,7 +1018,7 @@ body {
    sobre papel ahora que en claro la sidebar es clara. */
 
 .project-item.active {
-  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 17%, transparent);
+  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 17%, var(--capa-desk));
 }
 
 /* Barra de acento del activo idéntica a v1: pegada al borde de la barra
@@ -1272,6 +1280,7 @@ body {
   border-radius: 27px;
   flex-shrink: 0;
   border: 2px solid var(--border-subtle);
+  background: var(--capa-desk);
 }
 
 .task-detail-rail-top {
@@ -1283,14 +1292,17 @@ body {
   height: 18px;
 }
 
+/* Atenuado al 55 %: la opacidad va al icono y al borde, no a la caja,
+   para que su fondo opaco siga tapando el grano del desk. */
 .task-detail-rail-ico {
   color: var(--text-tertiary);
-  opacity: 0.55;
+  border-color: color-mix(in srgb, var(--border-subtle) 55%, transparent);
 }
 
 .task-detail-rail-ico .lucide {
   width: 17px;
   height: 17px;
+  opacity: 0.55;
 }
 
 .task-detail-rail-sep {
@@ -2791,7 +2803,7 @@ button:focus-visible {
   gap: 6px;
   flex-shrink: 0;
   padding: 6px;
-  background: var(--surface-input);
+  background: linear-gradient(var(--surface-input), var(--surface-input)), var(--capa-canvas);
   border: 2px solid var(--border-subtle);
   border-radius: var(--r-lg);
 }
@@ -5718,7 +5730,7 @@ body.project-dragging .project-item {
     gap: var(--sp-1);
     padding: 0;
     border: none;
-    background-color: transparent;
+    background: none;
   }
 
   /* Filtro: chip con label visible (más claro que solo icono).
@@ -6377,7 +6389,7 @@ body.project-dragging .project-item {
   width: 100%;
   height: 50px;
   margin-top: 22px;
-  background: var(--surface-canvas);
+  background: linear-gradient(var(--surface-canvas), var(--surface-canvas)), var(--capa-desk);
   border: 2px solid var(--border-default);
   color: var(--text-tertiary);
   padding: 6px;
@@ -7389,7 +7401,7 @@ body.task-dragging .project-item:not(.active) {
   border-radius: var(--r-md);
   cursor: pointer;
   text-align: left;
-  background: var(--surface-input);
+  background: linear-gradient(var(--surface-input), var(--surface-input)), var(--capa-desk);
   height: 50px;
 }
 
@@ -10334,6 +10346,7 @@ button {
   align-items: center;
   gap: 6px;
   padding: 10px 12px;
+  background: var(--capa-canvas);
   border-radius: var(--r-md);
   cursor: pointer;
   font-size: 12.5px;
@@ -10348,19 +10361,19 @@ button {
 
 .hoy-section--overdue .hoy-section-action {
   border: 2px solid rgba(var(--c-overdue-rgb), 0.32);
-  background: rgba(var(--c-overdue-rgb), 0.09);
+  background: linear-gradient(rgba(var(--c-overdue-rgb), 0.09), rgba(var(--c-overdue-rgb), 0.09)), var(--capa-canvas);
   color: var(--c-overdue);
 }
 
 .hoy-section--nodate .hoy-section-action {
   border: 2px solid rgba(143, 174, 116, 0.40);
-  background: rgba(143, 174, 116, 0.10);
+  background: linear-gradient(rgba(143, 174, 116, 0.10), rgba(143, 174, 116, 0.10)), var(--capa-canvas);
   color: #a9c48e;
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-action {
   border-color: rgba(74, 118, 68, 0.32);
-  background: rgba(74, 118, 68, 0.08);
+  background: linear-gradient(rgba(74, 118, 68, 0.08), rgba(74, 118, 68, 0.08)), var(--capa-canvas);
   color: #4a7644;
 }
 
@@ -12098,7 +12111,7 @@ button {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-tertiary);
-  background: var(--block-bg);
+  background: linear-gradient(var(--block-bg), var(--block-bg)), var(--capa-canvas);
   border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
   padding: 1px 7px;
@@ -13216,4 +13229,35 @@ button {
   html[data-mode="simple"] .list-filter-row--movil #list-filter-actions {
     display: none;
   }
+}
+/* ─── GRANO DE PAPEL ─────────────────────────────────────────────
+   Textura muy tenue en las dos capas hundidas: el desk del body (que
+   también hace de fondo a la sidebar y al rail) y el canvas del panel
+   central, a juego con el papel del logo.
+
+   Regla: el grano es del FONDO DESNUDO. Todo lo que tiene caja —tarjetas,
+   botones, pistas, contadores, píldoras, el ítem activo de la sidebar—
+   es liso. Las cajas translúcidas pintan su tinte sobre la base opaca de
+   su capa (`--capa-desk` / `--capa-canvas`), que da exactamente el mismo
+   color que antes pero tapa el grano.
+
+   Un tile de ruido SVG que el navegador rasteriza una vez y repite: nada
+   de filtros sobre la pantalla ni animación. El ruido se convierte en
+   motas con alfa propio (crema en oscuro, tierra en claro) en vez de
+   mezclarse con el fondo: el canvas oscuro es semitransparente y un modo
+   de fusión lo volvía gris. En claro va algo más alto porque sobre papel
+   se percibe mucho menos. Al final del fichero porque las reglas de fondo
+   usan el shorthand `background`, que resetea la imagen. */
+:root {
+  --grano-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 0.941 0 0 0 0 0.839 2.4 0 0 0 -1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"] {
+  --grano-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.290 0 0 0 0 0.196 0 0 0 0 0.063 2.4 0 0 0 -1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.13'/%3E%3C/svg%3E");
+}
+
+body,
+.main-panel {
+  background-image: var(--grano-img);
+  background-size: 160px 160px;
 }
