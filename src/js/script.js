@@ -297,6 +297,9 @@ var _indicadorActivo = null;   // { fantasma, anim, pseudo, clave } mientras se 
 var _anillosEnCurso = {};      // id de lista → { inicio, sube, indice, total }
 var _pastillasPrevias = null;  // clave de vista fija → texto del contador (o "")
 var _pastillasEnCurso = {};    // clave → { entra, texto, inicio }
+var _listasPrevias = null;     // ids de lista del render anterior, en orden
+var _listasEnCurso = {};       // id → { entra, inicio, clon, siguiente }
+var _listaReceptora = null;    // id de la lista que acaba de recibir una tarea arrastrada
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
 let openDetailProjectId = null;
@@ -1676,6 +1679,7 @@ function renderPinnedItems(inboxProject) {
       if (taskIdx === -1) return;
       const [moved] = srcProject.tasks.splice(taskIdx, 1);
       inboxProject.tasks.push(moved);
+      _listaReceptora = INBOX_ID;
       saveAndRender();
     });
 
@@ -1801,6 +1805,7 @@ function renderSidebar() {
   });
   var indicadorDesde = _posicionIndicador();
   var pastillasAntes = _leerPastillas();
+  var listasAntes = _leerListas();
   projectListEl.innerHTML = "";
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
@@ -1831,6 +1836,8 @@ function renderSidebar() {
   if (window.lucide) lucide.createIcons();
   _deslizarIndicador(indicadorDesde);
   _animarPastillas(pastillasAntes);
+  _animarListas(listasAntes);
+  _animarReceptora();
   syncSidebarRail();
 }
 
@@ -1986,6 +1993,107 @@ function _animarPastillas(antes) {
       else anim.cancel();
     };
   });
+}
+
+// ── Crear y borrar listas ────────────────────────────────────
+// Una lista nueva se abre en altura (y su anillo se traza); una borrada se
+// cierra y las de abajo suben en vez de saltar. Como el render ya no pinta
+// la borrada, se guarda una copia de su fila antes de vaciar la lista y se
+// reinserta en su hueco solo para cerrarla. Únicamente con un alta o una
+// baja sueltas: al importar, sincronizar o cambiar de cuenta llegan o se
+// van muchas a la vez y animarlas todas sería ruido.
+var LISTA_MS = 240;
+
+function _leerListas() {
+  var filas = projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)");
+  if (!projectListEl.querySelector(".project-item-pinned")) return null;
+  var orden = [];
+  var copias = {};
+  filas.forEach(function(li) {
+    orden.push(li.dataset.projectId);
+    copias[li.dataset.projectId] = li;
+  });
+  return { orden: orden, filas: copias };
+}
+
+function _animarListas(antes) {
+  var ahora = performance.now();
+  var filas = projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)");
+  var actuales = Array.prototype.map.call(filas, function(li) { return li.dataset.projectId; });
+
+  // Altas y bajas nuevas en este render.
+  if (antes && !_sidebarSinAnimar()) {
+    var nuevas = actuales.filter(function(id) { return antes.orden.indexOf(id) === -1; });
+    var idas = antes.orden.filter(function(id) { return actuales.indexOf(id) === -1; });
+    if (nuevas.length + idas.length === 1) {
+      if (nuevas.length) {
+        _listasEnCurso[nuevas[0]] = { entra: true, inicio: ahora };
+      } else {
+        var idx = antes.orden.indexOf(idas[0]);
+        var clon = antes.filas[idas[0]].cloneNode(true);
+        clon.classList.remove("active", "activo-en-transito");
+        clon.classList.add("lista-saliendo");
+        clon.removeAttribute("data-project-id");
+        clon.setAttribute("aria-hidden", "true");
+        _listasEnCurso[idas[0]] = { entra: false, inicio: ahora, clon: clon, siguiente: antes.orden.slice(idx + 1) };
+      }
+    }
+  }
+
+  Object.keys(_listasEnCurso).forEach(function(id) {
+    var mov = _listasEnCurso[id];
+    if (ahora - mov.inicio >= LISTA_MS || _sidebarSinAnimar()) { delete _listasEnCurso[id]; return; }
+    var el;
+    if (mov.entra) {
+      el = projectListEl.querySelector('.project-item[data-project-id="' + id + '"]');
+      if (!el) { delete _listasEnCurso[id]; return; }
+    } else {
+      // Vuelve a su hueco: delante de la primera de las que la seguían que
+      // siga existiendo, o delante de «+ Añadir lista» si era la última.
+      var ancla = null;
+      for (var i = 0; i < mov.siguiente.length && !ancla; i++) {
+        ancla = projectListEl.querySelector('.project-item[data-project-id="' + mov.siguiente[i] + '"]');
+      }
+      ancla = ancla || projectListEl.querySelector(".sidebar-add-btn, .sidebar-add-input");
+      el = mov.clon;
+      projectListEl.insertBefore(el, ancla);
+    }
+    // El borde (2px, transparente) también se cierra: con box-sizing border-box
+    // la fila no baja de 4px y al retirarla quedaba un salto final.
+    var abierta = { height: "36px", paddingTop: "6px", paddingBottom: "6px", borderTopWidth: "2px", borderBottomWidth: "2px", opacity: 1 };
+    var cerrada = { height: "0px", paddingTop: "0px", paddingBottom: "0px", borderTopWidth: "0px", borderBottomWidth: "0px", opacity: 0 };
+    el.style.overflow = "hidden";
+    var anim = el.animate(mov.entra ? [cerrada, abierta] : [abierta, cerrada],
+      { duration: LISTA_MS, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "both" });
+    anim.currentTime = ahora - mov.inicio;
+    if (mov.entra) {
+      var pista = el.querySelector(".project-ring-track");
+      if (pista) {
+        var C = (2 * Math.PI * 8).toFixed(2);
+        var trazo = pista.animate([{ strokeDasharray: "0 " + C }, { strokeDasharray: C + " 0" }],
+          { duration: LISTA_MS + 160, easing: "ease-out" });
+        trazo.currentTime = ahora - mov.inicio;
+      }
+    }
+    anim.onfinish = function() {
+      if (_listasEnCurso[id] === mov) delete _listasEnCurso[id];
+      if (mov.entra) { anim.cancel(); el.style.overflow = ""; }
+      else el.remove();
+    };
+  });
+}
+
+// ── Soltar una tarea sobre una lista ─────────────────────────
+// La fila que la recibe da un pequeño pulso con su color al repintarse,
+// para confirmar a dónde ha ido la tarea (el contador ya gira solo).
+function _animarReceptora() {
+  var id = _listaReceptora;
+  _listaReceptora = null;
+  if (!id || _sidebarSinAnimar()) return;
+  var li = projectListEl.querySelector('.project-item[data-project-id="' + id + '"]');
+  if (!li) return;
+  li.classList.add("lista-recibe");
+  li.addEventListener("animationend", function() { li.classList.remove("lista-recibe"); }, { once: true });
 }
 
 // ── Anillo de progreso: el segmento que cambia se dibuja ─────
@@ -2198,6 +2306,7 @@ function renderProjectItem(project) {
     if (taskIdx === -1) return;
     const [moved] = srcProject.tasks.splice(taskIdx, 1);
     project.tasks.push(moved);
+    _listaReceptora = project.id;
     saveAndRender();
   });
 

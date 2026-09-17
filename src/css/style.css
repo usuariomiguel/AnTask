@@ -1145,7 +1145,7 @@ body {
   background: var(--c-primary-500);
   color: var(--accent-on);
   font-weight: var(--fw-bold);
-  padding: 1px 7px;
+  padding: 2px 7px;
   min-width: 18px;
   text-align: center;
   border-radius: 999px;
@@ -7189,11 +7189,43 @@ body.task-dragging .project-item:not(.active) {
   outline-offset: -1px;
 }
 
+/* Destino al arrastrar una tarea: se tiñe con el color de la lista (oliva
+   en Inbox) sobre la base opaca del desk, como el resto de cajas sobre el
+   grano, y entra con un fundido corto en vez de encenderse de golpe. */
 .project-item.project-task-drop-target {
-  background: rgba(163, 179, 102, 0.14) !important;
-  outline: 2px dashed rgba(163, 179, 102, 0.60) !important;
+  background: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 16%, var(--capa-desk)) !important;
+  outline: 2px dashed color-mix(in srgb, var(--project-color, var(--c-primary-500)) 60%, transparent) !important;
   outline-offset: -2px;
   scale: 1.01;
+  animation: lista-destino-entra 0.14s ease-out;
+}
+
+@keyframes lista-destino-entra {
+  from {
+    scale: 1;
+    outline-color: transparent;
+  }
+}
+
+/* Al soltar, la lista que la recibe late una vez con su color. */
+.project-item.lista-recibe {
+  animation: lista-recibe 0.42s ease-out;
+}
+
+@keyframes lista-recibe {
+  0% {
+    background-color: color-mix(in srgb, var(--project-color, var(--c-primary-500)) 30%, var(--capa-desk));
+    scale: 1.02;
+  }
+
+  100% {
+    scale: 1;
+  }
+}
+
+/* Copia de una lista borrada mientras se cierra (ver _animarListas). */
+.project-item.lista-saliendo {
+  pointer-events: none;
 }
 
 /* ─── Creación inline (v1): + Añadir lista ────────────────────── */
