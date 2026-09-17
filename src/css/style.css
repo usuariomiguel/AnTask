@@ -26,24 +26,24 @@
   --c-primary-50: #f7f8ee;
   --c-primary-100: #eef0da;
   --c-primary-200: #dde2b8;
-  --c-primary-300: #c3d18a;
-  --c-primary-400: #b3c176;
-  --c-primary-500: #a3b366;
+  --c-primary-300: #c4d195;
+  --c-primary-400: #b4c182;
+  --c-primary-500: #a4b272;
   /* primary action (oliva claro) */
-  --c-primary-600: #8a9a5b;
-  --c-primary-700: #6f7a3d;
-  --c-primary-800: #566030;
+  --c-primary-600: #8c9a65;
+  --c-primary-700: #707a47;
+  --c-primary-800: #576038;
 
   --accent-on: #241910;
   /* texto sobre relleno de acento */
-  --accent-tint: rgba(163, 179, 102, 0.15);
+  --accent-tint: rgba(164, 178, 114, 0.15);
   /* fondos teñidos (nav activa, chips) */
   --box-shadow-bottom: #100a081e;
 
-  --grad-primary: linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
-  --grad-primary-hover: linear-gradient(135deg, #97a865 0%, #66713a 100%);
-  --glow-primary: 0 4px 14px rgba(163, 179, 102, 0.30);
-  --ring-primary: 0 0 0 3px rgba(163, 179, 102, 0.22);
+  --grad-primary: linear-gradient(135deg, #8c9a65 0%, #576038 100%);
+  --grad-primary-hover: linear-gradient(135deg, #99a76f 0%, #677143 100%);
+  --glow-primary: 0 4px 14px rgba(164, 178, 114, 0.30);
+  --ring-primary: 0 0 0 3px rgba(164, 178, 114, 0.22);
 
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
   --surface-desk: #080605;
@@ -77,11 +77,11 @@
   --text-disabled: #55492f;
   --text-inverse: #17120d;
 
-  --c-success: #5fb3a3;
-  --c-warning: #e0a35a;
-  --c-danger: #e07a6a;
-  --c-info: #73b6d2;
-  --c-recur: #b18cf0;
+  --c-success: #6cb1a3;
+  --c-warning: #d9a66a;
+  --c-danger: #d78072;
+  --c-info: #7eb5cd;
+  --c-recur: #af90e5;
 
   /* Vencido — rojo de estado, distinto de --c-danger (que significa
      "acción destructiva"). Lo usan Hoy, las píldoras de fecha y el swipe.
@@ -89,7 +89,7 @@
      alfas distintas; con un solo token hexadecimal harían falta nueve.
      OJO: el tinte es el rojo CLARO en ambos temas, no el de cada modo.
      Es como estaba antes de tokenizar y se conserva a propósito. */
-  --c-overdue: #e89a90;
+  --c-overdue: #e19e95;
   --c-overdue-rgb: 176, 71, 63;
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
@@ -104,8 +104,8 @@
   --capa-canvas: color-mix(in srgb, rgb(255 238 214) 5.5%, var(--surface-desk));
   --kbd-bg: rgba(255, 245, 230, 0.07);
   /* Hover de tarea — teñido con el oliva de acento, no gris neutro. */
-  --task-hover: rgba(163, 179, 102, 0.10);
-  --task-hover-border: rgba(163, 179, 102, 0.34);
+  --task-hover: rgba(164, 178, 114, 0.10);
+  --task-hover-border: rgba(164, 178, 114, 0.34);
 
   /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────────
      Las tres familias del tema "tierra" del prototipo v1:
@@ -238,10 +238,10 @@
   --t-muted: var(--text-tertiary);
 
   --b-subtle: var(--border-default);
-  --b-active: rgba(163, 179, 102, 0.45);
-  --b-glow: rgba(163, 179, 102, 0.80);
+  --b-active: rgba(164, 178, 114, 0.45);
+  --b-glow: rgba(164, 178, 114, 0.80);
 
-  --glow-cyan: 0 0 0 3px rgba(163, 179, 102, 0.18), 0 0 20px rgba(163, 179, 102, 0.10);
+  --glow-cyan: 0 0 0 3px rgba(164, 178, 114, 0.18), 0 0 20px rgba(164, 178, 114, 0.10);
   --glow-blue: 0 0 0 3px rgba(115, 182, 210, 0.18), 0 0 20px rgba(115, 182, 210, 0.08);
   --glow-pink: 0 0 0 3px rgba(224, 122, 106, 0.18), 0 0 20px rgba(224, 122, 106, 0.08);
 
@@ -288,7 +288,7 @@
 }
 
 :root[data-theme="light"] ::selection {
-  background: rgba(111, 122, 61, 0.22);
+  background: rgba(112, 120, 80, 0.22);
   color: #2a251d;
 }
 
@@ -321,21 +321,21 @@
   color-scheme: light;
 
   /* Brand primary — oliva, más oscuro para contraste sobre papel */
-  --c-primary-300: #a3b366;
-  --c-primary-400: #8a9a5b;
-  --c-primary-500: #6f7a3d;
+  --c-primary-300: #a5b17d;
+  --c-primary-400: #8c986d;
+  --c-primary-500: #707850;
   /* oliva */
-  --c-primary-600: #5a6330;
-  --c-primary-700: #4a5228;
-  --c-primary-800: #3d441f;
+  --c-primary-600: #5b6240;
+  --c-primary-700: #4b5135;
+  --c-primary-800: #3e432a;
 
   --accent-on: #fffcf1;
-  --accent-tint: rgba(111, 122, 61, 0.14);
+  --accent-tint: rgba(112, 120, 80, 0.14);
 
-  --grad-primary: linear-gradient(135deg, #8a9a5b 0%, #566030 100%);
-  --grad-primary-hover: linear-gradient(135deg, #7d8c50 0%, #4a5228 100%);
-  --glow-primary: 0 4px 14px rgba(111, 122, 61, 0.28);
-  --ring-primary: 0 0 0 3px rgba(111, 122, 61, 0.20);
+  --grad-primary: linear-gradient(135deg, #8c986d 0%, #575f3e 100%);
+  --grad-primary-hover: linear-gradient(135deg, #7f8a61 0%, #4b5135 100%);
+  --glow-primary: 0 4px 14px rgba(112, 120, 80, 0.28);
+  --ring-primary: 0 0 0 3px rgba(112, 120, 80, 0.20);
 
   /* Surfaces — "arena cálida": el beige anterior (#dcd1bc/#f8f4ea) leía
      grisáceo/apagado; este sube saturación y calidez sin tocar el
@@ -372,31 +372,32 @@
   --text-inverse: #f2ece0;
 
   /* Semantic */
-  --c-success: #3f8a7d;
+  --c-success: #56867c;
   /* Antes #b58236, que sobre el papel se quedaba en 3.29:1: servía de
      tinte de fondo, pero el metadato de fila lo usa como color de TEXTO
      (fecha de hoy, 12px) y ahí no llegaba a AA. #855c22 da 5.76:1 sobre
      la tarjeta y 4.84:1 sobre el lienzo de las filas "Limpio". */
-  --c-warning: #855c22;
-  --c-danger: #b0524a;
-  --c-info: #3d6e85;
+  --c-warning: #7b5f3b;
+  --c-danger: #9e5c55;
+  --c-info: #4c6c7c;
   /* Dos puntos más oscuro que el #7c4fd6 de antes: sobre el papel del
      tema claro aquel se quedaba en 4.35:1 y el rótulo de Hábitos —12px en
      negrita— no llegaba a AA. Se oscurece el token en vez de quitarle el
      morado al rótulo: el morado ES lo que identifica lo recurrente, y
      subirlo aquí arregla de paso el resto de sus usos. */
-  --c-recur: #7448cc;
+  --c-recur: #6d54ac;
 
   /* Vencido — en claro el rojo baja de tono para leer sobre papel.
      El canal RGB no cambia: el tinte ya era este en ambos temas. */
-  --c-overdue: #b0473f;
+  --c-overdue: #9d544d;
+  --c-overdue-rgb: 157, 84, 77;
 
   /* Interacción */
   --surface-canvas: #f3e8c9;
   --capa-canvas: var(--surface-canvas);
   --kbd-bg: #f0e0b8;
-  --task-hover: rgba(111, 122, 61, 0.10);
-  --task-hover-border: rgba(111, 122, 61, 0.36);
+  --task-hover: rgba(112, 120, 80, 0.10);
+  --task-hover-border: rgba(112, 120, 80, 0.36);
 
   /* Shadows — más suaves, con tinte cálido */
   --shadow-sm: 0 1px 2px rgba(80, 55, 10, 0.06);
@@ -405,9 +406,9 @@
   --shadow-card: 0 1px 3px rgba(80, 55, 10, 0.06), 0 0 0 1px rgba(80, 55, 10, 0.04);
 
   /* Aliases que necesitan tinte específico en light (no cascadean limpio) */
-  --b-active: rgba(111, 122, 61, 0.45);
-  --b-glow: rgba(111, 122, 61, 0.75);
-  --glow-cyan: 0 0 0 3px rgba(111, 122, 61, 0.15);
+  --b-active: rgba(112, 120, 80, 0.45);
+  --b-glow: rgba(112, 120, 80, 0.75);
+  --glow-cyan: 0 0 0 3px rgba(112, 120, 80, 0.15);
   --glow-blue: 0 0 0 3px rgba(61, 110, 133, 0.15);
   --glow-pink: 0 0 0 3px rgba(176, 82, 74, 0.15);
 }
@@ -428,138 +429,138 @@
    habrían salido idénticos. Arcilla recupera su valor y terracota baja al
    suyo (#c25e3a), que es el que themes.jsx le asigna desde el principio. */
 :root[data-accent="arcilla"] {
-  --c-primary-300: #eeae8a;
-  --c-primary-400: #e69b71;
-  --c-primary-500: #e08a5a;
-  --c-primary-600: #c9713f;
-  --accent-tint: rgba(224, 138, 90, 0.15);
-  --grad-primary: linear-gradient(135deg, #c0673a 0%, #9c4426 100%);
-  --task-hover: rgba(224, 138, 90, 0.10);
-  --task-hover-border: rgba(224, 138, 90, 0.34);
-  --b-active: rgba(224, 138, 90, 0.45);
-  --glow-primary: 0 4px 14px rgba(224, 138, 90, 0.30);
-  --ring-primary: 0 0 0 3px rgba(224, 138, 90, 0.22);
+  --c-primary-300: #e7b192;
+  --c-primary-400: #de9f7b;
+  --c-primary-500: #d88f67;
+  --c-primary-600: #c1764d;
+  --accent-tint: rgba(216, 143, 103, 0.15);
+  --grad-primary: linear-gradient(135deg, #b86c48 0%, #944a32 100%);
+  --task-hover: rgba(216, 143, 103, 0.10);
+  --task-hover-border: rgba(216, 143, 103, 0.34);
+  --b-active: rgba(216, 143, 103, 0.45);
+  --glow-primary: 0 4px 14px rgba(216, 143, 103, 0.30);
+  --ring-primary: 0 0 0 3px rgba(216, 143, 103, 0.22);
 }
 
 :root[data-theme="light"][data-accent="arcilla"] {
-  --c-primary-300: #c0673a;
-  --c-primary-400: #ad5230;
-  --c-primary-500: #ad5230;
-  --c-primary-600: #8a4025;
-  --accent-tint: rgba(173, 82, 48, 0.14);
-  --task-hover: rgba(173, 82, 48, 0.10);
-  --task-hover-border: rgba(173, 82, 48, 0.36);
-  --b-active: rgba(173, 82, 48, 0.45);
-  --glow-primary: 0 4px 14px rgba(173, 82, 48, 0.28);
-  --ring-primary: 0 0 0 3px rgba(173, 82, 48, 0.20);
+  --c-primary-300: #ae7052;
+  --c-primary-400: #9b5c45;
+  --c-primary-500: #9b5c45;
+  --c-primary-600: #7c4836;
+  --accent-tint: rgba(155, 92, 69, 0.14);
+  --task-hover: rgba(155, 92, 69, 0.10);
+  --task-hover-border: rgba(155, 92, 69, 0.36);
+  --b-active: rgba(155, 92, 69, 0.45);
+  --glow-primary: 0 4px 14px rgba(155, 92, 69, 0.28);
+  --ring-primary: 0 0 0 3px rgba(155, 92, 69, 0.20);
 }
 
 :root[data-accent="terracota"] {
-  --c-primary-300: #f2b795;
-  --c-primary-400: #eda57f;
-  --c-primary-500: #e8956a;
-  --c-primary-600: #d17c4e;
-  --accent-tint: rgba(232, 149, 106, 0.15);
-  --grad-primary: linear-gradient(135deg, #d4703f 0%, #bf4f2c 100%);
-  --task-hover: rgba(232, 149, 106, 0.10);
-  --task-hover-border: rgba(232, 149, 106, 0.34);
-  --b-active: rgba(232, 149, 106, 0.45);
-  --glow-primary: 0 4px 14px rgba(232, 149, 106, 0.30);
-  --ring-primary: 0 0 0 3px rgba(232, 149, 106, 0.22);
+  --c-primary-300: #ecb99d;
+  --c-primary-400: #e6a888;
+  --c-primary-500: #e09975;
+  --c-primary-600: #c9815b;
+  --accent-tint: rgba(224, 153, 117, 0.15);
+  --grad-primary: linear-gradient(135deg, #cb764e 0%, #b6573b 100%);
+  --task-hover: rgba(224, 153, 117, 0.10);
+  --task-hover-border: rgba(224, 153, 117, 0.34);
+  --b-active: rgba(224, 153, 117, 0.45);
+  --glow-primary: 0 4px 14px rgba(224, 153, 117, 0.30);
+  --ring-primary: 0 0 0 3px rgba(224, 153, 117, 0.22);
 }
 
 :root[data-theme="light"][data-accent="terracota"] {
-  --c-primary-300: #d4703f;
-  --c-primary-400: #c25e3a;
-  --c-primary-500: #c25e3a;
-  --c-primary-600: #9c4426;
-  --accent-tint: rgba(194, 94, 58, 0.14);
-  --task-hover: rgba(194, 94, 58, 0.10);
-  --task-hover-border: rgba(194, 94, 58, 0.36);
-  --b-active: rgba(194, 94, 58, 0.45);
-  --glow-primary: 0 4px 14px rgba(194, 94, 58, 0.28);
-  --ring-primary: 0 0 0 3px rgba(194, 94, 58, 0.20);
+  --c-primary-300: #bf7a5a;
+  --c-primary-400: #ae6950;
+  --c-primary-500: #ae6950;
+  --c-primary-600: #8b4e3a;
+  --accent-tint: rgba(174, 105, 80, 0.14);
+  --task-hover: rgba(174, 105, 80, 0.10);
+  --task-hover-border: rgba(174, 105, 80, 0.36);
+  --b-active: rgba(174, 105, 80, 0.45);
+  --glow-primary: 0 4px 14px rgba(174, 105, 80, 0.28);
+  --ring-primary: 0 0 0 3px rgba(174, 105, 80, 0.20);
 }
 
 :root[data-accent="miel"] {
-  --c-primary-300: #f0c98a;
-  --c-primary-400: #eab568;
-  --c-primary-500: #e0a35a;
-  --c-primary-600: #c98a3c;
-  --accent-tint: rgba(224, 163, 90, 0.15);
-  --grad-primary: linear-gradient(135deg, #eab568 0%, #855f1a 100%);
-  --task-hover: rgba(224, 163, 90, 0.10);
-  --task-hover-border: rgba(224, 163, 90, 0.34);
-  --b-active: rgba(224, 163, 90, 0.45);
-  --glow-primary: 0 4px 14px rgba(224, 163, 90, 0.30);
-  --ring-primary: 0 0 0 3px rgba(224, 163, 90, 0.22);
+  --c-primary-300: #ebca96;
+  --c-primary-400: #e4b778;
+  --c-primary-500: #d9a66a;
+  --c-primary-600: #c28d4f;
+  --accent-tint: rgba(217, 166, 106, 0.15);
+  --grad-primary: linear-gradient(135deg, #e4b778 0%, #81612c 100%);
+  --task-hover: rgba(217, 166, 106, 0.10);
+  --task-hover-border: rgba(217, 166, 106, 0.34);
+  --b-active: rgba(217, 166, 106, 0.45);
+  --glow-primary: 0 4px 14px rgba(217, 166, 106, 0.30);
+  --ring-primary: 0 0 0 3px rgba(217, 166, 106, 0.22);
 }
 
 :root[data-theme="light"][data-accent="miel"] {
-  --c-primary-300: #e0a35a;
-  --c-primary-400: #b58236;
-  --c-primary-500: #b58236;
-  --c-primary-600: #96691f;
-  --accent-tint: rgba(181, 130, 54, 0.14);
-  --task-hover: rgba(181, 130, 54, 0.10);
-  --task-hover-border: rgba(181, 130, 54, 0.36);
-  --b-active: rgba(181, 130, 54, 0.45);
-  --glow-primary: 0 4px 14px rgba(181, 130, 54, 0.28);
-  --ring-primary: 0 0 0 3px rgba(181, 130, 54, 0.20);
+  --c-primary-300: #d2a777;
+  --c-primary-400: #a98656;
+  --c-primary-500: #a98656;
+  --c-primary-600: #8b6c40;
+  --accent-tint: rgba(169, 134, 86, 0.14);
+  --task-hover: rgba(169, 134, 86, 0.10);
+  --task-hover-border: rgba(169, 134, 86, 0.36);
+  --b-active: rgba(169, 134, 86, 0.45);
+  --glow-primary: 0 4px 14px rgba(169, 134, 86, 0.28);
+  --ring-primary: 0 0 0 3px rgba(169, 134, 86, 0.20);
 }
 
 :root[data-accent="marea"] {
-  --c-primary-300: #a8d8e8;
-  --c-primary-400: #8ec6dc;
-  --c-primary-500: #73b6d2;
-  --c-primary-600: #5498b5;
-  --accent-tint: rgba(115, 182, 210, 0.15);
-  --grad-primary: linear-gradient(135deg, #8ec6dc 0%, #234a5c 100%);
-  --task-hover: rgba(115, 182, 210, 0.10);
-  --task-hover-border: rgba(115, 182, 210, 0.34);
-  --b-active: rgba(115, 182, 210, 0.45);
-  --glow-primary: 0 4px 14px rgba(115, 182, 210, 0.30);
-  --ring-primary: 0 0 0 3px rgba(115, 182, 210, 0.22);
+  --c-primary-300: #afd7e5;
+  --c-primary-400: #96c5d8;
+  --c-primary-500: #7eb5cd;
+  --c-primary-600: #6097b0;
+  --accent-tint: rgba(126, 181, 205, 0.15);
+  --grad-primary: linear-gradient(135deg, #96c5d8 0%, #2a4959 100%);
+  --task-hover: rgba(126, 181, 205, 0.10);
+  --task-hover-border: rgba(126, 181, 205, 0.34);
+  --b-active: rgba(126, 181, 205, 0.45);
+  --glow-primary: 0 4px 14px rgba(126, 181, 205, 0.30);
+  --ring-primary: 0 0 0 3px rgba(126, 181, 205, 0.22);
 }
 
 :root[data-theme="light"][data-accent="marea"] {
-  --c-primary-300: #73b6d2;
-  --c-primary-400: #3d6e85;
-  --c-primary-500: #3d6e85;
-  --c-primary-600: #2c5266;
-  --accent-tint: rgba(61, 110, 133, 0.14);
-  --task-hover: rgba(61, 110, 133, 0.10);
-  --task-hover-border: rgba(61, 110, 133, 0.36);
-  --b-active: rgba(61, 110, 133, 0.45);
-  --glow-primary: 0 4px 14px rgba(61, 110, 133, 0.28);
-  --ring-primary: 0 0 0 3px rgba(61, 110, 133, 0.20);
+  --c-primary-300: #86b3c7;
+  --c-primary-400: #4c6c7c;
+  --c-primary-500: #4c6c7c;
+  --c-primary-600: #38515f;
+  --accent-tint: rgba(76, 108, 124, 0.14);
+  --task-hover: rgba(76, 108, 124, 0.10);
+  --task-hover-border: rgba(76, 108, 124, 0.36);
+  --b-active: rgba(76, 108, 124, 0.45);
+  --glow-primary: 0 4px 14px rgba(76, 108, 124, 0.28);
+  --ring-primary: 0 0 0 3px rgba(76, 108, 124, 0.20);
 }
 
 :root[data-accent="vino"] {
-  --c-primary-300: #e8a8ae;
-  --c-primary-400: #e0959c;
-  --c-primary-500: #d98a90;
-  --c-primary-600: #c06d74;
-  --accent-tint: rgba(217, 138, 144, 0.15);
-  --grad-primary: linear-gradient(135deg, #e0959c 0%, #5c1f26 100%);
-  --task-hover: rgba(217, 138, 144, 0.10);
-  --task-hover-border: rgba(217, 138, 144, 0.34);
-  --b-active: rgba(217, 138, 144, 0.45);
-  --glow-primary: 0 4px 14px rgba(217, 138, 144, 0.30);
-  --ring-primary: 0 0 0 3px rgba(217, 138, 144, 0.22);
+  --c-primary-300: #e2abb0;
+  --c-primary-400: #d9999f;
+  --c-primary-500: #d28e93;
+  --c-primary-600: #b97277;
+  --accent-tint: rgba(210, 142, 147, 0.15);
+  --grad-primary: linear-gradient(135deg, #d9999f 0%, #572429 100%);
+  --task-hover: rgba(210, 142, 147, 0.10);
+  --task-hover-border: rgba(210, 142, 147, 0.34);
+  --b-active: rgba(210, 142, 147, 0.45);
+  --glow-primary: 0 4px 14px rgba(210, 142, 147, 0.30);
+  --ring-primary: 0 0 0 3px rgba(210, 142, 147, 0.22);
 }
 
 :root[data-theme="light"][data-accent="vino"] {
-  --c-primary-300: #d98a90;
-  --c-primary-400: #96323a;
-  --c-primary-500: #96323a;
-  --c-primary-600: #7a2830;
-  --accent-tint: rgba(150, 50, 58, 0.14);
-  --task-hover: rgba(150, 50, 58, 0.10);
-  --task-hover-border: rgba(150, 50, 58, 0.36);
-  --b-active: rgba(150, 50, 58, 0.45);
-  --glow-primary: 0 4px 14px rgba(150, 50, 58, 0.28);
-  --ring-primary: 0 0 0 3px rgba(150, 50, 58, 0.20);
+  --c-primary-300: #c99195;
+  --c-primary-400: #844042;
+  --c-primary-500: #844042;
+  --c-primary-600: #6b3336;
+  --accent-tint: rgba(132, 64, 66, 0.14);
+  --task-hover: rgba(132, 64, 66, 0.10);
+  --task-hover-border: rgba(132, 64, 66, 0.36);
+  --b-active: rgba(132, 64, 66, 0.45);
+  --glow-primary: 0 4px 14px rgba(132, 64, 66, 0.28);
+  --ring-primary: 0 0 0 3px rgba(132, 64, 66, 0.20);
 }
 
 /* ─── LUCIDE ICONS ───────────────────────────────────────────── */
@@ -1184,8 +1185,8 @@ body {
   color: #fffcf1;
   box-shadow:
     inset 0 1px 0 rgba(255, 238, 214, 0.18),
-    0 0 0 1px rgba(111, 122, 61, 0.28),
-    0 4px 16px rgba(111, 122, 61, 0.32);
+    0 0 0 1px rgba(112, 120, 80, 0.28),
+    0 4px 16px rgba(112, 120, 80, 0.32);
 }
 
 /* ─── MAIN PANEL ─────────────────────────────────────────────── */
@@ -2864,8 +2865,8 @@ button:focus-visible {
 
 :root[data-theme="light"] .filter-trigger-btn--active {
   color: var(--c-primary-500);
-  background: rgba(111, 122, 61, 0.08);
-  border-color: rgba(111, 122, 61, 0.25);
+  background: rgba(112, 120, 80, 0.08);
+  border-color: rgba(112, 120, 80, 0.25);
 }
 
 /* ── Fila de filtro dentro del cuerpo de la lista (estilo prototipo v1) ──
@@ -4992,9 +4993,9 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] .modal-input:focus {
-  border-color: rgba(111, 122, 61, 0.45);
-  background: rgba(111, 122, 61, 0.04);
-  box-shadow: 0 0 0 3px rgba(111, 122, 61, 0.10);
+  border-color: rgba(112, 120, 80, 0.45);
+  background: rgba(112, 120, 80, 0.04);
+  box-shadow: 0 0 0 3px rgba(112, 120, 80, 0.10);
 }
 
 .modal-actions {
@@ -5295,7 +5296,7 @@ body.project-dragging .project-item {
 }
 
 :root[data-theme="light"] .priority-badge {
-  color: #9a3a33;
+  color: #884640;
 }
 
 /* ─── REMINDER BADGE (solo lectura, en la fila) ───────────────
@@ -5527,8 +5528,8 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .mobile-header-count {
     color: var(--c-primary-500);
-    background: rgba(111, 122, 61, 0.10);
-    border-color: rgba(111, 122, 61, 0.22);
+    background: rgba(112, 120, 80, 0.10);
+    border-color: rgba(112, 120, 80, 0.22);
   }
 
   /* When a project is active: show title block, hide logos */
@@ -5639,7 +5640,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .mobile-icon-btn:active {
-    background: rgba(111, 122, 61, 0.08);
+    background: rgba(112, 120, 80, 0.08);
     color: var(--c-primary-500);
   }
 
@@ -5781,7 +5782,7 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .filter-trigger-btn--active {
     color: var(--c-primary-500);
-    background: rgba(111, 122, 61, 0.08);
+    background: rgba(112, 120, 80, 0.08);
   }
 
   .filter-trigger-btn:active {
@@ -5792,7 +5793,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .filter-trigger-btn:active {
-    background: rgba(111, 122, 61, 0.08);
+    background: rgba(112, 120, 80, 0.08);
     color: var(--c-primary-500);
   }
 
@@ -5817,7 +5818,7 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .filter-panel {
     box-shadow: 0 -4px 24px rgba(80, 55, 10, 0.10), 0 -1px 0 rgba(80, 55, 10, 0.06);
-    border-top-color: rgba(111, 122, 61, 0.35);
+    border-top-color: rgba(112, 120, 80, 0.35);
   }
 
   .filter-panel-opts {
@@ -6061,8 +6062,8 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .sidebar-search-mobile:active {
-    background: rgba(111, 122, 61, 0.05);
-    border-color: rgba(111, 122, 61, 0.40);
+    background: rgba(112, 120, 80, 0.05);
+    border-color: rgba(112, 120, 80, 0.40);
   }
 
   /* Profile compacto: avatar + nombre en una sola fila densa */
@@ -6314,7 +6315,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .mobile-fab {
-    box-shadow: 0 8px 18px -6px rgba(111, 122, 61, 0.55);
+    box-shadow: 0 8px 18px -6px rgba(112, 120, 80, 0.55);
   }
 
   /* Estado activo (prototipo): icono y texto en acento, sin dot */
@@ -6690,7 +6691,7 @@ mark.search-hl {
 
 :root[data-theme="light"] .undo-toast {
   background: #fffcf1;
-  border-color: rgba(111, 122, 61, 0.20);
+  border-color: rgba(112, 120, 80, 0.20);
   box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 
@@ -6997,7 +6998,7 @@ kbd {
 }
 
 :root[data-theme="light"] #splash {
-  background-image: radial-gradient(ellipse 80% 60% at 50% -5%, rgba(111, 122, 61, 0.08) 0%, transparent 68%);
+  background-image: radial-gradient(ellipse 80% 60% at 50% -5%, rgba(112, 120, 80, 0.08) 0%, transparent 68%);
 }
 
 #splash.splash-done {
@@ -8402,7 +8403,7 @@ body.task-dragging .project-item:not(.active) {
 
 :root[data-theme="light"] .paste-toast {
   background: #fffcf1;
-  border-color: rgba(111, 122, 61, 0.20);
+  border-color: rgba(112, 120, 80, 0.20);
   box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 
@@ -9011,19 +9012,19 @@ body.task-dragging .project-item:not(.active) {
 }
 
 :root[data-theme="light"] .cal-cell-today {
-  border-color: rgba(111, 122, 61, 0.50);
-  background: rgba(111, 122, 61, 0.05);
+  border-color: rgba(112, 120, 80, 0.50);
+  background: rgba(112, 120, 80, 0.05);
 }
 
 :root[data-theme="light"] .cal-cell-today .cal-cell-num {
   color: #fffcf1;
   background: var(--c-primary-500);
-  box-shadow: 0 2px 6px rgba(111, 122, 61, 0.40);
+  box-shadow: 0 2px 6px rgba(112, 120, 80, 0.40);
 }
 
 :root[data-theme="light"] .cal-cell-selected {
   border-color: var(--c-primary-500) !important;
-  background: rgba(111, 122, 61, 0.08) !important;
+  background: rgba(112, 120, 80, 0.08) !important;
 }
 
 :root[data-theme="light"] .cal-nav-btn {
@@ -9031,8 +9032,8 @@ body.task-dragging .project-item:not(.active) {
 }
 
 :root[data-theme="light"] .cal-day-detail {
-  border-color: rgba(111, 122, 61, 0.22);
-  background: rgba(111, 122, 61, 0.03);
+  border-color: rgba(112, 120, 80, 0.22);
+  background: rgba(112, 120, 80, 0.03);
   box-shadow: var(--shadow-md);
 }
 
@@ -9041,8 +9042,8 @@ body.task-dragging .project-item:not(.active) {
 }
 
 :root[data-theme="light"] .cal-task-chip {
-  background: rgba(111, 122, 61, 0.08);
-  border-left-color: rgba(111, 122, 61, 0.40);
+  background: rgba(112, 120, 80, 0.08);
+  border-left-color: rgba(112, 120, 80, 0.40);
   color: var(--text-secondary);
 }
 
@@ -9873,7 +9874,7 @@ button {
 
   .chip-sugerencia--recur .lucide { color: var(--c-recur); }
   .chip-sugerencia--importante .lucide { color: var(--c-pink); }
-  :root[data-theme="light"] .chip-sugerencia--importante .lucide { color: #9a3a33; }
+  :root[data-theme="light"] .chip-sugerencia--importante .lucide { color: #884640; }
 
   .chip-sugerencia-aceptar:hover {
     border-style: solid;
@@ -9985,9 +9986,9 @@ button {
   }
 
   :root[data-theme="light"] .today-date-pill--action {
-    border-color: rgba(74, 118, 68, 0.32);
-    background: rgba(74, 118, 68, 0.08);
-    color: #4a7644;
+    border-color: rgba(84, 114, 80, 0.32);
+    background: rgba(84, 114, 80, 0.08);
+    color: #547250;
   }
 
   .today-date-pill--action:hover {
@@ -9995,7 +9996,7 @@ button {
   }
 
   :root[data-theme="light"] .today-date-pill--action:hover {
-    background: rgba(74, 118, 68, 0.15);
+    background: rgba(84, 114, 80, 0.15);
   }
 
   .due-badge--action:active,
@@ -10288,7 +10289,7 @@ button {
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-title {
-  color: #4a7644;
+  color: #547250;
 }
 
 /* Hábitos: morado, el mismo tinte que ya usa el chip de repetición
@@ -10372,9 +10373,9 @@ button {
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-action {
-  border-color: rgba(74, 118, 68, 0.32);
-  background: linear-gradient(rgba(74, 118, 68, 0.08), rgba(74, 118, 68, 0.08)), var(--capa-canvas);
-  color: #4a7644;
+  border-color: rgba(84, 114, 80, 0.32);
+  background: linear-gradient(rgba(84, 114, 80, 0.08), rgba(84, 114, 80, 0.08)), var(--capa-canvas);
+  color: #547250;
 }
 
 .hoy-section-list {
@@ -10955,7 +10956,7 @@ button {
 }
 
 :root[data-theme="light"] .qc-chip--high.active {
-  color: #9a3a33;
+  color: #884640;
 }
 
 .qc-list-picker,
@@ -11288,7 +11289,7 @@ button {
 }
 
 :root[data-theme="light"] .tpl-task-prio {
-  color: #9a3a33;
+  color: #884640;
 }
 
 :root[data-theme="light"] .tpl-task-recur {
@@ -11387,7 +11388,7 @@ button {
 }
 
 :root[data-theme="light"] .nl-chip-prio {
-  color: #9a3a33;
+  color: #884640;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -11847,7 +11848,7 @@ button {
 }
 
 :root[data-theme="light"] .onb-chip-prio {
-  color: #9a3a33;
+  color: #884640;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -12078,7 +12079,7 @@ button {
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-ico {
-  color: #4a7644;
+  color: #547250;
 }
 
 .hoy-section-title {
