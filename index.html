@@ -5,9 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>AnTrack</title>
     <meta name="theme-color" content="#080605" />
+    <!-- Tema y acento ANTES de pintar nada. Los aplica ui/theme.js, pero va en
+         un módulo que corre tras parsear el documento: hasta entonces el
+         splash salía siempre en oscuro y con tema claro parpadeaba, logo
+         incluido. Misma lógica que initializeTheme() e initializeAccent();
+         si cambia una, cambia la otra. -->
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var tema = localStorage.getItem("mis-tareas-theme");
+          if (tema !== "light" && tema !== "dark") {
+            tema = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          root.dataset.theme = tema;
+          var acento = localStorage.getItem("antrack-accent");
+          if (["arcilla", "terracota", "miel", "marea", "vino"].indexOf(acento) !== -1) root.dataset.accent = acento;
+        } catch (e) { /* sin localStorage: manda theme.js al cargar */ }
+      })();
+    </script>
     <!-- Content Security Policy
-         • script-src 'unsafe-inline' cubre los dos bloques inline de este HTML
-           (mobile UI + SW registration). Mover a ficheros externos los
+         • script-src 'unsafe-inline' cubre los tres bloques inline de este HTML
+           (tema antes de pintar + mobile UI + SW registration). Mover a ficheros externos los
            eliminaría y permitiría quitar 'unsafe-inline'.
          • Fuentes (Inter / JetBrains Mono) son self-hosted vía @fontsource-variable,
            empaquetadas con Vite → font-src 'self' es suficiente.
@@ -35,9 +54,9 @@
       base-uri    'self';
     " />
     <link rel="manifest" href="./manifest.json" />
-    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-    <link rel="icon" type="image/svg+xml" href="./src/img/logo-icon.svg">
-    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png">
     <!-- CSS render-blocking → evita el FOUC mientras carga el módulo JS -->
     <link rel="stylesheet" href="./src/css/style.css">
   </head>
@@ -46,22 +65,8 @@
     <!-- ── SPLASH / LOADING SCREEN ──────────────────────────── -->
     <div id="splash" aria-hidden="true" role="status" aria-label="Cargando AnTrack">
       <div class="splash-inner">
-        <svg class="splash-icon" viewBox="0 0 92 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sg" x1="-4.19" y1="0" x2="95.81" y2="100" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#a3b366"/>
-              <stop offset="0.5" stop-color="#8a9a5b"/>
-              <stop offset="1" stop-color="#566030"/>
-            </linearGradient>
-            <filter id="sg-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
-              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-            </filter>
-          </defs>
-          <path class="splash-mark"
-            d="M12.0303 100H8.00876C2.24742 100 -1.625 94.0938 0.672202 88.8102L37.1939 4.81019C38.4639 1.88931 41.3455 0 44.5305 0H47.0836C50.2687 0 53.1502 1.8893 54.4202 4.81018L90.9419 88.8102C93.2391 94.0938 89.3667 100 83.6054 100H79.5838C76.263 100 73.2874 97.9484 72.1066 94.8446L63.1984 71.4286L56.6766 53.5714L45.8071 25L34.9375 53.5714L28.4158 71.4286L19.5075 94.8446C18.3267 97.9484 15.3512 100 12.0303 100Z"
-            fill="url(#sg)"/>
-        </svg>
+        <img class="splash-icon logo-tema logo-tema--oscuro" src="./src/img/logo-mark-dark.webp" alt="" width="126" height="126">
+        <img class="splash-icon logo-tema logo-tema--claro" src="./src/img/logo-mark-light.webp" alt="" width="126" height="126">
 
         <div class="splash-wordmark" aria-label="AnTrack">
           <span class="splash-an">AnTrack</span>
@@ -104,7 +109,7 @@
              queda en 62px mostrando marca, buscar y la navegación fijada.
              La marca y el avatar vuelven a desplegarla. -->
         <div class="sidebar-rail" id="sidebar-rail">
-          <button type="button" class="sidebar-rail-brand" id="sidebar-rail-expand" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos" data-i18n-aria="sidebar.show_sidebar" data-i18n-title="sidebar.show_sidebar">A</button>
+          <button type="button" class="sidebar-rail-brand" id="sidebar-rail-expand" aria-label="Mostrar barra de proyectos" title="Mostrar barra de proyectos" data-i18n-aria="sidebar.show_sidebar" data-i18n-title="sidebar.show_sidebar"><img class="logo-tema logo-tema--oscuro" src="./src/img/logo-mark-dark.webp" alt="" width="30" height="30"><img class="logo-tema logo-tema--claro" src="./src/img/logo-mark-light.webp" alt="" width="30" height="30"></button>
           <span class="sidebar-rail-sep"></span>
           <button type="button" class="sidebar-rail-btn" id="sidebar-rail-search" aria-label="Buscar" title="Buscar" data-i18n-aria="sidebar.search_short" data-i18n-title="sidebar.search_short"><i data-lucide="search"></i></button>
           <button type="button" class="sidebar-rail-btn" id="sidebar-rail-today" aria-label="Hoy" title="Hoy" data-i18n-aria="sidebar.today" data-i18n-title="sidebar.today"><i data-lucide="calendar"></i></button>
@@ -117,7 +122,7 @@
         <div class="sidebar-header">
           <div class="sidebar-header-top">
             <div class="sidebar-brand" aria-label="AnTrack">
-              <span class="sidebar-brand-mark" aria-hidden="true">A</span>
+              <span class="sidebar-brand-mark" aria-hidden="true"><img class="logo-tema logo-tema--oscuro" src="./src/img/logo-mark-dark.webp" alt="" width="26" height="26"><img class="logo-tema logo-tema--claro" src="./src/img/logo-mark-light.webp" alt="" width="26" height="26"></span>
               <span class="sidebar-brand-name">AnTrack</span>
             </div>
             <div class="sidebar-header-actions">

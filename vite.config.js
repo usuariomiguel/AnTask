@@ -73,7 +73,13 @@ export default defineConfig(({ command }) => ({
 
       injectManifest: {
         // Precachea todos los assets del build (JS, CSS, HTML, iconos).
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        // webp incluido: el logo del splash y la sidebar lo es, y sin
+        // precache la app arrancaba sin conexión con el logo roto.
+        globPatterns: ["**/*.{js,css,html,svg,png,webp,ico,woff2}"],
+        // Los iconos de 512 pesan ~400 KB cada uno (la textura de papel no
+        // comprime) y solo los pide el sistema al instalar, que ya exige red:
+        // precacharlos era descargarlos en la primera visita de todo el mundo.
+        globIgnores: ["**/icons/icon-512.png", "**/icons/icon-maskable-512.png"],
       },
     }),
   ],
