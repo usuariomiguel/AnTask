@@ -1657,8 +1657,7 @@ function renderPinnedItems(inboxProject) {
     });
 
     inbox.addEventListener("dragover", function(e) {
-      if (!dragSrcId || dragSrcProjectId) return;
-      if (activeProjectId === INBOX_ID) return;
+      if (!_aceptaTareaArrastrada(inboxProject)) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = "move";
       inbox.classList.add("project-task-drop-target");
@@ -1670,17 +1669,9 @@ function renderPinnedItems(inboxProject) {
     });
     inbox.addEventListener("drop", function(e) {
       inbox.classList.remove("project-task-drop-target");
-      if (!dragSrcId || dragSrcProjectId) return;
-      if (activeProjectId === INBOX_ID) return;
+      if (!_aceptaTareaArrastrada(inboxProject)) return;
       e.preventDefault();
-      const srcProject = getActiveProject();
-      if (!srcProject) return;
-      const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
-      if (taskIdx === -1) return;
-      const [moved] = srcProject.tasks.splice(taskIdx, 1);
-      inboxProject.tasks.push(moved);
-      _listaReceptora = INBOX_ID;
-      saveAndRender();
+      _soltarTareaEnLista(inboxProject);
     });
 
     projectListEl.appendChild(inbox);
@@ -2284,8 +2275,7 @@ function renderProjectItem(project) {
   initProjectDragDrop(li, project.id);
 
   li.addEventListener("dragover", function(e) {
-    if (!dragSrcId || dragSrcProjectId) return;
-    if (project.id === activeProjectId) return;
+    if (!_aceptaTareaArrastrada(project)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     li.classList.add("project-task-drop-target");
@@ -2297,17 +2287,9 @@ function renderProjectItem(project) {
   });
   li.addEventListener("drop", function(e) {
     li.classList.remove("project-task-drop-target");
-    if (!dragSrcId || dragSrcProjectId) return;
-    if (project.id === activeProjectId) return;
+    if (!_aceptaTareaArrastrada(project)) return;
     e.preventDefault();
-    const srcProject = getActiveProject();
-    if (!srcProject) return;
-    const taskIdx = srcProject.tasks.findIndex(function(t) { return t.id === dragSrcId; });
-    if (taskIdx === -1) return;
-    const [moved] = srcProject.tasks.splice(taskIdx, 1);
-    project.tasks.push(moved);
-    _listaReceptora = project.id;
-    saveAndRender();
+    _soltarTareaEnLista(project);
   });
 
   projectListEl.appendChild(li);
@@ -6095,12 +6077,16 @@ function initDragDrop(node, taskId) {
   function isInteractiveTarget(target) {
     return !!target.closest("button, input, a, [contenteditable]");
   }
+  // Las tareas de otras listas que enseña el Inbox también se arrastran:
+  // no para reordenarlas ahí (ver _reordenableAqui), sino para soltarlas en
+  // una lista de la sidebar. Antes quedaban bloqueadas del todo y desde el
+  // Inbox solo se podían mover las tareas que vivían en el propio Inbox.
   node.addEventListener("mousedown", function(e) {
-    if (node.classList.contains("task-item--foreign") || isInteractiveTarget(e.target)) return;
+    if (isInteractiveTarget(e.target)) return;
     node.setAttribute("draggable", "true");
   });
   node.addEventListener("touchstart", function(e) {
-    if (node.classList.contains("task-item--foreign") || isInteractiveTarget(e.target)) return;
+    if (isInteractiveTarget(e.target)) return;
     node.setAttribute("draggable", "true");
   }, { passive: true });
 
@@ -6128,7 +6114,7 @@ function initDragDrop(node, taskId) {
   });
 
   node.addEventListener("dragover", function(e) {
-    if (!dragSrcId || dragSrcId === taskId) return;
+    if (!dragSrcId || dragSrcId === taskId || !_reordenableAqui(node)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     showDropIndicator(node, e.clientY);
@@ -6143,7 +6129,7 @@ function initDragDrop(node, taskId) {
 
   node.addEventListener("drop", function(e) {
     e.preventDefault();
-    if (!dragSrcId || dragSrcId === taskId) { removeDropIndicator(); return; }
+    if (!dragSrcId || dragSrcId === taskId || !_reordenableAqui(node)) { removeDropIndicator(); return; }
 
     const project = getActiveProject();
     if (!project) return;
@@ -6166,6 +6152,49 @@ function initDragDrop(node, taskId) {
     removeDropIndicator();
     saveAndRender();
   });
+}
+
+/** Lista a la que pertenece una tarea (la de la fila, no la vista abierta). */
+function _listaDeTarea(taskId) {
+  return projects.find(function(p) {
+    return (p.tasks || []).some(function(t) { return t.id === taskId; });
+  }) || null;
+}
+
+/**
+ * Reordenar dentro de la vista solo tiene sentido entre tareas de la lista
+ * abierta: en el Inbox las de otras listas se ven mezcladas, pero su orden
+ * vive en su propia lista y arrastrarlas ahí lo cambiaría a ciegas.
+ */
+function _reordenableAqui(filaDestino) {
+  var origen = _listaDeTarea(dragSrcId);
+  return Boolean(origen && origen.id === activeProjectId && !filaDestino.classList.contains("task-item--foreign"));
+}
+
+/**
+ * Mueve la tarea arrastrada a `destino` (una lista de la sidebar o el Inbox).
+ * Se busca en su lista real y no en la vista abierta: desde el Inbox se
+ * arrastran también tareas de otras listas. Soltarla en su propia lista no
+ * hace nada.
+ */
+function _soltarTareaEnLista(destino) {
+  if (!dragSrcId || dragSrcProjectId || !destino) return false;
+  var origen = _listaDeTarea(dragSrcId);
+  if (!origen || origen.id === destino.id) return false;
+  var idx = origen.tasks.findIndex(function(t) { return t.id === dragSrcId; });
+  if (idx === -1) return false;
+  var movida = origen.tasks.splice(idx, 1)[0];
+  destino.tasks.push(movida);
+  _listaReceptora = destino.id;
+  saveAndRender();
+  return true;
+}
+
+/** ¿Acepta `destino` la tarea que se está arrastrando? */
+function _aceptaTareaArrastrada(destino) {
+  if (!dragSrcId || dragSrcProjectId || !destino) return false;
+  var origen = _listaDeTarea(dragSrcId);
+  return Boolean(origen && origen.id !== destino.id);
 }
 
 function showDropIndicator(targetNode, clientY) {
