@@ -295,6 +295,8 @@ var _sidebarPrevCounts = {};
 var _sidebarPrevRings = {};
 var _indicadorActivo = null;   // { fantasma, anim, pseudo, clave } mientras se desliza
 var _anillosEnCurso = {};      // id de lista → { inicio, sube, indice, total }
+var _pastillasPrevias = null;  // clave de vista fija → texto del contador (o "")
+var _pastillasEnCurso = {};    // clave → { entra, texto, inicio }
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
 let openDetailProjectId = null;
@@ -516,12 +518,8 @@ document.addEventListener("keydown", function(e) {
 
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
     e.preventDefault();
-    var _sb = document.querySelector(".sidebar");
-    if (_sb) _sb.classList.toggle("sidebar-collapsed");
-    var _mp = document.getElementById("main-panel");
-    if (_mp) _mp.classList.toggle("sidebar-is-collapsed", _sb && _sb.classList.contains("sidebar-collapsed"));
-    var _collapsed = _sb && _sb.classList.contains("sidebar-collapsed");
-    localStorage.setItem("anso-sidebar-collapsed", _collapsed ? "1" : "0");
+    // Mismo camino que los botones, para que el atajo también anime.
+    if (typeof window.toggleSidebarCollapsed === "function") window.toggleSidebarCollapsed();
     return;
   }
 
@@ -1802,6 +1800,7 @@ function renderSidebar() {
     if (id && li.dataset.ringTotal) _sidebarPrevRings[id] = { done: +li.dataset.ringDone, total: +li.dataset.ringTotal };
   });
   var indicadorDesde = _posicionIndicador();
+  var pastillasAntes = _leerPastillas();
   projectListEl.innerHTML = "";
   // Inbox y otros proyectos se separan: Inbox vive en su propio "pin" arriba.
   const inboxProject = projects.find(function(p) { return p.id === INBOX_ID; });
@@ -1831,6 +1830,7 @@ function renderSidebar() {
 
   if (window.lucide) lucide.createIcons();
   _deslizarIndicador(indicadorDesde);
+  _animarPastillas(pastillasAntes);
   syncSidebarRail();
 }
 
@@ -1926,6 +1926,66 @@ function _deslizarIndicador(desde) {
     if (real) real.classList.remove("activo-en-transito");
     _indicadorActivo = null;
   };
+}
+
+// ── Pastillas de Hoy, Hábitos e Inbox ────────────────────────
+// Al llegar a cero la pastilla se encoge y se va en vez de desaparecer de
+// golpe; al volver a haber algo, aparece con el gesto contrario. El render
+// ya no la pinta cuando está a cero, así que la salida usa una copia suelta
+// con el último número. Si otro render llega a mitad, se retoma donde iba.
+var PASTILLA_MS = 220;
+
+function _leerPastillas() {
+  // Antes del primer render no hay nada que comparar: nada debe animarse al abrir.
+  if (!projectListEl.querySelector(".project-item-pinned")) return null;
+  var mapa = {};
+  projectListEl.querySelectorAll(".project-item-pinned").forEach(function(li) {
+    var n = li.querySelector(".project-item-count:not(.pastilla-saliendo)");
+    mapa[_claveActiva(li)] = n ? n.textContent : "";
+  });
+  return mapa;
+}
+
+function _animarPastillas(antes) {
+  var ahora = performance.now();
+  projectListEl.querySelectorAll(".project-item-pinned").forEach(function(li) {
+    var clave = _claveActiva(li);
+    var fila = li.querySelector(".project-item-top");
+    var actual = li.querySelector(".project-item-count");
+    var enCurso = _pastillasEnCurso[clave];
+    if (enCurso && (ahora - enCurso.inicio >= PASTILLA_MS || enCurso.entra !== Boolean(actual))) {
+      delete _pastillasEnCurso[clave];
+      enCurso = null;
+    }
+    if (!enCurso) {
+      var previo = antes ? antes[clave] : undefined;
+      if (previo === undefined || _sidebarSinAnimar()) return;
+      if (!previo && actual)      enCurso = { entra: true };
+      else if (previo && !actual) enCurso = { entra: false, texto: previo };
+      else return;
+      enCurso.inicio = ahora;
+      _pastillasEnCurso[clave] = enCurso;
+    }
+    var el = actual;
+    if (!enCurso.entra) {
+      el = document.createElement("span");
+      el.className = "project-item-count pastilla-saliendo";
+      el.setAttribute("aria-hidden", "true");
+      el.textContent = enCurso.texto;
+      fila.appendChild(el);
+    }
+    var anim = el.animate(enCurso.entra
+      ? [{ transform: "scale(0.4)", opacity: 0 }, { transform: "scale(1.08)", opacity: 1, offset: 0.7 }, { transform: "scale(1)", opacity: 1 }]
+      : [{ transform: "scale(1)", opacity: 1 }, { transform: "scale(0.4)", opacity: 0 }],
+      { duration: PASTILLA_MS, easing: enCurso.entra ? "ease-out" : "ease-in", fill: "forwards" });
+    anim.currentTime = Math.min(PASTILLA_MS, ahora - enCurso.inicio);
+    var registro = enCurso;
+    anim.onfinish = function() {
+      if (_pastillasEnCurso[clave] === registro) delete _pastillasEnCurso[clave];
+      if (!registro.entra) el.remove();
+      else anim.cancel();
+    };
+  });
 }
 
 // ── Anillo de progreso: el segmento que cambia se dibuja ─────
@@ -6835,13 +6895,80 @@ function _initNavAutoHide() {
   const railHabits       = document.getElementById("sidebar-rail-habits");
   const railInbox        = document.getElementById("sidebar-rail-inbox");
 
-  function setSidebarCollapsed(collapsed) {
-    if (!sidebarEl || !mainPanel) return;
+  function aplicarPlegado(collapsed) {
     sidebarEl.classList.toggle("sidebar-collapsed", collapsed);
     mainPanel.classList.toggle("sidebar-is-collapsed", collapsed);
-    localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
     if (collapsed) syncSidebarRail();
   }
+
+  // El ancho ya se animaba, pero el contenido cambiaba de golpe: al plegar
+  // desaparecía antes de estrecharse y al desplegar aparecía entero y se
+  // estrujaba mientras la columna crecía. Ahora, al plegar, el contenido se
+  // desvanece primero y luego se estrecha; al desplegar, la columna crece
+  // con el contenido invisible y a su ancho final (se descubre, no se
+  // estruja) y aparece cuando ya hay sitio. Un segundo clic a medias
+  // termina el anterior al instante y arranca el nuevo.
+  var plegadoEnCurso = [];
+  // Estado al que va, no el que se ve: a mitad de un plegado la clase aún no
+  // ha cambiado, y un segundo Ctrl+B tiene que invertir el destino.
+  var plegadoDestino = sidebarEl ? sidebarEl.classList.contains("sidebar-collapsed") : false;
+  function cortarPlegado() {
+    plegadoEnCurso.forEach(function(a) { a.cancel(); });
+    plegadoEnCurso = [];
+    sidebarEl.classList.remove("sidebar-desplegando");
+  }
+
+  function setSidebarCollapsed(collapsed, sinAnimar) {
+    if (!sidebarEl || !mainPanel) return;
+    localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
+    plegadoDestino = collapsed;
+    cortarPlegado();
+    var quieto = sinAnimar
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      || window.matchMedia("(max-width: 768px)").matches
+      || sidebarEl.classList.contains("sidebar-collapsed") === collapsed;
+    if (quieto) { aplicarPlegado(collapsed); return; }
+
+    var contenido = Array.prototype.filter.call(sidebarEl.children, function(el) {
+      return !el.classList.contains("sidebar-rail");
+    });
+    var rail = sidebarEl.querySelector(".sidebar-rail");
+    function fundir(els, de, a, opciones) {
+      els.forEach(function(el) {
+        plegadoEnCurso.push(el.animate([{ opacity: de }, { opacity: a }], Object.assign({ fill: "both" }, opciones)));
+      });
+    }
+
+    if (collapsed) {
+      fundir(contenido, 1, 0, { duration: 110, easing: "ease-in" });
+      var salida = plegadoEnCurso[plegadoEnCurso.length - 1];
+      salida.onfinish = function() {
+        if (plegadoEnCurso.indexOf(salida) === -1) return;
+        cortarPlegado();
+        aplicarPlegado(true);
+        if (rail) fundir([rail], 0, 1, { duration: 200, delay: 120, easing: "ease-out" });
+      };
+    } else {
+      if (rail) fundir([rail], 1, 0, { duration: 90, easing: "ease-in" });
+      var fuera = plegadoEnCurso[plegadoEnCurso.length - 1];
+      var desplegar = function() {
+        cortarPlegado();
+        sidebarEl.classList.add("sidebar-desplegando");
+        aplicarPlegado(false);
+        fundir(contenido, 0, 1, { duration: 200, delay: 170, easing: "ease-out" });
+        var entrada = plegadoEnCurso[plegadoEnCurso.length - 1];
+        entrada.onfinish = function() {
+          if (plegadoEnCurso.indexOf(entrada) === -1) return;
+          cortarPlegado();
+        };
+      };
+      if (fuera) fuera.onfinish = function() { if (plegadoEnCurso.indexOf(fuera) !== -1) desplegar(); };
+      else desplegar();
+    }
+  }
+  window.toggleSidebarCollapsed = function() {
+    if (sidebarEl) setSidebarCollapsed(!plegadoDestino);
+  };
 
   if (collapseBtn)    collapseBtn.addEventListener("click",    function () { setSidebarCollapsed(true); });
   if (railExpand)     railExpand.addEventListener("click",     function () { setSidebarCollapsed(false); });
@@ -6853,7 +6980,7 @@ function _initNavAutoHide() {
 
   // Restaurar estado solo en escritorio
   if (window.innerWidth > 768) {
-    if (localStorage.getItem(COLLAPSED_KEY) === "1") setSidebarCollapsed(true);
+    if (localStorage.getItem(COLLAPSED_KEY) === "1") setSidebarCollapsed(true, true);
   }
 })();
 

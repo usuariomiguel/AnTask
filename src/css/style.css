@@ -850,6 +850,13 @@ body {
   display: none !important;
 }
 
+/* Mientras se despliega, el contenido ya tiene su ancho final y la columna
+   lo va descubriendo (overflow: hidden) en vez de estrujarlo a cada paso
+   del ancho. Ver setSidebarCollapsed en script.js. */
+.sidebar.sidebar-desplegando> :not(.sidebar-rail) {
+  min-width: 226px;
+}
+
 .sidebar-rail-brand {
   width: 30px;
   height: 30px;
