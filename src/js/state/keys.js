@@ -10,7 +10,6 @@ export const THEME_KEY        = "mis-tareas-theme";
 export const SECTIONS_KEY     = "anso-sections";
 export const PROFILE_KEY      = "antrack-profile";
 export const ROW_STYLE_KEY    = "antrack-row-style";
-export const TWO_COLUMNS_KEY  = "antrack-two-columns";
 export const MODE_KEY         = "antrack-mode";
 export const HABITS_KEY       = "antrack-habits";
 

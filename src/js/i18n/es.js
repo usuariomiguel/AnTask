@@ -444,7 +444,6 @@ export const es = {
   "filter.section_when":      "Cuándo",
   "filter.section_attrs":     "Atributos",
   "theme.toggle":             "Cambiar tema",
-  "columns.toggle":           "Dos columnas",
   "rowstyle.trigger":         "Estilo de filas",
   "rowstyle.limpio":          "Limpio",
   "rowstyle.tarjetas":        "Tarjetas",

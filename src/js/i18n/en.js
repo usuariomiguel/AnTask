@@ -443,7 +443,6 @@ export const en = {
   "filter.section_when":      "When",
   "filter.section_attrs":     "Attributes",
   "theme.toggle":             "Toggle theme",
-  "columns.toggle":           "Two columns",
   "rowstyle.trigger":         "Row style",
   "rowstyle.limpio":          "Clean",
   "rowstyle.tarjetas":        "Cards",

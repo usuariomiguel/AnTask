@@ -26,7 +26,6 @@ import {
   SECTIONS_KEY,
   PROFILE_KEY,
   ROW_STYLE_KEY,
-  TWO_COLUMNS_KEY,
   MODE_KEY,
   HABITS_KEY,
   migrateStorageIfNeeded,
@@ -376,29 +375,6 @@ function _syncRowStylePicker() {
       b.setAttribute("aria-checked", on ? "true" : "false");
     });
   }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// DOS COLUMNAS — toggle independiente del estilo de fila (combina con
-// cualquiera de ellos). Solo tiene efecto en escritorio: en móvil el
-// botón está oculto por CSS y aquí simplemente no se escribe el atributo.
-// ═══════════════════════════════════════════════════════════════
-let twoColumnsOn = (function() {
-  try { return localStorage.getItem(TWO_COLUMNS_KEY) === "1"; }
-  catch (e) { return false; }
-})();
-
-function applyTwoColumns(on, persist) {
-  twoColumnsOn = !!on;
-  const efectivo = twoColumnsOn && !window.matchMedia("(max-width: 768px)").matches;
-  if (taskList) {
-    if (efectivo) taskList.dataset.columns = "2";
-    else delete taskList.dataset.columns;
-  }
-  if (persist !== false) { try { localStorage.setItem(TWO_COLUMNS_KEY, twoColumnsOn ? "1" : "0"); } catch (e) {} }
-  // El check de "Dos columnas" en #task-prefs-panel (no un aria-pressed
-  // propio: es una opción más del checklist, ver _syncTaskPrefsPanel).
-  _syncTaskPrefsPanel();
 }
 
 /* Predicados de los filtros, en tabla y no en una cadena de `if`: con ocho
@@ -1245,7 +1221,6 @@ function _placeRowStyleControl() {
   // Al cruzar el breakpoint cambia el estilo efectivo (móvil = limpio fijo),
   // así que hay que repintar el atributo además de recolocar el control.
   if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
-  applyTwoColumns(twoColumnsOn, false);
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
   const filterActions = document.getElementById("list-filter-actions");
   if (!headerActions || !filterActions) return;
@@ -6215,18 +6190,10 @@ function undoDelete() {
       // el burbujeo y cierra el panel en cada toggle.
       e.stopPropagation();
       var key = opt.dataset.prefKey;
-      // "Dos columnas" no es un taskPrefs.showX: es el mismo estado que
-      // manejaba el viejo columns-toggle-btn (variable aparte, su propia
-      // clave de localStorage). applyTwoColumns ya llama a
-      // _syncTaskPrefsPanel por su cuenta.
-      if (key === "twoColumns") {
-        applyTwoColumns(!twoColumnsOn);
-      } else {
-        taskPrefs[key] = !_taskPrefOn(key);
-        saveTaskPrefs();
-        applyTaskPrefs();
-        _syncTaskPrefsPanel();
-      }
+      taskPrefs[key] = !_taskPrefOn(key);
+      saveTaskPrefs();
+      applyTaskPrefs();
+      _syncTaskPrefsPanel();
       renderTasks();
     });
   }
@@ -6527,9 +6494,9 @@ function applyTaskPrefs() {
 
 // Los 4 de detalle vienen encendidos por defecto: "on" es cualquier valor
 // salvo `false` explícito — mismo criterio que sus guardas en el render de
-// filas. "Dos columnas" no vive en taskPrefs (ver applyTwoColumns).
+// filas.
 function _taskPrefOn(key) {
-  return key === "twoColumns" ? twoColumnsOn : taskPrefs[key] !== false;
+  return taskPrefs[key] !== false;
 }
 
 function _syncTaskPrefsPanel() {
@@ -7235,7 +7202,6 @@ try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", 
 try { initializeMode(); } catch(e) { console.error("initializeMode error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }
 try { applyRowStyle(currentRowStyle, false); } catch(e) { console.error("applyRowStyle error:", e); }
-try { applyTwoColumns(twoColumnsOn, false); } catch(e) { console.error("applyTwoColumns error:", e); }
 try { renderSidebar(); } catch(e) { console.error("renderSidebar error:", e); }
 // Vista por defecto: "Hoy" (ya no se muestra la pantalla de estado vacío).
 // Sólo se restaura una lista/proyecto si fue abierto explícitamente (hay una

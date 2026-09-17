@@ -2115,8 +2115,8 @@ body {
      El botón del header (#row-style-wrap) se queda oculto igual que
      siempre (ver "MÓVIL — limpio como única vista" más abajo) — ya no
      hace falta mostrarlo ahí con Ajustes como acceso alternativo.
-     "Detalles y columnas" se queda oculto del todo: una columna siempre
-     en móvil (ver applyTwoColumns). El de tema también se oculta aquí:
+     "Detalles y columnas" se queda oculto del todo. El de tema también
+     se oculta aquí:
      el control real vive en Ajustes › Apariencia (#settings-theme-seg),
      no hace falta duplicarlo en la fila. */
   html[data-mode="simple"] #task-prefs-wrap,
@@ -3172,16 +3172,6 @@ button:focus-visible {
   margin: 0;
 }
 
-.task-prefs-sep {
-  height: 1px;
-  margin: 5px 6px;
-  background: rgba(255, 238, 214, 0.10);
-}
-
-:root[data-theme="light"] .task-prefs-sep {
-  background: rgba(80, 55, 10, 0.10);
-}
-
 /* ── Cal month-nav row ────────────────────────────────────────── */
 .cal-month-nav {
   display: flex;
@@ -3255,6 +3245,34 @@ button:focus-visible {
   margin-inline: auto;
 }
 
+/* Columna de lectura en escritorio: a pantalla completa en un monitor
+   ancho las fechas quedaban a más de 1000px del título y había que cruzar
+   la pantalla con la vista para leer una fila. Cabecera, filtros y lista
+   comparten el mismo ancho y se centran juntos (ya traían width + margin
+   auto); el fondo, el borde de la cabecera y el scroll siguen a todo lo
+   ancho del panel. */
+@media (min-width: 769px) {
+  .tasks-header,
+  .list-filter-row,
+  .task-list {
+    max-width: 960px;
+  }
+
+  /* `.tasks-panel` tiene 12px de padding a la izquierda y 24px a la
+     derecha, así que centrar filtros y lista en él los dejaba 6px a la
+     izquierda de la cabecera y de la barra de captura, que se centran en
+     el panel entero. Se compensa solo con el sobrante: sin tope no se
+     mueve nada. El ancho se calcula a mano porque la fila de filtros es
+     hija de una columna flex, donde un margen auto anula el estirado. */
+  .list-filter-row,
+  .task-list {
+    --col-izq: max(0px, calc((100% - 960px) / 2 + (var(--sp-6) - var(--sp-3)) / 2));
+    width: calc(100% - var(--col-izq));
+    margin-left: var(--col-izq);
+    margin-right: 0;
+  }
+}
+
 /* ─── TASK ITEM ──────────────────────────────────────────────── */
 /* Estilo "tarjetas" del rediseño Tierra: cada fila es una tarjeta
    elevada (fondo card + borde sutil + sombra pequeña + radio 8px).
@@ -3290,8 +3308,8 @@ button:focus-visible {
      desbordar. En móvil manda el min-height propio de ese @media (abajo). */
   align-content: center;
   /* Hueco entre filas — 3px, el mismo en tarjetas/limpio, agrupado o no,
-     en Hoy/Inbox/listas y en 1 o 2 columnas (ver los overrides de
-     data-row-style="limpio" y data-columns="2" más abajo). */
+     en Hoy/Inbox/listas (ver el override de data-row-style="limpio"
+     más abajo). */
   margin-bottom: 3px;
   max-width: 100%;
   overflow: hidden;
@@ -3819,13 +3837,6 @@ button:focus-visible {
     flex-shrink: 0;
   }
 
-  /* Dos columnas no tiene efecto en móvil (applyTwoColumns comprueba el
-     ancho antes de aplicarlo) — la opción y su separador sobran ahí. */
-  .task-prefs-panel [data-pref-key="twoColumns"],
-  .task-prefs-panel .task-prefs-sep {
-    display: none;
-  }
-
   /* El modo de vista pasa de icono suelto a píldora con etiqueta. */
   .row-style-btn {
     display: inline-flex;
@@ -4111,63 +4122,6 @@ button:focus-visible {
   .hoy-cal-dot--off {
     background: transparent;
   }
-}
-
-/* Dos columnas — opción de #task-prefs-panel, no de #row-style-panel:
-   combina con Limpio/Tarjetas, no sustituye a ninguno. Solo escritorio
-   (en móvil el JS nunca escribe data-columns ahí, aunque el control esté
-   accesible). Las cajas compartidas de grupo
-   (.inbox-group-list/.hoy-section-list) se quitan siempre que esto está
-   activo: una caja de fondo detrás de una rejilla de 2 columnas se leía
-   como un bloque roto, se vea mejor con cada tarea ya "tarjeta" suelta. */
-.task-list[data-columns="2"] {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 0 14px;
-}
-
-.task-list[data-columns="2"] .task-item {
-  margin-bottom: 3px;
-}
-
-.task-list[data-row-style="limpio"][data-columns="2"] .task-item {
-  margin-bottom: 0;
-}
-
-/* El bloque entero (cabecera + su lista) ocupa las dos columnas de la
-   rejilla exterior, para que la cabecera se lea a todo el ancho — pero
-   la lista de DENTRO se convierte en su propia rejilla de 2 columnas
-   (anidada), así que las tareas de cada grupo también se reparten en
-   dos columnas en vez de quedarse en una sola bajo una cabecera ancha. */
-.task-list[data-columns="2"] .inbox-group-block,
-.task-list[data-columns="2"] .hoy-section,
-.task-list[data-columns="2"] .task-list-edit-row,
-.task-list[data-columns="2"] .empty-illustrated {
-  grid-column: 1 / -1;
-}
-
-.task-list[data-columns="2"] .inbox-group-list,
-.task-list[data-columns="2"] .hoy-section-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 0 6px;
-}
-
-/* El grupo pierde su caja al pasar a dos columnas — sus filas ya se ven
-   como tarjetas sueltas y una caja compartida detrás de una rejilla se
-   leía como un bloque roto (mismo criterio que la excepción de una
-   columna, más arriba). */
-.task-list[data-row-style="tarjetas"][data-columns="2"] .inbox-group-list,
-.task-list[data-row-style="tarjetas"][data-columns="2"] .hoy-section-list,
-.task-list[data-row-style="limpio"][data-columns="2"] .inbox-group-list,
-.task-list[data-row-style="limpio"][data-columns="2"] .hoy-section-list {
-  background: none;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
 }
 
 .task-list[data-row-style="limpio"] .hoy-section-list .today-item+.today-item {
@@ -9667,8 +9621,13 @@ button {
      (`:has()` sobre la lista): en una lista concreta nunca sale el chip
      de lista, y reservarle 172px en cada fila sería espacio muerto. En
      el Inbox agrupado tampoco, porque la cabecera del grupo ya lo dice.
-     Los anchos llevan dentro los 12px de separación con el anterior. */
-  .task-list:not([data-columns="2"]) {
+     Los anchos llevan dentro los 12px de separación con el anterior.
+
+     `[id]` no filtra nada (la lista siempre es #task-list): sostiene la
+     especificidad que antes daba `:not([data-columns="2"])` cuando existía
+     la vista a dos columnas. Sin ella ganan reglas como la que oculta
+     `.task-meta` vacío en el Inbox agrupado y los brotes desaparecen. */
+  .task-list[id] {
     --col-importante: 0px;
     --col-alerta: 0px;
     --col-repetir: 0px;
@@ -9676,12 +9635,12 @@ button {
     --col-fecha: 132px;
   }
 
-  .task-list:not([data-columns="2"]):has(.priority-badge) { --col-importante: 30px; }
-  .task-list:not([data-columns="2"]):has(.reminder-badge) { --col-alerta: 30px; }
-  .task-list:not([data-columns="2"]):has(.recur-badge) { --col-repetir: 60px; }
-  .task-list:not([data-columns="2"]):not(.task-list--grupos):has(.task-list-badge) { --col-lista: 172px; }
+  .task-list[id]:has(.priority-badge) { --col-importante: 30px; }
+  .task-list[id]:has(.reminder-badge) { --col-alerta: 30px; }
+  .task-list[id]:has(.recur-badge) { --col-repetir: 60px; }
+  .task-list[id]:not(.task-list--grupos):has(.task-list-badge) { --col-lista: 172px; }
 
-  .task-list:not([data-columns="2"]) :is(.task-meta, .today-meta) {
+  .task-list[id] :is(.task-meta, .today-meta) {
     display: grid;
     grid-template-columns: var(--col-importante) var(--col-alerta) var(--col-repetir) var(--col-lista);
     column-gap: 0;
@@ -9695,7 +9654,7 @@ button {
      columna anterior a la del último colocado. Con repetir (columna 3) ya
      pintado, el brote de bandera (columna 1) saltaba debajo, arrastraba al
      chip de lista y la tarea crecía a dos líneas. */
-  .task-list:not([data-columns="2"]) .today-meta > * {
+  .task-list[id] .today-meta > * {
     grid-row: 1;
   }
 
@@ -9709,19 +9668,19 @@ button {
      el mismo selector que los demás este `display: flex` ganaba en
      especificidad y lo volvía a sacar — metido en una columna de 0px,
      encima de la fecha. */
-  .task-list:not([data-columns="2"]) :is(.task-priority-container, .task-reminder-container, .task-recur-container),
-  .task-list:not([data-columns="2"]):not(.task-list--grupos) .task-list-container {
+  .task-list[id] :is(.task-priority-container, .task-reminder-container, .task-recur-container),
+  .task-list[id]:not(.task-list--grupos) .task-list-container {
     display: flex;
     align-items: center;
   }
 
-  .task-list:not([data-columns="2"]) :is(.task-priority-container, .today-meta > :is(.priority-badge, .chip-sugerencia--importante, .chip-brote[data-brote="importante"])) { grid-column: 1; }
-  .task-list:not([data-columns="2"]) :is(.task-reminder-container, .today-meta > .reminder-badge) { grid-column: 2; }
-  .task-list:not([data-columns="2"]) :is(.task-recur-container, .today-recur, .today-meta > :is(.chip-sugerencia--recur, .chip-brote[data-brote="recur"])) { grid-column: 3; }
+  .task-list[id] :is(.task-priority-container, .today-meta > :is(.priority-badge, .chip-sugerencia--importante, .chip-brote[data-brote="importante"])) { grid-column: 1; }
+  .task-list[id] :is(.task-reminder-container, .today-meta > .reminder-badge) { grid-column: 2; }
+  .task-list[id] :is(.task-recur-container, .today-recur, .today-meta > :is(.chip-sugerencia--recur, .chip-brote[data-brote="recur"])) { grid-column: 3; }
 
   /* La lista, a la izquierda de su hueco y no a la derecha: los nombres
      tienen largos muy distintos y así arrancan todos en la misma x. */
-  .task-list:not([data-columns="2"]) :is(.task-list-container, .today-meta > .task-list-badge) {
+  .task-list[id] :is(.task-list-container, .today-meta > .task-list-badge) {
     grid-column: 4;
     justify-self: start;
     margin-left: 12px;
@@ -9736,7 +9695,7 @@ button {
      El margen se suma al ancho en vez de comérselo: la píldora de vencida
      (texto + flecha) mide ~120px y con 132 útiles se habría estrujado.
      `--col-fecha` no se toca porque la rejilla de Hoy también la usa. */
-  .task-list:not([data-columns="2"]) .task-due-container {
+  .task-list[id] .task-due-container {
     width: calc(var(--col-fecha) + 16px);
     min-width: 0;
     padding-left: 16px;
@@ -9747,16 +9706,16 @@ button {
      "Para hoy" ni la pinta. La fila pasa a rejilla con la fecha en su
      propia pista fija; en hábitos, racha y frecuencia caen en las mismas
      pistas que chips y fecha. */
-  .task-list:not([data-columns="2"]) .today-item {
+  .task-list[id] .today-item {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto var(--col-fecha);
     column-gap: var(--sp-1);
   }
 
-  .task-list:not([data-columns="2"]) .today-item > .today-text { grid-column: 2; }
-  .task-list:not([data-columns="2"]) .today-item > :is(.today-meta, .habit-streak) { grid-column: 3; }
+  .task-list[id] .today-item > .today-text { grid-column: 2; }
+  .task-list[id] .today-item > :is(.today-meta, .habit-streak) { grid-column: 3; }
 
-  .task-list:not([data-columns="2"]) .today-item > .today-date-pill {
+  .task-list[id] .today-item > .today-date-pill {
     grid-column: 4;
     justify-self: end;
     min-width: 0;
@@ -9767,16 +9726,15 @@ button {
      fantasma no tendría dónde caer. Solo cuentan las filas sin hacer: en
      las hechas el fantasma existe pero va oculto, y reservar 60px para
      algo que no se ve sería el espacio muerto que las columnas evitan. */
-  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 30px; }
-  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 60px; }
+  .task-list[id]:has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 30px; }
+  .task-list[id]:has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 60px; }
 
   /* El brote no reserva nada: si su columna no existe (nadie en la vista
      tiene ese chip) se queda fuera, porque ocuparía sitio y desplazaría
-     la fila entera al pasar el ratón. En dos columnas el metadato fluye
-     y pasaría lo mismo. En filas hechas no hay nada que proponer. */
+     la fila entera al pasar el ratón. En filas hechas no hay nada que
+     proponer. */
   .task-list:not(:has(.recur-badge, :is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur)) .chip-brote[data-brote="recur"],
   .task-list:not(:has(.priority-badge, :is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante)) .chip-brote[data-brote="importante"],
-  .task-list[data-columns="2"] .chip-brote,
   :is(.task-item.done, .today-item--done) :is(.chip-brote, .chip-sugerencia) {
     display: none;
   }
@@ -10249,15 +10207,15 @@ button {
     height: 16px;
   }
 
-  .task-list:not([data-columns="2"]) {
+  .task-list[id] {
     --col-fecha: 142px;
   }
 
-  .task-list:not([data-columns="2"]):has(.priority-badge),
-  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 34px; }
-  .task-list:not([data-columns="2"]):has(.reminder-badge) { --col-alerta: 34px; }
-  .task-list:not([data-columns="2"]):has(.recur-badge),
-  .task-list:not([data-columns="2"]):has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 70px; }
+  .task-list[id]:has(.priority-badge),
+  .task-list[id]:has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--importante) { --col-importante: 34px; }
+  .task-list[id]:has(.reminder-badge) { --col-alerta: 34px; }
+  .task-list[id]:has(.recur-badge),
+  .task-list[id]:has(:is(.task-item:not(.done), .today-item:not(.today-item--done)) .chip-sugerencia--recur) { --col-repetir: 70px; }
 }
 
 /* ─── Secciones de la vista Hoy (Vencidas / Para hoy / Sin fecha) ─── */

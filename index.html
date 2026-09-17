@@ -552,11 +552,10 @@
                 <!-- Detalles y columnas: mismo patrón que row-style-wrap — botón +
                      desplegable anclado, no una ventana modal. Checklist, no radio:
                      cada opción es independiente y alterna su propio check sin
-                     cerrar el panel. Absorbe el viejo columns-toggle-btn (antes
-                     un botón suelto) para no multiplicar controles en el header;
-                     el label de dentro deja claro que esto es "qué se ve en la
-                     fila", distinto de "Estilo de filas" (el desplegable de al
-                     lado, Limpio/Tarjetas: cómo se ve la fila). -->
+                     cerrar el panel. El label de dentro deja claro que esto es
+                     "qué se ve en la fila", distinto de "Estilo de filas" (el
+                     desplegable de al lado, Limpio/Tarjetas: cómo se ve la
+                     fila). -->
                 <div class="task-prefs-wrap" id="task-prefs-wrap" style="position:relative">
                   <button type="button" class="task-prefs-btn" id="task-prefs-btn" title="Detalles y columnas" data-i18n-title="task_prefs.trigger" aria-label="Detalles y columnas" data-i18n-aria="task_prefs.trigger" aria-haspopup="true" aria-expanded="false">
                     <i data-lucide="sliders-horizontal"></i>
@@ -574,10 +573,6 @@
                     </button>
                     <button type="button" data-pref-key="showRecur" role="menuitemcheckbox">
                       <i data-lucide="repeat"></i><span data-i18n="detail.recur">Repetir</span><i data-lucide="check" class="task-prefs-check"></i>
-                    </button>
-                    <div class="task-prefs-sep" role="separator"></div>
-                    <button type="button" data-pref-key="twoColumns" role="menuitemcheckbox">
-                      <i data-lucide="columns-2"></i><span data-i18n="columns.toggle">Dos columnas</span><i data-lucide="check" class="task-prefs-check"></i>
                     </button>
                   </div>
                 </div>
