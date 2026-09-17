@@ -330,3 +330,5 @@ Lo que escribes se queda en tu dispositivo. Ver también [PRIVACY.md](PRIVACY.md
 ## Licencia
 
 [MIT](LICENSE) — úsalo, modifícalo y distribúyelo libremente.
+
+El avatar del perfil usa el estilo [Croodles](https://www.figma.com/community/file/966199982810283152) de [vijay verma](https://vjy.me/), bajo [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), generado con [DiceBear](https://www.dicebear.com).

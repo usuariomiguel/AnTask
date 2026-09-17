@@ -83,6 +83,7 @@ import {
   markOnboardingDone,
 } from "./ui/onboarding.js";
 import { hasAnswered as consentAnswered } from "./consent.js";
+import { cargarGeneradorAvatar, nuevaSemillaAvatar } from "./utils/avatar.js";
 import {
   initializeTheme,
   toggleThemeWithTransition,
@@ -1152,7 +1153,7 @@ function showProfileMenu() {
   const lists = projects.filter(function(p) { return p.id !== INBOX_ID; });
   let html =
     '<div class="pmenu-head">' +
-      '<span class="pmenu-avatar">' + escHtml(txt("profile-avatar", "A")) + "</span>" +
+      '<span class="pmenu-avatar' + (_avatarDibujado() ? ' avatar-dibujado' : '') + '">' + _avatarHtml() + "</span>" +
       "<span class='pmenu-id'>" +
         '<span class="pmenu-name">' + escHtml(txt("profile-name", "")) + "</span>" +
         '<span class="pmenu-sub">' + escHtml(txt("profile-sub", "")) + "</span>" +
@@ -1810,10 +1811,6 @@ function syncSidebarRail() {
   if (pending > 0)    inboxBtn.setAttribute("data-attention", "");
   else                inboxBtn.removeAttribute("data-attention");
 
-  // La inicial del avatar la mantiene el menú de perfil; el rail la copia.
-  const railAvatar = document.getElementById("sidebar-rail-avatar");
-  const profileAvatar = document.getElementById("profile-avatar");
-  if (railAvatar && profileAvatar) railAvatar.textContent = profileAvatar.textContent;
 }
 
 function renderSidebar() {
@@ -6827,25 +6824,57 @@ function _updateProfileMenu(user) {
     if (settingsSub) settingsSub.textContent = t("profile.local_storage");
   }
 
-  // El nombre local tiene prioridad. El avatar es siempre su inicial: se
-  // retiró el selector de emojis, así que ya no se lee userProfile.icon.
+  // El nombre local tiene prioridad. La inicial queda de reserva: se ve
+  // mientras carga el dibujo y si el estilo no llega a cargar.
   var name  = (userProfile.name && userProfile.name.trim()) || baseName;
   var avatarValue = name ? name.charAt(0).toUpperCase() : baseInitial;
 
-  _applyAvatar(pfAvatar, avatarValue);
-  _applyAvatar(pfAvatarTop, avatarValue);
-  _applyAvatar(settingsAvatar, avatarValue);
-  // La pestaña «Perfil» de la barra inferior lleva el mismo avatar: en el
-  // handoff ese destino se identifica por la cara, no por un icono.
-  _applyAvatar(document.getElementById("bnav-avatar"), avatarValue);
+  var avatares = [
+    pfAvatar, pfAvatarTop, settingsAvatar,
+    // La pestaña «Perfil» de la barra inferior lleva el mismo avatar: en el
+    // handoff ese destino se identifica por la cara, no por un icono.
+    document.getElementById("bnav-avatar"),
+    document.getElementById("sidebar-rail-avatar"),
+  ];
+  avatares.forEach(function(el) { _applyAvatar(el, avatarValue, null); });
+  _pintarAvatarDibujado(avatares, avatarValue);
   if (pfName)       pfName.textContent       = name;
   if (settingsName) settingsName.textContent = name;
   if (pfNameTop) pfNameTop.textContent = name;
 }
 
-function _applyAvatar(el, value) {
+// El menú de perfil móvil se construye como HTML: copia lo que tenga el
+// avatar de la sidebar (la inicial escapada o el <img> ya generado).
+function _avatarDibujado() {
+  var el = document.getElementById("profile-avatar");
+  return Boolean(el && el.classList.contains("avatar-dibujado"));
+}
+function _avatarHtml() {
+  var el = document.getElementById("profile-avatar");
+  return el ? el.innerHTML : "A";
+}
+
+function _applyAvatar(el, value, uri) {
   if (!el) return;
-  el.textContent = value;
+  el.classList.toggle("avatar-dibujado", Boolean(uri));
+  if (!uri) { el.textContent = value; return; }
+  var img = document.createElement("img");
+  img.src = uri;
+  img.alt = "";
+  el.replaceChildren(img);
+}
+
+// La semilla vive solo en el perfil local (no entra en la exportación JSON).
+function _pintarAvatarDibujado(avatares, avatarValue) {
+  if (!userProfile.avatarSeed) {
+    userProfile.avatarSeed = nuevaSemillaAvatar();
+    saveProfile();
+  }
+  var seed = userProfile.avatarSeed;
+  cargarGeneradorAvatar().then(function(pintar) {
+    var uri = pintar(seed);
+    avatares.forEach(function(el) { _applyAvatar(el, avatarValue, uri); });
+  }).catch(function() { /* sin estilo: se queda la inicial */ });
 }
 
 function saveProfile() {
