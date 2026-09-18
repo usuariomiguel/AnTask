@@ -10555,6 +10555,32 @@ button {
   border-color: var(--c-primary-500);
 }
 
+/* En «Limpio» las filas son planas, sin tarjeta: el campo de añadir iba
+   aún con fondo, borde y sombra de tarjeta y era lo único con caja de la
+   sección. Aquí se lee como una fila más: sin caja en reposo, con el «+»
+   centrado en la columna de las casillas y el texto donde empiezan los
+   títulos. Al escribir recupera un fondo suave para que se vea dónde se
+   está escribiendo. Solo escritorio: en móvil las filas siguen siendo
+   tarjetas aunque el estilo sea limpio. */
+@media (min-width: 769px) {
+  .task-list[data-row-style="limpio"] .hoy-quickadd {
+    gap: 4px;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .task-list[data-row-style="limpio"] .hoy-quickadd .hoy-quickadd-ico {
+    width: 34px;
+  }
+
+  .task-list[data-row-style="limpio"] .hoy-quickadd:focus-within {
+    background: color-mix(in srgb, var(--text-primary) 5%, var(--capa-canvas));
+    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  }
+}
+
 .hoy-quickadd-ico {
   display: grid;
   place-items: center;
