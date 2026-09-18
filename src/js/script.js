@@ -4988,7 +4988,8 @@ function renderTodayView() {
 
   // ── Para hoy — siempre visible, con quick-add contextual ──
   if (verTareas) {
-  var secH = _hoySectionEl("today", t("hoy.for_today"), hoyDoneStats + "/" + todaysRaw.length, null, null);
+  // Sin contador: el «X de Y hechas» de la cabecera de Hoy ya lo dice.
+  var secH = _hoySectionEl("today", t("hoy.for_today"), null, null, null);
   todays.forEach(function(it) {
     secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
   });
@@ -5093,11 +5094,12 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   head.insertAdjacentHTML("beforeend",
     '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
-    '<span class="hoy-section-count"></span>' +
+    (count != null ? '<span class="hoy-section-count"></span>' : '') +
     '<span class="hoy-section-rule"></span>');
   head.querySelector(".hoy-section-title").textContent = label;
-  // Sin paréntesis: el contador va en píldora, no entre signos.
-  head.querySelector(".hoy-section-count").textContent = count;
+  // Sin paréntesis: el contador va en píldora, no entre signos. `null` =
+  // sección sin contador (Para hoy: ya lo da la cabecera).
+  if (count != null) head.querySelector(".hoy-section-count").textContent = count;
   if (actionLabel && onAction) {
     var btn = document.createElement("button");
     btn.type = "button";
