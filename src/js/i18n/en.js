@@ -83,6 +83,8 @@ export const en = {
 
   "settings.data.export":              "Export",
   "settings.data.export_desc":         "Download all your tasks as a file.",
+  "settings.data.analytics":           "Anonymous analytics",
+  "settings.data.analytics_desc":      "Cookie-free usage stats to improve the app. Your tasks are never sent.",
   "settings.data.import":              "Import",
   "settings.data.import_desc":         "Restore from a previously exported file.",
   "settings.data.clear":               "Clear",

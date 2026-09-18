@@ -425,6 +425,18 @@
               <section class="settings-section-panel" id="settings-panel-datos" data-settings-panel="datos" hidden>
                 <h3 class="settings-section-title" data-i18n="settings.nav.data">Datos</h3>
                 <div class="settings-mobile-card">
+                <!-- Lo mismo que se elige en el banner de cookies, para poder
+                     cambiarlo después (retirarlo debe ser tan fácil como darlo). -->
+                <div class="settings-row">
+                  <span class="settings-row-ico"><i data-lucide="chart-column"></i></span>
+                  <div>
+                    <div class="settings-row-label" data-i18n="settings.data.analytics">Analítica anónima</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.analytics_desc">Estadísticas de uso sin cookies para mejorar la app. Tus tareas nunca se envían.</div>
+                  </div>
+                  <button type="button" class="settings-switch" id="settings-analytics-btn" aria-pressed="false" aria-label="Analítica anónima" data-i18n-aria="settings.data.analytics">
+                    <span class="settings-switch-knob"></span>
+                  </button>
+                </div>
                 <div class="settings-row">
                   <span class="settings-row-ico"><i data-lucide="upload"></i></span>
                   <div>

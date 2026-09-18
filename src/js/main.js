@@ -30,7 +30,7 @@ import "./script.js";
 import "./sections-and-profile.js";
 
 // Consent + analytics: se ejecuta después de que el DOM esté listo.
-import { analyticsAllowed, showConsentBannerIfNeeded } from "./consent.js";
+import { analyticsAllowed, setConsent, showConsentBannerIfNeeded } from "./consent.js";
 import { initAnalytics } from "./analytics.js";
 import { hasSyncHistory, loadSync } from "./sync-loader.js";
 import { registerSW } from "virtual:pwa-register";
@@ -46,8 +46,31 @@ initOpenmoji();
 
 if (analyticsAllowed()) initAnalytics();
 
+// Interruptor de Ajustes › Datos: la misma elección que el banner, pero
+// reversible. Al desactivarla se guarda «essential» y se retira el script;
+// la app no cambia de URL, así que no quedan más vistas que enviar.
+const analyticsSwitch = document.getElementById("settings-analytics-btn");
+function paintAnalyticsSwitch() {
+  if (!analyticsSwitch) return;
+  const on = analyticsAllowed();
+  analyticsSwitch.classList.toggle("on", on);
+  analyticsSwitch.setAttribute("aria-pressed", on ? "true" : "false");
+}
+paintAnalyticsSwitch();
+analyticsSwitch?.addEventListener("click", function () {
+  const on = !analyticsAllowed();
+  setConsent(on ? "all" : "essential");
+  if (on) initAnalytics();
+  else document.querySelectorAll('script[src*="/_vercel/insights"]').forEach(function (s) { s.remove(); });
+  // Si el banner seguía en pantalla, la decisión ya está tomada.
+  const banner = document.getElementById("consent-banner");
+  if (banner && !banner.hidden) banner.hidden = true;
+  paintAnalyticsSwitch();
+});
+
 showConsentBannerIfNeeded(function (decision) {
   if (decision === "all") initAnalytics();
+  paintAnalyticsSwitch();
 });
 
 // Botón de cambio de idioma en el menú de perfil.

@@ -83,6 +83,8 @@ export const es = {
 
   "settings.data.export":              "Exportar",
   "settings.data.export_desc":         "Descarga todas tus tareas en un archivo.",
+  "settings.data.analytics":           "Analítica anónima",
+  "settings.data.analytics_desc":      "Estadísticas de uso sin cookies para mejorar la app. Tus tareas nunca se envían.",
   "settings.data.import":              "Importar",
   "settings.data.import_desc":         "Restaura desde un archivo exportado previamente.",
   "settings.data.clear":               "Limpiar",
