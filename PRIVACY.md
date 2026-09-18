@@ -7,7 +7,7 @@ _Última actualización: mayo de 2026_
 ## 1. Responsable del tratamiento
 
 **AnTrack**
-**Email de contacto:** ansonfull@gmail.com
+**Email de contacto:** migueangelcantos@gmail.com
 
 ---
 
@@ -60,7 +60,7 @@ Si resides en la UE y activas la sincronización, consientes esta transferencia.
 
 ## 5. Tus derechos (RGPD y LOPDGDD)
 
-Puedes ejercer en cualquier momento los siguientes derechos escribiendo a **ansonfull@gmail.com**:
+Puedes ejercer en cualquier momento los siguientes derechos escribiendo a **migueangelcantos@gmail.com**:
 
 - **Acceso:** obtener confirmación de si tratamos tus datos y recibir una copia.
 - **Rectificación:** corregir datos inexactos.
@@ -101,4 +101,4 @@ Cualquier cambio material será comunicado actualizando la fecha al inicio de es
 
 ## 9. Contacto
 
-Para cualquier consulta sobre privacidad: **ansonfull@gmail.com**
+Para cualquier consulta sobre privacidad: **migueangelcantos@gmail.com**

@@ -8,7 +8,7 @@ _Última actualización: mayo de 2026_
 
 Al acceder o usar AnTrack ("la aplicación", "el servicio") aceptas estos Términos de Servicio ("Términos"). Si no los aceptas, no uses la aplicación.
 
-El servicio es ofrecido por **AnTrack** ("nosotros", "el proveedor"), contactable en **ansonfull@gmail.com**.
+El servicio es ofrecido por **AnTrack** ("nosotros", "el proveedor"), contactable en **migueangelcantos@gmail.com**.
 
 ---
 
@@ -91,4 +91,4 @@ Estos Términos se rigen por la legislación española. Para cualquier controver
 
 ## 10. Contacto
 
-Para cualquier consulta sobre estos Términos: **ansonfull@gmail.com**
+Para cualquier consulta sobre estos Términos: **migueangelcantos@gmail.com**

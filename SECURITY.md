@@ -15,7 +15,7 @@ Only the latest deployed version receives security fixes.
 
 **Please do NOT open a public GitHub issue for security vulnerabilities.**
 
-Send a report to: **ansonfull@gmail.com**
+Send a report to: **migueangelcantos@gmail.com**
 
 Include in your report:
 
@@ -71,4 +71,4 @@ The following are **out of scope**:
 
 ## Contact
 
-**ansonfull@gmail.com**
+**migueangelcantos@gmail.com**
