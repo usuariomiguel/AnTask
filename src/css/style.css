@@ -13460,6 +13460,39 @@ button {
     display: none;
   }
 }
+/* ─── CABECERA EN «LIMPIO» ──────────────────────────────────────
+   Con las filas planas, la pista de filtros y el grupo de botones de la
+   cabecera eran lo único con caja de tarjeta (fondo blanco hueso en claro,
+   píldoras con borde). Aquí van planos como las filas: sin pista ni borde,
+   el filtro activo conserva su relleno de acento —es el estado— y el
+   resto se tiñe al pasar el ratón o con su menú abierto. Solo escritorio:
+   en móvil la cabecera tiene su propio diseño. */
+@media (min-width: 769px) {
+  .main-panel[data-row-style="limpio"] :is(.filter-segments, .view-nav-right) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .main-panel[data-row-style="limpio"] :is(.filter-segment:not(.filter-opt--active),
+    .list-filter-row .filter-trigger-btn:not(.filter-trigger-btn--active),
+    .row-style-btn, .theme-toggle-btn, .task-prefs-btn) {
+    background: transparent;
+    border-color: transparent;
+    transition: background-color 0.12s ease, color 0.12s ease;
+  }
+
+  .main-panel[data-row-style="limpio"] :is(.row-style-btn, .theme-toggle-btn, .task-prefs-btn) {
+    color: var(--text-secondary);
+  }
+
+  .main-panel[data-row-style="limpio"] :is(.filter-segment:not(.filter-opt--active),
+    .list-filter-row .filter-trigger-btn:not(.filter-trigger-btn--active),
+    .row-style-btn, .theme-toggle-btn, .task-prefs-btn):is(:hover, .open, [aria-expanded="true"]) {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-canvas));
+    color: var(--text-primary);
+  }
+}
+
 /* ─── PANEL DE DETALLE — EDITOR DE TAREA ─────────────────────────
    El panel se leía como un formulario: siete bloques iguales de etiqueta
    en mayúsculas + caja con borde. Ahora sigue la jerarquía de un editor:

@@ -355,10 +355,19 @@ function _rowStyleEfectivo() {
   return window.matchMedia("(max-width: 768px)").matches ? "tarjetas" : currentRowStyle;
 }
 
+// El estilo va en la lista (filas) y en el panel entero, para que la
+// cabecera —filtros y botones— también sepa si las filas son planas.
+function _pintarEstiloFila() {
+  var efectivo = _rowStyleEfectivo();
+  if (taskList) taskList.dataset.rowStyle = efectivo;
+  var panel = document.getElementById("main-panel");
+  if (panel) panel.dataset.rowStyle = efectivo;
+}
+
 function applyRowStyle(style, persist) {
   if (ROW_STYLES.indexOf(style) === -1) style = DEFAULT_ROW_STYLE;
   currentRowStyle = style;
-  if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
+  _pintarEstiloFila();
   if (persist !== false) { try { localStorage.setItem(ROW_STYLE_KEY, style); } catch (e) {} }
   _syncRowStylePicker();
 }
@@ -1224,7 +1233,7 @@ function _syncListSearchVisibility() {
 function _placeRowStyleControl() {
   // Al cruzar el breakpoint cambia el estilo efectivo (móvil = limpio fijo),
   // así que hay que repintar el atributo además de recolocar el control.
-  if (taskList) taskList.dataset.rowStyle = _rowStyleEfectivo();
+  _pintarEstiloFila();
   const headerActions = document.querySelector(".tasks-header .view-nav-right");
   const filterActions = document.getElementById("list-filter-actions");
   if (!headerActions || !filterActions) return;
