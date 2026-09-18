@@ -1,5 +1,37 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { marked } from "marked";
+
+// URL pública para las etiquetas Open Graph (og:url, og:image), que las
+// redes exigen absolutas. En Vercel sale del dominio de producción; en
+// local queda vacía y las rutas se quedan relativas.
+const SITE_URL = (process.env.SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL : ""))
+  .replace(/\/$/, "");
+
+/**
+ * Páginas estáticas (landing, privacidad, términos):
+ * - `%SITE_URL%` se sustituye por la URL pública.
+ * - `<!-- LEGAL:PRIVACY.md -->` se sustituye por ese Markdown convertido a
+ *   HTML: la política y los términos viven en un único sitio (los .md del
+ *   repo) y la web los publica tal cual.
+ */
+function paginasEstaticas() {
+  return {
+    name: "antrack-paginas-estaticas",
+    transformIndexHtml(html) {
+      return html
+        .replace(/%SITE_URL%/g, SITE_URL)
+        .replace(/<!-- LEGAL:([A-Z]+\.md) -->/g, function (_, fichero) {
+          // breaks: un salto de línea simple del .md es un salto en la web
+          // (p. ej. «AnTrack» y el email de contacto, cada uno en su línea).
+          return marked.parse(readFileSync(resolve(__dirname, fichero), "utf8"), { breaks: true });
+        });
+    },
+  };
+}
 // @ts-ignore — Vitest injects the `test` key; plain Vite ignores it.
 export default defineConfig(({ command }) => ({
   root: ".",
@@ -15,6 +47,13 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
+      // La app sigue en la raíz; las páginas públicas van en sus rutas.
+      input: {
+        app: resolve(__dirname, "index.html"),
+        inicio: resolve(__dirname, "inicio/index.html"),
+        privacidad: resolve(__dirname, "privacidad/index.html"),
+        terminos: resolve(__dirname, "terminos/index.html"),
+      },
       output: {
         manualChunks(id) {
           if (
@@ -39,6 +78,7 @@ export default defineConfig(({ command }) => ({
   },
 
   plugins: [
+    paginasEstaticas(),
     VitePWA({
       // injectManifest: usamos src/sw.js como base y el plugin
       // inyecta la lista de precache en self.__WB_MANIFEST.
@@ -79,7 +119,9 @@ export default defineConfig(({ command }) => ({
         // Los iconos de 512 pesan ~400 KB cada uno (la textura de papel no
         // comprime) y solo los pide el sistema al instalar, que ya exige red:
         // precacharlos era descargarlos en la primera visita de todo el mundo.
-        globIgnores: ["**/icons/icon-512.png", "**/icons/icon-maskable-512.png"],
+        // Las capturas de la landing (/inicio) tampoco: son de la web pública,
+        // no de la app, y pesan casi 1 MB entre todas.
+        globIgnores: ["**/icons/icon-512.png", "**/icons/icon-maskable-512.png", "**/landing/**"],
       },
     }),
   ],
