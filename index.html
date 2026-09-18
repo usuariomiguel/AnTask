@@ -21,6 +21,13 @@
           root.dataset.theme = tema;
           var acento = localStorage.getItem("antrack-accent");
           if (["arcilla", "terracota", "miel", "marea", "vino"].indexOf(acento) !== -1) root.dataset.accent = acento;
+          // Idioma del eslogan de la pantalla de carga, que se pinta antes de
+          // que cargue i18n. Misma detección que detectLang() en i18n/index.js.
+          var idioma = localStorage.getItem("antrack_lang");
+          if (idioma !== "es" && idioma !== "en") {
+            idioma = (navigator.language || "").toLowerCase().slice(0, 2) === "en" ? "en" : "es";
+          }
+          root.dataset.splashLang = idioma;
         } catch (e) { /* sin localStorage: manda theme.js al cargar */ }
       })();
     </script>
@@ -71,7 +78,8 @@
         <div class="splash-wordmark" aria-label="AnTrack">
           <span class="splash-an">AnTrack</span>
         </div>
-        <p class="splash-tagline">Tus tareas, tu día.</p>
+        <p class="splash-tagline"><span class="splash-tagline-es" lang="es">Haz hoy. Repite mañana.</span><span class="splash-tagline-en" lang="en">Do today. Repeat tomorrow.</span></p>
+        <span class="splash-loader" aria-hidden="true"></span>
       </div>
     </div>
 
