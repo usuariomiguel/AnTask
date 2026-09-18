@@ -4,6 +4,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { marked } from "marked";
 
+// Versión de la app (package.json): sale en Ajustes › Acerca de. Se sube
+// con cada publicación: arreglo → 2.0.1, función nueva → 2.1.0, cambio
+// grande → 3.0.0.
+const APP_VERSION = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version;
+
 // URL pública para las etiquetas Open Graph (og:url, og:image), que las
 // redes exigen absolutas. En Vercel sale del dominio de producción; en
 // local queda vacía y las rutas se quedan relativas.
@@ -24,6 +29,7 @@ function paginasEstaticas() {
     transformIndexHtml(html) {
       return html
         .replace(/%SITE_URL%/g, SITE_URL)
+        .replace(/%APP_VERSION%/g, APP_VERSION)
         .replace(/<!-- LEGAL:([A-Z]+\.md) -->/g, function (_, fichero) {
           // breaks: un salto de línea simple del .md es un salto en la web
           // (p. ej. «AnTrack» y el email de contacto, cada uno en su línea).

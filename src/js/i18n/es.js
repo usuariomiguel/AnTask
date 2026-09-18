@@ -96,7 +96,7 @@ export const es = {
   "settings.data.delete_all_confirm":  "Vas a eliminar TODAS tus listas y tareas de forma permanente. Esto no se puede deshacer. ¿Seguro que quieres continuar?",
 
   "settings.about.version":            "Versión",
-  "settings.about.version_desc":       "AnTrack para escritorio.",
+  "settings.about.version_desc":       "Haz hoy. Repite mañana.",
   "settings.about.session":            "Sesión",
   "settings.about.session_desc":       "Cierra la sesión en este dispositivo.",
 

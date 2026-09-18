@@ -529,7 +529,8 @@
                     <div class="settings-row-label" data-i18n="settings.about.version">Versión</div>
                     <div class="settings-row-desc" data-i18n="settings.about.version_desc">AnTrack para escritorio.</div>
                   </div>
-                  <span class="settings-mono-value">1.0</span>
+                  <!-- La pone vite.config.js desde package.json al compilar. -->
+                  <span class="settings-mono-value">%APP_VERSION%</span>
                 </div>
                 <!-- Sin teclado físico no hay atajos que consultar: la fila se
                      oculta por debajo de 768px. -->

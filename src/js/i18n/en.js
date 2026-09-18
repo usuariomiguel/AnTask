@@ -96,7 +96,7 @@ export const en = {
   "settings.data.delete_all_confirm":  "You're about to permanently delete ALL your lists and tasks. This can't be undone. Are you sure you want to continue?",
 
   "settings.about.version":            "Version",
-  "settings.about.version_desc":       "AnTrack for desktop.",
+  "settings.about.version_desc":       "Do today. Repeat tomorrow.",
   "settings.about.session":            "Session",
   "settings.about.session_desc":       "Sign out on this device.",
 
