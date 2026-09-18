@@ -4308,6 +4308,7 @@ function _openReminderPopover(fieldEl, anchorBtn) {
         task.reminderAt = btn.dataset.iso;
         afterChange();
         close();
+        _comprobarAvisosParaRecordatorio();
       });
     });
     const input = pop.querySelector('input[type="datetime-local"]');
@@ -4316,6 +4317,7 @@ function _openReminderPopover(fieldEl, anchorBtn) {
       task.reminderAt = input.value;
       afterChange();
       close();
+      _comprobarAvisosParaRecordatorio();
     });
     const clearBtn = pop.querySelector(".field-popover-chip--clear");
     if (clearBtn) clearBtn.addEventListener("click", function() {
@@ -4324,6 +4326,26 @@ function _openReminderPopover(fieldEl, anchorBtn) {
       close();
     });
   });
+}
+
+/**
+ * Un recordatorio solo avisa con las notificaciones activadas (en Ajustes y
+ * con permiso del navegador); si no, se guardaba sin más y nunca llegaba.
+ * Al poner uno se comprueba: si están apagadas se ofrece activarlas ahí
+ * mismo, y si el navegador las bloquea o no las admite se explica por qué
+ * no va a avisar. El recordatorio se guarda igual en todos los casos.
+ */
+async function _comprobarAvisosParaRecordatorio() {
+  var avisos = window.AnsoNotif;
+  if (!avisos || avisos.isEnabled()) return;
+  if (!avisos.isSupported()) { modalAlert(t("notif.reminder_unsupported"), "info"); return; }
+  if (avisos.permission() === "denied") { modalAlert(t("notif.reminder_blocked"), "info"); return; }
+  var activar = await modalConfirm(t("notif.reminder_off"), t("notif.reminder_enable"));
+  if (!activar) return;
+  var activadas = await avisos.requestEnable();
+  // Ajustes › Notificaciones pinta su interruptor por su cuenta.
+  document.dispatchEvent(new CustomEvent("antrack:notif-changed"));
+  if (!activadas) modalAlert(t("notif.reminder_blocked"), "info");
 }
 
 function _openProjectPopover(fieldEl, anchorBtn) {

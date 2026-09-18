@@ -517,6 +517,8 @@ import { loadSync } from "./sync-loader.js";
 
   if (pfNotifBtn && window.AnsoNotif) {
     refreshNotifUI();
+    // Se pueden activar también desde el aviso al poner un recordatorio.
+    document.addEventListener("antrack:notif-changed", refreshNotifUI);
     pfNotifBtn.addEventListener("click", function() {
       if (!AnsoNotif.isSupported()) return;
       if (AnsoNotif.isEnabled()) {
