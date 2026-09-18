@@ -5359,7 +5359,8 @@ function _hoyHabitAddEl() {
   btn.querySelector("span").textContent = t("task.add_btn");
 
   function submit() {
-    var value = input.value.trim();
+    // Primera letra en mayúscula, como los títulos de tarea y las listas.
+    var value = capitalizeFirst(input.value.trim());
     if (!value) return;
     // Por sanitizeHabit y no a mano: es quien pone id, createdAt, log y
     // el resto de campos con sus reglas, sin duplicarlas aquí.
@@ -5389,7 +5390,7 @@ function _showHabitMenu(habit, anchor) {
       action: async function() {
         var nuevo = await modalPrompt(t("hoy.habit_rename_prompt"), habit.name, habit.name);
         if (nuevo === null) return;
-        var limpio = nuevo.trim().slice(0, 60);
+        var limpio = capitalizeFirst(nuevo.trim()).slice(0, 60);
         if (!limpio || limpio === habit.name) return;
         habit.name = limpio;
         saveHabits();
