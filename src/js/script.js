@@ -3717,6 +3717,7 @@ const _detailPanelEls = {
   subtasks:     document.getElementById("task-detail-subtasks"),
   subtaskForm:  document.getElementById("task-detail-subtask-form"),
   subtaskInput: document.getElementById("task-detail-subtask-input"),
+  subtaskCount: document.getElementById("task-detail-subtask-count"),
   projectField: document.getElementById("task-detail-project-field"),
   projectBtn:   document.getElementById("task-detail-project-btn"),
   projectText:  document.getElementById("task-detail-project-text"),
@@ -4426,6 +4427,14 @@ function _renderTaskDetail() {
     onMutation:  saveAndRenderDetail,
     onEditStart: startSubtaskInlineEdit,
   });
+  // «SUBTAREAS · 1/3»: el progreso junto al título de la sección. Sin
+  // subtareas, solo el título.
+  if (els.subtaskCount) {
+    var subs = task.subtasks || [];
+    els.subtaskCount.textContent = subs.length
+      ? " · " + subs.filter(function(s) { return s.done; }).length + "/" + subs.length
+      : "";
+  }
 
   if (window.lucide) window.lucide.createIcons({ nodes: [els.priority, els.subtasks] });
 }

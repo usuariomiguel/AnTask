@@ -2407,6 +2407,15 @@ body {
        Mismo tono que .main-panel en móvil, la pantalla que sustituye. */
   }
 
+  /* En oscuro no tenía fondo: la lista de debajo se veía a través del
+     título y de las propiedades. Mismo desk con grano que .main-panel en
+     móvil, la pantalla que sustituye. */
+  .task-detail-wrap {
+    background-color: var(--surface-desk);
+    background-image: var(--grano-img);
+    background-size: 160px 160px;
+  }
+
   :root[data-theme="light"] .task-detail-wrap {
     background: #f4efe3;
   }
@@ -10842,8 +10851,8 @@ button {
 }
 
 .inbox-group-dot {
-  width: 2px;
-  height: 18px;
+  width: 7px;
+  height: 7px;
   border-radius: 21px;
   background: var(--text-tertiary);
   flex-shrink: 0;
@@ -13353,6 +13362,340 @@ button {
     display: none;
   }
 }
+/* ─── PANEL DE DETALLE — EDITOR DE TAREA ─────────────────────────
+   El panel se leía como un formulario: siete bloques iguales de etiqueta
+   en mayúsculas + caja con borde. Ahora sigue la jerarquía de un editor:
+   título → propiedades rápidas → subtareas → lista → nota → eliminar.
+
+   - Más aire ENTRE bloques (26px) que DENTRO de cada uno (2–10px).
+   - Propiedades: icono + valor, sin caja ni etiqueta visible. La etiqueta
+     sigue en el DOM para lectores de pantalla. El valor puesto va en texto
+     principal con el icono en acento; el vacío, en terciario.
+   - Subtareas y lista: contenido del documento, sin marco. Solo la nota
+     conserva un área propia, porque es donde se escribe.
+   - Las cajas que aparecen (hover, foco, nota) son opacas sobre el desk,
+     como el resto: el grano queda en el fondo desnudo.
+
+   Mismos ids, misma estructura de campos y filas: los popovers se anclan
+   igual que antes (ver _openFieldPopover). Va al final del fichero y con
+   `:root` delante para ganar a las reglas base y a las de tema claro
+   (`:root[data-theme="light"] .subtask-list`…) sin tocarlas. */
+:root .task-detail-panel .task-detail-body {
+  gap: 26px;
+  padding: 22px 18px 26px;
+}
+
+:root .task-detail-panel .task-detail-title-row {
+  padding-bottom: 2px;
+}
+
+/* ── Propiedades rápidas ── */
+.task-detail-props {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* El texto de los valores se alinea con el borde del panel; el fondo de
+     hover sobresale por los lados en vez de desplazarlo. */
+  margin: 0 -10px;
+}
+
+:root .task-detail-props .task-detail-field-row {
+  gap: 2px 4px;
+}
+
+:root .task-detail-props .task-detail-field {
+  gap: 0;
+}
+
+/* El bloque sobresale 10px por lado para el fondo de hover; el popover que
+   se ancla a la fila vuelve al ancho del resto del contenido. */
+:root .task-detail-props .field-popover {
+  left: 10px;
+  right: 10px;
+}
+
+.task-detail-props .task-detail-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:root .task-detail-props .task-detail-field-btn,
+:root .task-detail-panel .task-detail-section .task-detail-field-btn {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 13.5px;
+  font-weight: 450;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+:root .task-detail-props .task-detail-field-btn .lucide {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+/* Con valor: el valor manda (texto principal) y el icono lleva el acento,
+   el mismo color que ya marcaba cada estado. */
+:root .task-detail-props :is(.task-detail-priority-btn.active,
+  .task-detail-field-btn--has-value,
+  .task-detail-field-btn--due-today,
+  .task-detail-field-btn--due-overdue,
+  .task-detail-field-btn--reminder-set,
+  .task-detail-field-btn--recur-set) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 550;
+}
+
+:root .task-detail-props :is(.task-detail-priority-btn.active,
+  .task-detail-field-btn--has-value,
+  .task-detail-field-btn--due-today,
+  .task-detail-field-btn--due-overdue,
+  .task-detail-field-btn--reminder-set,
+  .task-detail-field-btn--recur-set) .lucide {
+  color: var(--c-primary-500);
+}
+
+/* Hover, foco y popover abierto: el mismo tinte suave que la sidebar. */
+:root .task-detail-props .task-detail-field-btn:hover,
+:root .task-detail-panel .task-detail-section .task-detail-field-btn:hover {
+  background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-desk));
+}
+
+:root .task-detail-props .task-detail-field-btn.field-btn-open,
+:root .task-detail-panel .task-detail-section .task-detail-field-btn.field-btn-open {
+  background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-desk));
+  border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+}
+
+:root .task-detail-panel .task-detail-field-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--c-primary-500) 60%, transparent);
+  outline-offset: 1px;
+}
+
+/* ── Secciones de contenido (subtareas, lista, nota) ── */
+:root .task-detail-panel .task-detail-section {
+  gap: 8px;
+}
+
+/* Las propiedades cierran la cabecera de la tarea; lo que viene después
+   es el cuerpo. Una línea fina lo separa. */
+:root .task-detail-props + .task-detail-section {
+  padding-top: 22px;
+  border-top: 2px solid var(--border-subtle);
+}
+
+/* Títulos de sección: pequeños y secundarios, sin icono. */
+:root .task-detail-section .task-detail-label .lucide {
+  display: none;
+}
+
+.task-detail-label-count {
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+/* ── Subtareas: parte del contenido, no una tabla con marco ── */
+:root .task-detail-panel .subtask-list {
+  margin: 0 -10px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+  gap: 1px;
+}
+
+:root .task-detail-panel .subtask-item {
+  align-items: flex-start;
+  gap: 11px;
+  padding: 7px 10px;
+  border-bottom: none;
+  border-radius: var(--r-sm);
+}
+
+/* La casilla se alinea con la primera línea del texto, no con el centro
+   de un texto de dos líneas. */
+:root .task-detail-panel .subtask-checkbox {
+  margin-top: 1px;
+}
+
+:root .task-detail-panel .subtask-text {
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+/* Sin subtareas el campo de añadir ya lo dice; el aviso sobraba. */
+:root .task-detail-panel .subtask-empty {
+  display: none;
+}
+
+:root .task-detail-panel .subtask-delete-btn {
+  align-self: center;
+}
+
+/* Añadir subtarea: una fila más de la lista, discreta hasta que se usa. */
+:root .task-detail-panel .task-detail-subtask-form {
+  align-items: center;
+  gap: 2px;
+  margin: 0 -10px;
+}
+
+:root .task-detail-panel .task-detail-subtask-form button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-tertiary);
+  transition: color 0.12s ease;
+}
+
+:root .task-detail-panel .task-detail-subtask-form button .lucide {
+  width: 17px;
+  height: 17px;
+}
+
+:root .task-detail-panel .task-detail-subtask-form input {
+  padding: 8px 10px 8px 2px;
+  border: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+:root .task-detail-panel .task-detail-subtask-form input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.85;
+}
+
+:root .task-detail-panel .task-detail-subtask-form:focus-within input {
+  padding-left: 10px;
+  background: color-mix(in srgb, var(--text-primary) 5%, var(--capa-desk));
+  border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+}
+
+:root .task-detail-panel .task-detail-subtask-form:focus-within button {
+  color: var(--c-primary-500);
+}
+
+/* ── Lista: una línea con su marca de color ── */
+:root .task-detail-panel #task-detail-project-btn {
+  width: calc(100% + 20px);
+  margin: 0 -10px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.task-detail-list-mark {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--proj-color, var(--c-primary-500));
+}
+
+:root .task-detail-panel #task-detail-project-btn .lucide {
+  margin-left: auto;
+  width: 15px;
+  height: 15px;
+  color: var(--text-tertiary);
+}
+
+/* ── Nota: el único espacio de escritura ── */
+:root .task-detail-panel .task-detail-textarea {
+  min-height: 132px;
+  padding: 13px 15px;
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--text-primary) 4%, var(--capa-desk));
+  color: var(--text-primary);
+  font-size: 13.5px;
+  line-height: 1.55;
+  transition: border-color 0.12s ease;
+}
+
+:root .task-detail-panel .task-detail-textarea:focus {
+  border-color: color-mix(in srgb, var(--c-primary-500) 50%, transparent);
+}
+
+/* ── Eliminar: presente pero sin pesar (escritorio; móvil tiene su pastilla) ── */
+@media (min-width: 769px) {
+  :root .task-detail-panel .task-detail-footer {
+    padding: 10px 8px;
+    border-top-color: var(--border-subtle);
+  }
+
+  :root .task-detail-panel .task-detail-delete {
+    height: 40px;
+    gap: 8px;
+    padding: 6px 14px 6px 10px;
+    border-color: transparent;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+  }
+
+  :root .task-detail-panel .task-detail-delete-ico {
+    width: auto;
+    height: auto;
+    background: none;
+  }
+
+  :root .task-detail-panel .task-detail-delete .lucide {
+    width: 16px;
+    height: 16px;
+  }
+
+  :root .task-detail-panel .task-detail-delete:hover {
+    color: var(--c-overdue);
+    background: color-mix(in srgb, rgb(var(--c-overdue-rgb)) 9%, var(--capa-desk));
+  }
+}
+
+/* Con ratón, la ✕ de cada subtarea asoma al pasar por ella; en táctil se
+   queda a la vista. */
+@media (hover: hover) and (pointer: fine) {
+  :root .task-detail-panel .subtask-item {
+    transition: background-color 0.12s ease;
+  }
+
+  :root .task-detail-panel .subtask-item:hover {
+    background: color-mix(in srgb, var(--text-primary) 5%, var(--capa-desk));
+  }
+
+  :root .task-detail-panel .subtask-item:not(:hover):not(:focus-within) .subtask-delete-btn {
+    opacity: 0;
+  }
+
+  :root .task-detail-panel .task-detail-subtask-form button:hover {
+    color: var(--c-primary-500);
+  }
+}
+
+/* iOS amplía la página al enfocar un campo de menos de 16px. */
+@media (max-width: 768px) {
+  :root .task-detail-panel :is(.task-detail-textarea, .task-detail-subtask-form input) {
+    font-size: 16px;
+  }
+}
+
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
    Primera tanda del rediseño de hovers (se quitaron todos para rehacerlos
    desde cero). Criterios, iguales para lo que venga después:

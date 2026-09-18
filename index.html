@@ -778,9 +778,13 @@
                 <input type="checkbox" class="task-toggle" id="task-detail-toggle" aria-label="Marcar como hecha" data-i18n-aria="task.toggle_done" />
                 <svg class="task-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.2 12.8c1.1.6 2.4 2 3.6 3.6.6.8 1.1 1.3 1.5 1.1.4-.2 1-1.2 1.8-2.6C13 11.2 16.2 6.9 20.6 4.4" pathLength="21"/></svg>
               </span>
-              <textarea class="task-detail-title" id="task-detail-title" rows="2" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
+              <textarea class="task-detail-title" id="task-detail-title" rows="1" maxlength="120" placeholder="Sin título" data-i18n-ph="detail.title_placeholder"></textarea>
             </div>
 
+            <!-- Propiedades rápidas: icono + valor, sin caja. La etiqueta de cada
+                 campo sigue en el DOM para los lectores de pantalla, pero se
+                 oculta a la vista (ver EDITOR DE TAREA en style.css). -->
+            <div class="task-detail-props">
             <div class="task-detail-field-row">
               <div class="task-detail-field" data-acc="priority">
                 <span class="task-detail-label"><i data-lucide="flag"></i> <span data-i18n="detail.priority">Prioridad</span></span>
@@ -807,22 +811,23 @@
               <div class="task-detail-field" id="task-detail-recur-field" data-acc="recur">
                 <span class="task-detail-label"><i data-lucide="repeat"></i> <span data-i18n="detail.recur">Repetir</span></span>
                 <button type="button" class="task-detail-field-btn" id="task-detail-recur-btn">
+                  <i data-lucide="repeat" class="field-btn-ico"></i>
                   <span id="task-detail-recur-text" data-i18n="detail.no_recur">No se repite</span>
-                  <i data-lucide="chevron-right"></i>
                 </button>
               </div>
 
               <div class="task-detail-field" id="task-detail-reminder-field" data-acc="reminder">
                 <span class="task-detail-label"><i data-lucide="bell"></i> <span data-i18n="detail.reminder">Recordatorio</span></span>
                 <button type="button" class="task-detail-field-btn" id="task-detail-reminder-btn">
+                  <i data-lucide="bell" class="field-btn-ico"></i>
                   <span id="task-detail-reminder-text" data-i18n="detail.no_reminder">Sin recordatorio</span>
-                  <i data-lucide="chevron-right"></i>
                 </button>
               </div>
             </div>
+            </div>
 
-            <div class="task-detail-field" data-acc="subtasks">
-              <span class="task-detail-label"><i data-lucide="list-plus"></i> <span data-i18n="detail.subtasks">Subtareas</span></span>
+            <div class="task-detail-field task-detail-section" data-acc="subtasks">
+              <span class="task-detail-label"><i data-lucide="list-plus"></i> <span data-i18n="detail.subtasks">Subtareas</span><span class="task-detail-label-count" id="task-detail-subtask-count"></span></span>
               <form class="task-detail-subtask-form" id="task-detail-subtask-form">
                 <button type="submit" aria-label="Añadir subtarea"><i data-lucide="plus"></i></button>
                 <input type="text" id="task-detail-subtask-input" maxlength="120" placeholder="Añadir subtarea…" data-i18n-ph="detail.subtask_placeholder" autocomplete="off" />
@@ -830,15 +835,16 @@
               <ul class="subtask-list task-detail-subtasks" id="task-detail-subtasks" aria-label="Subtareas"></ul>
             </div>
 
-            <div class="task-detail-field" id="task-detail-project-field" data-acc="list">
+            <div class="task-detail-field task-detail-section" id="task-detail-project-field" data-acc="list">
               <span class="task-detail-label"><i data-lucide="inbox"></i> <span data-i18n="detail.list">Lista</span></span>
               <button type="button" class="task-detail-field-btn" id="task-detail-project-btn">
+                <span class="task-detail-list-mark" aria-hidden="true"></span>
                 <span id="task-detail-project-text"></span>
                 <i data-lucide="chevron-right" id="task-detail-project-chevron"></i>
               </button>
             </div>
 
-            <div class="task-detail-field" data-acc="note">
+            <div class="task-detail-field task-detail-section" data-acc="note">
               <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
               <textarea class="task-detail-textarea" id="task-detail-comment" rows="8" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
             </div>
