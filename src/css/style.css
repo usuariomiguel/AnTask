@@ -10747,7 +10747,15 @@ button {
   transform: translateX(-50%);
   bottom: var(--sp-2);
   z-index: 30;
-  width: min(800px, calc(50% - 52px));
+  /* La mitad del panel, con tope de 800px y suelo de 320px (o el panel
+     menos 32px si es aún más estrecho). Solo con la mitad, en una ventana
+     pequeña o con el detalle abierto la barra llegaba a medir 39px y el
+     atajo salía cortado. No tapa filas: la lista ya reserva su hueco al
+     pie (ver .task-list-scroll). */
+  width: clamp(min(320px, calc(100% - 32px)), calc(50% - 52px), 800px);
+  /* Contenedor de sí misma: lo que cabe dentro depende de su ancho, no del
+     de la ventana (ver @container captura más abajo). */
+  container: captura / inline-size;
   height: 50px;
   display: flex;
   align-items: center;
@@ -10780,6 +10788,10 @@ button {
 }
 
 .capture-bar-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13.5px;
   color: var(--text-tertiary);
 }
@@ -10802,6 +10814,14 @@ button {
 
 @media (max-width: 768px) {
   .capture-bar {
+    display: none;
+  }
+}
+
+/* El atajo necesita ~150px: por debajo de 380px de barra se quita entero
+   en vez de salir cortado, y el texto se queda con todo el hueco. */
+@container captura (max-width: 380px) {
+  .capture-bar-kbd {
     display: none;
   }
 }
