@@ -116,7 +116,9 @@ test("detalle: cerrar, abrir otra tarea y eliminar", async ({ page }) => {
   await expect(page.locator("#task-detail-title")).toHaveValue("Otra tarea");
 
   await page.click("#task-detail-delete-btn");
-  const confirmar = page.getByRole("button", { name: "Eliminar", exact: true }).last();
+  // Acotado al modal: sin esto .last() se quedaba con el boton Eliminar
+  // del propio panel, que sigue en pantalla mientras el panel se retira.
+  const confirmar = page.locator(".modal-overlay").getByRole("button", { name: "Eliminar", exact: true }).last();
   if (await confirmar.isVisible().catch(() => false)) await confirmar.click();
   await expect.poll(() => guardada(page, "b")).toBeNull();
 });
