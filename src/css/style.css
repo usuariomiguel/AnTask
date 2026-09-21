@@ -5415,14 +5415,29 @@ body.project-dragging .project-item {
   background: rgba(163, 179, 102, 0.06) !important;
 }
 
+/* Flota encima de la lista (ver showDropIndicator en script.js): no ocupa
+   sitio ni empuja filas. Se desliza entre huecos en vez de reaparecer. */
+.task-list {
+  position: relative;
+}
+
 .drop-indicator {
+  position: absolute;
+  z-index: 6;
   height: 2px;
+  margin-top: -1px;
   background: linear-gradient(90deg, transparent, var(--c-cyan), var(--c-violet), transparent);
   border-radius: 999px;
-  margin: 2px 0;
   box-shadow: 0 0 8px rgba(163, 179, 102, 0.5);
   pointer-events: none;
+  transition: top 0.09s ease-out;
   animation: dropLineIn 0.10s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-indicator {
+    transition: none;
+  }
 }
 
 @keyframes dropLineIn {

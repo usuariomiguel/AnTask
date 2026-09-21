@@ -6749,14 +6749,20 @@ function initDragDrop(node, taskId) {
     const destIdx = project.tasks.findIndex(function(t) { return t.id === taskId; });
     if (srcIdx === -1 || destIdx === -1) { removeDropIndicator(); return; }
 
-    // Decidir si insertar antes o después según posición del ratón
+    // El mismo lado que marcaba la línea (con su margen), no uno recalculado:
+    // si no, soltar cerca de la mitad podía caer al otro lado.
     const rect   = node.getBoundingClientRect();
-    const isAfter = e.clientY > rect.top + rect.height / 2;
+    const isAfter = (_dropSlot && _dropSlot.node === node)
+      ? _dropSlot.isAfter
+      : e.clientY > rect.top + rect.height / 2;
 
+    // Al quitar la tarea de su sitio, las de detrás suben una posición: si el
+    // destino estaba detrás del origen, su índice ya es uno menos. Antes, al
+    // soltar «delante de» una tarea más abajo, caía una posición de más.
     const [moved] = project.tasks.splice(srcIdx, 1);
     const insertAt = isAfter
       ? (destIdx >= srcIdx ? destIdx : destIdx + 1)
-      : (destIdx <= srcIdx ? destIdx : destIdx - 1 + 1);
+      : (destIdx > srcIdx ? destIdx - 1 : destIdx);
 
     project.tasks.splice(Math.max(0, insertAt), 0, moved);
 
@@ -6808,23 +6814,54 @@ function _aceptaTareaArrastrada(destino) {
   return Boolean(origen && origen.id !== destino.id);
 }
 
+/**
+ * Línea que marca dónde caerá la tarea al soltarla.
+ *
+ * Antes se borraba y se volvía a crear en cada `dragover` (unas 20 veces por
+ * segundo) y además iba dentro de la lista: ocupaba 6px y empujaba las filas.
+ * Cada vez que se recreaba repetía su animación de entrada —de ahí que
+ * palpitase— y el empujón podía pasar el ratón al otro lado de la mitad de
+ * la fila, con lo que la línea saltaba de antes a después y vuelta. Solo se
+ * quedaba quieta en un píxel exacto.
+ *
+ * Ahora es una sola línea que flota encima de la lista (no mueve nada), solo
+ * se recoloca cuando cambia el hueco de verdad y tiene un margen alrededor
+ * de la mitad de la fila para no dudar justo en el límite. El `drop` usa
+ * este mismo hueco, así que la tarea cae exactamente donde marcaba la línea.
+ */
+var _dropSlot = null;          // { node, isAfter } del hueco marcado
+var DROP_MARGEN = 8;           // px alrededor de la mitad antes de cambiar de lado
+
 function showDropIndicator(targetNode, clientY) {
-  removeDropIndicator();
-  const rect    = targetNode.getBoundingClientRect();
-  const isAfter = clientY > rect.top + rect.height / 2;
-
-  dropIndicator = document.createElement("div");
-  dropIndicator.className = "drop-indicator";
-
-  if (isAfter) {
-    targetNode.after(dropIndicator);
-  } else {
-    targetNode.before(dropIndicator);
+  const rect = targetNode.getBoundingClientRect();
+  const mitad = rect.top + rect.height / 2;
+  let isAfter = clientY > mitad;
+  // Mismo nodo y ratón cerca de la mitad: se mantiene el lado que ya había.
+  if (_dropSlot && _dropSlot.node === targetNode && Math.abs(clientY - mitad) < DROP_MARGEN) {
+    isAfter = _dropSlot.isAfter;
   }
+  if (_dropSlot && _dropSlot.node === targetNode && _dropSlot.isAfter === isAfter && dropIndicator) return;
+  _dropSlot = { node: targetNode, isAfter: isAfter };
+
+  if (!dropIndicator) {
+    dropIndicator = document.createElement("div");
+    dropIndicator.className = "drop-indicator";
+    dropIndicator.setAttribute("aria-hidden", "true");
+    taskList.appendChild(dropIndicator);
+  }
+  // En el centro del hueco entre filas (3px), medido en píxeles de CSS: el
+  // rect viene escalado por el zoom de las pantallas grandes.
+  const zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  const base = taskList.getBoundingClientRect();
+  const y = ((isAfter ? rect.bottom + 1.5 : rect.top - 1.5) - base.top) / zoom;
+  dropIndicator.style.top = y + "px";
+  dropIndicator.style.left = ((rect.left - base.left) / zoom) + "px";
+  dropIndicator.style.width = (rect.width / zoom) + "px";
 }
 
 function removeDropIndicator() {
   if (dropIndicator) { dropIndicator.remove(); dropIndicator = null; }
+  _dropSlot = null;
 }
 
 // ─── PROJECT DRAG & DROP ──────────────────────────────────────
