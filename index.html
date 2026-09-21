@@ -1054,12 +1054,68 @@
       var bnavSettings = document.getElementById("bnav-settings-btn");
       var allBnavBtns  = [bnavInbox, bnavToday, bnavSearch, bnavProfile, bnavSettings];
 
-      function setActiveBnavBtn(btn) {
-        allBnavBtns.forEach(function(b) {
-          if (b) b.classList.remove("active");
-        });
-        if (btn) btn.classList.add("active");
+      // Resaltado del botón activo como pieza aparte que se desliza de uno
+      // a otro al cambiar de vista, en vez de saltar (ver .bnav-indicador).
+      var bnavEl = document.getElementById("mobile-bottom-nav");
+      var bnavIndicador = null;
+      var bnavActivo = null;
+      if (bnavEl) {
+        bnavIndicador = document.createElement("span");
+        bnavIndicador.className = "bnav-indicador";
+        bnavIndicador.setAttribute("aria-hidden", "true");
+        bnavEl.insertBefore(bnavIndicador, bnavEl.firstChild);
+        bnavEl.classList.add("con-indicador");
       }
+      function sinMovimiento() {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      }
+      function colocarIndicador(btn, animar) {
+        if (!bnavIndicador) return;
+        // Oculta (display:none en escritorio) o sin destino activo: nada que
+        // señalar.
+        if (!btn || !btn.offsetParent) { bnavIndicador.classList.remove("visible"); return; }
+        if (!animar) bnavIndicador.classList.add("sin-transicion");
+        bnavIndicador.style.transform = "translate(" + btn.offsetLeft + "px, " + btn.offsetTop + "px)";
+        bnavIndicador.style.width = btn.offsetWidth + "px";
+        bnavIndicador.style.height = btn.offsetHeight + "px";
+        bnavIndicador.classList.add("visible");
+        if (!animar) {
+          bnavIndicador.getBoundingClientRect();   // aplica sin transición
+          bnavIndicador.classList.remove("sin-transicion");
+        }
+      }
+      // Al cambiar de destino, el contenido entra con un leve desplazamiento
+      // desde el lado hacia el que se va (derecha si el botón nuevo está a la
+      // derecha del anterior). Se suma al escalonado de las filas.
+      function animarCambioVista(de, a) {
+        var panel = document.getElementById("main-panel");
+        if (!panel || !de || !a || de === a || sinMovimiento() || !a.offsetParent) return;
+        var dir = a.offsetLeft > de.offsetLeft ? 1 : -1;
+        panel.animate([
+          { transform: "translateX(" + (dir * 14) + "px)", opacity: 0.4 },
+          { transform: "translateX(0)", opacity: 1 },
+        ], { duration: 240, easing: "cubic-bezier(0.25, 1, 0.3, 1)" });
+      }
+
+      function setActiveBnavBtn(btn) {
+        var anterior = bnavActivo;
+        allBnavBtns.forEach(function(b) {
+          if (!b) return;
+          b.classList.remove("active");
+          b.removeAttribute("aria-current");
+        });
+        if (btn) {
+          btn.classList.add("active");
+          // El lector de pantalla anuncia cuál es la pantalla actual.
+          btn.setAttribute("aria-current", "page");
+        }
+        // Desliza solo si ya había un activo antes: el primero se coloca sin
+        // viaje desde la izquierda.
+        colocarIndicador(btn, !!anterior && !sinMovimiento());
+        if (btn && anterior && btn !== anterior) animarCambioVista(anterior, btn);
+        bnavActivo = btn || null;
+      }
+      window.addEventListener("resize", function() { colocarIndicador(bnavActivo, false); });
 
       // Sincroniza el destino activo con el estado real de la app.
       function syncBnavActive() {

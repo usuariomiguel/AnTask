@@ -4586,6 +4586,11 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
       // Clic dentro del campo no debe cerrar el popover (el overlay
       // externo escucha mousedown en todo el documento).
       customInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      // El ✓ de guardar solo aparece con un número nuevo escrito.
+      customInput.addEventListener("input", function() {
+        const v = parseInt(customInput.value, 10);
+        customInput.parentElement.classList.toggle("con-cambios", v > 0 && v !== task.recurDays);
+      });
       customInput.addEventListener("keydown", function(e) {
         if (e.key !== "Enter") return;
         e.preventDefault();
@@ -4600,6 +4605,11 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
     const titleConfirmBtn = pop.querySelector("[data-title-confirm]");
     if (titleInput) {
       titleInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      // El ✓ de guardar solo aparece si el título ha cambiado.
+      titleInput.addEventListener("input", function() {
+        const clean = titleInput.value.trim();
+        titleInput.parentElement.classList.toggle("con-cambios", !!clean && clean !== task.text);
+      });
       function submitTitle() {
         const clean = titleInput.value.trim().slice(0, 120);
         if (!clean || clean === task.text) return;
@@ -4632,7 +4642,23 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
   // cada vez que el ancho real cambia, así que en cuanto se asiente el
   // popover queda bien puesto solo, sin depender de un plazo adivinado.
   let firstPlacement = true;
+  // Guardar un cambio desde el panel (el título, al salir del campo) repinta
+  // la lista y cambia la fila por otra nueva: la vieja sale del documento,
+  // mide cero, y el panel se recolocaba contra nada —quedaba como una tira
+  // estrecha en la esquina—. Si la fila ya no está, se busca la nueva de la
+  // misma tarea y se engancha a ella; si la tarea ya no se ve, se cierra.
+  function anclaViva() {
+    if (anchorEl.isConnected) return true;
+    const nueva = taskList && taskList.querySelector(
+      '[data-hoy-task-id="' + task.id + '"], [data-task-id="' + task.id + '"]');
+    if (!nueva) return false;
+    ro.unobserve(anchorEl);
+    anchorEl = nueva;
+    ro.observe(anchorEl);
+    return true;
+  }
   const ro = new ResizeObserver(function() {
+    if (!anclaViva()) { _closeInlineRowPopover(); return; }
     _placeInlineRowPopover(pop, anchorEl);
     if (firstPlacement) { firstPlacement = false; pop.style.visibility = ""; }
   });

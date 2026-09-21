@@ -1823,6 +1823,10 @@ body {
    1000 de .modal-overlay, y quedaba invisible detrás del propio modal. */
 .field-popover--fixed {
   z-index: 1100;
+  /* Este sí flota también en móvil (el de fecha y repetir de una fila, el
+     de lista de la captura rápida): sin fondo opaco se veían las filas de
+     debajo a través. El tema claro lo pisa con su propia regla. */
+  background: #2c241b;
 }
 
 .field-popover--up {
@@ -1865,7 +1869,7 @@ body {
 .field-popover-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
   /* stretch, no start: si un lado tiene "Quitar" (fecha u hora puestas)
      y el otro no, sin esto medirían distinto de alto — con stretch,
      ambas columnas igualan la altura de la más alta y el sobrante lo
@@ -1873,21 +1877,11 @@ body {
   align-items: stretch;
 }
 
-/* Cada columna es su propia tarjeta (borde + fondo + padding), no solo
-   un bloque separado por una línea — así FECHA y REPETIR se leen como
-   dos secciones independientes dentro del popover. */
+/* Las columnas ya no son tarjetas: con el borde del popover y el de cada
+   botón, un tercer nivel de caja recargaba el panel. FECHA y REPETIR se
+   separan por su rótulo y por el hueco entre columnas. */
 .field-popover-col {
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-md);
-  background: var(--surface-card);
-  padding: 8px;
-}
-
-/* En modo claro `.field-popover` ya usa --surface-card de fondo (ver
-   arriba), así que las columnas necesitan el otro tono para distinguirse
-   — al revés que en oscuro, donde --surface-card es la más clara. */
-:root[data-theme="light"] .field-popover-col {
-  background: var(--surface-canvas);
+  padding: 0;
 }
 
 .field-popover-col--date,
@@ -1992,6 +1986,21 @@ body {
 
 .field-popover-title-confirm:hover {
   color: var(--c-primary-300);
+}
+
+/* Los ✓ de guardar (título y «Nº días») solo aparecen cuando hay un cambio
+   que guardar: siempre visibles se leían como «seleccionado», igual que el
+   ✓ de la opción elegida. Intro y salir del campo siguen guardando. */
+:is(.field-popover-title-confirm, .field-popover-custom-confirm) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.con-cambios :is(.field-popover-title-confirm, .field-popover-custom-confirm) {
+  opacity: 1;
+  pointer-events: auto;
+  color: var(--c-primary-500);
 }
 
 .field-popover-title-confirm .lucide {
@@ -2158,9 +2167,15 @@ body {
   color: var(--text-tertiary);
 }
 
+/* Escribiendo, se marca la píldora entera con el acento en vez de pintar
+   un rectángulo de fondo dentro de ella, que en oscuro se veía como un
+   parche más oscuro detrás del número. */
 .field-popover-custom-input:focus {
   outline: none;
-  background: var(--surface-input);
+}
+
+.field-popover-col .field-popover-row--custom:focus-within {
+  border-color: var(--c-primary-500);
 }
 
 .field-popover-row {
@@ -6047,7 +6062,7 @@ body.project-dragging .project-item {
 
   .task-list {
     padding: 0.5rem 0.72rem;
-    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0));
   }
 
   .undo-toast {
@@ -6281,25 +6296,19 @@ body.project-dragging .project-item {
      (Hoy · Inbox · Perfil), radio 28px, borde y sombra amplia. El +
      de captura flota aparte, a la derecha (variante "Separado" del
      prototipo v1). */
+  /* Mide lo justo para sus botones (max-content), anclada a la izquierda;
+     el + va aparte a la derecha. */
   .mobile-bottom-nav {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    height: 60px;
+    /* Alto según su contenido (botón de 52 + 6 de relleno + 2 de borde por
+       lado = 68): con un alto fijo de 60 el botón de 48 no cabía, se salía
+       por abajo y el hueco quedaba mayor arriba que abajo. */
+    height: auto;
+    align-items: center;
     width: max-content;
-    /* display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: space-evenly; */
-    /* La pastilla ocupa TODO el ancho hasta el FAB (en v1 es `flex: 1`), no
-       solo lo que miden sus tres pestañas: por eso quedaban apiñadas a la
-       izquierda. 54 del FAB + 11 de separación + 14 de margen. */
     position: fixed;
     left: 14px;
-    right: calc(18px + 54px + 11px);
-    /* Mismo criterio que `.filter-segments`: 3px de relleno y el resto lo
-       ocupan las pestañas, con `align-items: stretch` llenando el alto
-       entero — no un padding grande dejando la píldora activa suelta
-       en medio. */
     padding: 6px;
     gap: 3px;
     bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) - 4px);
@@ -6352,9 +6361,8 @@ body.project-dragging .project-item {
 
   .mobile-bottom-btn {
     flex: 0 0 auto;
-    /* 56x44 mínimos del handoff, en vez de 64px fijos. */
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -6379,22 +6387,30 @@ body.project-dragging .project-item {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    border: 2px solid var(--border-default);
-    border-radius: var(--r-xl);
+    /* Sin borde propio: la pastilla ya lo lleva, y un círculo con borde por
+       botón dentro de ella eran cajas dentro de cajas. El activo se marca
+       con el relleno de acento, como los filtros «Todas / Pendientes». */
+    border: 2px solid transparent;
+    border-radius: var(--r-pill);
   }
 
   .mobile-bottom-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     stroke-width: 1.9;
     flex-shrink: 0;
   }
 
+  /* La etiqueta no se ve pero sí se lee: con display:none también
+     desaparecía para el lector de pantalla y los botones se anunciaban
+     como «botón, botón, botón», sin nombre. */
   .mobile-bottom-btn>span {
-    display: none;
-    max-width: 100%;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
     overflow: hidden;
-    text-overflow: ellipsis;
+    clip: rect(0 0 0 0);
     white-space: nowrap;
   }
 
@@ -6442,10 +6458,10 @@ body.project-dragging .project-item {
     display: none;
     align-items: center;
     justify-content: center;
-    /* Más grande que la pastilla (52px) a propósito: así destaca y
-       sobresale un poco por arriba, en vez de quedar a ras. */
-    width: 60px;
-    height: 60px;
+    /* Algo menor que la pastilla (64 frente a 68) y centrado con ella:
+       destaca por su color, no por sobresalir. */
+    width: 64px;
+    height: 64px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -6459,12 +6475,11 @@ body.project-dragging .project-item {
     display: inline-flex;
     position: fixed;
     right: 14px;
-    /* Comparte eje con la pastilla: misma base (`max(22px, safe)`) que
-       su `bottom`, con la resta que compensa la diferencia de alto
-       (60 del FAB frente a 52 de la pastilla) para que los centros
-       coincidan. Con bases distintas el ajuste se habría desalineado en
-       dispositivos con área segura grande (notch/home indicator). */
-    bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) - 4px);
+    /* Comparte eje con la pastilla: misma base (`max(22px, safe)`) que su
+       `bottom`, más la mitad de la diferencia de alto (68 de la pastilla
+       frente a 64 del +) para que los centros coincidan. Con bases
+       distintas se desalinearía en móviles con área segura grande. */
+    bottom: calc(max(22px, env(safe-area-inset-bottom, 0px)) - 4px + 2px);
     /* Mismo motivo que la barra de navegación (z-index 510): por encima
        del panel de detalle a pantalla completa, para poder capturar una
        tarea nueva sin salir primero de la que se está viendo. */
@@ -6511,6 +6526,55 @@ body.project-dragging .project-item {
   :root[data-theme="light"] .mobile-bottom-btn:active,
   :root[data-theme="light"] .mobile-bottom-btn.active {
     color: var(--c-primary-600);
+  }
+
+  /* En claro el tinte de acento se perdía sobre la pastilla crema y el
+     activo se leía como un gris apagado: se refuerza un punto y se marca
+     el borde, así se distingue del resto a primera vista. */
+  :root[data-theme="light"] .mobile-bottom-btn.active {
+    background: color-mix(in srgb, var(--c-primary-500) 24%, var(--surface-card));
+    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  }
+
+  /* Resaltado deslizante del botón activo (ver colocarIndicador en
+     index.html): una pieza aparte que viaja de un botón a otro. Con ella,
+     el propio botón activo ya no pinta fondo ni borde. */
+  .bnav-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    border-radius: var(--r-pill);
+    background: var(--accent-tint);
+    border: 2px solid transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.3, 1), opacity 0.15s ease;
+  }
+
+  .bnav-indicador.visible {
+    opacity: 1;
+  }
+
+  .bnav-indicador.sin-transicion {
+    transition: none;
+  }
+
+  :root[data-theme="light"] .bnav-indicador {
+    background: color-mix(in srgb, var(--c-primary-500) 24%, var(--surface-card));
+    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  }
+
+  .mobile-bottom-nav.con-indicador .mobile-bottom-btn.active,
+  :root[data-theme="light"] .mobile-bottom-nav.con-indicador .mobile-bottom-btn.active {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bnav-indicador {
+      transition: none;
+    }
   }
 
   /* ── FAB anclado en el notch del bottom-nav ─────────────────── */
@@ -12777,8 +12841,11 @@ button {
     height: 15px;
   }
 
+  /* Abajo, el hueco de la barra flotante (pastilla y +): sin él, al bajar
+     hasta el final la última tarea quedaba tapada por la barra. Este
+     bloque pisaba la reserva de más arriba con un 16px en los cuatro lados. */
   .task-list {
-    padding: 16px;
+    padding: 16px 16px calc(6.25rem + env(safe-area-inset-bottom, 0));
   }
 
   /* Píldora rellena también para las no vencidas — mismo aspecto que la
@@ -13041,7 +13108,7 @@ button {
        Los lados van a 18px, igual que el body: sin padding horizontal el
        botón llegaba borde a borde con la pantalla, la única pieza del
        panel sin el mismo margen que el resto. */
-    padding: 14px 18px calc(5.5rem + env(safe-area-inset-bottom, 0));
+    padding: 14px 18px calc(6.25rem + env(safe-area-inset-bottom, 0));
     border: none;
     background: none;
   }
