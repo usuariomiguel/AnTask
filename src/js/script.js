@@ -215,9 +215,12 @@ const projectSubtitleM = document.getElementById("project-subtitle-mobile");
 
 /** Subtítulo de móvil: pendientes, no total (así lo pide el handoff móvil,
  *  frente al «N tareas» del de escritorio). */
-function _setMobileSubtitle(pending) {
+function _setMobileSubtitle(pending, vencidas) {
   if (!projectSubtitleM) return;
-  projectSubtitleM.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
+  // En móvil solo lo esencial: lo que queda y, si lo hay, lo vencido.
+  var txt = pending + " pendiente" + (pending === 1 ? "" : "s");
+  if (vencidas) txt += " · " + vencidas + " vencida" + (vencidas === 1 ? "" : "s");
+  projectSubtitleM.textContent = txt;
 }
 const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
@@ -3086,14 +3089,55 @@ function _renderTasksFooter(project, isInbox) {
       poolTasks = poolTasks.concat(p.tasks || []);
     });
   }
-  const pending = poolTasks.filter(function(t) { return !t.done; }).length;
-  projectSubtitle.textContent = poolTasks.length + " tarea" + (poolTasks.length !== 1 ? "s" : "");
-  _setMobileSubtitle(pending);
+  const hoyISO = _localDateISO(new Date());
+  const pendientes = poolTasks.filter(function(t) { return !t.done; });
+  const pending = pendientes.length;
+  const vencidas = pendientes.filter(function(t) { return t.dueDate && t.dueDate < hoyISO; }).length;
+  const paraHoy  = pendientes.filter(function(t) { return t.dueDate === hoyISO; }).length;
+  // La siguiente fecha por llegar (sin contar hoy ni lo vencido): es lo que
+  // obligaba a recorrer la lista con la vista para saberlo.
+  const proxima = pendientes
+    .filter(function(t) { return t.dueDate && t.dueDate > hoyISO; })
+    .map(function(t) { return t.dueDate; })
+    .sort()[0];
+
+  projectSubtitle.innerHTML = _subtituloEstado({
+    total: poolTasks.length, pendientes: pending, vencidas: vencidas, paraHoy: paraHoy, proxima: proxima,
+  });
+  // El anillo de progreso, el mismo de Hoy y el de cada lista en la barra
+  // lateral. Sin tareas no hay nada que medir y se retira.
+  _renderHoyHeaderExtra(poolTasks.length - pending, poolTasks.length, 0);
+  _setMobileSubtitle(pending, vencidas);
   var mobileHeaderCount = document.getElementById("mobile-header-count");
   if (mobileHeaderCount) mobileHeaderCount.textContent = pending + " pendiente" + (pending === 1 ? "" : "s");
   document.title = pending > 0
     ? "(" + pending + ") " + project.name + " — AnTrack"
     : project.name + " — AnTrack";
+}
+
+/**
+ * Subtítulo de estado de una vista: «8 pendientes · 2 vencidas · 3 para hoy
+ * · próxima: mar 23». Sin nada pendiente, «Todo hecho»; sin tareas, «Sin
+ * tareas todavía». Devuelve HTML porque las vencidas van teñidas.
+ */
+function _subtituloEstado(d) {
+  if (!d.total) return escHtml(t("header.empty"));
+  if (!d.pendientes) return '<span class="subtitle-hecho">' + escHtml(t("header.all_done")) + "</span>";
+  var partes = [escHtml(_plural(d.pendientes, "header.pending_one", "header.pending_other"))];
+  if (d.vencidas) {
+    partes.push('<span class="subtitle-vencidas">' +
+      escHtml(_plural(d.vencidas, "header.overdue_one", "header.overdue_other")) + "</span>");
+  }
+  if (d.paraHoy) partes.push(escHtml(t("header.for_today").replace("{n}", String(d.paraHoy))));
+  if (d.proxima) {
+    partes.push(escHtml(t("header.next").replace("{date}", formatDueLabel(d.proxima).toLowerCase())));
+  }
+  return partes.join('<span class="subtitle-sep">·</span>');
+}
+
+/** Elige singular o plural y sustituye {n}. */
+function _plural(n, claveUno, claveVarios) {
+  return t(n === 1 ? claveUno : claveVarios).replace("{n}", String(n));
 }
 
 /** Pinta un badge de solo lectura con la prioridad de la tarea (o nada). */
@@ -4989,6 +5033,19 @@ function renderTodayView() {
     _renderHoyHeaderExtra(hoyDoneStats, totalHoyStats, overdueRaw.filter(function(x) { return !x.task.done; }).length);
   }
 
+  // Junto a la fecha, lo que queda del día: sin esto había que restar de
+  // cabeza el «7 de 10 hechas» de la derecha.
+  if (projectSubtitle && activeView === "today") {
+    var quedanHoy = totalHoyStats - hoyDoneStats;
+    var fechaLarga = new Date().toLocaleDateString(getLang() === "en" ? "en-GB" : "es-ES",
+      { weekday: "long", day: "numeric", month: "long" });
+    fechaLarga = fechaLarga.charAt(0).toUpperCase() + fechaLarga.slice(1);
+    projectSubtitle.innerHTML = escHtml(fechaLarga) +
+      (quedanHoy > 0
+        ? '<span class="subtitle-sep">·</span>' + escHtml(t("header.left").replace("{n}", String(quedanHoy)))
+        : '<span class="subtitle-sep">·</span><span class="subtitle-hecho">' + escHtml(t("header.all_done")) + "</span>");
+  }
+
   // ── Día concreto elegido en la tira de calendario (modo simple móvil) ──
   // Sustituye a los tres bloques de siempre por uno solo con las tareas de
   // ese día. Las stats de la cabecera siguen siendo las de HOY (ya
@@ -5285,9 +5342,20 @@ function renderHabitsView() {
   var otros   = activos.filter(function(h) { return !isDueOn(h, today); });
   var hechos  = deHoy.filter(function(h) { return isDoneOn(h, today); }).length;
 
-  var cuenta = (activos.length === 1 ? t("habits.count_one") : t("habits.count_other"))
-    .replace("{count}", String(activos.length));
-  if (projectSubtitle)  projectSubtitle.textContent  = cuenta;
+  // «2 de 3 para hoy · mejor racha 12 días»: el estado del día y el dato que
+  // engancha, en vez del total de hábitos, que ya se ve en la lista.
+  var mejorRacha = activos.reduce(function(max, h) {
+    return Math.max(max, computeStreak(h, today));
+  }, 0);
+  var cuenta = deHoy.length
+    ? t("habits.today_of").replace("{done}", String(hechos)).replace("{total}", String(deHoy.length))
+    : t("habits.none_today");
+  if (projectSubtitle) {
+    projectSubtitle.innerHTML = escHtml(cuenta) + (mejorRacha > 0
+      ? '<span class="subtitle-sep">·</span>' +
+        escHtml(_plural(mejorRacha, "habits.best_streak_one", "habits.best_streak_other"))
+      : "");
+  }
   if (projectSubtitleM) projectSubtitleM.textContent = cuenta;
 
   // El anillo de la derecha mide el día, no el total: lo que tocaba hoy
@@ -5518,6 +5586,9 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   var host = document.querySelector(".tasks-header .header-actions");
   if (!host) return;
   var el = document.getElementById("hoy-header-extra");
+  // Sin tareas no hay progreso que enseñar: un «0 de 0 hechas 0%» en una
+  // lista recién creada es ruido. El subtítulo ya dice que está vacía.
+  if (!total) { if (el) el.remove(); return; }
   if (!el) {
     el = document.createElement("div");
     el.id = "hoy-header-extra";

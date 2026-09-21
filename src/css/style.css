@@ -13899,6 +13899,24 @@ button {
   }
 }
 
+/* Subtítulo de la cabecera como estado de la vista: «8 pendientes · 2
+   vencidas · próxima: mar 23». Los separadores y el color de lo vencido
+   repiten el lenguaje de las filas. */
+.subtitle-sep {
+  margin: 0 7px;
+  opacity: 0.45;
+}
+
+.subtitle-vencidas {
+  color: var(--c-overdue);
+  font-weight: var(--fw-semibold);
+}
+
+.subtitle-hecho {
+  color: var(--c-primary-500);
+  font-weight: var(--fw-semibold);
+}
+
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
    Primera tanda del rediseño de hovers (se quitaron todos para rehacerlos
    desde cero). Criterios, iguales para lo que venga después:
