@@ -2821,8 +2821,14 @@ function _idFila(el) {
  * el zoom de 1.1 de las pantallas grandes y los transform no, así que se
  * divide (mismo motivo que en el indicador de la barra lateral).
  */
+// Por encima de este número de filas no se anima nada: medir cada fila en
+// cada repintado costaba ~60ms de más con 1.500 tareas (con 500, ~8ms). En
+// una lista así nadie ve el deslizamiento de una fila entre cientos.
+var FILAS_MAX_ANIMAR = 400;
+
 function _capturarFilas() {
   if (!taskList || _sinAnimarFilas()) return null;
+  if (taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]").length > FILAS_MAX_ANIMAR) return null;
   var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
   var base = taskList.getBoundingClientRect();
   var mapa = {};
@@ -2840,7 +2846,7 @@ function _capturarFilas() {
     // repintado sería caro y al final solo se necesitan las filas que se
     // van (una o dos). El nodo sigue siendo válido aunque lo saquen del
     // documento, así que se clona entonces.
-    mapa[id] = { top: (r.top - base.top) / zoom, alto: r.height / zoom, el: el, ancho: el.offsetWidth,
+    mapa[id] = { top: (r.top - base.top) / zoom, alto: r.height / zoom, el: el,
       seccion: bloque ? _idSeccion(bloque) : null };
   });
   return {
@@ -3020,11 +3026,23 @@ function _animarFilas(antes) {
     });
   }
 
+  // Solo se anima lo que se ve: al completar una tarea en una lista larga
+  // se desplazan todas las de debajo, y crear cientos de animaciones para
+  // filas fuera de pantalla costaba decenas de milisegundos en cada clic.
+  // Franja visible, con media pantalla de margen, en coordenadas de la lista.
+  var vista = document.querySelector(".task-list-scroll");
+  var rv = vista ? vista.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+  var margenVista = (rv.bottom - rv.top) / 2;
+  var franjaArriba = (rv.top - base.top - margenVista) / zoom;
+  var franjaAbajo  = (rv.bottom - base.top + margenVista) / zoom;
+  function fueraDeVista(top, alto) { return top + alto < franjaArriba || top > franjaAbajo; }
+
   Object.keys(ahora).forEach(function(id) {
     var el = ahora[id];
     var sitio = antes.filas[id];
     var r = el.getBoundingClientRect();
     var top = (r.top - base.top) / zoom;
+    if (fueraDeVista(top, r.height / zoom) && (!sitio || fueraDeVista(sitio.top, sitio.alto))) return;
 
     // ── Lo que llega: se abre en altura ──
     if (!sitio) {
@@ -5779,6 +5797,13 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
     _showHabitMenu(habit, li);
+  });
+  // Alcanzable con el teclado, como las filas de tarea: Tab llega a ella e
+  // Intro o Espacio abren su menú.
+  li.tabIndex = 0;
+  li.addEventListener("keydown", function(e) {
+    if (e.target !== li) return;
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); _showHabitMenu(habit, li); }
   });
 
   return li;
