@@ -431,6 +431,24 @@ window.addEventListener("antrack:reminderfired", function () {
   saveAndRender();
 });
 
+// ─── CABECERA AL DESPLAZAR ───────────────────────────────────
+// Con la lista movida, la cabecera se separa del contenido con una línea
+// algo más marcada y una sombra corta: así se nota que arriba queda algo
+// en vez de parecer que la lista empieza ahí.
+(function() {
+  var scroller = document.querySelector(".task-list-scroll");
+  if (!scroller) return;
+  var marcada = false;
+  function pintar() {
+    var toca = scroller.scrollTop > 4;
+    if (toca === marcada) return;
+    marcada = toca;
+    scroller.classList.toggle("lista-desplazada", toca);
+  }
+  scroller.addEventListener("scroll", pintar, { passive: true });
+  pintar();
+})();
+
 // ─── OCULTAR PANTALLA DE CARGA ───────────────────────────────
 // Se desvanece en cuanto la app ha pintado el primer frame real.
 (function() {
@@ -2753,6 +2771,290 @@ async function showInboxMenu(inboxProject, x, y) {
  * por tarea, y todo el coste de lucide.createIcons() sobre nodos
  * que no han cambiado. Antes con 200 tareas era jank visible.
  */
+// ═══════════════════════════════════════════════════════════════
+// ANIMACIÓN DE LAS FILAS DE LA LISTA
+//
+// La lista se repinta entera en cada guardado, así que no se puede animar
+// "al crear" o "al borrar" desde quien hace el cambio: se compara dónde
+// estaba cada fila antes con dónde está después.
+//
+//   · la que aparece se abre en altura,
+//   · la que desaparece se queda como copia suelta y se desvanece en su
+//     hueco (mientras las de abajo suben con el punto siguiente),
+//   · la que cambia de sitio —al completarla, al ponerle fecha, al moverla
+//     a hoy— se desliza hasta su nueva posición en vez de saltar.
+//
+// Solo cuando el cambio es pequeño (hasta 3 altas o bajas): al cambiar de
+// vista, filtrar o importar cambia la lista entera y animarla sería ruido.
+// ═══════════════════════════════════════════════════════════════
+// Entradas y desplazamientos: salida suave, sin rebote. El cierre va algo
+// más largo porque recorre toda la altura de la fila y a 240ms se leía
+// como un corte.
+var FILA_MS = 280;
+var FILA_SALIDA_MS = 320;
+var FILA_CURVA = "cubic-bezier(0.25, 1, 0.3, 1)";
+var FILA_CURVA_SALIDA = "cubic-bezier(0.33, 0, 0.15, 1)";
+var _filasVistaClave = null;
+// Momento del último cambio de vista: activar una vista dispara dos o tres
+// repintados seguidos (sidebar, detalle, lista) y el segundo ya comparte
+// clave con el primero, así que sin este margen la lista entera se animaba
+// al entrar en ella.
+var _filasVistaDesde = 0;
+
+/** Identifica la vista pintada: si cambia, no se anima nada. */
+function _claveVistaLista() {
+  return [activeView, activeProjectId, currentFilter, _hoySelectedDate || "", _hoyTab || ""].join("|");
+}
+
+/** Id de un bloque de sección (Hoy) o de grupo (Inbox agrupado). */
+function _idSeccion(el) {
+  return el.dataset.seccion || ("grupo|" + el.dataset.groupId);
+}
+
+/** Id de tarea o de hábito de una fila de la lista. */
+function _idFila(el) {
+  return el.dataset.taskId || el.dataset.hoyTaskId || el.dataset.habitId || null;
+}
+
+/**
+ * Posición y alto de cada fila, en píxeles de CSS. El rect va escalado por
+ * el zoom de 1.1 de las pantallas grandes y los transform no, así que se
+ * divide (mismo motivo que en el indicador de la barra lateral).
+ */
+function _capturarFilas() {
+  if (!taskList || _sinAnimarFilas()) return null;
+  var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  var base = taskList.getBoundingClientRect();
+  var mapa = {};
+  var secciones = {};
+  taskList.querySelectorAll("[data-seccion], [data-group-id]").forEach(function(el) {
+    var r = el.getBoundingClientRect();
+    secciones[_idSeccion(el)] = { alto: r.height / zoom, el: el };
+  });
+  taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]").forEach(function(el) {
+    var id = _idFila(el);
+    if (!id) return;
+    var bloque = el.closest("[data-seccion], [data-group-id]");
+    var r = el.getBoundingClientRect();
+    // Se guarda el nodo, no una copia: clonar toda la lista en cada
+    // repintado sería caro y al final solo se necesitan las filas que se
+    // van (una o dos). El nodo sigue siendo válido aunque lo saquen del
+    // documento, así que se clona entonces.
+    mapa[id] = { top: (r.top - base.top) / zoom, alto: r.height / zoom, el: el, ancho: el.offsetWidth,
+      seccion: bloque ? _idSeccion(bloque) : null };
+  });
+  return {
+    clave: _claveVistaLista(), filas: mapa, orden: Object.keys(mapa),
+    secciones: secciones, ordenSecciones: Object.keys(secciones),
+  };
+}
+
+function _sinAnimarFilas() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Lo mismo que _anclaFilaIda, para un bloque de sección o de grupo. */
+function _anclaSeccionIda(orden, clave, ahora) {
+  var i = orden.indexOf(clave);
+  for (var j = i + 1; j < orden.length; j++) {
+    var sig = ahora[orden[j]];
+    if (sig) return { padre: sig.parentNode, antesDe: sig };
+  }
+  for (var k = i - 1; k >= 0; k--) {
+    var prev = ahora[orden[k]];
+    if (prev) return { padre: prev.parentNode, antesDe: prev.nextSibling };
+  }
+  return { padre: taskList, antesDe: null };
+}
+
+/**
+ * Dónde reinsertar la copia de una fila que se va: delante de la primera
+ * de las que la seguían que siga en pantalla y, si era la última, detrás de
+ * la anterior. Devuelve el padre real (la fila puede vivir dentro de un
+ * bloque de sección o de grupo, no colgando de la lista).
+ */
+function _anclaFilaIda(orden, id, ahora) {
+  var i = orden.indexOf(id);
+  for (var j = i + 1; j < orden.length; j++) {
+    var sig = ahora[orden[j]];
+    if (sig) return { padre: sig.parentNode, antesDe: sig };
+  }
+  for (var k = i - 1; k >= 0; k--) {
+    var prev = ahora[orden[k]];
+    if (prev) return { padre: prev.parentNode, antesDe: prev.nextSibling };
+  }
+  return null;
+}
+
+/**
+ * Entrada escalonada al cambiar de vista: las primeras filas aparecen con
+ * unos milisegundos de diferencia, de arriba abajo. Solo al cambiar de vista
+ * o de filtro —nunca al marcar una tarea— y solo las que caben en pantalla:
+ * escalonar cien filas sería una espera, no un detalle.
+ */
+var ENTRADA_FILAS = 10;
+
+function _entradaEscalonada() {
+  if (!taskList || _sinAnimarFilas()) return;
+  var filas = taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]");
+  if (!filas.length) return;
+  var alto = window.innerHeight;
+  var n = 0;
+  filas.forEach(function(el) {
+    if (n >= ENTRADA_FILAS) return;
+    var r = el.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > alto) return;   // fuera de pantalla: sin animar
+    el.animate([
+      { opacity: 0, transform: "translateY(7px)" },
+      { opacity: 1, transform: "translateY(0)" },
+    ], { duration: 220, delay: n * 22, easing: FILA_CURVA, fill: "backwards" });
+    n++;
+  });
+}
+
+function _animarFilas(antes) {
+  if (!taskList || !antes || _sinAnimarFilas()) { _filasVistaClave = _claveVistaLista(); return; }
+  // Cambio de vista, de filtro o de día: la lista es otra, no hay nada que
+  // comparar.
+  if (antes.clave !== _claveVistaLista() || _claveVistaLista() !== _filasVistaClave) {
+    // Primer repintado de la vista nueva: no hay nada que comparar (era otra
+    // lista), así que las filas entran escalonadas.
+    if (_claveVistaLista() !== _filasVistaClave) _entradaEscalonada();
+    _filasVistaClave = _claveVistaLista();
+    _filasVistaDesde = performance.now();
+    return;
+  }
+  if (performance.now() - _filasVistaDesde < 350) return;
+
+  var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  var base = taskList.getBoundingClientRect();
+  var ahora = {};
+  taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]").forEach(function(el) {
+    var id = _idFila(el);
+    if (id) ahora[id] = el;
+  });
+
+  var seccionesAhora = {};
+  taskList.querySelectorAll("[data-seccion], [data-group-id]").forEach(function(el) {
+    seccionesAhora[_idSeccion(el)] = el;
+  });
+  var seccionesNuevas = Object.keys(seccionesAhora).filter(function(k) { return !antes.secciones[k]; });
+  var seccionesIdas   = (antes.ordenSecciones || []).filter(function(k) { return !seccionesAhora[k]; });
+
+  var nuevas = Object.keys(ahora).filter(function(id) { return !antes.filas[id]; });
+  var idas   = antes.orden.filter(function(id) { return !ahora[id]; });
+  // Altas o bajas en masa (importar, sincronizar, vaciar completadas): se
+  // pinta sin más.
+  var masivo = nuevas.length > 3 || idas.length > 3;
+
+  // ── Bloques enteros: se cierran y se abren como las filas ──
+  // Al mover la última vencida, «VENCIDAS» desaparecía de golpe. Ahora se
+  // cierra en altura con sus filas dentro, así que la copia del bloque ya
+  // incluye la fila que se va y esa no necesita la suya (ver más abajo).
+  var seccionCerrandose = !masivo && seccionesIdas.length > 0 && seccionesIdas.length <= 2;
+  if (seccionCerrandose) {
+    seccionesIdas.forEach(function(clave) {
+      var sitio = antes.secciones[clave];
+      if (!sitio || !sitio.el) return;
+      var ancla = _anclaSeccionIda(antes.ordenSecciones, clave, seccionesAhora);
+      if (!ancla) return;
+      var copia = sitio.el.cloneNode(true);
+      copia.removeAttribute("data-seccion");
+      copia.removeAttribute("data-group-id");
+      copia.setAttribute("aria-hidden", "true");
+      copia.classList.add("fila-saliendo");
+      ancla.padre.insertBefore(copia, ancla.antesDe);
+      copia.animate([
+        { height: sitio.alto + "px", opacity: 1 },
+        { opacity: 0, offset: 0.45 },
+        { height: "0px", opacity: 0, marginTop: "0px", marginBottom: "0px",
+          paddingTop: "0px", paddingBottom: "0px" },
+      ], { duration: FILA_SALIDA_MS, easing: FILA_CURVA_SALIDA, fill: "forwards" })
+        .onfinish = function() { copia.remove(); };
+    });
+  }
+
+  if (!masivo && seccionesNuevas.length && seccionesNuevas.length <= 2) {
+    seccionesNuevas.forEach(function(clave) {
+      var el = seccionesAhora[clave];
+      var alto = el.getBoundingClientRect().height / zoom;
+      el.style.overflow = "hidden";
+      el.animate([
+        { height: "0px", opacity: 0, marginTop: "0px", marginBottom: "0px" },
+        { height: alto + "px", opacity: 1 },
+      ], { duration: FILA_MS, easing: FILA_CURVA })
+        .onfinish = function() { el.style.overflow = ""; };
+    });
+  }
+
+  // ── Lo que se va: su copia vuelve al hueco y lo cierra ──
+  // En el sitio exacto que ocupaba y dentro del flujo, no flotando encima:
+  // así son sus propios píxeles los que empujan hacia arriba a las de abajo
+  // mientras se cierra, en vez de cruzarse un desvanecido con un
+  // deslizamiento (que se leía sucio). Mismo gesto que borrar una lista en
+  // la barra lateral.
+  var cerrando = false;
+  if (!masivo) {
+    idas.forEach(function(id) {
+      var sitio = antes.filas[id];
+      if (!sitio || !sitio.el) return;
+      // Su bloque entero se está cerrando y la copia ya la lleva dentro.
+      if (sitio.seccion && seccionesIdas.indexOf(sitio.seccion) !== -1) return;
+      var ancla = _anclaFilaIda(antes.orden, id, ahora);
+      if (!ancla) return;
+      var copia = sitio.el.cloneNode(true);
+      copia.removeAttribute("data-task-id");
+      copia.removeAttribute("data-hoy-task-id");
+      copia.removeAttribute("data-habit-id");
+      copia.setAttribute("aria-hidden", "true");
+      copia.classList.add("fila-saliendo");
+      ancla.padre.insertBefore(copia, ancla.antesDe);
+      cerrando = true;
+      copia.animate([
+        { height: sitio.alto + "px", opacity: 1 },
+        { opacity: 0, offset: 0.45 },
+        { height: "0px", opacity: 0, marginBottom: "0px", paddingTop: "0px", paddingBottom: "0px",
+          borderTopWidth: "0px", borderBottomWidth: "0px" },
+      ], { duration: FILA_SALIDA_MS, easing: FILA_CURVA_SALIDA, fill: "forwards" })
+        .onfinish = function() { copia.remove(); };
+    });
+  }
+
+  Object.keys(ahora).forEach(function(id) {
+    var el = ahora[id];
+    var sitio = antes.filas[id];
+    var r = el.getBoundingClientRect();
+    var top = (r.top - base.top) / zoom;
+
+    // ── Lo que llega: se abre en altura ──
+    if (!sitio) {
+      if (masivo) return;
+      // Dentro de un bloque que se está abriendo: ya entra con él.
+      var bloque = el.closest("[data-seccion], [data-group-id]");
+      if (bloque && seccionesNuevas.indexOf(_idSeccion(bloque)) !== -1) return;
+      var alto = r.height / zoom;
+      el.style.overflow = "hidden";
+      el.animate([
+        { height: "0px", opacity: 0, marginBottom: "0px" },
+        { height: alto + "px", opacity: 1 },
+      ], { duration: FILA_MS, easing: FILA_CURVA })
+        .onfinish = function() { el.style.overflow = ""; };
+      return;
+    }
+
+    // ── Lo que cambia de sitio: se desliza desde donde estaba ──
+    // Con una fila cerrándose no hace falta: ya las está empujando ella, y
+    // animarlas además las movería dos veces.
+    if (cerrando || seccionCerrandose) return;
+    var salto = sitio.top - top;
+    if (Math.abs(salto) < 2) return;
+    el.animate([{ transform: "translateY(" + salto + "px)" }, { transform: "translateY(0)" }],
+      { duration: FILA_MS, easing: FILA_CURVA });
+  });
+
+  _filasVistaClave = _claveVistaLista();
+}
+
 function renderTasks() {
   // La vista de Hoy y el Inbox agrupado rehacen bloques enteros, y quitar
   // contenido por encima del punto de lectura empuja el scroll hacia
@@ -2760,9 +3062,12 @@ function renderTasks() {
   // Se guarda la posición y se restaura tras pintar.
   var _scroller = document.querySelector(".task-list-scroll");
   var _scrollTop = _scroller ? _scroller.scrollTop : 0;
+  // Dónde estaba cada fila antes de repintar, para animar lo que entra, lo
+  // que sale y lo que cambia de sitio (ver _animarFilas).
+  var _filasAntes = _capturarFilas();
   function _restaurarScroll() {
-    if (!_scroller || _scroller.scrollTop === _scrollTop) return;
-    _scroller.scrollTop = _scrollTop;
+    if (_scroller && _scroller.scrollTop !== _scrollTop) _scroller.scrollTop = _scrollTop;
+    _animarFilas(_filasAntes);
   }
 
   // Con la app abierta al cambiar el día, las recurrentes completadas ayer
@@ -5210,6 +5515,10 @@ var _hoyQuickAddRefocus = false;
 function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   var li = document.createElement("li");
   li.className = "hoy-section hoy-section--" + tone;
+  // Identifica la sección para animar su cierre y su apertura (ver
+  // _animarFilas). Con el rótulo además del tono: «Para hoy» y el día
+  // elegido en la tira del calendario comparten tono.
+  li.dataset.seccion = tone + "|" + label;
   var head = document.createElement("div");
   head.className = "hoy-section-head";
   // Icono por tono, como el prototipo: sol para hoy, aviso para lo vencido
@@ -5414,6 +5723,9 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
     (noTocaHoy ? " today-item--notdue" : "") +
     (celebra ? " today-item--celebrate" : "") +
     (reabre ? " today-item--reopen" : "");
+  // Identifica la fila para las animaciones de la lista (entrar, salir,
+  // cambiar de sitio): sin esto los hábitos se quedaban fuera.
+  li.dataset.habitId = habit.id;
 
   var check = _todayCheckEl(hecho, noTocaHoy ? t("habits.not_due") : t("hoy.habit_done_toggle"));
   var cb = check.cb;

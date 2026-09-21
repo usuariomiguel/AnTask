@@ -13917,6 +13917,51 @@ button {
   font-weight: var(--fw-semibold);
 }
 
+/* Copia de una fila que se va, cerrándose en su propio hueco (ver
+   _animarFilas en script.js). Va en el flujo: son sus píxeles los que
+   empujan hacia arriba a las de abajo, en vez de cruzarse un desvanecido
+   con un deslizamiento. */
+.fila-saliendo {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Con la lista desplazada, una sombra fina justo en el borde por donde se
+   va el contenido (ver «CABECERA AL DESPLAZAR» en script.js). Va en el
+   propio contenedor del scroll y no en la cabecera: encima de la lista
+   están los filtros, y la sombra tiene que salir de donde algo se esconde.
+   Pegajosa y con margen negativo: marca el borde sin ocupar sitio. */
+.task-list-scroll::before {
+  content: "";
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 12px;
+  margin-bottom: -12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--text-primary) 13%, transparent), transparent);
+  /* Los extremos se apagan hacia los lados y las esquinas van redondeadas:
+     cortado en seco, el degradado dejaba dos cantos rectos en una interfaz
+     donde todo lo demás es redondo. */
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+
+.task-list-scroll.lista-desplazada::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-list-scroll::before {
+    transition: none;
+  }
+}
+
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
    Primera tanda del rediseño de hovers (se quitaron todos para rehacerlos
    desde cero). Criterios, iguales para lo que venga después:
