@@ -6324,6 +6324,13 @@ function renderTodayItem(task, project, todayStr, tone) {
     if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
     openTaskDetail(task.id, project.id);
   });
+  // Alcanzable con el teclado, como las filas de las listas: Tab llega a
+  // ella e Intro o Espacio hacen lo mismo que el clic.
+  li.tabIndex = 0;
+  li.addEventListener("keydown", function(e) {
+    if (e.target !== li) return;
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
+  });
 
   // Mismo gesto que en Inbox/listas (mover a hoy / eliminar) — antes solo
   // estaba en _buildTaskNode, así que Hoy no tenía swipe.

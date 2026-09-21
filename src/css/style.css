@@ -3468,22 +3468,12 @@ button:focus-visible {
   animation: none;
 }
 
-/* Mismo hover que la vista Hoy (.today-item): realce, sombra proyectada
-   y una elevación de 1px. El tema claro no lo redeclara —Hoy tampoco—
-   porque los tokens ya se encargan del color. */
 
-.task-item:focus-visible {
-  outline: none;
-  border-color: var(--c-primary-500);
-  box-shadow: var(--ring-primary);
-}
 
 :root[data-theme="light"] .task-item {
   box-shadow: var(--shadow-sm);
 }
 
-/* En claro hay que repetir la sombra del hover: la regla de reposo de
-   arriba es más específica que `.task-item:hover` y si no, gana ella. */
 
 /* ─── ESTILOS DE FILA (como el prototipo v1) ───────────────────
    El estilo por defecto de .task-item es "Tarjetas". Estas variantes
@@ -7021,8 +7011,8 @@ mark.search-hl {
    cuál era la fila abierta de verdad). */
 .task-item.detail-open,
 .today-item.detail-open {
-  background: rgba(163, 179, 102, 0.09);
-  border-color: rgba(163, 179, 102, 0.38) !important;
+  background: var(--task-hover);
+  border-color: var(--task-hover-border) !important;
 }
 
 
@@ -13986,6 +13976,70 @@ button {
 
 .task-item.drag-oculta {
   visibility: hidden;
+}
+
+/* ─── FILAS DE TAREA: HOVER, FOCO Y ABIERTA ──────────────────────
+   Jerarquía, de menos a más: hover (neutro, solo con ratón) < foco de
+   teclado (anillo de acento separado del borde) < abierta en el detalle
+   (tinte de acento, ver .detail-open). Nada se mueve ni cambia de tamaño.
+   Mientras se arrastra no hay hover: manda el hueco o la línea. */
+@media (hover: hover) and (pointer: fine) {
+  :is(.task-item, .today-item) {
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+
+  /* Tarjetas: el fondo sube un punto y el borde se marca. */
+  body:not(.task-dragging) .task-list:not([data-row-style="limpio"]) :is(.task-item, .today-item):not(.detail-open):hover {
+    background: color-mix(in srgb, var(--text-primary) 3%, var(--surface-card));
+    border-color: var(--border-strong);
+  }
+
+  /* Limpio: el mismo tinte neutro que la barra lateral. */
+  body:not(.task-dragging) .task-list[data-row-style="limpio"] :is(.task-item, .today-item):not(.detail-open):hover {
+    background: color-mix(in srgb, var(--text-primary) 5%, var(--capa-canvas));
+  }
+
+  /* El círculo de completar invita a pulsarse: al pasar por la fila se tiñe
+     de acento, y sobre el propio círculo asoma el tick como vista previa. */
+  :is(.task-item, .today-item):hover :is(.task-toggle, .today-check):not(:checked):not(:disabled) {
+    border-color: color-mix(in srgb, var(--c-primary-500) 75%, transparent);
+    opacity: 1;
+  }
+
+  :is(.task-toggle, .today-check):not(:checked):not(:disabled):hover ~ .task-check {
+    opacity: 0.55;
+    transition: opacity 0.12s ease;
+    stroke: var(--c-primary-500);
+  }
+
+  :is(.task-toggle, .today-check):not(:checked):not(:disabled):hover ~ .task-check path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.2s ease-out;
+  }
+}
+
+/* Foco de teclado: un anillo de acento por dentro de la fila (por fuera lo
+   recortaba la lista, que corta lo que sobresale por los lados). Sólido y
+   sin tinte de fondo, así no se confunde con la tarea abierta. Solo con
+   teclado. Con :root delante porque «Limpio» quita la sombra de las filas
+   con más peso que una clase suelta. */
+:root .task-list :is(.task-item, .today-item):focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--c-primary-500);
+}
+
+/* Abierta en el detalle: su tinte de acento también en «Limpio», que deja
+   las filas transparentes con más peso que .detail-open. */
+:root .task-list :is(.task-item, .today-item).detail-open {
+  background: var(--task-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.task-item, .today-item),
+  :is(.task-toggle, .today-check) ~ .task-check,
+  :is(.task-toggle, .today-check) ~ .task-check path {
+    transition: none !important;
+  }
 }
 
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
