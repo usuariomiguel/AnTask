@@ -109,17 +109,6 @@ function arrastrar(page, origen, destino, desplazamientos) {
 }
 const orden = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("anso-projects"))[1].tasks.map((t) => t.text).join(""));
 
-test("la línea no palpita cerca de la mitad de la fila", async ({ page }) => {
-  await cargaLista(page);
-  // Temblor de ±5px alrededor de la mitad de «D», 30 veces
-  const temblor = Array.from({ length: 30 }, (_, i) => (i % 2 ? 5 : -5));
-  const r = await arrastrar(page, "A", "D", temblor);
-  console.log("temblor:", JSON.stringify(r));
-  expect(r.lineas).toBe(1);        // una sola línea, no recreada
-  expect(r.movimientos).toBe(1);   // colocada una vez y quieta
-  expect(r.filasMovidas).toBe(false);
-});
-
 test("cae exactamente donde marca la línea", async ({ page }) => {
   await cargaLista(page);
   // Hacia abajo, delante de D (mitad de arriba): A pasa entre C y D
@@ -133,4 +122,105 @@ test("cae exactamente donde marca la línea", async ({ page }) => {
   // Hacia arriba, delante de C
   await arrastrar(page, "E", "C", [-15]);
   expect(await orden(page)).toBe("ECADB");
+});
+
+// ── Hueco al arrastrar ──
+// En una lista normal las filas se apartan y dejan hueco (sin línea); en el
+// Inbox con tareas de otras listas se mantiene la línea.
+
+async function cargaHueco(page) {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem("antrack_consent", "essential");
+    localStorage.setItem("antrack-onboarded", "1");
+    localStorage.setItem("antrack_lang", "es");
+    localStorage.setItem("antrack-mode", "full");
+    const T = (id, text) => ({ id, text, comment: "", done: false, priority: null, dueDate: null, recurDays: null, reminderAt: null, timeLogged: 0, log: {}, subtasks: [] });
+    localStorage.setItem("anso-projects", JSON.stringify([
+      { id: "__inbox__", name: "Inbox", createdAt: "2026-01-01T00:00:00.000Z", sectionId: null, archived: false, icon: "", color: "", tasks: [T("x", "Suelta")] },
+      { id: "p1", name: "Trabajo", createdAt: "2026-01-01T00:00:00.000Z", sectionId: null, archived: false, icon: "", color: "#b0473f",
+        tasks: [T("a", "A"), T("b", "B"), T("c", "C"), T("d", "D"), T("e", "E")] },
+    ]));
+  });
+  await page.goto("/");
+  await page.waitForSelector("li[data-project-id='p1']", { timeout: 15000 });
+  await page.click("li[data-project-id='p1']");
+  await page.waitForTimeout(700);
+}
+
+// Arrastra `origen`, pasea el ratón por las alturas (relativas a la mitad de
+// `sobre`) y suelta o cancela. Devuelve los transform en el último paso.
+function arrastrarHueco(page, origen, sobre, desplazamientos, soltar) {
+  return page.evaluate(async ([origen, sobre, desplazamientos, soltar]) => {
+    const fila = (t) => [...document.querySelectorAll("#task-list .task-item")].find((el) => el.querySelector(".task-text").textContent.trim() === t);
+    const lista = document.getElementById("task-list");
+    const src = fila(origen), ref = fila(sobre);
+    src.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    const dt = new DataTransfer();
+    src.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+    await new Promise((r) => setTimeout(r, 30));
+    const r = ref.getBoundingClientRect();
+    const mitad = r.top + r.height / 2;
+    const conHueco = lista.classList.contains("lista-con-hueco");
+    let cambios = 0, ultimo = null;
+    for (const d of desplazamientos) {
+      lista.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 40, clientY: mitad + d }));
+      const firma = [...lista.querySelectorAll(".task-item")].map((el) => el.style.transform).join("|");
+      if (firma !== ultimo) { cambios++; ultimo = firma; }
+    }
+    const transforms = [...lista.querySelectorAll(".task-item")].map((el) => el.querySelector(".task-text").textContent.trim() + ":" + (el.style.transform || "-"));
+    const linea = !!lista.querySelector(".drop-indicator");
+    if (soltar) lista.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientY: mitad + desplazamientos[desplazamientos.length - 1] }));
+    src.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+    return { conHueco, cambios, transforms, linea };
+  }, [origen, sobre, desplazamientos, soltar]);
+}
+const ordenHueco = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("anso-projects"))[1].tasks.map((t) => t.text).join(""));
+const restos = (page) => page.evaluate(() => [...document.querySelectorAll("#task-list .task-item")].filter((el) => el.style.transform || el.classList.contains("drag-oculta")).length);
+
+test("las filas abren hueco y la tarea cae en él", async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (e) => errores.push(e.message));
+  await cargaHueco(page);
+  // A hacia abajo, a la mitad de abajo de C: B y C suben, hueco entre C y D.
+  const r = await arrastrarHueco(page, "A", "C", [15], true);
+    expect(r.conHueco).toBe(true);
+  expect(r.linea).toBe(false);
+  await page.waitForTimeout(500);
+  expect(await ordenHueco(page)).toBe("BCADE");
+  expect(await restos(page)).toBe(0);
+
+  // E hacia arriba, a la mitad de arriba de C: C y D bajan.
+  const r2 = await arrastrarHueco(page, "E", "C", [-15], true);
+    await page.waitForTimeout(500);
+  expect(await ordenHueco(page)).toBe("BECAD");
+  expect(errores).toEqual([]);
+});
+
+test("sin rebotes cerca del límite y al cancelar vuelve todo", async ({ page }) => {
+  await cargaHueco(page);
+  const temblor = Array.from({ length: 30 }, (_, i) => (i % 2 ? 5 : -5));
+  const r = await arrastrarHueco(page, "A", "D", temblor, false);
+    expect(r.cambios).toBe(1);
+  await page.waitForTimeout(400);
+  expect(await ordenHueco(page)).toBe("ABCDE");
+  expect(await restos(page)).toBe(0);
+});
+
+test("en el Inbox con tareas de otras listas sigue la línea", async ({ page }) => {
+  await cargaHueco(page);
+  await page.click(".project-item-inbox");
+  await page.waitForTimeout(600);
+  const hueco = await page.evaluate(() => {
+    const src = document.querySelector("#task-list .task-item");
+    src.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    const dt = new DataTransfer();
+    src.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+    const res = document.getElementById("task-list").classList.contains("lista-con-hueco");
+    src.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+    return res;
+  });
+  expect(hueco).toBe(false);
 });

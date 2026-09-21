@@ -13977,6 +13977,17 @@ button {
   }
 }
 
+/* Hueco al arrastrar (ver «HUECO AL ARRASTRAR» en script.js): las filas se
+   apartan con transform y una transición corta. La arrastrada deja de verse
+   en su sitio: su hueco lo cubren las de debajo. */
+.lista-con-hueco .task-item {
+  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.task-item.drag-oculta {
+  visibility: hidden;
+}
+
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
    Primera tanda del rediseño de hovers (se quitaron todos para rehacerlos
    desde cero). Criterios, iguales para lo que venga después:

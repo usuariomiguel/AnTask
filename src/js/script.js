@@ -3046,6 +3046,7 @@ function _animarFilas(antes) {
     // Con una fila cerrándose no hace falta: ya las está empujando ella, y
     // animarlas además las movería dos veces.
     if (cerrando || seccionCerrandose) return;
+    if (id === _huecoSoltadoId) return;
     var salto = sitio.top - top;
     if (Math.abs(salto) < 2) return;
     el.animate([{ transform: "translateY(" + salto + "px)" }, { transform: "translateY(0)" }],
@@ -3053,6 +3054,7 @@ function _animarFilas(antes) {
   });
 
   _filasVistaClave = _claveVistaLista();
+  _huecoSoltadoId = null;
 }
 
 function renderTasks() {
@@ -3065,6 +3067,7 @@ function renderTasks() {
   // Dónde estaba cada fila antes de repintar, para animar lo que entra, lo
   // que sale y lo que cambia de sitio (ver _animarFilas).
   var _filasAntes = _capturarFilas();
+  _limpiarHuecoAlRepintar();
   function _restaurarScroll() {
     if (_scroller && _scroller.scrollTop !== _scrollTop) _scroller.scrollTop = _scrollTop;
     _animarFilas(_filasAntes);
@@ -6709,12 +6712,17 @@ function initDragDrop(node, taskId) {
     dragSrcId = taskId;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", taskId);
-    setTimeout(function() { node.classList.add("drag-ghost"); }, 0);
+    _empezarHueco(node);
+    setTimeout(function() {
+      node.classList.add("drag-ghost");
+      if (_hueco) node.classList.add("drag-oculta");
+    }, 0);
     document.body.classList.add("task-dragging");
   });
 
   node.addEventListener("dragend", function() {
-    node.classList.remove("drag-ghost");
+    _cancelarHueco();
+    node.classList.remove("drag-ghost", "drag-oculta");
     node.setAttribute("draggable", "false");
     removeDropIndicator();
     dragSrcId = null;
@@ -6725,6 +6733,7 @@ function initDragDrop(node, taskId) {
   });
 
   node.addEventListener("dragover", function(e) {
+    if (_hueco) return;   // lo lleva el contenedor (ver _moverHueco)
     if (!dragSrcId || dragSrcId === taskId || !_reordenableAqui(node)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
@@ -6739,6 +6748,7 @@ function initDragDrop(node, taskId) {
   });
 
   node.addEventListener("drop", function(e) {
+    if (_hueco) return;   // lo lleva el contenedor (ver _soltarEnHueco)
     e.preventDefault();
     if (!dragSrcId || dragSrcId === taskId || !_reordenableAqui(node)) { removeDropIndicator(); return; }
 
@@ -6768,6 +6778,144 @@ function initDragDrop(node, taskId) {
 
     removeDropIndicator();
     saveAndRender();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HUECO AL ARRASTRAR (listas)
+//
+// En vez de una línea, las filas se apartan y dejan un hueco del tamaño de
+// la tarea donde va a caer; la tarea arrastrada deja de ocupar su sitio y
+// las de debajo suben a cubrirlo. Todo con transform, sin tocar el
+// maquetado, así que ninguna fila cambia de sitio "de verdad" hasta soltar.
+//
+// El hueco se calcula con la posición del ratón contra dónde estaban las
+// filas al empezar (no contra la fila que queda debajo, que se está
+// moviendo): así no hay rebotes. Con un margen de 8px en cada límite.
+//
+// Solo en una lista normal, donde todas las filas se pueden reordenar. En el
+// Inbox agrupado o con tareas de otras listas se mantiene la línea.
+// ═══════════════════════════════════════════════════════════════
+var _hueco = null;
+var _huecoSoltadoId = null;   // la que acaba de caer: no se anima al repintar
+
+function _huecoDisponible() {
+  if (_sinAnimarFilas() || activeView !== "project") return false;
+  if (taskList.classList.contains("task-list--grupos")) return false;
+  return !taskList.querySelector(".task-item.task-item--foreign");
+}
+
+function _empezarHueco(src) {
+  _hueco = null;
+  if (!_huecoDisponible()) return;
+  var scroller = document.querySelector(".task-list-scroll");
+  var desplazado = scroller ? scroller.scrollTop : 0;
+  var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  var filas = Array.prototype.slice.call(taskList.querySelectorAll(".task-item[data-task-id]"));
+  var srcIndex = filas.indexOf(src);
+  if (srcIndex === -1 || filas.length < 2) return;
+  var info = filas.map(function(el) {
+    var r = el.getBoundingClientRect();
+    return { el: el, top: r.top + desplazado, alto: r.height };
+  });
+  // Lo que ocupa la tarea: su alto más el hueco hasta la siguiente fila.
+  var siguiente = info[srcIndex + 1] || info[srcIndex - 1];
+  var paso = Math.abs(siguiente.top - info[srcIndex].top);
+  if (!paso) paso = info[srcIndex].alto;
+  _hueco = {
+    src: src, srcIndex: srcIndex, filas: info, paso: paso, zoom: zoom,
+    scroller: scroller, destino: srcIndex,
+  };
+  taskList.classList.add("lista-con-hueco");
+}
+
+/** Índice (entre las demás filas) donde caería la tarea con el ratón en y. */
+function _indiceHueco(clientY) {
+  var h = _hueco;
+  var y = clientY + (h.scroller ? h.scroller.scrollTop : 0);
+  var otras = h.filas.filter(function(_, i) { return i !== h.srcIndex; });
+  var indice = 0;
+  otras.forEach(function(f, j) {
+    var mitad = f.top + f.alto / 2;
+    // Margen: para pasar un límite hay que cruzarlo 8px; si no, se queda.
+    var margen = j < h.destino ? -DROP_MARGEN : DROP_MARGEN;
+    if (y > mitad + margen) indice = j + 1;
+  });
+  return indice;
+}
+
+function _moverHueco(clientY) {
+  var h = _hueco;
+  var destino = _indiceHueco(clientY);
+  if (destino === h.destino && h.pintado) return;
+  h.destino = destino;
+  h.pintado = true;
+  h.filas.forEach(function(f, i) {
+    if (i === h.srcIndex) return;
+    var j = i > h.srcIndex ? i - 1 : i;              // su puesto sin la arrastrada
+    var puesto = j < destino ? j : j + 1;            // su puesto con el hueco
+    var salto = (puesto - i) * h.paso / h.zoom;      // -1, 0 o +1 filas
+    f.el.style.transform = salto ? "translateY(" + salto + "px)" : "";
+  });
+}
+
+function _soltarEnHueco() {
+  var h = _hueco;
+  var project = getActiveProject();
+  if (!h || !project) return;
+  var otras = h.filas.filter(function(_, i) { return i !== h.srcIndex; });
+  var srcId = h.src.dataset.taskId;
+  var srcIdx = project.tasks.findIndex(function(t) { return t.id === srcId; });
+  if (srcIdx === -1) { _cancelarHueco(); return; }
+  var moved = project.tasks.splice(srcIdx, 1)[0];
+  // Delante de la que ocupa ese puesto o, si es el final, al final.
+  var ancla = otras[h.destino];
+  var insertAt = ancla
+    ? project.tasks.findIndex(function(t) { return t.id === ancla.el.dataset.taskId; })
+    : project.tasks.length;
+  project.tasks.splice(insertAt === -1 ? project.tasks.length : insertAt, 0, moved);
+  _huecoSoltadoId = srcId;
+  h.src.classList.remove("drag-oculta");
+  saveAndRender();
+}
+
+/** Cierra el hueco sin soltar (Escape, soltar fuera): las filas vuelven. */
+function _cancelarHueco() {
+  var h = _hueco;
+  _hueco = null;
+  taskList.classList.remove("lista-con-hueco");
+  if (!h) return;
+  h.filas.forEach(function(f) { f.el.style.transform = ""; });
+}
+
+/**
+ * Al repintar con un hueco abierto (al soltar, o si una tarea cae en una
+ * lista de la barra lateral) se quitan los transform sin transición: la
+ * captura de posiciones ya se hizo con las filas donde se veían, así que el
+ * repintado no las mueve.
+ */
+function _limpiarHuecoAlRepintar() {
+  if (!taskList.classList.contains("lista-con-hueco")) return;
+  taskList.classList.remove("lista-con-hueco");
+  taskList.querySelectorAll(".task-item").forEach(function(el) {
+    el.style.transform = "";
+  });
+  _hueco = null;
+}
+
+// El contenedor recibe el arrastre en todo su alto, también sobre el hueco
+// vacío (donde no hay fila que lo reciba).
+if (taskList) {
+  taskList.addEventListener("dragover", function(e) {
+    if (!_hueco || !dragSrcId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    _moverHueco(e.clientY);
+  });
+  taskList.addEventListener("drop", function(e) {
+    if (!_hueco || !dragSrcId) return;
+    e.preventDefault();
+    _soltarEnHueco();
   });
 }
 
