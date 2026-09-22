@@ -152,11 +152,19 @@ function openQuickCapture(opts) {
       if (!created) return;
       saveProjects();
       if (typeof opts.onTaskCreated === "function") opts.onTaskCreated(created);
-      // Desde una vista que no es de proyecto (Hoy/Calendario/smart-list)
-      // la tarea va al Inbox; si se pide, redirigir allí para que se vea.
+      // Desde una vista que no es de lista (Hoy/Hábitos) se salta a la lista
+      // donde ha ido la tarea, para que se vea. Suele ser el Inbox, pero no
+      // siempre: con «#trabajo» va a Trabajo, y antes se saltaba igualmente
+      // al Inbox, donde la tarea no estaba.
       if (opts.redirectToInbox && activeView !== "project") {
-        activateProject(INBOX_ID);
+        activateProject(targetProject.id);
         return;
+      }
+      // Si la tarea va a una lista que no es la abierta, esa lista late en la
+      // barra lateral (mismo gesto que al soltar una tarea arrastrada sobre
+      // ella): así se ve a dónde ha ido. En la abierta ya entra la fila.
+      if (!(activeView === "project" && activeProjectId === targetProject.id)) {
+        _listaReceptora = targetProject.id;
       }
       renderSidebar();
       // Si la captura es para el proyecto que tenemos abierto, re-pintar tareas.
@@ -2171,7 +2179,10 @@ function _animarReceptora() {
   var id = _listaReceptora;
   _listaReceptora = null;
   if (!id || _sidebarSinAnimar()) return;
-  var li = projectListEl.querySelector('.project-item[data-project-id="' + id + '"]');
+  // El Inbox no cuelga de la lista de listas (va fijo en «Vistas»): se busca
+  // en toda la barra lateral.
+  var li = projectListEl.querySelector('.project-item[data-project-id="' + id + '"]') ||
+    document.querySelector('.sidebar .project-item[data-project-id="' + id + '"]');
   if (!li) return;
   li.classList.add("lista-recibe");
   li.addEventListener("animationend", function() { li.classList.remove("lista-recibe"); }, { once: true });
@@ -2941,28 +2952,43 @@ function _anclaFilaIda(orden, id, ahora) {
 }
 
 /**
- * Entrada escalonada al cambiar de vista: las primeras filas aparecen con
+ * Entrada escalonada al cambiar de vista: las filas visibles aparecen con
  * unos milisegundos de diferencia, de arriba abajo. Solo al cambiar de vista
- * o de filtro —nunca al marcar una tarea— y solo las que caben en pantalla:
- * escalonar cien filas sería una espera, no un detalle.
+ * o de filtro —nunca al marcar una tarea— y solo las que se ven: escalonar
+ * cien filas sería una espera, no un detalle.
+ *
+ * Entran TODAS las visibles. Antes había un tope de 10 y en una pantalla de
+ * escritorio, donde caben más, las últimas aparecían de golpe mientras las
+ * de arriba aún entraban. Para que muchas filas no alarguen la espera, el
+ * paso entre una y otra se comprime: el escalonado completo nunca pasa de
+ * ESCALONADO_MAX_MS, sean 5 filas o 20.
  */
-var ENTRADA_FILAS = 10;
+var ESCALONADO_PASO_MS = 22;
+var ESCALONADO_MAX_MS = 200;
 
 function _entradaEscalonada() {
   if (!taskList || _sinAnimarFilas()) return;
   var filas = taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]");
   if (!filas.length) return;
-  var alto = window.innerHeight;
-  var n = 0;
+  // Lo visible se mide contra el contenedor de scroll, con getBoundingClientRect
+  // en los dos lados: así ambos van en las mismas unidades también con el zoom
+  // de las pantallas grandes.
+  var vista = document.querySelector(".task-list-scroll");
+  var rv = vista ? vista.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+  var visibles = [];
   filas.forEach(function(el) {
-    if (n >= ENTRADA_FILAS) return;
     var r = el.getBoundingClientRect();
-    if (r.bottom < 0 || r.top > alto) return;   // fuera de pantalla: sin animar
+    if (r.bottom > rv.top && r.top < rv.bottom) visibles.push(el);
+  });
+  if (!visibles.length) return;
+  var paso = visibles.length > 1
+    ? Math.min(ESCALONADO_PASO_MS, ESCALONADO_MAX_MS / (visibles.length - 1))
+    : 0;
+  visibles.forEach(function(el, i) {
     el.animate([
       { opacity: 0, transform: "translateY(7px)" },
       { opacity: 1, transform: "translateY(0)" },
-    ], { duration: 220, delay: n * 22, easing: FILA_CURVA, fill: "backwards" });
-    n++;
+    ], { duration: 220, delay: Math.round(i * paso), easing: FILA_CURVA, fill: "backwards" });
   });
 }
 

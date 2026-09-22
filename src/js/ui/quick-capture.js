@@ -437,6 +437,25 @@ export function showQuickCapture(deps) {
     else openRecurPopover();
   });
 
+  // Cada chip late una vez cuando se activa o cambia de valor (al escribir
+  // «mañana», «p1» o «#trabajo», o al elegirlo a mano): así se nota que la
+  // app ha entendido lo escrito, en vez de cambiar la etiqueta en silencio.
+  // No al abrir la captura ni al desactivarse.
+  const firmasChips = new Map();
+  const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function latido(el, firma) {
+    if (!el) return;
+    const antes = firmasChips.get(el);
+    firmasChips.set(el, firma);
+    if (antes === undefined || antes === firma || sinMovimiento) return;
+    if (!el.classList.contains("active")) return;
+    el.animate([
+      { transform: "scale(1)" },
+      { transform: "scale(1.09)" },
+      { transform: "scale(1)" },
+    ], { duration: 280, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)" });
+  }
+
   function render() {
     const raw = input.value;
     const hashMatch = simple ? null : _detectHashList(raw, lists);
@@ -471,9 +490,14 @@ export function showQuickCapture(deps) {
     recurTrigger.classList.toggle("active", !!finalRecur);
     recurLabel.textContent = finalRecur ? formatRecurLabel(finalRecur) : t("detail.recur");
 
+    latido(dateTrigger, finalDue || "");
+    prioBtns.forEach(function (btn) { latido(btn, btn.classList.contains("active")); });
+    latido(recurTrigger, finalRecur || "");
+
     if (listLabel) listLabel.textContent = resolved.name;
     if (listTrigger) {
       listTrigger.classList.add("active");
+      latido(listTrigger, resolved.id);
       // El color es el mismo que en cualquier otro sitio de la app (chip de
       // lista, punto de grupo…) — Inbox incluido, con el acento del tema en
       // vez de un ámbar aparte que no pegaba con el resto de la paleta.
