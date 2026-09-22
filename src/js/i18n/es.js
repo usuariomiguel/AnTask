@@ -421,6 +421,9 @@ export const es = {
   "backup.restored_with_secs":"Workspace restaurado con {count} proyecto(s) y {sec} sección(es).",
   "backup.invalid_format":    "Formato no válido. Asegúrate de importar un backup generado por AnTrack.",
   "backup.need_active":       "Selecciona un proyecto antes de importar un backup de proyecto individual.",
+  "backup.add_tasks_one":     "Se añadirá <strong>1 tarea</strong> a «{list}». Las tareas que ya tiene la lista no se tocan.",
+  "backup.add_tasks_other":   "Se añadirán <strong>{count} tareas</strong> a «{list}». Las tareas que ya tiene la lista no se tocan.",
+  "backup.add_tasks_action":  "Añadir",
   "backup.parse_error":       "No se pudo importar. Revisa que el archivo sea un JSON válido.",
 
   // ── Today / Inbox menus ───────────────────────────────────

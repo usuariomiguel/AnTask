@@ -1097,7 +1097,10 @@ importFile.addEventListener("change", async function() {
       return;
     }
 
-    // ── Backup antiguo de un solo proyecto ──
+    // ── Archivo de tareas sueltas (o backup antiguo de un solo proyecto) ──
+    // Se AÑADEN a la lista abierta, tras confirmar. Antes sustituían sus
+    // tareas sin preguntar: importar con el Inbox abierto borraba el Inbox
+    // entero de un clic, sin forma de deshacerlo.
     const currentProject = getActiveProject();
     const importedTasks = Array.isArray(parsed) ? parsed : parsed.tasks;
     if (!Array.isArray(importedTasks)) {
@@ -1108,7 +1111,25 @@ importFile.addEventListener("change", async function() {
       await modalAlert(t("backup.need_active"), "error");
       return;
     }
-    currentProject.tasks = sanitizeTasks(importedTasks);
+    const nuevas = sanitizeTasks(importedTasks);
+    if (!nuevas.length) {
+      await modalAlert(t("backup.invalid_format"), "error");
+      return;
+    }
+    const aviso = (nuevas.length === 1 ? t("backup.add_tasks_one") : t("backup.add_tasks_other"))
+      .replace("{count}", String(nuevas.length))
+      .replace("{list}", escHtml(currentProject.name));
+    if (!(await modalConfirm(aviso, t("backup.add_tasks_action")))) return;
+    // Importar dos veces el mismo archivo, o uno exportado de aquí mismo,
+    // traería ids repetidos: dos tareas con el mismo id se pisarían al
+    // editarlas o borrarlas. Las que choquen reciben uno nuevo.
+    const usados = new Set();
+    projects.forEach(function(p) { p.tasks.forEach(function(tk) { usados.add(tk.id); }); });
+    nuevas.forEach(function(tk) {
+      if (usados.has(tk.id)) tk.id = generateId();
+      usados.add(tk.id);
+    });
+    currentProject.tasks = currentProject.tasks.concat(nuevas);
     saveAndRender();
   } catch(e) {
     await modalAlert(t("backup.parse_error"), "error");
