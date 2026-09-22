@@ -17,29 +17,38 @@ async function carga(page) {
   await page.waitForSelector("#capture-bar", { timeout: 15000 });
   await page.waitForTimeout(500);
 }
-const animando = (page, sel) => page.evaluate((sel) => { const el = document.querySelector(sel); return !!el && el.getAnimations().some((a) => a.playState === "running"); }, sel);
 const late = (page, id) => page.evaluate((id) => document.querySelector('.sidebar .project-item[data-project-id="' + id + '"]').classList.contains("lista-recibe"), id);
 
 test("los chips laten al detectar el texto", async ({ page }) => {
   const errores = []; page.on("pageerror", (e) => errores.push(e.message));
+  // Registro de los latidos (element.animate) por chip, desde el arranque:
+  // mirar en un instante fijo fallaba con la máquina cargada, porque el
+  // latido (280ms) ya había terminado.
+  await page.addInitScript(() => {
+    window.__latidos = [];
+    const original = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      if (this.classList && this.classList.contains("qc-chip")) {
+        window.__latidos.push(["qc-date-trigger", "qc-chip--high", "qc-recur-trigger", "qc-list-trigger"].find((c) => this.classList.contains(c)));
+      }
+      return original.apply(this, args);
+    };
+  });
   await carga(page);
+  const latidos = () => page.evaluate(() => window.__latidos.slice());
   await page.click("#capture-bar");
   await page.waitForTimeout(300);
-  expect(await animando(page, ".qc-list-trigger")).toBe(false);
+  expect(await latidos()).toEqual([]);                       // al abrir, nada
   const campo = page.locator(".quick-capture-input");
   await campo.pressSequentially("Llamar mañana");
-  expect(await animando(page, ".qc-date-trigger")).toBe(true);
-  await page.waitForTimeout(400);
   await campo.pressSequentially(" p1");
-  expect(await animando(page, ".qc-chip--high")).toBe(true);
-  await page.waitForTimeout(400);
   await campo.pressSequentially(" #Trabajo");
-  expect(await animando(page, ".qc-list-trigger")).toBe(true);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(200);
+  expect(await latidos()).toEqual(["qc-date-trigger", "qc-chip--high", "qc-list-trigger"]);
+  // Seguir escribiendo sin cambiar nada no vuelve a latir.
   await campo.pressSequentially(" ya");
-  await page.waitForTimeout(40);
-  expect(await animando(page, ".qc-date-trigger")).toBe(false);
-  expect(await animando(page, ".qc-list-trigger")).toBe(false);
+  await page.waitForTimeout(200);
+  expect((await latidos()).length).toBe(3);
   expect(errores).toEqual([]);
 });
 

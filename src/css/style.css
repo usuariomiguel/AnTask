@@ -14122,6 +14122,27 @@ button {
   visibility: hidden;
 }
 
+/* ─── DESPLAZAMIENTO QUE NO SE ESCAPA ─────────────────────────
+   Al llegar al principio o al final de una lista, de un panel o de una
+   ventana, el gesto se queda ahí en vez de pasar a lo que hay detrás:
+   sin esto, en el móvil tirar hacia abajo con la lista arriba del todo
+   recargaba la página («deslizar para actualizar» del navegador), y al
+   acabar una ventana se desplazaba el fondo. */
+.task-list-scroll,
+.task-detail-body,
+.project-list,
+.modal-box,
+.modal-project-list,
+.search-results,
+.settings-nav,
+.settings-content-body,
+.cal-content,
+.hist-list,
+.field-popover-list,
+.tpl-tasks-preview-wrap {
+  overscroll-behavior-y: contain;
+}
+
 /* ─── FILAS DE TAREA: HOVER, FOCO Y ABIERTA ──────────────────────
    Jerarquía, de menos a más: hover (neutro, solo con ratón) < foco de
    teclado (anillo de acento separado del borde) < abierta en el detalle
