@@ -7671,12 +7671,18 @@ body.task-dragging .project-item:not(.active) {
 }
 
 .ctx-item {
-  display: block;
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  /* Opciones como píldoras dentro del menú: el realce del hover sigue la
+     forma redondeada del menú en vez de ser una franja de borde a borde. */
+  width: calc(100% - 0.6rem);
+  margin: 0 0.3rem;
+  border-radius: var(--r-pill);
   text-align: left;
   background: none;
   border: none;
-  padding: 0.42rem 0.75rem;
+  padding: 0.46rem 0.7rem;
   font-size: 0.78rem;
   font-family: inherit;
   color: var(--t-soft);
@@ -7689,6 +7695,73 @@ body.task-dragging .project-item:not(.active) {
 
 .ctx-item-danger {
   color: var(--c-pink);
+}
+
+/* Faltaba el realce al pasar el ratón: no se sabía qué opción se iba a
+   pulsar. Mismo tinte neutro que las filas y la barra lateral. */
+@media (hover: hover) and (pointer: fine) {
+  .ctx-item {
+    transition: background-color 0.12s ease;
+  }
+
+  .ctx-item:hover {
+    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+    color: var(--text-primary);
+  }
+
+  .ctx-item-danger:hover {
+    background: color-mix(in srgb, var(--c-pink) 12%, transparent);
+    color: var(--c-pink);
+  }
+}
+
+.ctx-item:focus-visible {
+  outline: 2px solid var(--c-primary-500);
+  outline-offset: -2px;
+}
+
+.ctx-item-ico,
+.ctx-item-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.ctx-item-ico .lucide {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  opacity: 0.85;
+}
+
+.ctx-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La opción vigente (la frecuencia actual de un hábito): en acento y con ✓. */
+.ctx-item--actual {
+  color: var(--c-primary-500);
+  font-weight: 600;
+}
+
+:root[data-theme="light"] .ctx-item--actual {
+  color: var(--c-primary-600);
+}
+
+.ctx-item-check .lucide {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+}
+
+/* Fila de hábito con su menú abierto: tinte de acento, como la tarea
+   abierta en el detalle. */
+.today-item.menu-abierto {
+  background: var(--task-hover);
+  border-color: var(--task-hover-border) !important;
 }
 
 .ctx-sep {
@@ -7830,8 +7903,12 @@ body.task-dragging .project-item:not(.active) {
 }
 
 
-/* (El dropdown de perfil vive dentro de la sidebar oscura: mismo estilo
-   en ambos temas.) */
+/* En claro, la sombra negra de la base pesaba demasiado sobre el papel:
+   cálida y suave, como la del menú contextual (.ctx-menu), hacia arriba
+   porque el menú se abre hacia arriba. */
+:root[data-theme="light"] .profile-dropdown {
+  box-shadow: 0 -6px 24px rgba(80, 55, 10, 0.14), 0 0 0 1px rgba(80, 55, 10, 0.04);
+}
 
 @keyframes profile-drop-in {
   from {

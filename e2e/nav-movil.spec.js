@@ -60,12 +60,20 @@ test("el resaltado se desliza hasta el botón nuevo", async ({ page }) => {
   });
   const inicio = await pos();
   expect(inicio.ind).toBe(inicio.act);
+  // Se registran todas las posiciones durante el viaje (un fotograma cada
+  // vez) en vez de mirar un instante fijo, que con la máquina cargada llegaba
+  // tarde y veía el resaltado ya en su sitio.
+  const recorrido = page.evaluate(() => new Promise((res) => {
+    const xs = [];
+    const t0 = performance.now();
+    (function paso() {
+      xs.push(Math.round(document.querySelector(".bnav-indicador").getBoundingClientRect().left));
+      if (performance.now() - t0 < 600) requestAnimationFrame(paso); else res(xs);
+    })();
+  }));
   await page.click("#bnav-inbox-btn");
-  await page.waitForTimeout(80);
-  const enViaje = await pos();
-  await page.waitForTimeout(500);
+  const xs = await recorrido;
   const fin = await pos();
   expect(fin.ind).toBe(fin.act);
-  expect(enViaje.ind).toBeGreaterThan(inicio.ind);
-  expect(enViaje.ind).toBeLessThan(fin.ind);
+  expect(xs.some((x) => x > inicio.ind && x < fin.ind)).toBe(true);
 });

@@ -24,11 +24,32 @@ import { loadSync } from "./sync-loader.js";
   // La visibilidad del botón sync la gestiona _updateSyncUI() en script.js
   // cuando Firebase dispara onAuthStateChanged (carga diferida).
 
+  // El menú se coloca con position:fixed sobre el botón en vez de absolute
+  // dentro de la sidebar: la sidebar recorta lo que sobresale (overflow:
+  // hidden) y su sombra, más ancha que los 8px de margen que hay a cada
+  // lado, se veía cortada en seco por los dos bordes. Fijo, ya no depende
+  // de ese recorte.
+  function colocarPerfil() {
+    var wrap = document.getElementById("profile-wrap");
+    if (!wrap || profileDropdown.hidden) return;
+    // Rects en píxeles escalados por el zoom de 1.1 de las pantallas
+    // grandes; los estilos van en píxeles de CSS: se divide.
+    var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+    var r = wrap.getBoundingClientRect();
+    profileDropdown.style.position = "fixed";
+    profileDropdown.style.left   = (r.left / zoom) + "px";
+    profileDropdown.style.right  = "auto";
+    profileDropdown.style.width  = (r.width / zoom) + "px";
+    profileDropdown.style.bottom = ((window.innerHeight - r.top) / zoom + 6) + "px";
+  }
+  window.addEventListener("resize", colocarPerfil);
+
   profileBtn.addEventListener("click", function(e) {
     e.stopPropagation();
     var open = !profileDropdown.hidden;
     profileDropdown.hidden = open;
     profileBtn.setAttribute("aria-expanded", String(!open));
+    colocarPerfil();
   });
 
   document.addEventListener("click", function(e) {

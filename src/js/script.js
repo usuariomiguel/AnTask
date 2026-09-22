@@ -737,10 +737,10 @@ function modalProjectPicker(excludeProjectId) {
         '</button>';
     }).join('');
     box.innerHTML =
-      '<p class="modal-label">Mover a proyecto</p>' +
+      '<p class="modal-label">' + escHtml(t("task.move_title")) + '</p>' +
       '<div class="modal-project-list">' + listHtml + '</div>' +
       '<div class="modal-actions">' +
-        '<button type="button" class="modal-btn modal-btn-cancel">Cancelar</button>' +
+        '<button type="button" class="modal-btn modal-btn-cancel">' + escHtml(t("modal.cancel")) + '</button>' +
       '</div>';
     function doCancel() { closeModal(overlay); resolve(null); }
     overlay._cancel = doCancel;
@@ -2403,7 +2403,7 @@ function closeCtxMenu() {
     _ctxMenu.remove();
     _ctxMenu = null;
   }
-  document.querySelectorAll(".project-item.menu-abierto").forEach(function(li) {
+  document.querySelectorAll(".project-item.menu-abierto, .today-item.menu-abierto").forEach(function(li) {
     li.classList.remove("menu-abierto");
   });
   if (_ctxCloseHandler) {
@@ -2476,14 +2476,34 @@ function _buildCtxMenu(items) {
     }
     var btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "ctx-item" + (item.danger ? " ctx-item-danger" : "");
-    btn.textContent = item.label;
+    btn.className = "ctx-item" + (item.danger ? " ctx-item-danger" : "") +
+      (item.checked ? " ctx-item--actual" : "");
+    // Icono delante (opcional) y ✓ detrás para la opción vigente (por
+    // ejemplo, la frecuencia actual de un hábito).
+    if (item.icon) {
+      var ico = document.createElement("span");
+      ico.className = "ctx-item-ico";
+      ico.innerHTML = '<i data-lucide="' + item.icon + '"></i>';
+      btn.appendChild(ico);
+    }
+    var lbl = document.createElement("span");
+    lbl.className = "ctx-item-label";
+    lbl.textContent = item.label;
+    btn.appendChild(lbl);
+    if (item.checked) {
+      btn.setAttribute("aria-current", "true");
+      var marca = document.createElement("span");
+      marca.className = "ctx-item-check";
+      marca.innerHTML = '<i data-lucide="check"></i>';
+      btn.appendChild(marca);
+    }
     btn.addEventListener("click", function() {
       closeCtxMenu();
       item.action();
     });
     menu.appendChild(btn);
   });
+  if (window.lucide) window.lucide.createIcons({ nodes: [menu] });
   return menu;
 }
 
@@ -2595,16 +2615,19 @@ async function showProjectMenu(project, anchor) {
 
   var items = [
     {
+      icon: "palette",
       label: t("project.change_color"),
       action: function() { showColorPicker(project); }
     },
     {
+      icon: "pencil-line",
       label: t("project.rename"),
       action: function() { return renameProject(project); }
     },
     null,
     {
       _id: "delete",
+      icon: "trash-2",
       label: t("project.delete"),
       danger: true,
       action: async function() {
@@ -2663,6 +2686,7 @@ async function showTodayMenu(x, y) {
 
   var items = [
     {
+      icon: "check-check",
       label: pending.length > 0
         ? t("today.menu.complete_n").replace("{count}", String(pending.length))
         : t("today.menu.complete"),
@@ -2682,6 +2706,7 @@ async function showTodayMenu(x, y) {
       }
     },
     {
+      icon: "calendar-clock",
       label: t("today.menu.postpone_all"),
       action: async function() {
         var unfinished = pending.filter(function(it) { return !it.task.done; });
@@ -2723,6 +2748,7 @@ async function showInboxMenu(inboxProject, x, y) {
   var items = [];
 
   items.push({
+    icon: "list-x",
     label: completed.length > 0
       ? t("inbox.menu.clear_done_n").replace("{count}", String(completed.length))
       : t("inbox.menu.clear_done"),
@@ -2743,6 +2769,7 @@ async function showInboxMenu(inboxProject, x, y) {
   // Marcamos la acción "vaciar" con id para poder filtrarla cuando el inbox está vacío.
   items.push({
     _id: "empty-inbox",
+    icon: "trash-2",
     label: t("inbox.menu.empty"),
     danger: true,
     action: async function() {
@@ -3972,11 +3999,12 @@ function _buildTaskNode(task, project, showList) {
       closeCtxMenu();
 
       var items = [
-        { label: t("action.rename"),   action: function() { startInlineEdit(text, task); } },
-        { label: t("detail.open"),     action: function() { openTaskDetail(task.id, project.id); } },
-        { label: t("action.duplicate"), action: function() { duplicateTask(task, project); } },
+        { icon: "pencil-line", label: t("action.rename"),   action: function() { startInlineEdit(text, task); } },
+        { icon: "panel-right-open", label: t("detail.open"),     action: function() { openTaskDetail(task.id, project.id); } },
+        { icon: "copy", label: t("action.duplicate"), action: function() { duplicateTask(task, project); } },
         null,
         {
+          icon: "folder-input",
           label: t("task.move_to_project"),
           action: async function() {
             var targetId = await modalProjectPicker(project.id);
@@ -3991,7 +4019,7 @@ function _buildTaskNode(task, project, showList) {
             saveAndRender();
           }
         },
-        { label: t("action.delete"), danger: true, action: function() { deleteTaskWithUndo(task, project); } },
+        { icon: "trash-2", label: t("action.delete"), danger: true, action: function() { deleteTaskWithUndo(task, project); } },
       ];
 
       var menu = _buildCtxMenu(items);
@@ -4933,12 +4961,12 @@ function _initTaskDetailPanel() {
       const open = _getOpenDetailTask();
       if (!open) return;
       const items = [
-        { label: t("action.rename"), action: function() { els.title.focus(); els.title.select(); } },
-        { label: t("action.duplicate"), action: function() {
+        { icon: "pencil-line", label: t("action.rename"), action: function() { els.title.focus(); els.title.select(); } },
+        { icon: "copy", label: t("action.duplicate"), action: function() {
             const cur = _getOpenDetailTask();
             if (cur) duplicateTask(cur.task, cur.project);
           } },
-        { label: t("action.delete"), danger: true, action: function() {
+        { icon: "trash-2", label: t("action.delete"), danger: true, action: function() {
             const cur = _getOpenDetailTask();
             if (cur) deleteTaskWithUndo(cur.task, cur.project);
           } },
@@ -5843,7 +5871,8 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
 
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
-    _showHabitMenu(habit, li);
+    // detail 0 = clic sintético del teclado: el menú va bajo la fila.
+    _showHabitMenu(habit, li, e.detail ? { x: e.clientX, y: e.clientY } : null);
   });
   // Alcanzable con el teclado, como las filas de tarea: Tab llega a ella e
   // Intro o Espacio abren su menú.
@@ -5898,9 +5927,11 @@ function _hoyHabitAddEl() {
 }
 
 /** Menú de la fila: renombrar, frecuencia y eliminar. Como `showProjectMenu`. */
-function _showHabitMenu(habit, anchor) {
+function _showHabitMenu(habit, anchor, punto) {
+  var cadaN = habit.schedule === "everyN" && habit.everyNDays;
   var items = [
     {
+      icon: "pencil-line",
       label: t("action.rename"),
       action: async function() {
         var nuevo = await modalPrompt(t("hoy.habit_rename_prompt"), habit.name, habit.name);
@@ -5913,8 +5944,12 @@ function _showHabitMenu(habit, anchor) {
         renderSidebar();
       },
     },
+    null,
+    { header: true, label: t("hoy.habit_freq_header") },
     {
+      icon: "repeat",
       label: t("hoy.habit_freq_daily"),
+      checked: !cadaN,
       action: function() {
         habit.schedule = "daily";
         habit.everyNDays = null;
@@ -5924,7 +5959,13 @@ function _showHabitMenu(habit, anchor) {
       },
     },
     {
-      label: t("hoy.habit_freq_everyn_menu"),
+      icon: "calendar-clock",
+      // Con la frecuencia ya elegida se ve cuál es («Cada 2 días»); sigue
+      // abriendo el diálogo para cambiar el número.
+      label: cadaN
+        ? t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays))
+        : t("hoy.habit_freq_everyn_menu"),
+      checked: !!cadaN,
       action: async function() {
         var n = await modalPrompt(t("hoy.habit_freq_prompt"),
           habit.everyNDays ? String(habit.everyNDays) : "2", "2");
@@ -5940,6 +5981,7 @@ function _showHabitMenu(habit, anchor) {
     },
     null,
     {
+      icon: "trash-2",
       label: t("action.delete"),
       danger: true,
       action: async function() {
@@ -5959,9 +6001,12 @@ function _showHabitMenu(habit, anchor) {
     },
   ];
 
+  closeCtxMenu();
   var menu = _buildCtxMenu(items);
-  positionCtxMenu(menu, anchor);
+  if (punto && typeof punto.x === "number") positionCtxMenuAt(menu, punto.x, punto.y);
+  else positionCtxMenu(menu, anchor);
   _ctxMenu = menu;
+  if (anchor && anchor.classList) anchor.classList.add("menu-abierto");
   requestAnimationFrame(function() {
     _ctxCloseHandler = function(e) { if (!menu.contains(e.target)) closeCtxMenu(); };
     document.addEventListener("mousedown", _ctxCloseHandler);

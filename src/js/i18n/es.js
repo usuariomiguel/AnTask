@@ -121,7 +121,7 @@ export const es = {
 
   // ── Modal de cuota ────────────────────────────────────────
   "quota.title":              "Almacenamiento lleno",
-  "quota.body":               "El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br><strong>Tus últimos cambios no se han guardado.</strong><br><br>Exporta una copia de seguridad y elimina proyectos que ya no necesites.",
+  "quota.body":               "El navegador ha rechazado el guardado porque el espacio disponible se ha agotado (~5 MB).<br><br><strong>Tus últimos cambios no se han guardado.</strong><br><br>Exporta una copia de seguridad y elimina listas que ya no necesites.",
   "quota.export_btn":         "Exportar backup ahora",
   "quota.close_btn":          "Cerrar",
 
@@ -175,6 +175,7 @@ export const es = {
   "hoy.habit_confirm_delete": "¿Eliminar el hábito <strong>{name}</strong> y todo su historial?",
   "hoy.habit_freq_daily":     "Cada día",
   "hoy.habit_freq_everyn":    "Cada {n} días",
+  "hoy.habit_freq_header":    "Frecuencia",
   "hoy.habit_freq_everyn_menu": "Cada varios días…",
   "hoy.habit_freq_prompt":    "¿Cada cuántos días? (2 o más)",
   "hoy.habit_done_toggle":    "Marcar hecho hoy",
@@ -225,7 +226,7 @@ export const es = {
   "filter.nodate":            "Sin fecha",
   "filter.high":              "Importantes",
 
-  // ── Proyecto ──────────────────────────────────────────────
+  // ── Lista ─────────────────────────────────────────────────
   "project.new_prompt":       "Nombre de la lista",
   "project.new_placeholder":  "mi-lista...",
   "project.rename":           "Renombrar lista",
@@ -258,7 +259,8 @@ export const es = {
 
   // ── Tarea ─────────────────────────────────────────────────
   "task.rename_hint":         "Doble clic para renombrar",
-  "task.move_to_project":     "Mover a proyecto...",
+  "task.move_to_project":     "Mover a otra lista…",
+  "task.move_title":          "Mover a otra lista",
   "task.in_list":             "Lista",
 
   // ── Panel de detalle de tarea ─────────────────────────────
@@ -395,7 +397,7 @@ export const es = {
   "notif.digest_overdue":     "Vencidas",
   "notif.digest_today":       "Hoy",
   "notif.reminder_title":     "Recordatorio",
-  "notif.unknown_project":    "Sin proyecto",
+  "notif.unknown_project":    "Sin lista",
   "notif.remove_time":        "Quitar hora",
 
   // ── Sincronización ────────────────────────────────────────
@@ -414,13 +416,13 @@ export const es = {
   "consent.decline":          "Solo lo esencial",
 
   // ── Backup / import ───────────────────────────────────────
-  "backup.restore_title":     "Restaurar workspace",
-  "backup.restore_confirm":   "Esto reemplazará <strong>todos los proyectos actuales</strong> con el backup. ¿Continuar?",
-  "backup.restored_one":      "Workspace restaurado con {count} proyecto.",
-  "backup.restored_other":    "Workspace restaurado con {count} proyectos.",
-  "backup.restored_with_secs":"Workspace restaurado con {count} proyecto(s) y {sec} sección(es).",
-  "backup.invalid_format":    "Formato no válido. Asegúrate de importar un backup generado por AnTrack.",
-  "backup.need_active":       "Selecciona un proyecto antes de importar un backup de proyecto individual.",
+  "backup.restore_title":     "Restaurar copia",
+  "backup.restore_confirm":   "Esto reemplazará <strong>todas tus listas actuales</strong> por las de la copia de seguridad. ¿Continuar?",
+  "backup.restored_one":      "Copia restaurada con {count} lista.",
+  "backup.restored_other":    "Copia restaurada con {count} listas.",
+  "backup.restored_with_secs":"Copia restaurada con {count} lista(s) y {sec} sección(es).",
+  "backup.invalid_format":    "Formato no válido. Asegúrate de importar una copia de seguridad o un archivo de tareas de AnTrack.",
+  "backup.need_active":       "Abre una lista antes de importar tareas.",
   "backup.add_tasks_one":     "Se añadirá <strong>1 tarea</strong> a «{list}». Las tareas que ya tiene la lista no se tocan.",
   "backup.add_tasks_other":   "Se añadirán <strong>{count} tareas</strong> a «{list}». Las tareas que ya tiene la lista no se tocan.",
   "backup.add_tasks_action":  "Añadir",
@@ -471,27 +473,27 @@ export const es = {
   "rowstyle.tarjetas":        "Tarjetas",
   "list.search_placeholder":  "Buscar tareas…",
   "list.search_clear":        "Limpiar búsqueda",
-  "task.no_other_projects":   "No hay otros proyectos disponibles.",
-  "task.nothing_to_export":   "No hay proyectos que exportar.",
+  "task.no_other_projects":   "No hay otras listas disponibles.",
+  "task.nothing_to_export":   "No hay listas que exportar.",
   "view.eyebrow_tasks":       "Lista",
   "view.eyebrow_calendar":    "Calendario",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
-  "sync.conflict_body_one_one":     "Tienes <strong>{local} proyecto local</strong> y <strong>{cloud} proyecto en la nube</strong>. ¿Cuáles quieres usar?",
-  "sync.conflict_body_one_other":   "Tienes <strong>{local} proyecto local</strong> y <strong>{cloud} proyectos en la nube</strong>. ¿Cuáles quieres usar?",
-  "sync.conflict_body_other_one":   "Tienes <strong>{local} proyectos locales</strong> y <strong>{cloud} proyecto en la nube</strong>. ¿Cuáles quieres usar?",
-  "sync.conflict_body_other_other": "Tienes <strong>{local} proyectos locales</strong> y <strong>{cloud} proyectos en la nube</strong>. ¿Cuáles quieres usar?",
+  "sync.conflict_body_one_one":     "Tienes <strong>{local} lista local</strong> y <strong>{cloud} lista en la nube</strong>. ¿Cuáles quieres usar?",
+  "sync.conflict_body_one_other":   "Tienes <strong>{local} lista local</strong> y <strong>{cloud} listas en la nube</strong>. ¿Cuáles quieres usar?",
+  "sync.conflict_body_other_one":   "Tienes <strong>{local} listas locales</strong> y <strong>{cloud} lista en la nube</strong>. ¿Cuáles quieres usar?",
+  "sync.conflict_body_other_other": "Tienes <strong>{local} listas locales</strong> y <strong>{cloud} listas en la nube</strong>. ¿Cuáles quieres usar?",
 
   // ── Save status ───────────────────────────────────────────
 
   // ── Project templates ─────────────────────────────────────
-  "tpl.modal.title":          "Nuevo proyecto",
-  "tpl.modal.sub":            "Empieza desde una plantilla o uno en blanco",
+  "tpl.modal.title":          "Nueva lista",
+  "tpl.modal.sub":            "Empieza desde una plantilla o con una en blanco",
   "tpl.blank.name":           "En blanco",
   "tpl.blank.meta":           "Empieza desde cero",
   "tpl.meta.tasks_one":       "{count} tarea",
   "tpl.meta.tasks_other":     "{count} tareas",
-  "tpl.preview.name_placeholder": "Nombre del proyecto",
+  "tpl.preview.name_placeholder": "Nombre de la lista",
   "tpl.preview.tasks_count_one":   "Se creará {count} tarea:",
   "tpl.preview.tasks_count_other": "Se crearán {count} tareas:",
   "tpl.preview.back":         "Atrás",
