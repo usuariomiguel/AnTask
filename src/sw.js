@@ -28,6 +28,10 @@ const SW_BYPASS_HOSTS = [
 
 function shouldBypass(url) {
   if (!url.protocol.startsWith("http")) return true; // chrome-extension://, etc.
+  // Páginas del login de Firebase servidas desde nuestro dominio (Vercel las
+  // reenvía a Firebase, ver vercel.json): siempre a la red y sin guardarlas
+  // en caché, o la vuelta de Google podría recibir una copia caducada.
+  if (url.origin === self.location.origin && url.pathname.startsWith("/__/")) return true;
   return SW_BYPASS_HOSTS.some((host) => url.hostname.endsWith(host));
 }
 

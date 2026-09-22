@@ -60,9 +60,30 @@ import {
 } from "firebase/firestore";
 import { markSyncEnabled, clearSyncEnabled } from "./sync-loader.js";
 
+// El login con Google vuelve a la app a través de la página /__/auth/handler
+// del `authDomain`. Si ese dominio es otro (antask-7a86f.firebaseapp.com), el
+// navegador no deja a la app leer el resultado —bloqueo de almacenamiento
+// entre dominios, activo en Chrome, Safari y Firefox desde 2023— y el login
+// por redirección (el de la app instalada) volvía sin sesión: se entraba en
+// Google pero la app no se enteraba. Por eso el `authDomain` es el propio
+// dominio de la app, y Vercel reenvía /__/auth/* a Firebase (vercel.json).
+//
+// En local y en las vistas previas de Vercel (*.vercel.app) se mantiene el de
+// Firebase: allí no está la redirección autorizada en el cliente OAuth de
+// Google, y el login en pestaña (ventana emergente) funciona igual.
+const AUTH_DOMAIN_FIREBASE = "antask-7a86f.firebaseapp.com";
+function _authDomain() {
+  const host = window.location.hostname;
+  if (!host || host === "localhost" || host === "127.0.0.1" ||
+      /\.local$/.test(host) || /\.vercel\.app$/.test(host)) {
+    return AUTH_DOMAIN_FIREBASE;
+  }
+  return window.location.host;
+}
+
 const firebaseConfig = {
   apiKey:            "AIzaSyCEZw4jJ_FAHnmZXI66wr3VlPbFQZDVlSE",
-  authDomain:        "antask-7a86f.firebaseapp.com",
+  authDomain:        _authDomain(),
   projectId:         "antask-7a86f",
   storageBucket:     "antask-7a86f.firebasestorage.app",
   messagingSenderId: "643446618554",
@@ -247,7 +268,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           // esta comprobación, quien vuelve de un redirect real se
           // queda mirando la app sin ningún indicio de qué ha pasado.
           if (!result && vinoDeRedirect) {
-            modalAlert("No se ha podido completar el inicio de sesión al volver de Google. Es un problema conocido de las apps instaladas en iOS — inténtalo de nuevo; si persiste, prueba a iniciar sesión desde Safari en vez de la app instalada.", "error");
+            modalAlert("No se ha podido completar el inicio de sesión al volver de Google. Inténtalo de nuevo; si persiste, prueba a iniciar sesión desde el navegador en vez de la app instalada, o con tu email.", "error");
           }
         }).catch(function (err) {
           console.warn("AnsoSync: error en el resultado del redirect de login:", err);
