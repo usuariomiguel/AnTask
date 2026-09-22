@@ -84,7 +84,11 @@
          • Fuentes (Inter / JetBrains Mono) son self-hosted vía @fontsource-variable,
            empaquetadas con Vite → font-src 'self' es suficiente.
          • connect-src permite Firebase Auth/Firestore + Plausible (opt-in).
-         • frame-ancestors bloquea clickjacking.
+         • frame-src incluye 'self': el login con Google carga un marco oculto
+           desde /__/auth/iframe de nuestro propio dominio (Vercel lo reenvía a
+           Firebase, ver vercel.json). Sin él, la vuelta del login no se recogía.
+         • La protección contra clickjacking (frame-ancestors) va como cabecera en
+           vercel.json: en una etiqueta <meta> el navegador la ignora.
     -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
@@ -102,8 +106,7 @@
                   https://apis.google.com
                   https://*.firebaseapp.com
                   https://plausible.io;
-      frame-src   https://accounts.google.com https://*.firebaseapp.com https://apis.google.com;
-      frame-ancestors 'none';
+      frame-src   'self' https://accounts.google.com https://*.firebaseapp.com https://apis.google.com;
       base-uri    'self';
     " />
     <link rel="manifest" href="./manifest.json" />
