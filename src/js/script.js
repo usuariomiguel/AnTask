@@ -1424,13 +1424,31 @@ function _marcarFiltroActivo(value) {
 }
 
 function applyFilter(value) {
+  var antes = _filtroActivoVisible();
   currentFilter = value;
   // El ámbito es la fila entera, no solo el panel: los tres filtros de uso
   // diario viven ahora fuera, como segmentado, y el panel los conserva para
   // la hoja de móvil. Los dos juegos tienen que marcarse a la vez.
   _marcarFiltroActivo(value);
   _updateFilterTriggerLabel();
+  // El relleno pasa de un filtro a otro con un fundido (CSS) y el nuevo da
+  // un toque de pulsación. No un relleno que se deslice: cada filtro lleva
+  // su propia píldora de fondo, que lo taparía por el camino.
+  var ahora = _filtroActivoVisible();
+  if (ahora && ahora !== antes && !_sinAnimarFilas()) {
+    ahora.animate([{ scale: "0.94" }, { scale: "1" }],
+      { duration: 240, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)" });
+  }
   renderTasks();
+}
+
+/** El filtro marcado en el segmentado de escritorio (uno de los tres o «Otros»). */
+function _filtroActivoVisible() {
+  var cont = document.getElementById("filter-segments");
+  if (!cont) return null;
+  var el = cont.querySelector(".filter-segment.filter-opt--active") ||
+    cont.querySelector(".filter-trigger-btn.filter-trigger-btn--active");
+  return el && el.getClientRects().length ? el : null;
 }
 window.applyFilter = applyFilter;
 
@@ -1461,7 +1479,15 @@ function _updateFilterTriggerLabel() {
   // habría rotulado «Hechas». La clave se deriva del propio valor.
   if (currentFilter !== "all" && !(isDesktop && inSegments)) parts.push(t("filter." + currentFilter));
   if (triggerBtn) triggerBtn.classList.toggle("filter-trigger-btn--active", parts.length > 0);
-  labelEl.textContent = parts.length > 0 ? parts.join(", ") : t(isDesktop ? "filter.trigger_label" : "filter.trigger_label_mobile");
+  var texto = parts.length > 0 ? parts.join(", ") : t(isDesktop ? "filter.trigger_label" : "filter.trigger_label_mobile");
+  if (labelEl.textContent === texto) return;
+  var habia = labelEl.textContent;
+  labelEl.textContent = texto;
+  // El nuevo texto entra con un fundido en vez de sustituir al anterior de
+  // golpe (no la primera vez, al pintar el botón).
+  if (habia && !_sinAnimarFilas()) {
+    labelEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "ease-out" });
+  }
 }
 
 // ─── STORAGE EVENT ───────────────────────────────────────────
@@ -2911,7 +2937,30 @@ function _capturarFilas() {
   return {
     clave: _claveVistaLista(), filas: mapa, orden: Object.keys(mapa),
     secciones: secciones, ordenSecciones: Object.keys(secciones),
+    vacio: !!taskList.querySelector(".empty-illustrated"),
   };
+}
+
+/**
+ * El estado vacío («Todo al día», «No hay tareas…») entra con un fundido y
+ * una subida leve, y su icono late una vez: así se lee como la respuesta a
+ * lo pulsado —un filtro sin resultados, la última tarea completada— y no
+ * como una lista rota. Solo cuando aparece (no estaba) o al cambiar de
+ * vista; los repintados con el mismo vacío en pantalla no lo repiten.
+ */
+function _animarVacio(antes) {
+  if (!taskList || !antes || _sinAnimarFilas()) return;
+  var vacio = taskList.querySelector(".empty-illustrated");
+  if (!vacio || (antes.vacio && antes.clave === _claveVistaLista())) return;
+  vacio.animate([
+    { opacity: 0, translate: "0 8px" },
+    { opacity: 1, translate: "0 0" },
+  ], { duration: 320, easing: FILA_CURVA, fill: "backwards" });
+  var icono = vacio.querySelector(".empty-illustrated-badge");
+  if (icono) {
+    icono.animate([{ scale: "0.8" }, { scale: "1.08" }, { scale: "1" }],
+      { duration: 460, delay: 90, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)", fill: "backwards" });
+  }
 }
 
 function _sinAnimarFilas() {
@@ -2966,10 +3015,43 @@ function _anclaFilaIda(orden, id, ahora) {
 var ESCALONADO_PASO_MS = 22;
 var ESCALONADO_MAX_MS = 200;
 
+// Vista sin contar el filtro: la cabecera y los filtros entran al cambiar
+// de vista o de lista, no al pulsar un filtro (se estarían animando a sí
+// mismos). La secuencia va de arriba abajo: título, subtítulo, filtros, y
+// a la vez las filas escalonadas y al final la barra de captura.
+var _filtrosVistaClave = null;
+
+function _entradaFiltros() {
+  var clave = activeView + "|" + activeProjectId;
+  if (clave === _filtrosVistaClave) return;
+  _filtrosVistaClave = clave;
+  var visible = function(el) { return el && el.getClientRects().length > 0; };
+  var entra = function(el, retraso, distancia) {
+    el.animate([
+      { opacity: 0, translate: "0 " + distancia + "px" },
+      { opacity: 1, translate: "0 0" },
+    ], { duration: 220, delay: retraso, easing: FILA_CURVA, fill: "backwards" });
+  };
+  ["project-title", "mobile-header-title"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (visible(el)) entra(el, 0, 6);
+  });
+  ["project-subtitle", "project-subtitle-mobile"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (visible(el)) entra(el, 40, 4);
+  });
+  var cont = document.getElementById("filter-segments");
+  if (!cont || cont.classList.contains("filter-segments--off")) return;
+  Array.prototype.filter.call(cont.children, visible).forEach(function(el, i) {
+    entra(el, 60 + i * 25, 6);
+  });
+}
+
 function _entradaEscalonada() {
   if (!taskList || _sinAnimarFilas()) return;
+  _entradaFiltros();
   var filas = taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]");
-  if (!filas.length) return;
+  if (!filas.length) { _entradaBarras(0); return; }
   // Lo visible se mide contra el contenedor de scroll, con getBoundingClientRect
   // en los dos lados: así ambos van en las mismas unidades también con el zoom
   // de las pantallas grandes.
@@ -2980,7 +3062,7 @@ function _entradaEscalonada() {
     var r = el.getBoundingClientRect();
     if (r.bottom > rv.top && r.top < rv.bottom) visibles.push(el);
   });
-  if (!visibles.length) return;
+  if (!visibles.length) { _entradaBarras(0); return; }
   var paso = visibles.length > 1
     ? Math.min(ESCALONADO_PASO_MS, ESCALONADO_MAX_MS / (visibles.length - 1))
     : 0;
@@ -2989,6 +3071,42 @@ function _entradaEscalonada() {
       { opacity: 0, transform: "translateY(7px)" },
       { opacity: 1, transform: "translateY(0)" },
     ], { duration: 220, delay: Math.round(i * paso), easing: FILA_CURVA, fill: "backwards" });
+  });
+  _entradaBarras(Math.round((visibles.length - 1) * paso));
+}
+
+/**
+ * Tras el escalonado de las filas entran las barras flotantes: la de
+ * captura («Pulsa para escribir») en escritorio y, en móvil, la barra de
+ * navegación y el + — estas dos solo la primera vez, al abrir la app; al
+ * cambiar de pantalla con ellas ya se desliza su resaltado, y más sería
+ * demasiado. Arrancan justo cuando empieza a entrar la última fila, para
+ * leerse como una sola secuencia de arriba abajo.
+ *
+ * Con la propiedad `translate` y no `transform`: la barra de captura se
+ * centra con transform: translateX(-50%), y la de navegación se oculta al
+ * desplazar con otro transform. `translate` se suma a ellos en vez de
+ * pisarlos.
+ */
+var _barrasMovilEntraron = false;
+
+function _entradaBarras(retraso) {
+  var visible = function(el) { return el && el.getClientRects().length > 0; };
+  var barra = document.getElementById("capture-bar");
+  if (visible(barra)) {
+    barra.animate([
+      { translate: "0 10px", opacity: 0 },
+      { translate: "0 0", opacity: 1 },
+    ], { duration: 240, delay: retraso + 40, easing: FILA_CURVA, fill: "backwards" });
+  }
+  if (_barrasMovilEntraron || !window.matchMedia("(max-width: 768px)").matches) return;
+  _barrasMovilEntraron = true;
+  [document.getElementById("mobile-bottom-nav"), document.getElementById("mobile-fab")].forEach(function(el, i) {
+    if (!visible(el)) return;
+    el.animate([
+      { translate: "0 24px", opacity: 0 },
+      { translate: "0 0", opacity: 1 },
+    ], { duration: 320, delay: retraso + 40 + i * 50, easing: FILA_CURVA, fill: "backwards" });
   });
 }
 
@@ -3162,6 +3280,7 @@ function renderTasks() {
   _limpiarHuecoAlRepintar();
   function _restaurarScroll() {
     if (_scroller && _scroller.scrollTop !== _scrollTop) _scroller.scrollTop = _scrollTop;
+    _animarVacio(_filasAntes);
     _animarFilas(_filasAntes);
   }
 
@@ -6083,12 +6202,30 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
   // anillo en cada actualización de stats.
   var bar = el.querySelector(".hoy-ring-bar");
   if (bar) {
-    el.querySelector(".hoy-stats").innerHTML = statsHtml;
+    // La cabecera se repinta dos o tres veces por acción: solo se toca lo que
+    // ha cambiado de verdad, o cada repintado cortaría a medias el dibujo del
+    // anillo y la cuenta del porcentaje.
+    var mismo = el.dataset.done === String(done) && el.dataset.total === String(total);
+    if (el.dataset.stats !== statsHtml) {
+      el.querySelector(".hoy-stats").innerHTML = statsHtml;
+      el.dataset.stats = statsHtml;
+    }
+    if (mismo) return;
+    _terminarProgresoHoy(el);
+    var previo = { done: Number(el.dataset.done), total: Number(el.dataset.total), pct: Number(el.dataset.pct) };
+    el.dataset.done = done;
+    el.dataset.total = total;
+    el.dataset.pct = pct;
     el.querySelector(".hoy-ring-pct").textContent = pct + "%";
     el.querySelector(".hoy-ring-track").setAttribute("stroke-dasharray", dash.track);
     bar.setAttribute("stroke-dasharray", dash.fill);
+    _animarProgresoHoy(el, previo, done, total, pct, C, STROKE);
     return;
   }
+  el.dataset.done = done;
+  el.dataset.total = total;
+  el.dataset.pct = pct;
+  el.dataset.stats = statsHtml;
 
   el.innerHTML =
     '<span class="hoy-stats">' + statsHtml + "</span>" +
@@ -6101,6 +6238,105 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
       "</svg>" +
       '<span class="hoy-ring-pct">' + pct + "%</span>" +
     "</span>";
+}
+
+/**
+ * Progreso de Hoy al completar o desmarcar una tarea:
+ *  · el tramo que cambia se dibuja (o se recoge) en el anillo, como en las
+ *    listas de la barra lateral;
+ *  · el porcentaje cuenta hasta el valor nuevo en vez de saltar;
+ *  · la cifra de «N de M hechas» gira, como los contadores de la barra;
+ *  · al llegar al 100 %, el anillo late una vez con un brillo suave y
+ *    «Todo hecho» entra en el subtítulo.
+ * Solo con un paso de ±1 y el mismo total: si cambia el número de tareas
+ * el anillo se redibuja entero y no hay un tramo concreto que animar.
+ */
+var PROGRESO_MS = 340;
+
+function _animarProgresoHoy(el, previo, done, total, pct, C, STROKE) {
+  if (_sinAnimarFilas() || !previo.total) return;
+  var mismoTotal = previo.total === total;
+
+  // Tramo del anillo
+  var bar = el.querySelector(".hoy-ring-bar");
+  var svg = el.querySelector(".hoy-ring svg");
+  if (mismoTotal && Math.abs(done - previo.done) === 1 && bar && svg) {
+    var sube = done > previo.done;
+    var indice = Math.min(done, previo.done);
+    var slot = C / total;
+    var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE).fill.split(" ")[0]);
+    bar.setAttribute("stroke-dasharray", _segmentedRingDash(total, indice, C, STROKE).fill);
+    var trazo = bar.cloneNode(false);
+    trazo.classList.add("hoy-ring-trazo");
+    trazo.setAttribute("stroke-dashoffset", (-(indice * slot)).toFixed(2));
+    svg.appendChild(trazo);
+    var lleno = seg.toFixed(2) + " " + C.toFixed(2);
+    var vacio = "0 " + C.toFixed(2);
+    var anim = trazo.animate([
+      { strokeDasharray: sube ? vacio : lleno, opacity: sube ? 0 : 1 },
+      { opacity: 1, offset: 0.2 },
+      { strokeDasharray: sube ? lleno : vacio, opacity: sube ? 1 : 0 },
+    ], { duration: PROGRESO_MS, easing: "cubic-bezier(0.3, 0.7, 0.2, 1)", fill: "forwards" });
+    el._anilloAnim = anim;
+    anim.onfinish = function() {
+      bar.setAttribute("stroke-dasharray", _segmentedRingDash(total, done, C, STROKE).fill);
+      trazo.remove();
+      if (el._anilloAnim === anim) el._anilloAnim = null;
+    };
+  }
+
+  // Porcentaje que cuenta
+  var pctEl = el.querySelector(".hoy-ring-pct");
+  if (pctEl && previo.pct !== pct && !isNaN(previo.pct)) {
+    var desde = previo.pct;
+    var t0 = performance.now();
+    var paso = function(ahora) {
+      var k = Math.min(1, (ahora - t0) / PROGRESO_MS);
+      var suave = 1 - Math.pow(1 - k, 3);
+      pctEl.textContent = Math.round(desde + (pct - desde) * suave) + "%";
+      el._pctRaf = k < 1 ? requestAnimationFrame(paso) : null;
+    };
+    el._pctRaf = requestAnimationFrame(paso);
+    el._pctFinal = pct;
+  }
+
+  // Cifra de «N de M hechas»
+  var cifra = el.querySelector(".hoy-stats strong");
+  if (cifra && previo.done !== done) {
+    cifra.animate([
+      { transform: "translateY(" + (done > previo.done ? "-60%" : "60%") + ")", opacity: 0 },
+      { transform: "translateY(0)", opacity: 1 },
+    ], { duration: 280, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+  }
+
+  // Al 100 %: latido con brillo y «Todo hecho» entrando
+  if (done === total && previo.done < previo.total) {
+    var anillo = el.querySelector(".hoy-ring");
+    if (anillo) {
+      anillo.animate([
+        { scale: "1", filter: "drop-shadow(0 0 0 transparent)" },
+        { scale: "1.12", filter: "drop-shadow(0 0 7px color-mix(in srgb, var(--c-primary-500) 70%, transparent))", offset: 0.4 },
+        { scale: "1", filter: "drop-shadow(0 0 0 transparent)" },
+      ], { duration: 620, delay: PROGRESO_MS - 80, easing: "ease-out" });
+    }
+    requestAnimationFrame(function() {
+      document.querySelectorAll("#project-subtitle .subtitle-hecho, #project-subtitle-mobile .subtitle-hecho").forEach(function(h) {
+        h.animate([
+          { opacity: 0, translate: "0 4px" },
+          { opacity: 1, translate: "0 0" },
+        ], { duration: 320, delay: PROGRESO_MS - 80, easing: FILA_CURVA, fill: "backwards" });
+      });
+    });
+  }
+}
+
+/** Da por acabadas las animaciones de progreso en curso (llega otro cambio). */
+function _terminarProgresoHoy(el) {
+  if (el._anilloAnim) el._anilloAnim.finish();
+  if (el._pctRaf) {
+    cancelAnimationFrame(el._pctRaf);
+    el._pctRaf = null;
+  }
 }
 
 function _removeHoyHeaderExtra() {

@@ -14186,6 +14186,65 @@ button {
   }
 }
 
+/* La cifra de «N de M hechas» gira al cambiar (ver _animarProgresoHoy). */
+.hoy-stats strong {
+  display: inline-block;
+}
+
+/* ─── FILTROS: TRANSICIONES ────────────────────────────────────
+   El relleno del filtro activo pasa de uno a otro con un fundido (y el
+   nuevo da un toque de pulsación, ver applyFilter). «Otros» se abre
+   creciendo desde el botón, con la flecha girando y las opciones entrando
+   escalonadas, muy rápido. */
+@media (prefers-reduced-motion: no-preference) {
+  .filter-segment,
+  .filter-trigger-btn {
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  }
+
+  .filter-caret {
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.3, 1);
+  }
+
+  .filter-panel:not([hidden]) {
+    transform-origin: top left;
+    animation: filtro-panel-entra 0.18s cubic-bezier(0.25, 1, 0.3, 1);
+  }
+
+  .filter-panel:not([hidden]) .filter-opt {
+    animation: filtro-opcion-entra 0.2s cubic-bezier(0.25, 1, 0.3, 1) backwards;
+  }
+
+  .filter-panel:not([hidden]) .filter-opt:nth-child(2) { animation-delay: 20ms; }
+  .filter-panel:not([hidden]) .filter-opt:nth-child(3) { animation-delay: 40ms; }
+  .filter-panel:not([hidden]) .filter-opt:nth-child(4) { animation-delay: 60ms; }
+  .filter-panel:not([hidden]) .filter-opt:nth-child(n+5) { animation-delay: 80ms; }
+}
+
+@keyframes filtro-panel-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes filtro-opcion-entra {
+  from {
+    opacity: 0;
+    translate: 0 -3px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 /* ─── HOVERS DE LA SIDEBAR ───────────────────────────────────────
    Primera tanda del rediseño de hovers (se quitaron todos para rehacerlos
    desde cero). Criterios, iguales para lo que venga después:
