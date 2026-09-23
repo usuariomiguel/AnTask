@@ -14212,6 +14212,60 @@ button {
   display: inline-block;
 }
 
+/* ─── PANEL DE DETALLE ─────────────────────────────────────────
+   Barrido del texto al marcar una subtarea: la lista se rehace entera en
+   cada repintado, así que no vale una transición (el nodo nace ya en su
+   estado final). La clase la pone y la quita _animarSubtareas. */
+.subtask-text.sub-barrido,
+.subtask-text.sub-barrido-undo {
+  background-image: linear-gradient(90deg,
+    color-mix(in srgb, var(--text-tertiary) 60%, transparent) 45%,
+    var(--text-primary) 55%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtask-text.sub-barrido {
+  animation: text-sweep-done 420ms var(--ease-in-out) both;
+}
+
+.subtask-text.sub-barrido-undo {
+  animation: text-sweep-undo 240ms var(--ease-out) both;
+}
+
+/* La copia de una subtarea que se va cierra su hueco (ver _animarSubtareas). */
+.subtask-item.fila-saliendo {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* La nota se guarda sola: destello corto del borde al terminar. */
+.task-detail-textarea.nota-guardada {
+  animation: nota-guardada 700ms ease-out;
+}
+
+@keyframes nota-guardada {
+  0% {
+    border-color: var(--c-primary-500);
+  }
+
+  60% {
+    border-color: var(--c-primary-500);
+  }
+
+  100% {
+    border-color: var(--border-default);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-detail-textarea.nota-guardada {
+    animation: none;
+  }
+}
+
 /* ─── FILTROS: TRANSICIONES ────────────────────────────────────
    El relleno del filtro activo pasa de uno a otro con un fundido (y el
    nuevo da un toque de pulsación, ver applyFilter). «Otros» se abre

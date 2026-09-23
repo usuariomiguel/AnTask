@@ -38,6 +38,10 @@ export function renderSubtasks(task, subtaskList, callbacks) {
   task.subtasks.forEach(function (subtask) {
     const item = document.createElement("li");
     item.className = "subtask-item";
+    // La lista se rehace entera en cada repintado: el id permite saber qué
+    // fila es nueva, cuál se ha ido y cuál ha cambiado (ver _animarSubtareas).
+    item.dataset.subtaskId = subtask.id;
+    item.dataset.subtaskDone = subtask.done ? "1" : "0";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";

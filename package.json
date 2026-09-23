@@ -1,6 +1,6 @@
 {
   "name": "antask",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "private": true,
   "type": "module",
   "description": "Tareas y hábitos — sin servidores, sin cuentas, sin rastro.",

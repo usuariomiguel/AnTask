@@ -4338,12 +4338,26 @@ function openTaskDetail(taskId, projectId) {
   // el rail: ahí no hay nada que retirar.
   var yaAbierto = Boolean(_detailPanelEls.wrap)
     && _detailPanelEls.wrap.classList.contains("task-detail-wrap--open");
+  // De qué lado viene la tarea nueva, para que su contenido entre por ahí.
+  var desde = "abrir";
+  if (yaAbierto) {
+    var filaVieja = openDetailTaskId && taskList
+      ? taskList.querySelector('[data-task-id="' + openDetailTaskId + '"], [data-hoy-task-id="' + openDetailTaskId + '"]') : null;
+    var filaNueva = taskList
+      ? taskList.querySelector('[data-task-id="' + taskId + '"], [data-hoy-task-id="' + taskId + '"]') : null;
+    desde = (filaVieja && filaNueva)
+      ? (filaNueva.getBoundingClientRect().top > filaVieja.getBoundingClientRect().top ? "abajo" : "arriba")
+      : "cambio";
+  }
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
   if (!yaAbierto) _detalleRelevo("detalle-abriendo");
+  // Los campos del panel son los de otra tarea: no se comparan con los suyos.
+  _detalleCampos = null;
   document.body.classList.add("task-detail-active");
   _renderTaskDetail();
+  _cascadaDetalle(desde);
   renderTasks(); // refresca la barra de acento en la fila abierta
   // .task-detail-wrap anima su ancho (62px → 100%/340px) durante
   // --shell-collapse (320ms). _renderTaskDetail() ya llamó a
@@ -5023,6 +5037,152 @@ function _autoGrowTitle() {
 }
 
 /** Pinta el panel con el estado actual de la tarea abierta (si hay alguna). */
+// ═══════════════════════════════════════════════════════════════
+// ANIMACIONES DEL PANEL DE DETALLE
+//
+// El panel ya entraba y salía, pero su interior cambiaba de golpe: al
+// abrirlo todo estaba ya puesto, las subtareas aparecían y desaparecían sin
+// más, y los campos pasaban de «Sin fecha» a «Mañana» sin avisar.
+// ═══════════════════════════════════════════════════════════════
+var DETALLE_MS = 240;
+var _detalleSubPrev = null;     // subtareas del repintado anterior
+var _detalleCampos  = null;     // valores de los campos del repintado anterior
+
+/** Dónde está y cómo está cada subtarea antes de rehacer la lista. */
+function _capturarSubtareas(cont, taskId) {
+  if (!cont || _sinAnimarFilas()) return null;
+  var base = cont.getBoundingClientRect();
+  var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  var filas = {};
+  var orden = [];
+  cont.querySelectorAll("[data-subtask-id]").forEach(function(el) {
+    var r = el.getBoundingClientRect();
+    filas[el.dataset.subtaskId] = {
+      el: el, top: (r.top - base.top) / zoom, alto: r.height / zoom,
+      hecha: el.dataset.subtaskDone === "1",
+    };
+    orden.push(el.dataset.subtaskId);
+  });
+  return { taskId: taskId, filas: filas, orden: orden };
+}
+
+/**
+ * Altas, bajas y marcado de subtareas, con el mismo lenguaje que las filas
+ * de la lista: la nueva se abre en altura, la borrada se cierra en su hueco
+ * y la marcada se barre de izquierda a derecha.
+ */
+// Barridos recientes por subtarea: marcar una dispara varios repintados
+// seguidos (guardar, lista, panel) y cada uno rehace la lista entera; sin
+// esta memoria, el segundo repintado se llevaba por delante el barrido a
+// medias. La clase se vuelve a poner sobre la fila nueva mientras dure.
+var _subBarridos = {};
+
+function _aplicarBarridos(cont) {
+  var ahora = performance.now();
+  Object.keys(_subBarridos).forEach(function(id) {
+    if (_subBarridos[id].hasta < ahora) { delete _subBarridos[id]; return; }
+    var fila = cont.querySelector('[data-subtask-id="' + id + '"]');
+    var texto = fila && fila.querySelector(".subtask-text");
+    if (texto && !texto.classList.contains(_subBarridos[id].clase)) {
+      texto.classList.add(_subBarridos[id].clase);
+    }
+  });
+}
+
+function _animarSubtareas(cont, antes, taskId) {
+  if (!cont || _sinAnimarFilas()) return;
+  if (!antes || antes.taskId !== taskId) { _aplicarBarridos(cont); return; }
+  var ahora = {};
+  cont.querySelectorAll("[data-subtask-id]").forEach(function(el) { ahora[el.dataset.subtaskId] = el; });
+  var nuevas = Object.keys(ahora).filter(function(id) { return !antes.filas[id]; });
+  var idas   = antes.orden.filter(function(id) { return !ahora[id]; });
+  if (nuevas.length > 3 || idas.length > 3) { _aplicarBarridos(cont); return; }
+
+  idas.forEach(function(id) {
+    var sitio = antes.filas[id];
+    if (!sitio || !sitio.el) return;
+    var i = antes.orden.indexOf(id);
+    var siguiente = null;
+    for (var j = i + 1; j < antes.orden.length && !siguiente; j++) siguiente = ahora[antes.orden[j]] || null;
+    var copia = sitio.el.cloneNode(true);
+    copia.removeAttribute("data-subtask-id");
+    copia.setAttribute("aria-hidden", "true");
+    copia.classList.add("fila-saliendo");
+    cont.insertBefore(copia, siguiente);
+    copia.animate([
+      { height: sitio.alto + "px", opacity: 1 },
+      { opacity: 0, offset: 0.45 },
+      { height: "0px", opacity: 0, paddingTop: "0px", paddingBottom: "0px" },
+    ], { duration: DETALLE_MS, easing: FILA_CURVA_SALIDA, fill: "forwards" })
+      .onfinish = function() { copia.remove(); };
+  });
+
+  Object.keys(ahora).forEach(function(id) {
+    var el = ahora[id];
+    var sitio = antes.filas[id];
+    if (!sitio) {
+      if (idas.length) return;   // reemplazo: ya lo cuenta la que se va
+      el.animate([
+        { height: "0px", opacity: 0, paddingTop: "0px", paddingBottom: "0px" },
+        { height: el.getBoundingClientRect().height + "px", opacity: 1 },
+      ], { duration: DETALLE_MS, easing: FILA_CURVA });
+      return;
+    }
+    // Marcada o desmarcada: barrido sobre el texto, como en las tareas.
+    var hecha = el.dataset.subtaskDone === "1";
+    if (hecha !== sitio.hecha) {
+      _subBarridos[id] = {
+        clase: hecha ? "sub-barrido" : "sub-barrido-undo",
+        hasta: performance.now() + 500,
+      };
+    }
+  });
+  _aplicarBarridos(cont);
+}
+
+/** Un campo que estrena valor: el texto entra y el botón da un toque. */
+function _animarCampoDetalle(btn, texto) {
+  if (!btn || _sinAnimarFilas()) return;
+  btn.animate([{ scale: "0.96" }, { scale: "1" }],
+    { duration: 240, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)" });
+  if (texto) texto.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+}
+
+/** Valores de los campos, para saber cuál ha cambiado en el repintado. */
+function _camposDetalle(task, project) {
+  return {
+    taskId: task.id,
+    fecha: task.dueDate || "",
+    repetir: task.recurDays || "",
+    aviso: task.reminderAt || "",
+    lista: project.id,
+    importante: task.priority ? "1" : "",
+    subtareas: (task.subtasks || []).filter(function(s) { return s.done; }).length + "/" + (task.subtasks || []).length,
+  };
+}
+
+/**
+ * Al abrir el panel, su contenido entra en cascada detrás de él; al cambiar
+ * de tarea con el panel abierto, entra desplazándose en la dirección del
+ * salto (desde abajo si la tarea nueva estaba más abajo), que si no el
+ * cambio pasaba desapercibido.
+ */
+function _cascadaDetalle(desde) {
+  var body = document.getElementById("task-detail-body");
+  if (!body || _sinAnimarFilas()) return;
+  var bloques = Array.prototype.filter.call(body.children, function(el) {
+    return el.getClientRects().length > 0;
+  });
+  var retraso = desde === "abrir" ? 140 : 0;
+  var salto = desde === "abajo" ? 10 : desde === "arriba" ? -10 : 8;
+  bloques.forEach(function(el, i) {
+    el.animate([
+      { opacity: 0, translate: "0 " + salto + "px" },
+      { opacity: 1, translate: "0 0" },
+    ], { duration: DETALLE_MS, delay: retraso + i * 35, easing: FILA_CURVA, fill: "backwards" });
+  });
+}
+
 function _renderTaskDetail() {
   const open = _getOpenDetailTask();
   if (!open) { closeTaskDetail(); return; }
@@ -5074,10 +5234,12 @@ function _renderTaskDetail() {
   if (els.projectBtn) els.projectBtn.classList.add("task-detail-field-btn--has-value");
   if (els.backLabel) els.backLabel.textContent = project.name;
 
+  var subAntes = _capturarSubtareas(els.subtasks, task.id);
   renderSubtasks(task, els.subtasks, {
     onMutation:  saveAndRenderDetail,
     onEditStart: startSubtaskInlineEdit,
   });
+  _animarSubtareas(els.subtasks, subAntes, task.id);
   // «SUBTAREAS · 1/3»: el progreso junto al título de la sección. Sin
   // subtareas, solo el título.
   if (els.subtaskCount) {
@@ -5085,6 +5247,24 @@ function _renderTaskDetail() {
     els.subtaskCount.textContent = subs.length
       ? " · " + subs.filter(function(s) { return s.done; }).length + "/" + subs.length
       : "";
+  }
+
+  // Campos que estrenan valor y contador de subtareas que cambia.
+  var campos = _camposDetalle(task, project);
+  var previo = _detalleCampos;
+  _detalleCampos = campos;
+  if (previo && previo.taskId === campos.taskId) {
+    if (previo.fecha !== campos.fecha)       _animarCampoDetalle(els.dateBtn, els.dateText);
+    if (previo.repetir !== campos.repetir)   _animarCampoDetalle(els.recurBtn, els.recurText);
+    if (previo.aviso !== campos.aviso)       _animarCampoDetalle(els.reminderBtn, els.reminderText);
+    if (previo.lista !== campos.lista)       _animarCampoDetalle(els.projectBtn, els.projectText);
+    if (previo.importante !== campos.importante) _animarCampoDetalle(els.priority, null);
+    if (previo.subtareas !== campos.subtareas && els.subtaskCount && !_sinAnimarFilas()) {
+      els.subtaskCount.animate([
+        { transform: "translateY(-55%)", opacity: 0 },
+        { transform: "translateY(0)", opacity: 1 },
+      ], { duration: 260, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+    }
   }
 
   if (window.lucide) window.lucide.createIcons({ nodes: [els.priority, els.subtasks] });
@@ -5170,7 +5350,14 @@ function _initTaskDetailPanel() {
       if (!open) return;
       open.task.comment = els.comment.value.slice(0, 300);
       clearTimeout(commentTimer);
-      commentTimer = setTimeout(function() { saveProjects(); }, 400);
+      commentTimer = setTimeout(function() {
+        saveProjects();
+        // La nota se guarda sola y no lo decía: un destello corto del borde
+        // confirma que lo escrito ya está a salvo.
+        if (_sinAnimarFilas()) return;
+        els.comment.classList.add("nota-guardada");
+        setTimeout(function() { els.comment.classList.remove("nota-guardada"); }, 700);
+      }, 400);
     });
   }
 
