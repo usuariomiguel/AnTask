@@ -1453,9 +1453,10 @@ function _filtroActivoVisible() {
 window.applyFilter = applyFilter;
 
 function _syncFilterPanel(filter) {
-  document.querySelectorAll("#filter-panel [data-filter]").forEach(function(b) {
-    b.classList.toggle("filter-opt--active", b.dataset.filter === filter);
-  });
+  // Marca los DOS juegos de filtros, no solo los del panel: al cambiar de
+  // vista el filtro se reinicia a «Todas», y el segmentado de escritorio se
+  // quedaba con «Pendientes» resaltado mientras la lista enseñaba todo.
+  _marcarFiltroActivo(filter);
   var triggerBtn = document.getElementById("filter-trigger-btn");
   if (triggerBtn) triggerBtn.classList.remove("filter-trigger-btn--active");
   var labelEl = document.getElementById("filter-trigger-label");
