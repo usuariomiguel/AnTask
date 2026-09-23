@@ -5478,12 +5478,19 @@ function _hoyCalMondayOf(iso) {
 }
 
 /** Map ISO → nº de tareas ese día (para los puntitos, hasta 3). */
+/**
+ * Tareas por día: pendientes y hechas por separado. Los puntos del
+ * calendario hablan de lo que queda por hacer, y un día pasado con
+ * pendientes se pinta como vencido.
+ */
 function _hoyCalTareasPorDia() {
   var map = new Map();
   projects.forEach(function(p) {
     (p.tasks || []).forEach(function(tk) {
       if (!tk.dueDate) return;
-      map.set(tk.dueDate, (map.get(tk.dueDate) || 0) + 1);
+      var d = map.get(tk.dueDate) || { pend: 0, hechas: 0 };
+      if (tk.done) d.hechas++; else d.pend++;
+      map.set(tk.dueDate, d);
     });
   });
   return map;
@@ -5595,16 +5602,41 @@ function _renderHoyCalStrip() {
 
   function celda(iso, num, fueraDeMes) {
     var cls = ["hoy-cal-day"];
+    var d = new Date(iso + "T00:00");
+    var finde = d.getDay() === 0 || d.getDay() === 6;
+    var esHoy = iso === todayISO;
+    var elegido = iso === _hoySelectedDate;
     if (fueraDeMes) cls.push("hoy-cal-day--muted");
-    if (iso === todayISO) cls.push("hoy-cal-day--today");
-    if (iso === _hoySelectedDate) cls.push("hoy-cal-day--selected");
-    // Hasta 3 puntos según cuántas tareas hay ese día; con 0 se pinta uno
-    // "off" (invisible, no ausente) para que la fila mida siempre igual.
-    var n = Math.min(tareasPorDia.get(iso) || 0, 3);
-    var dotsHtml = n > 0
-      ? '<span class="hoy-cal-dots">' + '<span class="hoy-cal-dot"></span>'.repeat(n) + '</span>'
-      : '<span class="hoy-cal-dots"><span class="hoy-cal-dot hoy-cal-dot--off"></span></span>';
-    return '<button type="button" class="' + cls.join(" ") + '" data-cal-day="' + iso + '">' +
+    if (finde) cls.push("hoy-cal-day--finde");
+    if (esHoy) cls.push("hoy-cal-day--today");
+    if (elegido) cls.push("hoy-cal-day--selected");
+    // Los puntos cuentan lo que queda por hacer; un día pasado con
+    // pendientes va en el rojo de «vencidas», que es lo que urge ver. Un
+    // día con todo hecho deja un punto tenue. Con nada, uno invisible: si
+    // faltara, ese día mediría menos y la rejilla bailaría.
+    var datos = tareasPorDia.get(iso) || { pend: 0, hechas: 0 };
+    var vencido = datos.pend > 0 && iso < todayISO;
+    var n = Math.min(datos.pend, 3);
+    var dotsHtml;
+    if (n > 0) {
+      dotsHtml = '<span class="hoy-cal-dots">' +
+        ('<span class="hoy-cal-dot' + (vencido ? " hoy-cal-dot--vencido" : "") + '"></span>').repeat(n) +
+        '</span>';
+    } else if (datos.hechas > 0) {
+      dotsHtml = '<span class="hoy-cal-dots"><span class="hoy-cal-dot hoy-cal-dot--hecho"></span></span>';
+    } else {
+      dotsHtml = '<span class="hoy-cal-dots"><span class="hoy-cal-dot hoy-cal-dot--off"></span></span>';
+    }
+    // Sin esto, el lector de pantalla solo decía «23».
+    var etiqueta = capitalizeFirst(d.toLocaleDateString(localeD, { weekday: "long", day: "numeric", month: "long" }));
+    if (esHoy) etiqueta += " · " + t("date.today");
+    if (datos.pend > 0) {
+      etiqueta += " · " + _plural(datos.pend, "header.pending_one", "header.pending_other");
+    }
+    return '<button type="button" class="' + cls.join(" ") + '" data-cal-day="' + iso + '"' +
+      ' aria-label="' + escHtml(etiqueta) + '"' +
+      ' aria-pressed="' + (elegido ? "true" : "false") + '"' +
+      (esHoy ? ' aria-current="date"' : "") + '>' +
       '<span class="hoy-cal-day-num">' + num + '</span>' +
       dotsHtml +
     '</button>';
@@ -5637,10 +5669,17 @@ function _renderHoyCalStrip() {
     }
   }
 
+  // ¿El periodo a la vista incluye hoy? Si no, se ofrece volver: con las
+  // flechas hacían falta tantos toques como meses de ida.
+  var fueraDeHoy = _hoyCalExpanded
+    ? viewISO.slice(0, 7) !== todayISO.slice(0, 7)
+    : _hoyCalMondayOf(viewISO) !== _hoyCalMondayOf(todayISO);
+
   host.innerHTML =
     '<div class="hoy-cal-head">' +
       '<button type="button" class="hoy-cal-nav" data-cal-step="-1" aria-label="' + escHtml(t("hoy.cal_prev")) + '">‹</button>' +
-      '<span class="hoy-cal-title">' + escHtml(titulo) + '</span>' +
+      '<span class="hoy-cal-title">' + escHtml(capitalizeFirst(titulo)) + '</span>' +
+      (fueraDeHoy ? '<button type="button" class="hoy-cal-volver" data-cal-today>' + escHtml(t("date.today")) + '</button>' : "") +
       '<button type="button" class="hoy-cal-nav" data-cal-step="1" aria-label="' + escHtml(t("hoy.cal_next")) + '">›</button>' +
       '<button type="button" class="hoy-cal-toggle" data-cal-toggle aria-label="' +
         escHtml(t(_hoyCalExpanded ? "hoy.cal_collapse" : "hoy.cal_expand")) + '">' +
@@ -5670,10 +5709,24 @@ function _renderHoyCalStrip() {
       _renderHoyCalStrip();
     });
   });
+  var volverBtn = host.querySelector("[data-cal-today]");
+  if (volverBtn) volverBtn.addEventListener("click", function() {
+    _hoyCalViewISO = todayISO;
+    _renderHoyCalStrip();
+  });
   var toggleBtn = host.querySelector("[data-cal-toggle]");
   if (toggleBtn) toggleBtn.addEventListener("click", function() {
+    // El mes aparecía de golpe: se mide antes y después y se anima el alto.
+    var alto = host.getBoundingClientRect().height;
     _hoyCalExpanded = !_hoyCalExpanded;
     _renderHoyCalStrip();
+    if (_sinAnimarFilas()) return;
+    var nuevo = host.getBoundingClientRect().height;
+    host.animate([{ height: alto + "px" }, { height: nuevo + "px" }],
+      { duration: 260, easing: FILA_CURVA })
+      .onfinish = function() { host.style.height = ""; };
+    host.style.overflow = "hidden";
+    setTimeout(function() { host.style.overflow = ""; }, 280);
   });
   host.querySelectorAll("[data-cal-day]").forEach(function(btn) {
     btn.addEventListener("click", function() {

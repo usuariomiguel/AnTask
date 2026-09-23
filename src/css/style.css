@@ -4151,7 +4151,6 @@ button:focus-visible {
     font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
-    text-transform: capitalize;
     font-family: var(--font-display);
   }
 
@@ -4212,8 +4211,9 @@ button:focus-visible {
     background: var(--surface-card);
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    /* 36 y no 40: la tira se comía 109px de una pantalla de móvil. */
+    width: 36px;
+    height: 36px;
     border: 2px solid var(--border-default);
     border-radius: 50%;
     font-weight: 700;
@@ -4224,15 +4224,53 @@ button:focus-visible {
     opacity: 0.45;
   }
 
+  /* Fin de semana algo más tenue: ayuda a situarse en la rejilla del mes
+     sin quitarle protagonismo a hoy ni al día elegido. */
+  .hoy-cal-day--finde:not(.hoy-cal-day--today):not(.hoy-cal-day--selected) .hoy-cal-day-num {
+    color: var(--text-tertiary);
+  }
+
+  /* Hoy con el anillo entero, no un borde al 45 %: al elegir otro día, el
+     de hoy se perdía y no se sabía dónde estaba uno. */
   .hoy-cal-day--today .hoy-cal-day-num {
+    color: var(--c-primary-500);
+    border-color: var(--c-primary-500);
+  }
+
+  :root[data-theme="dark"] .hoy-cal-day--today .hoy-cal-day-num {
     color: var(--c-primary-300);
-    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+    border-color: var(--c-primary-300);
   }
 
   .hoy-cal-day--selected .hoy-cal-day-num {
     background: var(--c-primary-500);
     color: var(--accent-on);
     border-color: transparent;
+  }
+
+  /* Hoy y elegido a la vez: relleno con un anillo por fuera, para que se
+     lean las dos cosas. */
+  .hoy-cal-day--today.hoy-cal-day--selected .hoy-cal-day-num {
+    outline: 2px solid color-mix(in srgb, var(--c-primary-500) 40%, transparent);
+    outline-offset: 2px;
+  }
+
+  /* Volver a hoy: solo aparece cuando el periodo a la vista no lo incluye. */
+  .hoy-cal-volver {
+    flex-shrink: 0;
+    padding: 3px 10px;
+    border: 2px solid color-mix(in srgb, var(--c-primary-500) 35%, transparent);
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--c-primary-500) 12%, transparent);
+    color: var(--c-primary-500);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :root[data-theme="dark"] .hoy-cal-volver {
+    color: var(--c-primary-300);
   }
 
   /* Sin celda no hay botón, pero el hueco tiene que seguir contando en la
@@ -4257,6 +4295,16 @@ button:focus-visible {
     height: 4px;
     border-radius: 50%;
     background: var(--c-primary-300);
+  }
+
+  /* Día pasado con pendientes: el rojo de «vencidas». */
+  .hoy-cal-dot--vencido {
+    background: var(--c-pink);
+  }
+
+  /* Todo hecho ese día: un punto tenue, ni alarma ni vacío. */
+  .hoy-cal-dot--hecho {
+    background: color-mix(in srgb, var(--text-tertiary) 60%, transparent);
   }
 
   .hoy-cal-day--selected .hoy-cal-dot {
