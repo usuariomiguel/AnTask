@@ -133,9 +133,6 @@ export const en = {
   "a11y.list_chips":         "Switch list",
 
   // ── Today (view) ──────────────────────────────────────────
-  "today.empty_title_full":   "All caught up",
-  "today.empty_sub_full":     "Nothing overdue and no tasks for today.",
-
   "hoy.overdue":              "Overdue",
   "hoy.for_today":            "For today",
   "hoy.nodate":               "No date · suggested",

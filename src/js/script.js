@@ -5798,10 +5798,9 @@ function renderTodayView() {
   // cabecera, unas líneas más abajo, ya los necesita: al ser `var`, tenerlos
   // después los dejaba en `undefined` y tumbaba el render entero.
   //
-  // Los hábitos de hoy no entran en `hoyDoneStats`/`totalHoyStats` —un
+  // Los hábitos de hoy no entran en `hoyDoneStats`/`totalHoyStats`: un
   // hábito no es una tarea y no debe mover el progreso de las tareas, ver el
-  // typedef Habit en state/types.js—, pero sí en `allClear`: "Todo al día"
-  // encima de hábitos sin marcar sería mentira.
+  // typedef Habit en state/types.js.
   var habitsHoy = _hoyHabitsDeHoy(today);
   var habitsHechos = habitsHoy.filter(function(h) { return isDoneOn(h, today); }).length;
 
@@ -5883,12 +5882,6 @@ function renderTodayView() {
   var verTareas  = !conTabs || _hoyTab === "tasks";
   var verHabitos = !conTabs || _hoyTab === "habits";
 
-  // "Todo al día" solo mira lo que hay a la vista: en la solapa de
-  // tareas, unos hábitos sin marcar no son motivo para no darlo por
-  // cerrado, porque ni siquiera se están mostrando.
-  var allClear = verTareas && overdue.length === 0 && todays.length === 0 &&
-    (!verHabitos || habitsHechos === habitsHoy.length);
-
   // ── Vencidas ──
   if (verTareas && overdue.length > 0) {
     var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
@@ -5944,21 +5937,6 @@ function renderTodayView() {
       secN.list.appendChild(renderTodayItem(it.task, it.project, today, "nodate"));
     });
     taskList.appendChild(secN.li);
-  }
-
-  // El aviso de "todo al día" va debajo de las secciones (Para hoy sigue
-  // siendo el sitio para añadir algo nuevo), no por delante tapándolas.
-  if (allClear) {
-    // Mismas clases que el resto de empty states (Inbox / lista): antes
-    // era su propio bloque (.hoy-allclear) con otra escala de badge y
-    // tipografía, y las tres vistas no se veían relacionadas entre sí.
-    var clearLi = document.createElement("li");
-    clearLi.className = "empty-illustrated empty-illustrated--badge";
-    clearLi.innerHTML =
-      '<div class="empty-illustrated-badge"><i data-lucide="check"></i></div>' +
-      '<p class="empty-illustrated-title">' + t("today.empty_title_full") + '</p>' +
-      '<p class="empty-illustrated-sub">' + t("today.empty_sub_full") + '</p>';
-    taskList.appendChild(clearLi);
   }
 
   if (window.lucide) lucide.createIcons();

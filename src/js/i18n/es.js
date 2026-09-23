@@ -133,9 +133,6 @@ export const es = {
   "a11y.list_chips":         "Cambiar de lista",
 
   // ── Hoy (vista) ───────────────────────────────────────────
-  "today.empty_title_full":   "Todo al día",
-  "today.empty_sub_full":     "No tienes nada vencido ni ninguna tarea para hoy.",
-
   "hoy.overdue":              "Vencidas",
   "hoy.for_today":            "Para hoy",
   "hoy.nodate":               "Sin fecha · sugeridas",
