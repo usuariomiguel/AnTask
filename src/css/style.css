@@ -2213,14 +2213,15 @@ body {
      El botón del header (#row-style-wrap) se queda oculto igual que
      siempre (ver "MÓVIL — limpio como única vista" más abajo) — ya no
      hace falta mostrarlo ahí con Ajustes como acceso alternativo.
-     "Detalles y columnas" se queda oculto del todo. El de tema también
-     se oculta aquí:
-     el control real vive en Ajustes › Apariencia (#settings-theme-seg),
-     no hace falta duplicarlo en la fila. */
-  html[data-mode="simple"] #task-prefs-wrap,
-  html[data-mode="simple"] #theme-toggle-btn {
+     "Detalles y columnas" se queda oculto del todo. El de tema sí se
+     queda: cambiar de claro a oscuro es de todos los días y tenerlo que
+     buscar en Ajustes › Apariencia era un viaje largo para algo tan
+     frecuente. Va junto al buscador, a su derecha. */
+  html[data-mode="simple"] #task-prefs-wrap {
     display: none;
   }
+
+
 
   /* Sin filtros: Todas/Pendientes/Hechas + el desplegable "Filtrar" (7
      opciones más) desaparecen — la lista se queda siempre en "Todas".
@@ -6066,6 +6067,17 @@ body.project-dragging .project-item {
     min-height: 0;
     padding: 0;
     justify-content: center;
+  }
+
+  /* Claro/oscuro va junto al buscador del header (ver _placeRowStyleControl):
+     mismo tamaño y misma superficie que él, o se leían como dos botones de
+     familias distintas. */
+  #theme-toggle-btn {
+    width: 50px;
+    height: 50px;
+    min-height: 0;
+    padding: 0;
+    background: var(--surface-card);
   }
 
   .task-list {

@@ -1290,10 +1290,15 @@ function _placeRowStyleControl() {
   const enMovil = window.matchMedia("(max-width: 768px)").matches;
   const destino = enMovil ? filterActions : headerActions;
 
-  ["theme-toggle-btn", "row-style-wrap", "task-prefs-wrap"].forEach(function(id) {
+  ["row-style-wrap", "task-prefs-wrap"].forEach(function(id) {
     const el = document.getElementById(id);
     if (el && el.parentElement !== destino) destino.appendChild(el);
   });
+  // El de claro/oscuro se queda siempre en la cabecera, junto al buscador:
+  // en móvil bajaba con los otros dos a la fila de filtros, donde en modo
+  // simple ni siquiera se ve. Cambiar de tema es de todos los días.
+  const tema = document.getElementById("theme-toggle-btn");
+  if (tema && tema.parentElement !== headerActions) headerActions.appendChild(tema);
 }
 
 /**

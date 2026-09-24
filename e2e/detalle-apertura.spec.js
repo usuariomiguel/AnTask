@@ -25,15 +25,25 @@ test("apertura como la sidebar", async ({ page }) => {
     const cs = getComputedStyle(p);
     return { caja: Math.round(w.width), panel: Math.round(pr.width), opacidad: cs.opacity, transform: cs.transform };
   });
+  // Se muestrea fotograma a fotograma: mirar en un instante fijo fallaba
+  // con la máquina cargada, con la transición ya terminada.
+  const recorrido = page.evaluate(() => new Promise((res) => {
+    const pasos = [];
+    const t0 = performance.now();
+    (function paso() {
+      const w = document.getElementById("task-detail-wrap").getBoundingClientRect().width;
+      const p = document.getElementById("task-detail-panel");
+      pasos.push({ caja: Math.round(w), panel: Math.round(p.getBoundingClientRect().width), op: getComputedStyle(p).opacity });
+      if (performance.now() - t0 < 700) requestAnimationFrame(paso); else res(pasos);
+    })();
+  }));
   await page.locator(".task-item", { hasText: "Revisar" }).locator(".task-text").click();
-  await page.waitForTimeout(120);
-  const medio = await medir();
-  await page.waitForTimeout(600);
+  const pasos = await recorrido;
   const fin = await medir();
-  // El contenido guarda su ancho final mientras la caja crece
-  expect(medio.panel).toBe(340);
-  expect(medio.opacidad).toBe("1");
-  expect(medio.caja).toBeLessThan(fin.caja);
+  // La caja crece mientras el contenido guarda su ancho final y no se funde
+  expect(pasos.some((p) => p.caja < fin.caja && p.caja > 62)).toBe(true);
+  expect(pasos.every((p) => p.panel === 340 || p.panel === 0)).toBe(true);
+  expect(pasos.every((p) => p.op === "1")).toBe(true);
   // Al cerrar, el rail vuelve sin fundidos
   await page.click("#task-detail-close");
   await page.waitForTimeout(120);
