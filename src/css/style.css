@@ -10660,6 +10660,16 @@ button {
     font-size: 14px;
   }
 
+  /* La fecha va en monoespaciada y en negrita: a igual tamaño se leía
+     bastante más grande que el resto de chips de la fila (el de lista en
+     Inter 500, el de repetición en mono 400). Un punto menos y sin negrita
+     la iguala ópticamente, sin perder el aire de dato. */
+  .due-badge,
+  .today-date-pill {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
   .chip-sugerencia-aceptar {
     font-size: 13px;
   }
@@ -14134,13 +14144,13 @@ button {
   position: sticky;
   top: 0;
   z-index: 5;
-  height: 12px;
-  margin-bottom: -12px;
+  height: 10px;
+  margin-bottom: -10px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.16s ease;
   background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--text-primary) 13%, transparent), transparent);
+    color-mix(in srgb, var(--text-primary) 8%, transparent), transparent);
   /* Los extremos se apagan hacia los lados y las esquinas van redondeadas:
      cortado en seco, el degradado dejaba dos cantos rectos en una interfaz
      donde todo lo demás es redondo. */
