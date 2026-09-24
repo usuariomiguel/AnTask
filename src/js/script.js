@@ -4748,8 +4748,21 @@ function _openInlineDateRecurPopover(task, anchorEl, project) {
     const dateChipEl  = pop.querySelector("[data-date-chip]");
     if (dateInputEl) {
       dateInputEl.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+      // El selector nativo del móvil escribe la fecha de HOY en cuanto se
+      // abre y dispara "change" con ella: guardar en ese primer cambio
+      // asignaba hoy y cerraba el panel, sin dejar elegir. Se apunta el
+      // valor y se guarda al cerrarse el selector (blur), que es cuando el
+      // usuario ha terminado de elegir de verdad.
+      var fechaPendiente = null;
       dateInputEl.addEventListener("change", function() {
-        task.dueDate = dateInputEl.value || null;
+        fechaPendiente = dateInputEl.value || null;
+      });
+      dateInputEl.addEventListener("blur", function() {
+        if (fechaPendiente === null && !dateInputEl.value) return;
+        var elegida = dateInputEl.value || null;
+        fechaPendiente = null;
+        if (elegida === (task.dueDate || null)) return;
+        task.dueDate = elegida;
         saveAndRender();
         _closeInlineRowPopover();
       });
@@ -5733,7 +5746,9 @@ function _renderHoyCalStrip() {
       var iso = btn.dataset.calDay;
       // Volver a tocar el día ya seleccionado deshace el filtro: sin esto,
       // la única salida sería el botón "Volver a Hoy" de la sección.
-      _hoySelectedDate = _hoySelectedDate === iso ? null : iso;
+      // Y tocar HOY es volver a Hoy, no "elegir el día de hoy": antes se
+      // quedaba en modo día, con su «Volver a hoy» puesto y sin hábitos.
+      _hoySelectedDate = (iso === _hoySelectedDate || iso === todayISO) ? null : iso;
       renderTasks();
     });
   });
@@ -5837,7 +5852,9 @@ function renderTodayView() {
   // ese día. Las stats de la cabecera siguen siendo las de HOY (ya
   // calculadas arriba): son el progreso del día real, no el de lo que se
   // esté mirando de paso.
-  if (isSimpleMobile() && _hoySelectedDate) {
+  // Solo en la solapa de Tareas: en Hábitos este bloque se colaba y
+  // enseñaba las tareas de ese día en lugar de los hábitos.
+  if (isSimpleMobile() && _hoySelectedDate && _hoyTab === "tasks") {
     var delDia = [];
     projects.forEach(function(p) {
       (p.tasks || []).forEach(function(tk) {
