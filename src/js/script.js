@@ -4310,29 +4310,6 @@ function _getOpenDetailTask() {
   return { task: task, project: project };
 }
 
-// ── Relevo rail ⇄ panel ──────────────────────────────────────
-// El CSS necesita que la mitad que se va siga en pie mientras se
-// retira; esta clase se la pone al wrap el tiempo justo. Se limpia con
-// un temporizador y no con animationend porque hay dos animaciones a la
-// vez (la que entra y la que sale) y cualquiera de las dos podría
-// dispararlo antes de tiempo. Un relevo nuevo cancela el anterior.
-var _detalleRelevoTimer = null;
-
-function _detalleRelevo(clase) {
-  var wrap = _detailPanelEls.wrap;
-  if (!wrap) return;
-  clearTimeout(_detalleRelevoTimer);
-  wrap.classList.remove("detalle-abriendo", "detalle-cerrando");
-  // Las reglas viven en un @media de escritorio sin reducción de
-  // movimiento: fuera de ahí la clase no pinta nada y sobra.
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  if (window.matchMedia("(max-width: 768px)").matches) return;
-  wrap.classList.add(clase);
-  _detalleRelevoTimer = setTimeout(function() {
-    wrap.classList.remove("detalle-abriendo", "detalle-cerrando");
-  }, 400);
-}
-
 function openTaskDetail(taskId, projectId) {
   // Abrir con el panel ya abierto es cambiar de tarea, no un relevo con
   // el rail: ahí no hay nada que retirar.
@@ -4352,7 +4329,6 @@ function openTaskDetail(taskId, projectId) {
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
-  if (!yaAbierto) _detalleRelevo("detalle-abriendo");
   // Los campos del panel son los de otra tarea: no se comparan con los suyos.
   _detalleCampos = null;
   document.body.classList.add("task-detail-active");
@@ -4380,7 +4356,6 @@ function closeTaskDetail() {
   openDetailTaskId    = null;
   openDetailProjectId = null;
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.remove("task-detail-wrap--open");
-  _detalleRelevo("detalle-cerrando");
   document.body.classList.remove("task-detail-active");
   renderTasks(); // quita la barra de acento de la fila que tenía el panel abierto
 }

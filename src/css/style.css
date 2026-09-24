@@ -1368,75 +1368,28 @@ body {
   display: none;
 }
 
-/* ── Relevo entre el rail y el panel ──────────────────────────────
-   La caja ya animaba su ancho (62 ⇄ 340), pero sus dos mitades se
-   intercambiaban con display: el contenido de 340px estaba entero ahí
-   desde el primer fotograma y solo lo tapaba el recorte de la caja, y al
-   cerrar se esfumaba de golpe dejando una caja vacía encogiéndose.
+/* ── Apertura y cierre: igual que la sidebar ──────────────────────
+   Antes el contenido entraba deslizándose y se iba con un fundido, encima
+   de la caja que ya animaba su ancho: dos gestos a la vez, que se leían
+   distintos del de la sidebar (que solo anima el ancho y va descubriendo
+   lo que hay dentro). Ahora el panel hace lo mismo: rail y panel se
+   cambian al instante y el ancho de la caja los va destapando.
 
-   Ahora la que entra lo hace deslizándose desde la derecha, y la que se
-   va aguanta en pie lo justo para retirarse: script.js le pone al wrap
-   una clase mientras dura (detalle-abriendo / detalle-cerrando).
-
-   La saliente va position:absolute a propósito: el wrap es un bloque
-   y durante el cruce las dos mitades existen a la vez, así que en flujo
-   se apilarían una debajo de la otra. Solo escritorio — en móvil el
-   panel es una pantalla completa sin rail, con su propia entrada. */
-@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
-  .task-detail-wrap {
-    position: relative;
-  }
-
-  /* Entra el panel (al abrir) o el rail (al cerrar): los dos con el
-     mismo gesto, corto y con retardo, para que lleguen con la caja ya
-     casi hecha en vez de cruzarse con ella. */
-  .task-detail-wrap--open .task-detail-panel,
-  .task-detail-wrap.detalle-cerrando .task-detail-rail {
-    /* backwards y no both: con forwards el transform del ultimo
-       fotograma se queda puesto, y un ancestro con transform captura a
-       los descendientes position:fixed. Aqui no hace falta, el estado
-       final es el natural del elemento. */
-    animation: detalle-entra 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s backwards;
-  }
-
-  /* Se va el rail (al abrir) o el panel (al cerrar). Rápido y sin
-     esperar: deja sitio antes de que llegue el otro. */
-  .task-detail-wrap--open.detalle-abriendo .task-detail-rail,
-  .task-detail-wrap.detalle-cerrando .task-detail-panel {
-    display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    /* Se esta yendo: no debe tragarse clics mientras se desvanece
-       (al borrar desde el panel, el boton de Eliminar seguia ahi
-       recibiendolos durante la salida). */
-    pointer-events: none;
-    animation: detalle-sale 0.14s ease both;
-  }
+   position: relative — de aquí cuelgan los desplegables de los campos
+   (fecha, repetir, lista…). min-width: el contenido guarda su ancho final
+   mientras la caja crece, así se descubre en vez de estrujarse a cada
+   paso (mismo truco que .sidebar-desplegando). */
+.task-detail-wrap {
+  position: relative;
 }
 
-@keyframes detalle-entra {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
+@media (min-width: 769px) {
+  .task-detail-wrap--open .task-detail-panel {
+    min-width: 340px;
   }
 
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes detalle-sale {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-10px);
+  .task-detail-wrap:not(.task-detail-wrap--open) .task-detail-rail {
+    min-width: 62px;
   }
 }
 
@@ -2286,8 +2239,15 @@ body {
      sections-and-profile.js) — por eso aquí un `display:none` normal
      basta, sin pelear con el `[hidden]{!important}` global: en el
      momento en que esto se evalúa, el atributo ya no está puesto. */
-  html[data-mode="simple"] #settings-panel-tareas,
-  html[data-mode="simple"] #settings-panel-datos {
+  html[data-mode="simple"] #settings-panel-tareas {
+    display: none;
+  }
+
+  /* De «Datos» se queda solo compartir datos de uso: retirar el permiso
+     tiene que ser tan fácil como darlo, y en modo simple desaparecía con
+     el panel entero. Exportar, importar y borrar todo siguen siendo cosa
+     del modo completo. */
+  html[data-mode="simple"] #settings-panel-datos .settings-row:not(:has(#settings-analytics-btn)) {
     display: none;
   }
 
