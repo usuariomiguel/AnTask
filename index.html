@@ -955,8 +955,12 @@
         </button>
         <!-- Modo simple: sustituye a Buscar+Perfil — Ajustes directo, sin
              pasar por la hoja de listas/perfil. Oculto por defecto. -->
-        <button type="button" class="mobile-bottom-btn" id="bnav-settings-btn" hidden>
-          <i data-lucide="settings"></i>
+        <!-- Lleva el avatar en vez de la rueda dentada: el destino sigue
+             siendo Ajustes (y así lo dice su etiqueta para el lector de
+             pantalla), pero la cara identifica el botón mejor que un icono
+             más entre iconos. Mismo avatar que el resto (ver _applyAvatar). -->
+        <button type="button" class="mobile-bottom-btn mobile-bottom-btn--profile" id="bnav-settings-btn" hidden>
+          <p class="bnav-avatar" id="bnav-avatar-ajustes" aria-hidden="true">A</p>
           <span data-i18n="profile.settings">Ajustes</span>
         </button>
       </nav>

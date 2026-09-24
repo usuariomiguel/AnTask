@@ -8660,6 +8660,8 @@ function _updateProfileMenu(user) {
     // La pestaña «Perfil» de la barra inferior lleva el mismo avatar: en el
     // handoff ese destino se identifica por la cara, no por un icono.
     document.getElementById("bnav-avatar"),
+    // En modo simple la barra inferior enseña Ajustes con el mismo avatar.
+    document.getElementById("bnav-avatar-ajustes"),
     document.getElementById("sidebar-rail-avatar"),
   ];
   avatares.forEach(function(el) { _applyAvatar(el, avatarValue, null); });

@@ -6466,8 +6466,10 @@ body.project-dragging .project-item {
      con `outline` y no con `border` para que no altere la caja y el avatar
      mantenga sus 26px al pasar a activo (el anillo engorda de 1.5 a 2.5). */
   .bnav-avatar {
-    width: 100%;
-    height: 48px;
+    /* Del tamaño de los iconos vecinos (22px) más su aire: a 48 llenaba el
+       botón entero y pesaba mucho más que el resto de la barra. */
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
