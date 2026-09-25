@@ -13726,9 +13726,12 @@ button {
    cabecera eran lo único con caja de tarjeta (fondo blanco hueso en claro,
    píldoras con borde). Aquí van planos como las filas: sin pista ni borde,
    el filtro activo conserva su relleno de acento —es el estado— y el
-   resto se tiñe al pasar el ratón o con su menú abierto. Solo escritorio:
-   en móvil la cabecera tiene su propio diseño. */
-@media (min-width: 769px) {
+   resto se tiñe al pasar el ratón o con su menú abierto.
+
+   También en móvil: «Limpio» tiene que verse igual en los dos sitios, y
+   allí los filtros y los botones de la cabecera seguían con su caja
+   (cápsula, círculos con borde) mientras las filas iban planas. */
+@media (min-width: 1px) {
   .main-panel[data-row-style="limpio"] :is(.filter-segments, .view-nav-right) {
     background: transparent;
     border-color: transparent;
@@ -13751,6 +13754,44 @@ button {
     .row-style-btn, .theme-toggle-btn, .task-prefs-btn):is(:hover, .open, [aria-expanded="true"]) {
     background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-canvas));
     color: var(--text-primary);
+  }
+}
+
+/* ─── «LIMPIO» EN MÓVIL: LO MISMO QUE EN EL PC ──────────────────
+   Piezas que solo existen en móvil (buscar, tema) o que allí llevan caja
+   propia (los filtros del modo simple y la píldora de fecha). En «Limpio»
+   van planas, como en escritorio: la fecha se queda en texto salvo cuando
+   está vencida o es una acción («Mover a hoy»), que ahí el color ES el
+   dato. */
+@media (max-width: 768px) {
+  .main-panel[data-row-style="limpio"] :is(#mobile-search-btn, #theme-toggle-btn) {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-secondary);
+  }
+
+  .main-panel[data-row-style="limpio"] :is(#mobile-search-btn, #theme-toggle-btn):active {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-canvas));
+    color: var(--text-primary);
+  }
+
+  /* La barra de filtros de móvil se pinta con un selector de id (ver
+     «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. */
+  html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil #filter-segments {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil
+    .filter-segment:not(.filter-opt--active) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .task-list[data-row-style="limpio"] :is(.due-badge, .today-date-pill):not(.due-overdue):not(.today-date-pill--overdue):not(.today-date-pill--action):not(.due-badge--action) {
+    background: transparent;
+    border-color: transparent;
+    padding-inline: 0;
   }
 }
 
