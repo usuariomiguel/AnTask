@@ -32,10 +32,22 @@ test("el estilo elegido se aplica en móvil", async ({ page }) => {
   expect(await estiloAplicado(page)).toBe("limpio");
   expect(await page.evaluate(() => getComputedStyle(document.querySelector(".today-item")).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
 
-  // Y al deslizar, lo que se mueve no deja ver las acciones de debajo.
+  // Y al deslizar, lo que se mueve no deja ver las acciones de debajo: su
+  // fondo tiene que ser OPACO. Con el translúcido del lienzo se sumaba al
+  // del contenedor y en oscuro se veía la caja de cada fila.
   const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
   expect(fondo).not.toBe("rgba(0, 0, 0, 0)");
+  expect(fondo).not.toMatch(/rgba([^)]*,s*0?.d+)/);
   expect(errores).toEqual([]);
+});
+
+test("en oscuro las filas de «Limpio» no enseñan su caja", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await carga(page, "limpio", "full");
+  await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
+  await page.waitForTimeout(300);
+  const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
+  expect(fondo).not.toMatch(/rgba([^)]*,s*0?.d+)/);
 });
 
 test("«Tarjetas» sigue siendo lo de siempre", async ({ page }) => {

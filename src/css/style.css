@@ -6071,9 +6071,12 @@ body.project-dragging .project-item {
 
   /* Vista «Limpio» en móvil: la fila es transparente, pero al deslizarla
      tiene que tapar las acciones que descubre por debajo (mover a hoy /
-     eliminar). Mismo fondo que el contenedor de la lista. */
+     eliminar). Va --capa-canvas y no --surface-canvas: en oscuro esa es
+     translúcida y, al pintarla encima del contenedor que ya la lleva, las
+     filas salían más claras y se veía su caja. --capa-canvas es ese mismo
+     color ya resuelto contra el fondo, así que no se nota. */
   .task-list[data-row-style="limpio"] .task-swipe-content {
-    background-color: var(--surface-canvas);
+    background-color: var(--capa-canvas);
   }
 
   /* Claro/oscuro va junto al buscador del header (ver _placeRowStyleControl):
