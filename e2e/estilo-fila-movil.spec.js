@@ -38,7 +38,7 @@ test("el estilo elegido se aplica en móvil", async ({ page }) => {
   // del contenedor y en oscuro se veía la caja de cada fila.
   const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
   expect(fondo).not.toBe("rgba(0, 0, 0, 0)");
-  expect(fondo).not.toMatch(/rgba([^)]*,s*0?.d+)/);
+  expect(fondo).not.toMatch(/^rgba\(/);   // rgba = lleva alfa; tiene que ser rgb()
   expect(errores).toEqual([]);
 });
 
@@ -48,7 +48,7 @@ test("en oscuro las filas de «Limpio» no enseñan su caja", async ({ page }) =
   await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
   await page.waitForTimeout(300);
   const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
-  expect(fondo).not.toMatch(/rgba([^)]*,s*0?.d+)/);
+  expect(fondo).not.toMatch(/^rgba\(/);   // en oscuro era translúcido y se veía la caja
 });
 
 test("en «Limpio» el móvil se ve como el PC: sin cápsula, botones planos y fechas en texto", async ({ page }) => {
@@ -63,6 +63,18 @@ test("en «Limpio» el móvil se ve como el PC: sin cápsula, botones planos y f
   expect(await fondo("#theme-toggle-btn")).toBe("rgba(0, 0, 0, 0)");
   // Fecha futura en texto; la vencida conserva su color, que ES el dato.
   expect(await fondo(".task-item:last-of-type .due-badge")).toBe("rgba(0, 0, 0, 0)");
+});
+
+test("en «Limpio», Hoy también va plano: conmutador y campo de añadir", async ({ page }) => {
+  await carga(page, "limpio", "full");
+  const fondo = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).backgroundColor : "(no existe)"; }, sel);
+  expect(await fondo(".hoy-tabs")).toBe("rgba(0, 0, 0, 0)");
+  expect(await fondo(".hoy-tab:not(.hoy-tab--active)")).toBe("rgba(0, 0, 0, 0)");
+  expect(await fondo(".hoy-quickadd")).toBe("rgba(0, 0, 0, 0)");
+  // Con «Tarjetas» siguen con su caja
+  await carga(page, "tarjetas", "full");
+  expect(await fondo(".hoy-tabs")).not.toBe("rgba(0, 0, 0, 0)");
+  expect(await fondo(".hoy-quickadd")).not.toBe("rgba(0, 0, 0, 0)");
 });
 
 test("«Tarjetas» sigue siendo lo de siempre", async ({ page }) => {

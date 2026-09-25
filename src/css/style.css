@@ -13793,6 +13793,32 @@ button {
     border-color: transparent;
     padding-inline: 0;
   }
+
+  /* Conmutador Tareas/Hábitos de Hoy: el mismo trato que los filtros —el
+     carril sin caja y la pestaña activa con su relleno de acento. */
+  .main-panel[data-row-style="limpio"] .hoy-tabs:not([hidden]) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .main-panel[data-row-style="limpio"] .hoy-tab:not(.hoy-tab--active) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  /* Añadir tarea: como una fila más, igual que en escritorio. Al escribir
+     recupera fondo y borde para que se vea dónde se está escribiendo. */
+  .task-list[data-row-style="limpio"] .hoy-quickadd {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .task-list[data-row-style="limpio"] .hoy-quickadd:focus-within {
+    background: color-mix(in srgb, var(--text-primary) 5%, var(--capa-canvas));
+    border-color: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  }
 }
 
 /* ─── PANEL DE DETALLE — EDITOR DE TAREA ─────────────────────────
