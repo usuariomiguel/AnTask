@@ -362,8 +362,11 @@ let currentRowStyle = (function() {
  * se oculta a la vez (ver style.css). Nada se ha borrado, solo
  * desconectado. Revertir: volver a `return currentRowStyle;`.
  */
+// El estilo elegido vale en todas partes. Antes el móvil se quedaba
+// siempre en «Tarjetas»: el ajuste de Apariencia estaba ahí, se podía
+// tocar y no cambiaba nada.
 function _rowStyleEfectivo() {
-  return window.matchMedia("(max-width: 768px)").matches ? "tarjetas" : currentRowStyle;
+  return currentRowStyle;
 }
 
 // El estilo va en la lista (filas) y en el panel entero, para que la

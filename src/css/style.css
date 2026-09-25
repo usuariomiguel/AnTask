@@ -6069,6 +6069,13 @@ body.project-dragging .project-item {
     justify-content: center;
   }
 
+  /* Vista «Limpio» en móvil: la fila es transparente, pero al deslizarla
+     tiene que tapar las acciones que descubre por debajo (mover a hoy /
+     eliminar). Mismo fondo que el contenedor de la lista. */
+  .task-list[data-row-style="limpio"] .task-swipe-content {
+    background-color: var(--surface-canvas);
+  }
+
   /* Claro/oscuro va junto al buscador del header (ver _placeRowStyleControl):
      mismo tamaño y misma superficie que él, o se leían como dos botones de
      familias distintas. */
@@ -8371,15 +8378,13 @@ body.task-dragging .project-item:not(.active) {
   color: var(--c-primary-600);
 }
 
-/* "Modo" y "Estilo de filas" desactivados TEMPORALMENTE en móvil (ver
-   isSimpleMobile()/_rowStyleEfectivo() — el flag/preferencia real se
-   ignora ahí y se fuerza simple/tarjetas siempre): sin efecto que
-   mostrar, así que sus filas de Ajustes se ocultan a la vez. En
-   escritorio siguen intactas. Revertir: quitar este bloque. */
+/* "Modo" sigue desactivado en móvil: ahí se fuerza el modo simple, así
+   que su fila de Ajustes no tendría efecto que mostrar. "Estilo de filas"
+   sí se elige (ver _rowStyleEfectivo), y por eso vuelve. En escritorio las
+   dos siguen intactas. */
 @media (max-width: 768px) {
 
-  .settings-row:has(#settings-mode-seg),
-  .settings-row:has(#settings-rowstyle-seg) {
+  .settings-row:has(#settings-mode-seg) {
     display: none;
   }
 }
