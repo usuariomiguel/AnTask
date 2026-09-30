@@ -7,6 +7,10 @@ import {
   sanitizeCompletionLog,
   sanitizeHabit,
   sanitizeHabits,
+  recortarNota,
+  contarPalabras,
+  NOTA_MAX_PALABRAS,
+  NOTA_MAX_CARACTERES,
 } from "../sanitize.js";
 
 // ────────────────────────────────────────────────────────────────
@@ -97,6 +101,43 @@ describe("sanitizeTasks", () => {
 // ────────────────────────────────────────────────────────────────
 // sanitizeCompletionLog
 // ────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
+// Nota de la tarea: hasta 3.000 palabras
+// ────────────────────────────────────────────────────────────────
+describe("notas largas", () => {
+  const palabras = (n) => Array.from({ length: n }, (_, i) => "p" + i).join(" ");
+
+  it("cuenta palabras separadas por cualquier espacio", () => {
+    expect(contarPalabras("")).toBe(0);
+    expect(contarPalabras("  una   dos\ntres\tcuatro  ")).toBe(4);
+  });
+
+  it("deja intacta una nota por debajo del límite", () => {
+    const nota = "Pedir presupuesto.\n\nLlamar el lunes.";
+    expect(recortarNota(nota)).toBe(nota);
+  });
+
+  it("recorta a 3.000 palabras sin tocar el formato de lo que queda", () => {
+    const larga = palabras(NOTA_MAX_PALABRAS + 50);
+    const r = recortarNota(larga);
+    expect(contarPalabras(r)).toBe(NOTA_MAX_PALABRAS);
+    expect(larga.startsWith(r)).toBe(true);
+    expect(r.endsWith("p" + (NOTA_MAX_PALABRAS - 1))).toBe(true);
+  });
+
+  it("pone tope de caracteres a un texto sin espacios", () => {
+    expect(recortarNota("x".repeat(NOTA_MAX_CARACTERES + 500)).length).toBe(NOTA_MAX_CARACTERES);
+  });
+
+  it("sanitizeTasks ya no corta la nota a 300 caracteres", () => {
+    const nota = palabras(800);
+    const [t] = sanitizeTasks([{ text: "Tarea", comment: nota }]);
+    expect(t.comment).toBe(nota);
+    const [t2] = sanitizeTasks([{ text: "Tarea", comment: palabras(3200) }]);
+    expect(contarPalabras(t2.comment)).toBe(NOTA_MAX_PALABRAS);
+  });
+});
+
 describe("sanitizeCompletionLog", () => {
   it("devuelve {} para input que no es objeto", () => {
     expect(sanitizeCompletionLog(null)).toEqual({});

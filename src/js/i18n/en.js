@@ -267,6 +267,7 @@ export const en = {
   "detail.title_placeholder": "Untitled",
   "detail.note":              "Note",
   "detail.note_placeholder":  "Add notes or details…",
+  "detail.note_words":        "{n} / {max} words",
   "detail.priority":          "Priority",
   "detail.priority_important": "Important",
   "detail.due_date":          "Date",

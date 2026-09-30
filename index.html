@@ -916,7 +916,10 @@
 
             <div class="task-detail-field task-detail-section" data-acc="note">
               <span class="task-detail-label"><i data-lucide="align-left"></i> <span data-i18n="detail.note">Nota</span></span>
-              <textarea class="task-detail-textarea" id="task-detail-comment" rows="8" maxlength="300" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
+              <textarea class="task-detail-textarea" id="task-detail-comment" rows="8" maxlength="30000" placeholder="Añade notas o detalles…" data-i18n-ph="detail.note_placeholder"></textarea>
+              <!-- Cuenta de palabras: solo aparece al acercarse al límite
+                   (ver _pintarContadorNota en script.js). -->
+              <p class="nota-contador" id="task-detail-note-count" aria-live="polite" hidden></p>
             </div>
 
           </div>

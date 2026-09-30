@@ -133,6 +133,8 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
     let _onFirstConnect = null;
     let _syncPaused     = false;
     let _saveTimer      = null;
+    // Aviso de «demasiado grande para sincronizar», una vez por sesión.
+    let _avisoTamano    = false;
 
     function docRef() {
       return doc(db, "users", _user.uid, "workspace", "data");
@@ -404,6 +406,16 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           }).catch(function (err) {
             _syncPaused = false;
             console.warn("AnsoSync: error guardando en la nube:", err);
+            // Todo el espacio va en un solo documento y Firestore no admite
+            // más de 1 MB por documento. Con notas de hasta 3.000 palabras es
+            // posible llegar, y antes el fallo solo iba a la consola: la
+            // nube dejaba de actualizarse sin que nadie lo supiera.
+            var grande = err && err.code === "invalid-argument" &&
+              /maximum|size|bytes|large/i.test(err.message || "");
+            if (grande && !_avisoTamano) {
+              _avisoTamano = true;
+              modalAlert("Tus datos ocupan más de lo que admite la sincronización (1 MB). Se siguen guardando en este dispositivo, pero no en la nube. Acorta alguna nota muy larga para que vuelva a sincronizarse.", "error");
+            }
           });
         }, 2000);
       },

@@ -75,6 +75,35 @@ export function sanitizeCompletionLog(input) {
  * @param {any} input
  * @returns {Task[]}
  */
+/**
+ * Límite de la nota de una tarea: 3.000 palabras. Con un tope de caracteres
+ * además, por si alguien pega un texto sin espacios: la nota viaja dentro
+ * del único documento de sincronización, que Firestore limita a 1 MB.
+ */
+export const NOTA_MAX_PALABRAS = 3000;
+export const NOTA_MAX_CARACTERES = 30000;
+
+/** Palabras de un texto (trozos separados por espacios). */
+export function contarPalabras(texto) {
+  const m = String(texto || "").match(/\S+/g);
+  return m ? m.length : 0;
+}
+
+/**
+ * Recorta una nota a NOTA_MAX_PALABRAS palabras y NOTA_MAX_CARACTERES
+ * caracteres, sin tocar los espacios ni los saltos de línea de lo que queda.
+ */
+export function recortarNota(texto) {
+  let s = String(texto || "");
+  if (s.length > NOTA_MAX_CARACTERES) s = s.slice(0, NOTA_MAX_CARACTERES);
+  const re = /\S+/g;
+  let n = 0, m;
+  while ((m = re.exec(s))) {
+    if (++n === NOTA_MAX_PALABRAS) return s.slice(0, m.index + m[0].length);
+  }
+  return s;
+}
+
 export function sanitizeTasks(input) {
   if (!Array.isArray(input)) return [];
   return input
@@ -83,7 +112,7 @@ export function sanitizeTasks(input) {
       return {
         id:         typeof i.id === "string" ? i.id : generateId(),
         text:       i.text.trim().slice(0, 120),
-        comment:    typeof i.comment === "string" ? i.comment.trim().slice(0, 300) : "",
+        comment:    typeof i.comment === "string" ? recortarNota(i.comment.trim()) : "",
         done:       Boolean(i.done),
         priority:   normalizePriority(i.priority),
         dueDate:    typeof i.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(i.dueDate) ? i.dueDate : null,

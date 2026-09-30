@@ -36,6 +36,9 @@ import {
   sanitizeSubtasks,
   sanitizeHabit,
   sanitizeHabits,
+  recortarNota,
+  contarPalabras,
+  NOTA_MAX_PALABRAS,
 } from "./state/sanitize.js";
 import {
   isDueOn,
@@ -5179,6 +5182,38 @@ function _cascadaDetalle(desde) {
   });
 }
 
+/**
+ * Cuenta de palabras de la nota. Solo se ve a partir del 80 % del límite:
+ * con notas normales sería ruido. Al llegar al tope se marca en otro color.
+ */
+function _pintarContadorNota() {
+  const el = document.getElementById("task-detail-note-count");
+  const campo = _detailPanelEls.comment;
+  if (!el || !campo) return;
+  const n = contarPalabras(campo.value);
+  if (n < NOTA_MAX_PALABRAS * 0.8) { el.hidden = true; return; }
+  const loc = getLang() === "en" ? "en-GB" : "es-ES";
+  el.hidden = false;
+  el.textContent = t("detail.note_words")
+    .replace("{n}", n.toLocaleString(loc))
+    .replace("{max}", NOTA_MAX_PALABRAS.toLocaleString(loc));
+  el.classList.toggle("nota-contador--tope", n >= NOTA_MAX_PALABRAS);
+}
+
+/**
+ * La nota crece con el texto, hasta un 60 % del alto de la ventana; a
+ * partir de ahí se desplaza dentro. Con notas largas, un cuadro fijo de
+ * pocas líneas obligaba a leerlas por una rendija.
+ */
+function _crecerNota() {
+  const campo = _detailPanelEls.comment;
+  if (!campo || !campo.isConnected) return;
+  campo.style.height = "auto";
+  const tope = Math.round(window.innerHeight * 0.6);
+  campo.style.height = Math.min(campo.scrollHeight + 4, tope) + "px";
+  campo.style.overflowY = campo.scrollHeight + 4 > tope ? "auto" : "hidden";
+}
+
 function _renderTaskDetail() {
   const open = _getOpenDetailTask();
   if (!open) { closeTaskDetail(); return; }
@@ -5190,6 +5225,8 @@ function _renderTaskDetail() {
   _pintarAnilloSubtareas(els.toggle.parentElement, task);
   if (document.activeElement !== els.title)   els.title.value   = task.text;
   if (document.activeElement !== els.comment) els.comment.value = task.comment || "";
+  _pintarContadorNota();
+  _crecerNota();
   els.title.classList.toggle("done", task.done);
   _autoGrowTitle();
 
@@ -5344,7 +5381,14 @@ function _initTaskDetailPanel() {
     els.comment.addEventListener("input", function() {
       const open = _getOpenDetailTask();
       if (!open) return;
-      open.task.comment = els.comment.value.slice(0, 300);
+      // Hasta 3.000 palabras (ver recortarNota). Si se pasa —al pegar un
+      // texto largo, sobre todo— se recorta en el propio campo, para que lo
+      // que se ve sea lo que se guarda.
+      const limpio = recortarNota(els.comment.value);
+      if (limpio !== els.comment.value) els.comment.value = limpio;
+      open.task.comment = limpio;
+      _pintarContadorNota();
+      _crecerNota();
       clearTimeout(commentTimer);
       commentTimer = setTimeout(function() {
         saveProjects();
