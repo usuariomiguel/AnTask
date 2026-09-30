@@ -12701,6 +12701,15 @@ button {
     border-radius: 25px;
   }
 
+  /* La píldora medía 40px (10px de relleno arriba y abajo) y dentro de la
+     fila solo caben 36: las tareas con fecha, «Ayer →» o «Mover a hoy»
+     salían 4px más altas que las demás y la lista quedaba a saltos. Con 8px
+     de relleno cabe justa y todas las filas miden lo mismo. */
+  :is(.due-badge, .today-date-pill) {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
   /* En móvil el borde se tiñe del propio color del estado (en vez del
      border-subtle neutro de la regla base) para que combine con el resto
      de píldoras de la fila (fecha futura, prioridad...), que también lo
@@ -12995,11 +13004,11 @@ button {
     flex-wrap: nowrap;
     justify-content: flex-end;
     height: auto;
-    /* Mismo alto y ancho que .today-date-pill en Hoy (38px, padding 10px
-       parejo): antes esta píldora se quedaba en 2px/22px, sensiblemente
-       más baja y estrecha que la de Hoy pese a mostrar el mismo dato. */
+    /* Mismo alto que .today-date-pill en Hoy. 8px arriba y abajo, no 10:
+       con 10 medía 40px y en la fila solo caben 36, así que las tareas con
+       fecha salían 4px más altas que las demás. */
     min-height: 36px;
-    padding: 10px;
+    padding: 8px 10px;
     /* La base fija line-height:1.5 (18px) — .today-date-pill se queda en
        el "normal" del navegador (~14px) y por eso medía 2px menos de alto
        con el mismo padding. */
