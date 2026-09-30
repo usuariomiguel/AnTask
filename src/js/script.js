@@ -5597,6 +5597,40 @@ function _renderHoyTabs() {
     histBtn.setAttribute("aria-label", t("hist.open"));
     histBtn.title = t("hist.open");
   }
+
+  // Al final: el botón de historial aparece o desaparece según la pestaña
+  // y desplaza las otras dos, así que se mide con la fila ya asentada.
+  _colocarIndicadorHoy(host);
+}
+
+/**
+ * Resaltado del conmutador Tareas/Hábitos: se desliza hasta la pestaña
+ * activa en vez de saltar (mismo gesto que la barra de abajo). La primera
+ * vez —al entrar en Hoy— se coloca sin viaje.
+ */
+var _hoyTabIndicadorEn = null;
+
+function _colocarIndicadorHoy(host) {
+  var activo = host.querySelector(".hoy-tab--active");
+  if (!activo || !activo.offsetParent) return;
+  var ind = host.querySelector(".hoy-tabs-indicador");
+  if (!ind) {
+    ind = document.createElement("span");
+    ind.className = "hoy-tabs-indicador";
+    ind.setAttribute("aria-hidden", "true");
+    host.insertBefore(ind, host.firstChild);
+    host.classList.add("con-indicador");
+  }
+  var viaja = _hoyTabIndicadorEn !== null && _hoyTabIndicadorEn !== _hoyTab && !_sinAnimarFilas();
+  if (!viaja) ind.classList.add("sin-transicion");
+  ind.style.transform = "translate(" + activo.offsetLeft + "px, " + activo.offsetTop + "px)";
+  ind.style.width = activo.offsetWidth + "px";
+  ind.style.height = activo.offsetHeight + "px";
+  if (!viaja) {
+    ind.getBoundingClientRect();   // aplica sin transición
+    ind.classList.remove("sin-transicion");
+  }
+  _hoyTabIndicadorEn = _hoyTab;
 }
 
 (function _wireHoyTabs() {
@@ -5609,8 +5643,18 @@ function _renderHoyTabs() {
     }
     var btn = e.target.closest("[data-hoy-tab]");
     if (!btn || btn.dataset.hoyTab === _hoyTab) return;
+    // El contenido entra por el lado hacia el que se va: Hábitos está a la
+    // derecha de Tareas, así que llega desde la derecha, y al volver, desde
+    // la izquierda.
+    var desdeDerecha = btn.dataset.hoyTab === "habits";
     _hoyTab = btn.dataset.hoyTab;
     renderTasks();
+    if (!_sinAnimarFilas() && taskList) {
+      taskList.animate([
+        { transform: "translateX(" + (desdeDerecha ? 28 : -28) + "px)", opacity: 0.35 },
+        { transform: "translateX(0)", opacity: 1 },
+      ], { duration: 280, easing: FILA_CURVA });
+    }
   });
 })();
 

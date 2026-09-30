@@ -2439,8 +2439,16 @@ body {
    "atrás + nombre de lista" y menú ⋯ (Renombrar/Duplicar/Eliminar),
    como el prototipo v1 — en vez de "DETALLE DE TAREA" + X. */
 @media (max-width: 768px) {
+  /* Entra desde la derecha y sale hacia la derecha, como una pantalla de
+     app nativa. Antes se ensanchaba desde el borde izquierdo (width 0 →
+     100%), que no se parecía a nada del móvil. visibility va con retardo
+     al cerrar: la pantalla sale entera y luego deja de poder recibir el
+     foco, en vez de desaparecer al empezar. */
   .task-detail-wrap {
-    width: 0 !important;
+    width: 100% !important;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.34s;
     position: fixed;
     inset: 0;
     z-index: 500;
@@ -2470,6 +2478,15 @@ body {
 
   .task-detail-wrap.task-detail-wrap--open {
     width: 100% !important;
+    transform: none;
+    visibility: visible;
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s;
+  }
+
+  /* El contenido sigue pintado mientras la pantalla sale: si no, se iría
+     una pantalla vacía. Cerrada no se ve (está fuera, a la derecha). */
+  .task-detail-wrap:not(.task-detail-wrap--open) .task-detail-panel {
+    display: flex;
   }
 
   /* Sin rail en móvil: no hay columna lateral donde alojarlo. */
@@ -4068,6 +4085,42 @@ button:focus-visible {
     border-color: transparent;
     color: var(--accent-on);
     font-weight: var(--fw-semibold);
+  }
+
+  /* Resaltado deslizante (ver _colocarIndicadorHoy): una pieza aparte que
+     va de una pestaña a otra. Pasa POR ENCIMA de la píldora de la pestaña
+     inactiva y por debajo de su texto, así que no se esconde detrás al
+     cruzarla. Con él puesto, la pestaña activa ya no pinta su fondo. */
+  .hoy-tabs.con-indicador {
+    position: relative;
+  }
+
+  .hoy-tabs-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    border-radius: var(--r-pill);
+    background: var(--c-primary-500);
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.3, 1), width 0.3s cubic-bezier(0.25, 1, 0.3, 1);
+  }
+
+  .hoy-tabs-indicador.sin-transicion {
+    transition: none;
+  }
+
+  .hoy-tabs.con-indicador .hoy-tab > span {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hoy-tabs.con-indicador .hoy-tab {
+    transition: color 0.2s ease;
+  }
+
+  .hoy-tabs.con-indicador .hoy-tab--active {
+    background: transparent;
   }
 
 
@@ -14392,6 +14445,14 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .task-detail-textarea.nota-guardada {
     animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-detail-wrap,
+  .task-detail-wrap.task-detail-wrap--open,
+  .hoy-tabs-indicador {
+    transition: none !important;
   }
 }
 
