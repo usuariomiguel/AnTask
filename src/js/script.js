@@ -6509,8 +6509,12 @@ function _animarProgresoHoy(el, previo, done, total, pct, C, STROKE) {
   if (pctEl && previo.pct !== pct && !isNaN(previo.pct)) {
     var desde = previo.pct;
     var t0 = performance.now();
-    var paso = function(ahora) {
-      var k = Math.min(1, (ahora - t0) / PROGRESO_MS);
+    var paso = function() {
+      // performance.now() y no la marca del fotograma que pasa rAF: esa marca
+      // es la del inicio del fotograma y puede ir por detrás de t0, con lo que
+      // k salía negativo y el primer fotograma pintaba un porcentaje absurdo
+      // (en un navegador con la línea de tiempo alterada, «-1181470%»).
+      var k = Math.max(0, Math.min(1, (performance.now() - t0) / PROGRESO_MS));
       var suave = 1 - Math.pow(1 - k, 3);
       pctEl.textContent = Math.round(desde + (pct - desde) * suave) + "%";
       el._pctRaf = k < 1 ? requestAnimationFrame(paso) : null;
