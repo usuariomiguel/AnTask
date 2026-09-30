@@ -30,8 +30,8 @@ import "./script.js";
 import "./sections-and-profile.js";
 
 // Consent + analytics: se ejecuta después de que el DOM esté listo.
-import { analyticsAllowed, setConsent, showConsentBannerIfNeeded } from "./consent.js";
-import { initAnalytics } from "./analytics.js";
+import { analyticsAllowed, setAnalytics } from "./consent.js";
+import { initAnalytics, stopAnalytics } from "./analytics.js";
 import { hasSyncHistory, loadSync } from "./sync-loader.js";
 import { registerSW } from "virtual:pwa-register";
 
@@ -44,11 +44,10 @@ applyDomTranslations();
 // Sustituye emojis nativos por SVG de OpenMoji (coherentes en todos los OS).
 initOpenmoji();
 
+// Analítica anónima sin cookies: va por defecto (no hace falta banner).
 if (analyticsAllowed()) initAnalytics();
 
-// Interruptor de Ajustes › Datos: la misma elección que el banner, pero
-// reversible. Al desactivarla se guarda «essential» y se retira el script;
-// la app no cambia de URL, así que no quedan más vistas que enviar.
+// Interruptor de Ajustes › Datos para desactivarla (o volver a activarla).
 const analyticsSwitch = document.getElementById("settings-analytics-btn");
 function paintAnalyticsSwitch() {
   if (!analyticsSwitch) return;
@@ -59,17 +58,9 @@ function paintAnalyticsSwitch() {
 paintAnalyticsSwitch();
 analyticsSwitch?.addEventListener("click", function () {
   const on = !analyticsAllowed();
-  setConsent(on ? "all" : "essential");
+  setAnalytics(on);
   if (on) initAnalytics();
-  else document.querySelectorAll('script[src*="/_vercel/insights"]').forEach(function (s) { s.remove(); });
-  // Si el banner seguía en pantalla, la decisión ya está tomada.
-  const banner = document.getElementById("consent-banner");
-  if (banner && !banner.hidden) banner.hidden = true;
-  paintAnalyticsSwitch();
-});
-
-showConsentBannerIfNeeded(function (decision) {
-  if (decision === "all") initAnalytics();
+  else stopAnalytics();
   paintAnalyticsSwitch();
 });
 

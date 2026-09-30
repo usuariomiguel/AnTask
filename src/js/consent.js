@@ -1,70 +1,29 @@
 // @ts-check
-// Gestión de consentimiento GDPR/ePrivacy.
-// Almacena la elección en localStorage bajo la clave CONSENT_KEY.
-// Valores posibles: "all" | "essential" | null (sin respuesta aún).
+// Analítica anónima: activada por defecto, con opción de desactivarla.
+//
+// Vercel Web Analytics no usa cookies ni guarda nada en el dispositivo (el
+// visitante se reconoce con un hash que cambia cada día), así que no
+// necesita el consentimiento previo de la LSSI/ePrivacy. La base es el
+// interés legítimo (Art. 6.1.f RGPD): se informa en la política de
+// privacidad y se puede desactivar en Ajustes › Datos.
+//
+// La elección se guarda en CONSENT_KEY. Solo cuenta «essential» (la
+// desactivó; también la respuesta «Solo lo esencial» del antiguo banner).
+// Sin valor o con «all», la analítica va.
 
 const CONSENT_KEY = "antrack_consent";
 
-/** @param {"all"|"essential"} value */
-export function setConsent(value) {
-  localStorage.setItem(CONSENT_KEY, value);
-}
-
-/** @returns {boolean} */
-export function hasAnswered() {
-  return localStorage.getItem(CONSENT_KEY) !== null;
+/** @param {boolean} on */
+export function setAnalytics(on) {
+  localStorage.setItem(CONSENT_KEY, on ? "all" : "essential");
 }
 
 /** @returns {boolean} */
 export function analyticsAllowed() {
-  return localStorage.getItem(CONSENT_KEY) === "all";
-}
-
-/**
- * Muestra el banner si el usuario aún no ha respondido.
- * Llama a `onDecision` con el valor elegido cuando el usuario decide.
- *
- * @param {(value: "all"|"essential") => void} onDecision
- */
-export function showConsentBannerIfNeeded(onDecision) {
-  if (hasAnswered()) return;
-
-  const banner = document.getElementById("consent-banner");
-  if (!banner) return;
-
-  banner.hidden = false;
-  banner.removeAttribute("aria-hidden");
-
-  banner.querySelector("#consent-accept")?.addEventListener("click", function () {
-    setConsent("all");
-    _dismiss(banner);
-    onDecision("all");
-    _notifyDecided("all");
-  }, { once: true });
-
-  banner.querySelector("#consent-decline")?.addEventListener("click", function () {
-    setConsent("essential");
-    _dismiss(banner);
-    onDecision("essential");
-    _notifyDecided("essential");
-  }, { once: true });
-}
-
-/**
- * Avisa al resto de la app de que el usuario ya decidió el consentimiento.
- * Lo usa el onboarding para no solaparse con el banner en el primer arranque.
- * @param {"all"|"essential"} value
- */
-function _notifyDecided(value) {
-  document.dispatchEvent(new CustomEvent("antrack:consent-decided", { detail: value }));
-}
-
-/** @param {HTMLElement} banner */
-function _dismiss(banner) {
-  banner.classList.add("consent-banner--out");
-  banner.addEventListener("transitionend", function () {
-    banner.hidden = true;
-  }, { once: true });
-  // Fallback por si transitionend no dispara (headless, reduce-motion)
-  setTimeout(function () { banner.hidden = true; }, 400);
+  if (localStorage.getItem(CONSENT_KEY) === "essential") return false;
+  // El navegador pide no compartir datos (Global Privacy Control): se
+  // respeta mientras el usuario no la active a mano en Ajustes.
+  const gpc = /** @type {any} */ (navigator).globalPrivacyControl === true;
+  if (gpc && localStorage.getItem(CONSENT_KEY) !== "all") return false;
+  return true;
 }

@@ -480,7 +480,7 @@
                   <span class="settings-row-ico"><i data-lucide="chart-column"></i></span>
                   <div>
                     <div class="settings-row-label" data-i18n="settings.data.analytics">Analítica anónima</div>
-                    <div class="settings-row-desc" data-i18n="settings.data.analytics_desc">Estadísticas de uso sin cookies para mejorar la app. Tus tareas nunca se envían.</div>
+                    <div class="settings-row-desc" data-i18n="settings.data.analytics_desc">Visitas anónimas y sin cookies para saber cuánta gente usa la app. Tus tareas nunca se envían. Puedes desactivarla.</div>
                   </div>
                   <button type="button" class="settings-switch" id="settings-analytics-btn" aria-pressed="false" aria-label="Analítica anónima" data-i18n-aria="settings.data.analytics">
                     <span class="settings-switch-knob"></span>
@@ -1333,25 +1333,6 @@
     </script>
     <!-- El Service Worker lo registra automáticamente vite-plugin-pwa. -->
     <!-- window.lucide se expone desde setup-lucide.js (módulo bundleado). -->
-
-    <!-- ── COOKIE CONSENT BANNER ──────────────────────────────── -->
-    <div id="consent-banner" class="consent-banner" hidden aria-hidden="true" role="dialog"
-         aria-label="Preferencias de privacidad" aria-modal="false">
-      <div class="consent-banner__body">
-        <p class="consent-banner__text">
-          <span data-i18n="consent.text">AnTrack guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?</span>
-          <a href="./privacidad/" target="_blank" rel="noopener" class="consent-banner__link" data-i18n="consent.privacy_link">Política de privacidad</a>
-        </p>
-        <div class="consent-banner__actions">
-          <button type="button" id="consent-decline" class="consent-btn consent-btn--secondary" data-i18n="consent.decline">
-            Solo lo esencial
-          </button>
-          <button type="button" id="consent-accept" class="consent-btn consent-btn--primary" data-i18n="consent.accept">
-            Aceptar analytics
-          </button>
-        </div>
-      </div>
-    </div>
 
   </body>
 </html>

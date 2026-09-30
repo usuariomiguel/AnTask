@@ -84,7 +84,6 @@ import {
   shouldShowOnboarding,
   markOnboardingDone,
 } from "./ui/onboarding.js";
-import { hasAnswered as consentAnswered } from "./consent.js";
 import { cargarGeneradorAvatar, nuevaSemillaAvatar } from "./utils/avatar.js";
 import {
   initializeTheme,
@@ -501,15 +500,7 @@ window.addEventListener("antrack:reminderfired", function () {
   }
 
   // Pequeño delay para que el splash termine de desvanecerse.
-  function launch() { setTimeout(function () { showOnboarding(); }, 700); }
-
-  // No solapar con el banner de cookies: si aún no se ha respondido,
-  // esperamos a que el usuario decida antes de lanzar el onboarding.
-  if (consentAnswered()) {
-    launch();
-  } else {
-    document.addEventListener("antrack:consent-decided", launch, { once: true });
-  }
+  setTimeout(function () { showOnboarding(); }, 700);
 })();
 
 /** Re-disparable desde el menú de perfil. */

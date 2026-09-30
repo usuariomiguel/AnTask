@@ -84,7 +84,7 @@ export const es = {
   "settings.data.export":              "Exportar",
   "settings.data.export_desc":         "Descarga todas tus tareas en un archivo.",
   "settings.data.analytics":           "Analítica anónima",
-  "settings.data.analytics_desc":      "Estadísticas de uso sin cookies para mejorar la app. Tus tareas nunca se envían.",
+  "settings.data.analytics_desc":      "Visitas anónimas y sin cookies para saber cuánta gente usa la app. Tus tareas nunca se envían. Puedes desactivarla.",
   "settings.data.import":              "Importar",
   "settings.data.import_desc":         "Restaura desde un archivo exportado previamente.",
   "settings.data.clear":               "Limpiar",
@@ -406,12 +406,6 @@ export const es = {
   // ── Atajos de teclado ─────────────────────────────────────
 
   // ── Onboarding ────────────────────────────────────────────
-
-  // ── Consent banner ────────────────────────────────────────
-  "consent.text":             "AnTrack guarda tus tareas en tu dispositivo (almacenamiento local). ¿Aceptas también analytics anónimos para ayudarnos a mejorar la app?",
-  "consent.privacy_link":     "Política de privacidad",
-  "consent.accept":           "Aceptar analytics",
-  "consent.decline":          "Solo lo esencial",
 
   // ── Backup / import ───────────────────────────────────────
   "backup.restore_title":     "Restaurar copia",
