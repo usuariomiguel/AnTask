@@ -5662,17 +5662,24 @@ function _colocarIndicadorHoy(host) {
 
 /**
  * Lleva el resaltado de un segmentado hasta `activo`, deslizándose o de
- * golpe. Se mide con getBoundingClientRect contra el carril y no con
- * offsetLeft: «Otros» de los filtros vive dentro de un envoltorio con
- * position:relative, y su offsetLeft sería relativo a ese envoltorio.
+ * golpe. Se mide con offsetLeft/offsetTop (posición de maquetación) y no
+ * con getBoundingClientRect: al entrar en una vista los filtros llegan con
+ * una animación que los desplaza unos píxeles, y medir en ese momento
+ * dejaba el resaltado descolocado. Se suben los offsets hasta el carril
+ * porque «Otros» vive dentro de un envoltorio con position:relative.
  */
 function _moverIndicador(host, ind, activo, viaja) {
-  var rh = host.getBoundingClientRect();
-  var ra = activo.getBoundingClientRect();
+  var x = 0, y = 0, el = activo;
+  while (el && el !== host) {
+    x += el.offsetLeft; y += el.offsetTop;
+    var padre = el.offsetParent;
+    if (padre && padre !== host) { x += padre.clientLeft; y += padre.clientTop; }
+    el = padre;
+  }
   if (!viaja) ind.classList.add("sin-transicion");
-  ind.style.transform = "translate(" + (ra.left - rh.left - host.clientLeft) + "px, " + (ra.top - rh.top - host.clientTop) + "px)";
-  ind.style.width = ra.width + "px";
-  ind.style.height = ra.height + "px";
+  ind.style.transform = "translate(" + x + "px, " + y + "px)";
+  ind.style.width = activo.offsetWidth + "px";
+  ind.style.height = activo.offsetHeight + "px";
   if (!viaja) {
     ind.getBoundingClientRect();   // aplica sin transición
     ind.classList.remove("sin-transicion");

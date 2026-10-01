@@ -109,3 +109,26 @@ test("en PC el resaltado de los filtros también llega a «Otros»", async ({ pa
   // El texto del activo no puede ser del color del resaltado.
   expect(m.color).not.toBe(m.fondo);
 });
+
+test("en PC el resaltado queda alineado, también en pantallas grandes con zoom", async ({ page }) => {
+  // 1920: a partir de 1600 la app pone zoom 1.1 al html, y medir con
+  // getBoundingClientRect daba píxeles con zoom en un translate sin él.
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await carga(page, "full");
+  const desfase = () => page.evaluate(() => {
+    const i = document.querySelector("#filter-segments .seg-indicador").getBoundingClientRect();
+    const a = document.querySelector("#filter-segments .filter-opt--active").getBoundingClientRect();
+    return Math.abs(i.left - a.left) + Math.abs(i.top - a.top) + Math.abs(i.width - a.width);
+  });
+  for (const sel of [".project-item-inbox", ".project-item-today"]) {
+    await page.locator(sel).first().click();
+    await page.waitForTimeout(700);
+    expect(await desfase()).toBeLessThan(2);
+  }
+  // Y tras pulsar un filtro y volver.
+  await page.locator('.filter-segment[data-filter="pending"]').click();
+  await page.waitForTimeout(500);
+  await page.locator('.filter-segment[data-filter="all"]').click();
+  await page.waitForTimeout(500);
+  expect(await desfase()).toBeLessThan(2);
+});
