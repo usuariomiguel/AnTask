@@ -14953,3 +14953,20 @@ body,
   background-image: var(--grano-img);
   background-size: 160px 160px;
 }
+
+/* ─── MÓVIL: SIN BARRAS DE SCROLL ──────────────────────────────
+   En el móvil se desplaza con el dedo y la barra no aporta nada: solo se
+   veía como una raya al borde de la lista. Se ocultan todas (el scroll
+   sigue funcionando). Con !important porque varias listas declaran su
+   propia barra fina con selectores más específicos que este. */
+@media (max-width: 768px) {
+  * {
+    scrollbar-width: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
