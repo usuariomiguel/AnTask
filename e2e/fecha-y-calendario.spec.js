@@ -71,12 +71,15 @@ test("tocar hoy en la tira vuelve a Hoy y Hábitos no hereda el día elegido", a
   expect(await page.locator(".hoy-section-action", { hasText: "Volver a hoy" }).count()).toBe(0);
   await expect(page.locator(".today-item", { hasText: "De hoy" })).toBeVisible();
 
-  // Con un día elegido, la solapa de Hábitos enseña los hábitos, no las
-  // tareas de ese día.
+  // Con un día elegido, la solapa de Hábitos enseña los hábitos de ese
+  // día (no sus tareas); al ser futuro, sin poder marcarlos.
   await page.locator(`[data-cal-day="${iso(2)}"]`).tap();
   await page.waitForTimeout(400);
   await page.locator("[data-hoy-tab='habits']").tap();
   await page.waitForTimeout(500);
-  await expect(page.locator(".today-item--habit", { hasText: "Leer 20 minutos" })).toBeVisible();
-  expect(await page.locator(".hoy-section-action", { hasText: "Volver a hoy" }).count()).toBe(0);
+  const habito = page.locator(".today-item--habit", { hasText: "Leer 20 minutos" });
+  await expect(habito).toBeVisible();
+  await expect(habito.locator("input[type='checkbox']")).toBeDisabled();
+  expect(await page.locator(".today-item:not(.today-item--habit)").count()).toBe(0);
+  await expect(page.locator(".hoy-section-action", { hasText: "Volver a hoy" })).toBeVisible();
 });

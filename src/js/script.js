@@ -5528,6 +5528,20 @@ function _hoyCalTareasPorDia() {
 }
 
 /**
+ * Hábitos que tocaban un día y cuántos se hicieron (para el anillo del
+ * calendario en la solapa de Hábitos).
+ */
+function _hoyCalHabitosDelDia(iso) {
+  var tocan = 0, hechos = 0;
+  habits.forEach(function(h) {
+    if (!isDueOn(h, iso)) return;
+    tocan++;
+    if (isDoneOn(h, iso)) hechos++;
+  });
+  return { tocan: tocan, hechos: hechos };
+}
+
+/**
  * Pestaña activa dentro de Hoy: tareas o hábitos. Solo modo simple en
  * móvil — en escritorio y en modo completo Hoy sigue mostrando las dos
  * cosas seguidas, sin conmutador.
@@ -5652,10 +5666,10 @@ function _colocarIndicadorHoy(host) {
 function _renderHoyCalStrip() {
   var host = document.getElementById("hoy-cal-strip");
   if (!host) return;
-  // Fuera también en la solapa de Hábitos: los puntos de cada día
-  // cuentan TAREAS, así que ahí estaría hablando de otra cosa que la
-  // lista de debajo.
-  if (activeView !== "today" || !isSimpleMobile() || _hoyTab !== "tasks") {
+  // En las dos solapas, pero cada una marca lo suyo: en Tareas, puntos
+  // con lo pendiente de cada día; en Hábitos, un anillo con la parte de
+  // los hábitos de ese día que se hicieron.
+  if (activeView !== "today" || !isSimpleMobile()) {
     host.hidden = true;
     host.innerHTML = "";
     return;
@@ -5664,7 +5678,8 @@ function _renderHoyCalStrip() {
   var localeD = getLang() === "en" ? "en-GB" : "es-ES";
   var todayISO = _localDateISO(new Date());
   var viewISO  = _hoyCalViewISO || todayISO;
-  var tareasPorDia = _hoyCalTareasPorDia();
+  var modoHabitos = _hoyTab === "habits";
+  var tareasPorDia = modoHabitos ? null : _hoyCalTareasPorDia();
 
   // Abreviaturas de tres letras (Lun, Mar, Mié…), empezando en lunes
   // (2024-01-01 fue lunes). Algunas locales las devuelven con punto
@@ -5689,11 +5704,25 @@ function _renderHoyCalStrip() {
     // pendientes va en el rojo de «vencidas», que es lo que urge ver. Un
     // día con todo hecho deja un punto tenue. Con nada, uno invisible: si
     // faltara, ese día mediría menos y la rejilla bailaría.
-    var datos = tareasPorDia.get(iso) || { pend: 0, hechas: 0 };
+    var datos = modoHabitos ? { pend: 0, hechas: 0 } : (tareasPorDia.get(iso) || { pend: 0, hechas: 0 });
     var vencido = datos.pend > 0 && iso < todayISO;
     var n = Math.min(datos.pend, 3);
     var dotsHtml;
-    if (n > 0) {
+    var anilloHtml = "";
+    var hab = modoHabitos && iso <= todayISO ? _hoyCalHabitosDelDia(iso) : null;
+    if (hab && hab.tocan > 0) {
+      // Anillo alrededor del número: la vuelta entera es «todos hechos».
+      // pathLength=100 deja el trazo en porcentaje sin calcular radios.
+      var pct = Math.round(hab.hechos / hab.tocan * 100);
+      anilloHtml = '<svg class="hoy-cal-ring" viewBox="0 0 40 40" aria-hidden="true">' +
+        '<circle class="hoy-cal-ring-track" cx="20" cy="20" r="18.5"></circle>' +
+        (pct > 0 ? '<circle class="hoy-cal-ring-arc" cx="20" cy="20" r="18.5" pathLength="100" stroke-dasharray="' + pct + ' 100"></circle>' : "") +
+      '</svg>';
+      if (pct === 100) cls.push("hoy-cal-day--completo");
+    }
+    if (modoHabitos) {
+      dotsHtml = '<span class="hoy-cal-dots"><span class="hoy-cal-dot hoy-cal-dot--off"></span></span>';
+    } else if (n > 0) {
       dotsHtml = '<span class="hoy-cal-dots">' +
         ('<span class="hoy-cal-dot' + (vencido ? " hoy-cal-dot--vencido" : "") + '"></span>').repeat(n) +
         '</span>';
@@ -5708,11 +5737,14 @@ function _renderHoyCalStrip() {
     if (datos.pend > 0) {
       etiqueta += " · " + _plural(datos.pend, "header.pending_one", "header.pending_other");
     }
+    if (hab && hab.tocan > 0) {
+      etiqueta += " · " + t("hoy.cal_habits_label").replace("{n}", String(hab.hechos)).replace("{total}", String(hab.tocan));
+    }
     return '<button type="button" class="' + cls.join(" ") + '" data-cal-day="' + iso + '"' +
       ' aria-label="' + escHtml(etiqueta) + '"' +
       ' aria-pressed="' + (elegido ? "true" : "false") + '"' +
       (esHoy ? ' aria-current="date"' : "") + '>' +
-      '<span class="hoy-cal-day-num">' + num + '</span>' +
+      '<span class="hoy-cal-day-num">' + anilloHtml + '<span class="hoy-cal-day-txt">' + num + '</span></span>' +
       dotsHtml +
     '</button>';
   }
@@ -5752,10 +5784,10 @@ function _renderHoyCalStrip() {
 
   host.innerHTML =
     '<div class="hoy-cal-head">' +
-      '<button type="button" class="hoy-cal-nav" data-cal-step="-1" aria-label="' + escHtml(t("hoy.cal_prev")) + '">‹</button>' +
       '<span class="hoy-cal-title">' + escHtml(capitalizeFirst(titulo)) + '</span>' +
       (fueraDeHoy ? '<button type="button" class="hoy-cal-volver" data-cal-today>' + escHtml(t("date.today")) + '</button>' : "") +
-      '<button type="button" class="hoy-cal-nav" data-cal-step="1" aria-label="' + escHtml(t("hoy.cal_next")) + '">›</button>' +
+      '<button type="button" class="hoy-cal-nav" data-cal-step="-1" aria-label="' + escHtml(t("hoy.cal_prev")) + '"><i data-lucide="chevron-left"></i></button>' +
+      '<button type="button" class="hoy-cal-nav" data-cal-step="1" aria-label="' + escHtml(t("hoy.cal_next")) + '"><i data-lucide="chevron-right"></i></button>' +
       '<button type="button" class="hoy-cal-toggle" data-cal-toggle aria-label="' +
         escHtml(t(_hoyCalExpanded ? "hoy.cal_collapse" : "hoy.cal_expand")) + '">' +
         '<i data-lucide="' + (_hoyCalExpanded ? "chevron-up" : "chevron-down") + '"></i>' +
@@ -5953,6 +5985,33 @@ function renderTodayView() {
     return;
   }
 
+  // Lo mismo en la solapa de Hábitos: los que tocaban ese día, marcables
+  // si ya pasó (para apuntar uno que se olvidó) y bloqueados si aún no ha
+  // llegado.
+  if (isSimpleMobile() && _hoySelectedDate && _hoyTab === "habits") {
+    var diaH = _hoySelectedDate;
+    var futuroH = diaH > today;
+    var tocanH = habits.filter(function(h) { return isDueOn(h, diaH); });
+    var hechosH = tocanH.filter(function(h) { return isDoneOn(h, diaH); }).length;
+    var fechaCortaH = new Date(diaH + "T00:00").toLocaleDateString(
+      getLang() === "en" ? "en-GB" : "es-ES",
+      { weekday: "short", day: "numeric", month: "short" });
+    var secHD = _hoySectionEl("habits", capitalizeFirst(fechaCortaH),
+      tocanH.length ? hechosH + "/" + tocanH.length : null,
+      t("hoy.back_to_today"), function() { _hoySelectedDate = null; renderTasks(); });
+    tocanH.forEach(function(h) {
+      secHD.list.appendChild(_renderHabitItem(h, diaH, false, futuroH));
+    });
+    if (!tocanH.length) {
+      var vacioH = document.createElement("p");
+      vacioH.className = "hoy-dia-vacio";
+      vacioH.textContent = t("hoy.habits_day_empty");
+      secHD.li.appendChild(vacioH);
+    }
+    taskList.appendChild(secHD.li);
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
 
   // Con el conmutador puesto, cada pestaña enseña una cosa: los hábitos
   // dejan de ir debajo de las tareas y pasan a su propia solapa. En
@@ -6247,7 +6306,7 @@ function renderHabitsView() {
  * Sin `initSwipeGesture`: ese gesto lee `task.done`/`task.dueDate` y sus
  * dos acciones son "mover a hoy" y borrar, que no significan nada aquí.
  */
-function _renderHabitItem(habit, todayISO, noTocaHoy) {
+function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
   var hecho = !noTocaHoy && isDoneOn(habit, todayISO);
   // Se consume al leerlo: la celebración es de este repintado y de ninguno
   // más, o volvería a saltar cada vez que la lista se vuelve a pintar.
@@ -6266,11 +6325,13 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
   // cambiar de sitio): sin esto los hábitos se quedaban fuera.
   li.dataset.habitId = habit.id;
 
-  var check = _todayCheckEl(hecho, noTocaHoy ? t("habits.not_due") : t("hoy.habit_done_toggle"));
+  var check = _todayCheckEl(hecho, noTocaHoy ? t("habits.not_due") : futuro ? t("hoy.habit_future") : t("hoy.habit_done_toggle"));
   var cb = check.cb;
   // Un día que no tocaba no se puede marcar: sumaría a la racha algo que
-  // `computeStreak` no cuenta, y el historial enseñaría días fantasma.
-  cb.disabled = !!noTocaHoy;
+  // `computeStreak` no cuenta, y el historial enseñaría días fantasma. Un
+  // día que aún no ha llegado, tampoco.
+  cb.disabled = !!noTocaHoy || !!futuro;
+  if (futuro) li.classList.add("today-item--notdue");
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
     setDoneOn(habit, todayISO, cb.checked);
@@ -6294,7 +6355,7 @@ function _renderHabitItem(habit, todayISO, noTocaHoy) {
   // La racha se enseña a partir de dos días: con uno no hay nada que
   // sostener todavía, y la píldora saldría en todas las filas el primer
   // día de cada hábito sin decir nada.
-  var racha = computeStreak(habit, todayISO);
+  var racha = computeStreak(habit, _localDateISO(new Date()));
   if (racha >= 2) {
     var streakEl = document.createElement("span");
     streakEl.className = "habit-streak";

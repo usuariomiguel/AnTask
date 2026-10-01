@@ -74,3 +74,65 @@ test("el botón «Hoy» aparece al navegar y devuelve al periodo actual", async 
   expect(await page.locator("[data-cal-today]").count()).toBe(0);
   await expect(page.locator(`[data-cal-day="${iso(0)}"]`)).toBeVisible();
 });
+
+// ── Solapa de Hábitos: el mismo calendario, con lo hecho de cada día ──
+async function cargaHabitos(page) {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem("antrack_consent", "essential");
+    localStorage.setItem("antrack-onboarded", "1");
+    localStorage.setItem("antrack_lang", "es");
+    localStorage.setItem("antrack-mode", "simple");
+    localStorage.setItem("antrack_swipe_hinted", "1");
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+    const H = (id, name, log) => ({ id, name, schedule: "daily", everyNDays: null, createdAt: new Date(Date.now() - 10 * 864e5).toISOString(), archived: false, log });
+    localStorage.setItem("antrack-habits", JSON.stringify([
+      H("h1", "Leer", { [d(-1)]: 1, [d(-2)]: 1 }),
+      H("h2", "Correr", { [d(-2)]: 1 }),
+    ]));
+  });
+  await page.goto("/");
+  await page.waitForSelector("#hoy-cal-strip .hoy-cal-day", { timeout: 15000 });
+  await page.locator("[data-hoy-tab='habits']").click();
+  await page.waitForTimeout(500);
+}
+
+test("en Hábitos el calendario marca la parte hecha de cada día", async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (e) => errores.push(e.message));
+  await cargaHabitos(page);
+  await expect(page.locator("#hoy-cal-strip")).toBeVisible();
+  // Anteayer, los dos: día completo. Ayer, uno de dos: medio anillo.
+  await expect(page.locator(`[data-cal-day="${iso(-2)}"]`)).toHaveClass(/hoy-cal-day--completo/);
+  await expect(page.locator(`[data-cal-day="${iso(-1)}"] .hoy-cal-ring-arc`)).toHaveAttribute("stroke-dasharray", "50 100");
+  expect(await page.locator(`[data-cal-day="${iso(-1)}"]`).getAttribute("aria-label")).toContain("1 de 2 hábitos");
+  // Los días por venir no llevan anillo.
+  expect(await page.locator(`[data-cal-day="${iso(1)}"] .hoy-cal-ring`).count()).toBe(0);
+  expect(errores).toEqual([]);
+});
+
+test("en Hábitos, elegir un día pasado deja apuntar lo que se hizo", async ({ page }) => {
+  await cargaHabitos(page);
+  await page.locator(`[data-cal-day="${iso(-1)}"]`).click();
+  await page.waitForTimeout(400);
+  const correr = page.locator(".today-item--habit", { hasText: "Correr" });
+  await expect(correr).toBeVisible();
+  await expect(page.locator(".hoy-section--habits .hoy-section-count")).toHaveText("1/2");
+  await correr.locator("input[type='checkbox']").check({ force: true });
+  await page.waitForTimeout(400);
+  const log = await page.evaluate(() => JSON.parse(localStorage.getItem("antrack-habits"))[1].log);
+  expect(Object.keys(log)).toContain(iso(-1));
+  await expect(page.locator(`[data-cal-day="${iso(-1)}"]`)).toHaveClass(/hoy-cal-day--completo/);
+
+  // Un día que aún no ha llegado: se ven, pero no se marcan.
+  await page.locator(`[data-cal-day="${iso(1)}"]`).click();
+  await page.waitForTimeout(400);
+  await expect(page.locator(".today-item--habit input[type='checkbox']").first()).toBeDisabled();
+
+  // Tocar hoy vuelve a la lista normal.
+  await page.locator(`[data-cal-day="${iso(0)}"]`).click();
+  await page.waitForTimeout(400);
+  await expect(page.locator(`[data-cal-day="${iso(0)}"]`)).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".hoy-quickadd--habit")).toBeVisible();
+});

@@ -4143,16 +4143,24 @@ button:focus-visible {
     margin-inline: auto;
   }
 
+  /* En una tarjeta, como el conmutador y la lista de debajo: suelto sobre
+     el fondo flotaba y no se leía como parte de la vista. */
   .hoy-cal-strip:not([hidden]) {
     display: block;
-    padding: 0 16px;
+    padding: 10px 10px 8px;
+    background: var(--surface-card);
+    border: 2px solid var(--border-default);
+    border-radius: 24px;
   }
 
+  /* Título a la izquierda y los controles juntos a la derecha. Antes el
+     título iba centrado entre dos flechas diminutas y lejanas. */
   .hoy-cal-head {
     display: flex;
     align-items: center;
-    gap: 3px;
-    margin-bottom: 6px;
+    gap: 2px;
+    padding: 0 2px 0 8px;
+    margin-bottom: 4px;
   }
 
   .hoy-cal-title {
@@ -4161,8 +4169,7 @@ button:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-align: center;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-primary);
     font-family: var(--font-display);
@@ -4172,8 +4179,8 @@ button:focus-visible {
   .hoy-cal-toggle {
     display: grid;
     place-items: center;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     min-width: 0;
     padding: 0;
     flex-shrink: 0;
@@ -4182,56 +4189,70 @@ button:focus-visible {
     background: transparent;
     color: var(--text-secondary);
     cursor: pointer;
+    transition: background-color 0.15s ease;
   }
 
+  .hoy-cal-nav:active,
+  .hoy-cal-toggle:active {
+    background: var(--row-hover);
+  }
+
+  .hoy-cal-nav .lucide,
   .hoy-cal-toggle .lucide {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
 
   .hoy-cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+    row-gap: 2px;
     text-align: center;
   }
 
   .hoy-cal-dow {
-    font-size: 12px;
-    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--text-tertiary);
-    padding: 3px 0;
+    padding: 2px 0 4px;
   }
 
   .hoy-cal-day {
     display: grid;
     justify-items: center;
-    gap: 3px;
+    gap: 2px;
     min-width: 0;
-    padding: 3px;
+    padding: 2px 0;
     border: none;
     background: transparent;
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* El borde/fondo de "hoy"/seleccionado va SOLO en el número, en su
-     propio círculo — no en toda la celda (que también lleva los
-     puntitos debajo). Todos los días llevan ya el borde por defecto,
-     no solo esos dos estados. */
+  /* Número sin caja: solo hoy (anillo) y el día elegido (relleno) llevan
+     forma. Con un círculo con borde en cada día, la semana eran siete
+     burbujas iguales y el mes una pared de 31. El borde transparente
+     guarda el sitio del anillo de hoy para que nada se mueva. */
   span.hoy-cal-day-num {
-    background: var(--surface-card);
+    position: relative;
     display: grid;
     place-items: center;
-    /* 36 y no 40: la tira se comía 109px de una pantalla de móvil. */
     width: 36px;
     height: 36px;
-    border: 2px solid var(--border-default);
+    border: 2px solid transparent;
     border-radius: 50%;
-    font-weight: 700;
-    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+
+  .hoy-cal-day-txt {
+    position: relative;
   }
 
   .hoy-cal-day--muted .hoy-cal-day-num {
@@ -4244,11 +4265,16 @@ button:focus-visible {
     color: var(--text-tertiary);
   }
 
-  /* Hoy con el anillo entero, no un borde al 45 %: al elegir otro día, el
-     de hoy se perdía y no se sabía dónde estaba uno. */
+  .hoy-cal-day:active:not(.hoy-cal-day--selected) .hoy-cal-day-num {
+    background: var(--row-hover);
+  }
+
+  /* Hoy: anillo en el acento y número en negrita. Se sigue viendo con
+     otro día elegido. */
   .hoy-cal-day--today .hoy-cal-day-num {
     color: var(--c-primary-500);
     border-color: var(--c-primary-500);
+    font-weight: 800;
   }
 
   :root[data-theme="dark"] .hoy-cal-day--today .hoy-cal-day-num {
@@ -4256,7 +4282,8 @@ button:focus-visible {
     border-color: var(--c-primary-300);
   }
 
-  .hoy-cal-day--selected .hoy-cal-day-num {
+  .hoy-cal-day--selected .hoy-cal-day-num,
+  :root[data-theme="dark"] .hoy-cal-day--selected .hoy-cal-day-num {
     background: var(--c-primary-500);
     color: var(--accent-on);
     border-color: transparent;
@@ -4272,10 +4299,11 @@ button:focus-visible {
   /* Volver a hoy: solo aparece cuando el periodo a la vista no lo incluye. */
   .hoy-cal-volver {
     flex-shrink: 0;
-    padding: 3px 10px;
-    border: 2px solid color-mix(in srgb, var(--c-primary-500) 35%, transparent);
+    margin-right: 4px;
+    padding: 4px 11px;
+    border: none;
     border-radius: var(--r-pill);
-    background: color-mix(in srgb, var(--c-primary-500) 12%, transparent);
+    background: var(--accent-tint);
     color: var(--c-primary-500);
     font-family: var(--font-sans);
     font-size: 12px;
@@ -4297,36 +4325,98 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    height: 4px;
+    gap: 3px;
+    height: 5px;
   }
 
   /* El punto ocupa sitio siempre (--off es invisible, no ausente): si solo
      existiera en los días con tarea, esos días medirían más alto y la
      rejilla bailaría. */
   .hoy-cal-dot {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
+    background: var(--c-primary-500);
+  }
+
+  :root[data-theme="dark"] .hoy-cal-dot {
     background: var(--c-primary-300);
   }
 
   /* Día pasado con pendientes: el rojo de «vencidas». */
-  .hoy-cal-dot--vencido {
+  .hoy-cal-dot--vencido,
+  :root[data-theme="dark"] .hoy-cal-dot--vencido {
     background: var(--c-pink);
   }
 
   /* Todo hecho ese día: un punto tenue, ni alarma ni vacío. */
-  .hoy-cal-dot--hecho {
+  .hoy-cal-dot--hecho,
+  :root[data-theme="dark"] .hoy-cal-dot--hecho {
     background: color-mix(in srgb, var(--text-tertiary) 60%, transparent);
   }
 
-  .hoy-cal-day--selected .hoy-cal-dot {
-    background: var(--accent-on);
+  .hoy-cal-dot--off,
+  :root[data-theme="dark"] .hoy-cal-dot--off {
+    background: transparent;
   }
 
-  .hoy-cal-dot--off {
-    background: transparent;
+  /* Solapa de Hábitos: anillo de progreso alrededor del número (la vuelta
+     entera es «todos hechos»). Va por encima del borde de 2px que guarda
+     el sitio del anillo de hoy, así que no se suman. */
+  .hoy-cal-ring {
+    position: absolute;
+    inset: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    transform: rotate(-90deg);
+    pointer-events: none;
+  }
+
+  .hoy-cal-ring circle {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .hoy-cal-ring-track {
+    stroke: color-mix(in srgb, var(--text-tertiary) 28%, transparent);
+  }
+
+  .hoy-cal-ring-arc {
+    stroke: var(--c-primary-500);
+    stroke-linecap: round;
+  }
+
+  :root[data-theme="dark"] .hoy-cal-ring-arc {
+    stroke: var(--c-primary-300);
+  }
+
+  /* Con anillo, hoy no necesita el suyo: lo marca el número en acento. */
+  .hoy-cal-day--today .hoy-cal-day-num:has(.hoy-cal-ring),
+  :root[data-theme="dark"] .hoy-cal-day--today .hoy-cal-day-num:has(.hoy-cal-ring) {
+    border-color: transparent;
+  }
+
+  /* Día completo: el número también en acento, para que se vea de lejos. */
+  .hoy-cal-day--completo:not(.hoy-cal-day--selected) .hoy-cal-day-num {
+    color: var(--c-primary-500);
+  }
+
+  :root[data-theme="dark"] .hoy-cal-day--completo:not(.hoy-cal-day--selected) .hoy-cal-day-num {
+    color: var(--c-primary-300);
+  }
+
+  /* Elegido: el relleno ya lo dice todo; el carril se aclara para no
+     pelear con él. */
+  .hoy-cal-day--selected .hoy-cal-ring-track {
+    stroke: transparent;
+  }
+
+  .hoy-dia-vacio {
+    margin: 4px 0 0;
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-tertiary);
   }
 }
 
