@@ -103,9 +103,11 @@ test("en Hábitos el calendario marca la parte hecha de cada día", async ({ pag
   page.on("pageerror", (e) => errores.push(e.message));
   await cargaHabitos(page);
   await expect(page.locator("#hoy-cal-strip")).toBeVisible();
-  // Anteayer, los dos: día completo. Ayer, uno de dos: medio anillo.
+  // Anteayer, los dos: día completo. Ayer, uno de dos: dos tramos, uno
+  // relleno y otro vacío.
   await expect(page.locator(`[data-cal-day="${iso(-2)}"]`)).toHaveClass(/hoy-cal-day--completo/);
-  await expect(page.locator(`[data-cal-day="${iso(-1)}"] .hoy-cal-ring-arc`)).toHaveAttribute("stroke-dasharray", "50 100");
+  await expect(page.locator(`[data-cal-day="${iso(-1)}"] .hoy-cal-ring-tramo`)).toHaveCount(2);
+  await expect(page.locator(`[data-cal-day="${iso(-1)}"] .hoy-cal-ring-tramo.hoy-cal-ring-arc`)).toHaveCount(1);
   expect(await page.locator(`[data-cal-day="${iso(-1)}"]`).getAttribute("aria-label")).toContain("1 de 2 hábitos");
   // Los días por venir no llevan anillo.
   expect(await page.locator(`[data-cal-day="${iso(1)}"] .hoy-cal-ring`).count()).toBe(0);
@@ -135,4 +137,24 @@ test("en Hábitos, elegir un día pasado deja apuntar lo que se hizo", async ({ 
   await page.waitForTimeout(400);
   await expect(page.locator(`[data-cal-day="${iso(0)}"]`)).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".hoy-quickadd--habit")).toBeVisible();
+});
+
+test("con más de 8 hábitos el anillo vuelve a ser continuo", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate((ayer) => {
+    localStorage.clear();
+    localStorage.setItem("antrack_consent", "essential");
+    localStorage.setItem("antrack-onboarded", "1");
+    localStorage.setItem("antrack_lang", "es");
+    localStorage.setItem("antrack-mode", "simple");
+    const hs = Array.from({ length: 9 }, (_, i) => ({ id: "h" + i, name: "Hábito " + i, schedule: "daily", everyNDays: null, createdAt: new Date(Date.now() - 10 * 864e5).toISOString(), archived: false, log: i < 3 ? { [ayer]: 1 } : {} }));
+    localStorage.setItem("antrack-habits", JSON.stringify(hs));
+  }, iso(-1));
+  await page.goto("/");
+  await page.waitForSelector("#hoy-cal-strip .hoy-cal-day", { timeout: 15000 });
+  await page.locator("[data-hoy-tab='habits']").click();
+  await page.waitForTimeout(400);
+  const dia = page.locator(`[data-cal-day="${iso(-1)}"]`);
+  await expect(dia.locator(".hoy-cal-ring-tramo")).toHaveCount(0);
+  await expect(dia.locator(".hoy-cal-ring-arc")).toHaveAttribute("stroke-dasharray", "33 100");
 });

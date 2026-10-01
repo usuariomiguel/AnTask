@@ -4150,15 +4150,13 @@ button:focus-visible {
 
 @media (max-width: 768px) {
 
-  /* Carril compartido con el conmutador Tareas|Hábitos: los dos miden lo
-     mismo y van centrados, así que se leen como una sola columna.
-     372px es el ancho que ya tenía esta tira por `max-content` (lo manda
-     su cabecera, no la rejilla); se conserva como TOPE y se acota al
-     ancho disponible, porque tal cual desbordaba 12px en pantallas de
-     360 — se salía por la derecha. */
+  /* Carril compartido con el conmutador Tareas|Hábitos y los filtros: el
+     mismo ancho que el contenedor de tareas de debajo (6px a cada lado),
+     así que todo se lee como una sola columna. Antes tenían un tope de
+     372px y en pantallas anchas quedaban más estrechas que la lista. */
   .hoy-cal-strip:not([hidden]),
   .hoy-tabs:not([hidden]) {
-    width: min(372px, 100% - 18px);
+    width: calc(100% - 12px);
     margin-inline: auto;
   }
 
@@ -4403,6 +4401,12 @@ button:focus-visible {
   .hoy-cal-ring-arc {
     stroke: var(--c-primary-500);
     stroke-linecap: round;
+  }
+
+  /* Por tramos, puntas rectas: con redondas, cada punta se come medio
+     grosor del hueco y los tramos casi se tocan. */
+  .hoy-cal-ring .hoy-cal-ring-tramo {
+    stroke-linecap: butt;
   }
 
   :root[data-theme="dark"] .hoy-cal-ring-arc {
@@ -13894,7 +13898,7 @@ button {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    width: min(372px, 100% - 18px);
+    width: calc(100% - 12px);
     margin: 16px auto;
     padding: 5px;
     background: var(--surface-card);

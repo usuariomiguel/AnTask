@@ -5764,6 +5764,10 @@ function _renderHoyCalStrip() {
   var todayISO = _localDateISO(new Date());
   var viewISO  = _hoyCalViewISO || todayISO;
   var modoHabitos = _hoyTab === "habits";
+  // Aquí y no arriba del archivo: el primer render llega antes de que se
+  // evalúen las variables de nivel superior, y saldrían undefined.
+  var HOY_CAL_MAX_TRAMOS = 8;   // hasta cuántos hábitos el anillo va por tramos
+  var HOY_CAL_HUECO = 4;        // hueco entre tramos, en % de la vuelta
   var tareasPorDia = modoHabitos ? null : _hoyCalTareasPorDia();
 
   // Abreviaturas de tres letras (Lun, Mar, Mié…), empezando en lunes
@@ -5799,10 +5803,25 @@ function _renderHoyCalStrip() {
       // Anillo alrededor del número: la vuelta entera es «todos hechos».
       // pathLength=100 deja el trazo en porcentaje sin calcular radios.
       var pct = Math.round(hab.hechos / hab.tocan * 100);
-      anilloHtml = '<svg class="hoy-cal-ring" viewBox="0 0 40 40" aria-hidden="true">' +
-        '<circle class="hoy-cal-ring-track" cx="20" cy="20" r="18.5"></circle>' +
-        (pct > 0 ? '<circle class="hoy-cal-ring-arc" cx="20" cy="20" r="18.5" pathLength="100" stroke-dasharray="' + pct + ' 100"></circle>' : "") +
-      '</svg>';
+      var circulo = '<circle cx="20" cy="20" r="18.5" pathLength="100"';
+      var trazos = "";
+      if (hab.tocan >= 2 && hab.tocan <= HOY_CAL_MAX_TRAMOS) {
+        // Un tramo por hábito, con un hueco entre tramos: se cuenta «2 de
+        // 5» de un vistazo. Los hechos se rellenan desde arriba.
+        var paso = 100 / hab.tocan;
+        var largo = paso - HOY_CAL_HUECO;
+        for (var t2 = 0; t2 < hab.tocan; t2++) {
+          trazos += circulo + ' class="' + (t2 < hab.hechos ? "hoy-cal-ring-arc" : "hoy-cal-ring-track") + ' hoy-cal-ring-tramo"' +
+            ' stroke-dasharray="' + largo.toFixed(2) + ' 100"' +
+            ' stroke-dashoffset="' + (-(t2 * paso + HOY_CAL_HUECO / 2)).toFixed(2) + '"></circle>';
+        }
+      } else {
+        // Con uno solo no hay nada que partir, y con más de
+        // HOY_CAL_MAX_TRAMOS los tramos serían migas: línea continua.
+        trazos = circulo + ' class="hoy-cal-ring-track"></circle>' +
+          (pct > 0 ? circulo + ' class="hoy-cal-ring-arc" stroke-dasharray="' + pct + ' 100"></circle>' : "");
+      }
+      anilloHtml = '<svg class="hoy-cal-ring" viewBox="0 0 40 40" aria-hidden="true">' + trazos + '</svg>';
       if (pct === 100) cls.push("hoy-cal-day--completo");
     }
     if (modoHabitos) {
