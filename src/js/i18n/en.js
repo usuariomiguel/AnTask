@@ -164,6 +164,7 @@ export const en = {
   "hoy.cal_prev":             "Previous",
   "hoy.cal_next":             "Next",
   "hoy.back_to_today":        "Back to Today",
+  "hist.title_short":         "Statistics",
   "hoy.cal_habits_label":     "{n} of {total} habits",
   "hoy.habits_day_empty":     "No habits were due that day.",
   "hoy.habit_future":         "Not here yet",

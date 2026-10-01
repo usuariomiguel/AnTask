@@ -1,5 +1,4 @@
-// Animaciones de los filtros: toque de pulsación en el elegido (el relleno
-// cambia con un fundido CSS), «Otros» se abre animado y su texto cambia con
+// Animaciones de los filtros: el resaltado se desliza hasta el elegido, «Otros» se abre animado y su texto cambia con
 // fundido, el estado vacío entra una sola vez, y los filtros entran al
 // cambiar de vista pero no al pulsar uno de ellos.
 import { test, expect } from "@playwright/test";
@@ -30,17 +29,17 @@ const anima = (page, sel) => page.evaluate((sel) => {
   return !!el && el.getAnimations().some((a) => a.playState === "running" && !(a instanceof CSSTransition));
 }, sel);
 
-test("filtros: pulsación, «Otros» animado y texto con fundido", async ({ page }) => {
+test("filtros: resaltado que se desliza, «Otros» animado y texto con fundido", async ({ page }) => {
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await carga(page);
   await page.click("li[data-project-id='p1']");
   await page.waitForTimeout(600);
 
-  // El relleno cambia con transición CSS y el elegido da el toque.
-  expect(await page.evaluate(() => getComputedStyle(document.querySelector(".filter-segment")).transitionProperty)).toContain("background-color");
+  // El resaltado viaja hasta el elegido (transición CSS de su posición).
   await page.click(".filter-segment[data-filter='pending']");
-  expect(await anima(page, ".filter-segment[data-filter='pending']")).toBe(true);
+  expect(await page.evaluate(() => document.querySelector("#filter-segments .seg-indicador")
+    .getAnimations().some((a) => a.playState === "running"))).toBe(true);
   // Pulsar un filtro no vuelve a hacer entrar a los demás.
   expect(await anima(page, ".filter-segment[data-filter='all']")).toBe(false);
 

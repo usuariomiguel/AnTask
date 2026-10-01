@@ -376,7 +376,15 @@ export function openHabitsHistory(habits, todayISO) {
 
   const { overlay, box } = createModalBase();
   box.classList.add("hist-modal");
+  // En móvil, pantalla propia que entra desde la derecha (ver CSS).
+  if (esMovil()) overlay.classList.add("modal-overlay--pantalla");
   box.innerHTML =
+    '<div class="hist-pantalla-head">' +
+      '<button type="button" class="hist-volver" id="hist-back">' +
+        '<i data-lucide="chevron-left"></i><span>' + escHtml(t("date.today")) + "</span>" +
+      "</button>" +
+      '<p class="hist-pantalla-title">' + escHtml(t("hist.title_short")) + "</p>" +
+    "</div>" +
     '<p class="modal-label">' + escHtml(t("hist.title")) + "</p>" +
     '<div class="hist-body"></div>' +
     '<div class="modal-actions">' +
@@ -397,7 +405,10 @@ export function openHabitsHistory(habits, todayISO) {
     pintar(cuerpo, vivos, todayISO);
   });
 
-  box.querySelector("#hist-close").addEventListener("click", function () {
-    closeModal(overlay);
-  });
+  function cerrar() { closeModal(overlay); }
+  box.querySelector("#hist-close").addEventListener("click", cerrar);
+  box.querySelector("#hist-back").addEventListener("click", cerrar);
+  // Escape y clic fuera también la cierran (createModalBase los enruta aquí).
+  overlay._cancel = cerrar;
+  if (window.lucide) window.lucide.createIcons({ nodes: [box.querySelector(".hist-pantalla-head")] });
 }

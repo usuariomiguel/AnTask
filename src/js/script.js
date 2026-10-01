@@ -1431,18 +1431,25 @@ function applyFilter(value) {
   // El ámbito es la fila entera, no solo el panel: los tres filtros de uso
   // diario viven ahora fuera, como segmentado, y el panel los conserva para
   // la hoja de móvil. Los dos juegos tienen que marcarse a la vez.
+  var previo = _filtroAnterior;
+  _filtroAnterior = value;
   _marcarFiltroActivo(value);
   _updateFilterTriggerLabel();
-  // El relleno pasa de un filtro a otro con un fundido (CSS) y el nuevo da
-  // un toque de pulsación. No un relleno que se deslice: cada filtro lleva
-  // su propia píldora de fondo, que lo taparía por el camino.
+  // Como el conmutador de Hoy: el resaltado se desliza hasta el filtro
+  // nuevo y la lista entra por el lado hacia el que se va.
   var ahora = _filtroActivoVisible();
-  if (ahora && ahora !== antes && !_sinAnimarFilas()) {
-    ahora.animate([{ scale: "0.94" }, { scale: "1" }],
-      { duration: 240, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)" });
-  }
+  var cambia = ahora && ahora !== antes;
+  _filtroViaja = !!cambia;
   renderTasks();
+  if (cambia && !_sinAnimarFilas() && taskList) {
+    var desdeDerecha = _ordenFiltro(value) > _ordenFiltro(previo);
+    taskList.animate([
+      { transform: "translateX(" + (desdeDerecha ? 28 : -28) + "px)", opacity: 0.35 },
+      { transform: "translateX(0)", opacity: 1 },
+    ], { duration: 280, easing: FILA_CURVA });
+  }
 }
+var _filtroAnterior = "all";
 
 /** El filtro marcado en el segmentado de escritorio (uno de los tres o «Otros»). */
 function _filtroActivoVisible() {
@@ -1455,6 +1462,7 @@ function _filtroActivoVisible() {
 window.applyFilter = applyFilter;
 
 function _syncFilterPanel(filter) {
+  _filtroAnterior = filter;
   // Marca los DOS juegos de filtros, no solo los del panel: al cambiar de
   // vista el filtro se reinicia a «Todas», y el segmentado de escritorio se
   // quedaba con «Pendientes» resaltado mientras la lista enseñaba todo.
@@ -3304,6 +3312,7 @@ function renderTasks() {
   // que no hacen nada.
   var filterSegments = document.getElementById("filter-segments");
   if (filterSegments) filterSegments.classList.toggle("filter-segments--off", activeView === "habits");
+  _colocarIndicadorFiltros();
 
   // Vistas virtuales — render alternativo
   if (activeView === "today") {
@@ -5589,6 +5598,26 @@ function _renderHoyTabs() {
     btn.setAttribute("aria-pressed", String(activo));
   });
 
+  // Progreso del día en cada pestaña: se ve cómo va lo otro sin cambiar.
+  // Tareas cuenta lo mismo que el «X de Y hechas» de la cabecera.
+  var hoyISO = _localDateISO(new Date());
+  var hechasT = 0, totalT = 0;
+  projects.forEach(function(p) {
+    (p.tasks || []).forEach(function(tk) {
+      if (!tk.dueDate) return;
+      if (tk.dueDate === hoyISO) { totalT++; if (tk.done) hechasT++; }
+      else if (tk.dueDate < hoyISO && !tk.done) totalT++;
+    });
+  });
+  var habHoy = _hoyCalHabitosDelDia(hoyISO);
+  [["tasks", hechasT, totalT], ["habits", habHoy.hechos, habHoy.tocan]].forEach(function(c) {
+    var el = host.querySelector('[data-hoy-count="' + c[0] + '"]');
+    if (!el) return;
+    el.hidden = c[2] === 0;
+    el.textContent = c[1] + "/" + c[2];
+    el.classList.toggle("hoy-tab-count--hecho", c[2] > 0 && c[1] === c[2]);
+  });
+
 
   // El FAB crea tareas en el Inbox: en la solapa de Hábitos no pinta
   // nada, y además el alta de hábito ya tiene su propia fila.
@@ -5627,15 +5656,64 @@ function _colocarIndicadorHoy(host) {
     host.classList.add("con-indicador");
   }
   var viaja = _hoyTabIndicadorEn !== null && _hoyTabIndicadorEn !== _hoyTab && !_sinAnimarFilas();
+  _moverIndicador(host, ind, activo, viaja);
+  _hoyTabIndicadorEn = _hoyTab;
+}
+
+/**
+ * Lleva el resaltado de un segmentado hasta `activo`, deslizándose o de
+ * golpe. Se mide con getBoundingClientRect contra el carril y no con
+ * offsetLeft: «Otros» de los filtros vive dentro de un envoltorio con
+ * position:relative, y su offsetLeft sería relativo a ese envoltorio.
+ */
+function _moverIndicador(host, ind, activo, viaja) {
+  var rh = host.getBoundingClientRect();
+  var ra = activo.getBoundingClientRect();
   if (!viaja) ind.classList.add("sin-transicion");
-  ind.style.transform = "translate(" + activo.offsetLeft + "px, " + activo.offsetTop + "px)";
-  ind.style.width = activo.offsetWidth + "px";
-  ind.style.height = activo.offsetHeight + "px";
+  ind.style.transform = "translate(" + (ra.left - rh.left - host.clientLeft) + "px, " + (ra.top - rh.top - host.clientTop) + "px)";
+  ind.style.width = ra.width + "px";
+  ind.style.height = ra.height + "px";
   if (!viaja) {
     ind.getBoundingClientRect();   // aplica sin transición
     ind.classList.remove("sin-transicion");
   }
-  _hoyTabIndicadorEn = _hoyTab;
+}
+
+/**
+ * Resaltado de los filtros (Todas · Pendientes · Hechas · Otros): el mismo
+ * gesto que el conmutador Tareas/Hábitos de Hoy. Solo viaja cuando el
+ * cambio lo pide el usuario (applyFilter); en un repintado o al cambiar de
+ * vista se coloca sin moverse.
+ */
+var _filtroViaja = false;
+
+function _colocarIndicadorFiltros() {
+  var host = document.getElementById("filter-segments");
+  var viaja = _filtroViaja && !_sinAnimarFilas();
+  _filtroViaja = false;
+  if (!host) return;
+  var ind = host.querySelector(".seg-indicador");
+  var activo = host.classList.contains("filter-segments--off") ? null : _filtroActivoVisible();
+  if (!activo) {
+    if (ind) ind.hidden = true;
+    return;
+  }
+  if (!ind) {
+    ind = document.createElement("span");
+    ind.className = "seg-indicador";
+    ind.setAttribute("aria-hidden", "true");
+    host.insertBefore(ind, host.firstChild);
+    host.classList.add("con-indicador");
+    viaja = false;
+  }
+  if (ind.hidden) { ind.hidden = false; viaja = false; }
+  _moverIndicador(host, ind, activo, viaja);
+}
+
+/** Orden de los filtros en el segmentado, para saber hacia qué lado se va. */
+function _ordenFiltro(f) {
+  var i = ["all", "pending", "done"].indexOf(f);
+  return i < 0 ? 3 : i;
 }
 
 (function _wireHoyTabs() {

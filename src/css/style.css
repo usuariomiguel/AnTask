@@ -4034,43 +4034,35 @@ button:focus-visible {
 
 @media (max-width: 768px) {
 
-  /* Misma cápsula que el segmentado de filtros en escritorio: el carril
-     abraza su contenido (inline-flex) y cada botón pinta su propia
-     píldora dentro, en vez de repartirse el ancho a partes iguales. */
+  /* Una sola barra segmentada: el carril es la tarjeta y las pestañas
+     van sin caja propia; solo la activa lleva el relleno, que se desliza
+     de una a otra (ver _colocarIndicadorHoy). Antes cada pestaña pintaba
+     su píldora con borde y se leían como tres botones sueltos. */
   .hoy-tabs:not([hidden]) {
     display: flex;
     align-items: center;
-    /* El carril mide lo que el calendario (regla compartida arriba), así
-       que las píldoras se centran dentro en vez de pegarse a la
-       izquierda. */
-    justify-content: center;
-    gap: 2px;
+    gap: 4px;
     margin-block: 16px;
-    padding: 6px;
+    padding: 5px;
     background: var(--surface-card);
     border: 2px solid var(--border-default);
     border-radius: var(--r-pill);
   }
 
-  /* Dos opciones y nada más, así que se reparten el ancho: con `auto` se
-     quedaban apretadas a la izquierda y la píldora activa suelta. */
-  /* Píldora siempre puesta, no solo en el activo: con fondo transparente
-     en reposo, la pestaña sin tocar parecía más pequeña que la activa
-     aunque compartieran padding. Mismo criterio que `.filter-segment`. */
   .hoy-tab {
     display: inline-flex;
     /* Se reparten el carril a partes iguales. `min-width: 0` porque un
-       ítem flex no baja de su contenido por defecto: sin él, la píldora
-       más larga se llevaría más ancho que las demás. */
+       ítem flex no baja de su contenido por defecto. */
     flex: 1;
     min-width: 0;
     align-items: center;
     justify-content: center;
-    padding: var(--sp-2) var(--sp-3);
-    min-height: 30px;
-    border: 2px solid var(--border-default);
+    gap: 7px;
+    padding: 8px 12px;
+    min-height: 40px;
+    border: none;
     border-radius: var(--r-pill);
-    background: var(--surface-canvas);
+    background: transparent;
     color: var(--text-secondary);
     font-family: var(--font-sans);
     font-size: var(--fs-sm);
@@ -4078,19 +4070,56 @@ button:focus-visible {
     letter-spacing: var(--tracking-tight);
     cursor: pointer;
     white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
+  }
+
+  .hoy-tab .lucide {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
   }
 
   .hoy-tab--active {
     background: var(--c-primary-500);
-    border-color: transparent;
     color: var(--accent-on);
     font-weight: var(--fw-semibold);
   }
 
+  /* Progreso del día en cada pestaña («2/5»). Completo, en el acento. */
+  .hoy-tab-count {
+    padding: 1px 7px;
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+  }
+
+  .hoy-tab-count[hidden] {
+    display: none;
+  }
+
+  .hoy-tab-count--hecho {
+    background: var(--accent-tint);
+    color: var(--c-primary-500);
+  }
+
+  :root[data-theme="dark"] .hoy-tab-count--hecho {
+    color: var(--c-primary-300);
+  }
+
+  .hoy-tab--active .hoy-tab-count,
+  :root[data-theme="dark"] .hoy-tab--active .hoy-tab-count {
+    background: color-mix(in srgb, var(--accent-on) 20%, transparent);
+    color: var(--accent-on);
+  }
+
   /* Resaltado deslizante (ver _colocarIndicadorHoy): una pieza aparte que
-     va de una pestaña a otra. Pasa POR ENCIMA de la píldora de la pestaña
-     inactiva y por debajo de su texto, así que no se esconde detrás al
-     cruzarla. Con él puesto, la pestaña activa ya no pinta su fondo. */
+     va de una pestaña a otra, por debajo del texto. Con él puesto, la
+     pestaña activa ya no pinta su fondo. */
   .hoy-tabs.con-indicador {
     position: relative;
   }
@@ -4110,13 +4139,9 @@ button:focus-visible {
     transition: none;
   }
 
-  .hoy-tabs.con-indicador .hoy-tab > span {
+  .hoy-tabs.con-indicador .hoy-tab > * {
     position: relative;
     z-index: 2;
-  }
-
-  .hoy-tabs.con-indicador .hoy-tab {
-    transition: color 0.2s ease;
   }
 
   .hoy-tabs.con-indicador .hoy-tab--active {
@@ -13685,19 +13710,25 @@ button {
    escritorio: antes era un círculo suelto empujado al borde derecho, que
    con la cápsula abrazando su contenido ya no tenía a dónde ir. */
 .hoy-tabs-hist {
-  /* A diferencia de las pestañas, esta no crece: es un icono, y estirarla
-     a un tercio del carril dejaría un cuadro casi vacío alrededor. */
+  /* A diferencia de las pestañas, esta no crece: es un icono. Sin caja,
+     como las pestañas sin elegir. */
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sp-2) var(--sp-3);
-  min-height: 30px;
-  border-radius: var(--r-pill);
-  border: 2px solid var(--border-default);
-  background: var(--surface-canvas);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hoy-tabs-hist:active {
+  background: var(--row-hover);
 }
 
 .hoy-tabs-hist[hidden] {
@@ -13707,6 +13738,132 @@ button {
 .hoy-tabs-hist .lucide {
   width: 17px;
   height: 17px;
+}
+
+/* Cabecera «‹ Hoy · Historial»: solo en la pantalla de móvil. */
+.hist-pantalla-head {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* En móvil no es una ventana: es una pantalla que entra desde la
+     derecha, como el detalle de tarea, con su «atrás» arriba. Sitio para
+     el mapa y la lista por hábito sin el tope de alto del modal. */
+  .modal-overlay--pantalla {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    opacity: 1;
+    transition: none;
+  }
+
+  :root[data-theme="light"] .modal-overlay--pantalla {
+    background: transparent;
+  }
+
+  /* Con el peso del tema claro, que pinta su propia sombra en .modal-box:
+     sin él, esa regla ganaba. La entrada (transform) va aparte, con un
+     selector que no la pisa al abrirse. */
+  :root .modal-overlay--pantalla .modal-box.hist-modal,
+  :root[data-theme="light"] .modal-overlay--pantalla .modal-box.hist-modal {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0 18px calc(28px + env(safe-area-inset-bottom));
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    /* La tarjeta y no el lienzo: las casillas vacías del mapa son del
+       color del lienzo y sobre él desaparecían. */
+    background: var(--surface-card);
+    opacity: 1;
+    transform: translateX(100%);
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  :root .modal-overlay--pantalla.modal-visible .modal-box.hist-modal,
+  :root[data-theme] .modal-overlay--pantalla.modal-visible .modal-box.hist-modal {
+    transform: none;
+  }
+
+  .modal-overlay--pantalla .hist-modal > .modal-label,
+  .modal-overlay--pantalla .hist-modal > .modal-actions {
+    display: none;
+  }
+
+  .modal-overlay--pantalla .hist-pantalla-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 -18px 12px;
+    padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-subtle, var(--border-default));
+  }
+
+  .hist-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px 6px 4px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--c-primary-500);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :root[data-theme="dark"] .hist-volver {
+    color: var(--c-primary-300);
+  }
+
+  .hist-volver .lucide {
+    width: 22px;
+    height: 22px;
+  }
+
+  .hist-pantalla-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .modal-overlay--pantalla .hist-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .modal-overlay--pantalla .hist-hero {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .modal-overlay--pantalla .modal-box.hist-modal {
+    transition: none;
+  }
 }
 
 .hist-caption {
@@ -13742,10 +13899,10 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
     width: min(372px, 100% - 18px);
     margin: 16px auto;
-    padding: 6px;
+    padding: 5px;
     background: var(--surface-card);
     border: 2px solid var(--border-default);
     border-radius: var(--r-pill);
@@ -13760,11 +13917,13 @@ button {
     min-width: 0;
     align-items: center;
     justify-content: center;
-    padding: var(--sp-2) var(--sp-3);
-    min-height: 30px;
-    border: 2px solid var(--border-default);
+    padding: 8px 12px;
+    min-height: 40px;
+    border: none;
     border-radius: var(--r-pill);
-    background: var(--surface-canvas);
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
     color: var(--text-secondary);
     font-family: var(--font-sans);
     font-size: var(--fs-sm);
@@ -13788,6 +13947,54 @@ button {
     display: none;
   }
 }
+/* ─── FILTROS: RESALTADO DESLIZANTE ─────────────────────────────
+   El mismo gesto que el conmutador Tareas/Hábitos de Hoy (ver
+   _colocarIndicadorFiltros): el relleno del filtro activo es una pieza
+   aparte que se desliza al cambiar. Va por encima de las píldoras de los
+   filtros sin elegir y por debajo de su texto, así que no se esconde al
+   cruzarlas. Con él puesto, el activo deja de pintar su fondo. */
+#filter-segments.con-indicador {
+  position: relative;
+}
+
+.seg-indicador {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-500);
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.3, 1), width 0.3s cubic-bezier(0.25, 1, 0.3, 1);
+}
+
+.seg-indicador[hidden],
+#filter-segments.filter-segments--off .seg-indicador {
+  display: none;
+}
+
+.seg-indicador.sin-transicion {
+  transition: none;
+}
+
+#filter-segments.con-indicador :is(.filter-segment, .filter-trigger-btn) > * {
+  position: relative;
+  z-index: 2;
+}
+
+#filter-segments.con-indicador :is(.filter-segment.filter-opt--active, .filter-trigger-btn.filter-trigger-btn--active) {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--accent-on) !important;
+  transition: color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg-indicador {
+    transition: none;
+  }
+}
+
 /* ─── CABECERA EN «LIMPIO» ──────────────────────────────────────
    Con las filas planas, la pista de filtros y el grupo de botones de la
    cabecera eran lo único con caja de tarjeta (fondo blanco hueso en claro,
