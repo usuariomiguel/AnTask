@@ -5,6 +5,13 @@ import { test, expect } from "@playwright/test";
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
+// Reloj fijo en un miércoles a mitad de mes: los tests miran días de
+// alrededor (anteayer, mañana) en la vista de SEMANA, que empieza en lunes.
+// Con la fecha real, un lunes o martes «anteayer» caía en la semana
+// anterior y no estaba en pantalla.
+const BASE = new Date("2026-09-16T12:00:00");
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(BASE); });
+
 async function carga(page) {
   await page.goto("/");
   await page.evaluate(() => {
@@ -26,7 +33,7 @@ async function carga(page) {
   await page.waitForSelector("#hoy-cal-strip .hoy-cal-day", { timeout: 15000 });
   await page.waitForTimeout(500);
 }
-const iso = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+const iso = (n) => { const x = new Date(BASE); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
 
 test("el título lleva una sola mayúscula y hoy se distingue del día elegido", async ({ page }) => {
   const errores = [];

@@ -7,7 +7,12 @@ import { test, expect } from "@playwright/test";
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-const iso = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+// Reloj fijo en un miércoles a mitad de mes: «pasado mañana» tiene que caer
+// en la semana que enseña la tira del calendario (un sábado no caía).
+const BASE = new Date("2026-09-16T12:00:00");
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(BASE); });
+
+const iso = (n) => { const x = new Date(BASE); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
 
 async function carga(page) {
   await page.goto("/");
