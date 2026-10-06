@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ── Typecheck ─────────────────────────────────────────────
+      - name: Typecheck (tsc + JSDoc)
+        run: npm run typecheck
+
       # ── Build ──────────────────────────────────────────────────
       - name: Build
         run: npm run build

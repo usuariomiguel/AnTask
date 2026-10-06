@@ -31,7 +31,7 @@ Tres ideas guían el producto:
 
 - Crear, completar, eliminar (con deshacer), renombrar inline
 - **Subtareas** anidadas
-- **Nota** libre por tarea (hasta 300 caracteres)
+- **Nota** libre por tarea (hasta 3.000 palabras)
 - **Prioridad** — marcador único de "importante" (sin niveles P1/P2/P3)
 - **Fechas límite**, con hora opcional e indicador visual de vencimiento
 - **Recurrencia** con presets (diario / semanal / quincenal / mensual / personalizado)

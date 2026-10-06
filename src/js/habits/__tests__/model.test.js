@@ -18,6 +18,8 @@ import {
   perfectDays,
 } from "../model.js";
 
+/** @typedef {import("../../state/types.js").Habit} Habit */
+
 /** Hábito de prueba con valores por defecto sensatos. */
 function h(over) {
   return Object.assign({
@@ -313,6 +315,7 @@ describe("mergeHabits", () => {
 
 // ────────────────────────────────────────────────────────────────
 describe("dayAggregate", () => {
+  /** @returns {Habit} */
   const diario = (id, log, createdAt) => ({
     id, name: id, schedule: "daily", everyNDays: null,
     createdAt: createdAt || "2026-01-01T00:00:00.000Z", archived: false, log: log || {},
@@ -367,6 +370,7 @@ describe("heatSeries", () => {
   });
 
   it("marca el nivel de cada día", () => {
+    /** @type {Habit[]} */
     const lista = [{
       id: "a", name: "a", schedule: "daily", everyNDays: null,
       createdAt: "2026-02-01T00:00:00.000Z", archived: false,

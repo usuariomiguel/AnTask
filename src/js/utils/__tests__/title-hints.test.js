@@ -49,8 +49,8 @@ describe("detectarPistas", () => {
 
   it("aguanta entradas vacías o raras", () => {
     expect(detectarPistas("")).toEqual({ recurDays: null, importante: false });
-    // @ts-expect-error — a propósito
-    expect(detectarPistas(null)).toEqual({ recurDays: null, importante: false });
+    // A propósito: no es un string.
+    expect(detectarPistas(/** @type {any} */ (null))).toEqual({ recurDays: null, importante: false });
   });
 });
 
