@@ -331,4 +331,4 @@ Lo que escribes se queda en tu dispositivo. Ver también [PRIVACY.md](PRIVACY.md
 
 [MIT](LICENSE) — úsalo, modifícalo y distribúyelo libremente.
 
-El avatar del perfil usa el estilo [Croodles](https://www.figma.com/community/file/966199982810283152) de [vijay verma](https://vjy.me/), bajo [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), generado con [DiceBear](https://www.dicebear.com).
+El avatar del perfil usa el estilo [Critters](https://www.dicebear.com/styles/critters/) de [DiceBear](https://www.dicebear.com), bajo [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).

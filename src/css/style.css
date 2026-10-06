@@ -8139,9 +8139,9 @@ body.task-dragging .project-item:not(.active) {
   border: 1.5px solid var(--b-subtle);
 }
 
-/* Avatar dibujado (Croodles): trazo negro sobre transparente, así que en
-   los dos temas va sobre un disco de papel claro para que se lea en oscuro.
-   Va después de todas las reglas de avatar para ganarles el fondo. */
+/* Avatar dibujado (Critters): trae su propio fondo; el disco de
+   papel solo se ve mientras carga. Va después de todas las reglas de
+   avatar para ganarles el fondo. */
 .avatar-dibujado {
   background: #f3e8c9;
   overflow: hidden;
