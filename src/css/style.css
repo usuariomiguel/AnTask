@@ -618,6 +618,10 @@ body {
   /* Shell flotante "Tierra": el body es el escritorio (desk) sobre el que
      flotan sidebar y panel de contenido. Canvas plano, sin radiales. */
   background-color: var(--surface-desk);
+  /* Sin el recuadro azul que Chrome de Android pinta al tocar cualquier
+     botón o enlace. Se hereda, así que cubre toda la app; los botones ya
+     dan su propia respuesta al toque (:active). */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ─── BRAND (sidebar) — "A" olivo + wordmark, como el prototipo v1 ─── */
