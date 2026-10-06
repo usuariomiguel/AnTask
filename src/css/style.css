@@ -13993,6 +13993,12 @@ button {
   }
 }
 
+/* Colocación sin viaje (ver _moverIndicador): el texto cambia de color de
+   golpe, a la vez que aparece el resaltado. */
+.seg-sin-fundido :is(.filter-segment, .filter-trigger-btn, .hoy-tab) {
+  transition: none !important;
+}
+
 /* ─── CABECERA EN «LIMPIO» ──────────────────────────────────────
    Con las filas planas, la pista de filtros y el grupo de botones de la
    cabecera eran lo único con caja de tarjeta (fondo blanco hueso en claro,

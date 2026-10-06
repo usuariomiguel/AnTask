@@ -5667,6 +5667,11 @@ function _colocarIndicadorHoy(host) {
  * porque «Otros» vive dentro de un envoltorio con position:relative.
  */
 function _moverIndicador(host, ind, activo, viaja) {
+  // Sin viaje (cambio de vista, primer pintado), el texto tampoco hace
+  // fundido: el resaltado aparece ya debajo y la letra pasaba de oscura a
+  // clara en 0,2 s, así que se veía letra oscura sobre verde. Los offsets
+  // de abajo fuerzan el cálculo de estilos con la transición quitada.
+  if (!viaja) host.classList.add("seg-sin-fundido");
   var x = 0, y = 0, el = activo;
   while (el && el !== host) {
     x += el.offsetLeft; y += el.offsetTop;
@@ -5681,6 +5686,7 @@ function _moverIndicador(host, ind, activo, viaja) {
   if (!viaja) {
     ind.getBoundingClientRect();   // aplica sin transición
     ind.classList.remove("sin-transicion");
+    host.classList.remove("seg-sin-fundido");
   }
 }
 
