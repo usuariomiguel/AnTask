@@ -1,16 +1,14 @@
 ---
 name: antask-v1
-description: Replicar el rediseño "Tierra v1" de AnTask sobre el código de producción. Úsala para cualquier trabajo de UI en este repo — tocar src/css/style.css, las filas de tarea, el sidebar, el panel de detalle, las vistas Hoy/Inbox o el móvil; y siempre que haya que comparar con design_handoff_antask_v1 o verificar un cambio visual en el navegador.
+description: Convenciones de UI de AnTrack (tema «Tierra v1») sobre el código de producción. Úsala para cualquier trabajo de UI en este repo — tocar src/css/style.css, las filas de tarea, el sidebar, el panel de detalle, las vistas Hoy/Inbox o el móvil; y siempre que haya que verificar un cambio visual en el navegador.
 ---
 
-Este repo no es un proyecto de diseño en verde: es un **re-skin fiel** de un prototipo ya cerrado.
-La pregunta nunca es "¿qué queda bien?" sino "**¿qué hace v1?**". Antes de proponer nada,
-búscalo en el handoff.
+El rediseño «Tierra v1» ya está aplicado en el código: la referencia es **lo que hay en
+producción**, no un prototipo aparte (las carpetas `design_handoff_*` se quitaron del repo).
+Antes de inventar un estilo nuevo, busca cómo resuelve ya la app un caso parecido (otra fila,
+otro segmentado, otra hoja) y sigue ese patrón en PC y en móvil.
 
-## 1. Lee el handoff antes de tocar nada
-
-`design_handoff_antask_v1/README.md` es la autoridad. Tiene la configuración elegida, el mapa
-de archivos y **restricciones duras**. Resumen de lo que NO se toca:
+## 1. Lo que NO se toca sin pedirlo
 
 - Firebase (`src/js/firebase-sync.js`, `window.AnsoSync`, login Google, Firestore).
 - Capa de datos: `src/js/state/*`, las claves de `localStorage`, export/import.
@@ -19,44 +17,26 @@ de archivos y **restricciones duras**. Resumen de lo que NO se toca:
 - La landing (`index.html` + `src/css/landing.css`) queda **fuera** salvo petición explícita:
   tiene su propio sistema tipográfico y no comparte tokens con la app.
 
-`design_handoff_antask_v1/tokens.css` es la fuente de verdad de los valores.
+> **Tipografía de títulos:** `--font-display` es **Bricolage Grotesque**
+> (`@fontsource-variable/bricolage-grotesque`), por decisión del usuario. No la cambies sin
+> preguntar.
 
-> **Discrepancia conocida.** El README dice *"Fuente de títulos: Sans (Inter) — no hay fuentes
-> nuevas"*, pero `referencia/themes.jsx` define para el tema tierra `fontDisplay: F.grotesk`
-> (Bricolage Grotesque). En producción se implementó **Bricolage** por decisión del usuario, y
-> se añadió `@fontsource-variable/bricolage-grotesque`. No lo revuelvas sin preguntar.
+## 2. Tokens
 
-## 2. Mapa de la referencia
+Los valores viven en el `:root` de `src/css/style.css` (y su bloque de tema oscuro). Los más
+usados:
 
-| Archivo | Para qué |
+| Para | Token |
 |---|---|
-| `referencia/Antask v1.html` | Prototipo de escritorio. **La config por defecto que trae ES la elegida.** |
-| `referencia/Antask Móvil v1.html` | Prototipo móvil. |
-| `referencia/themes.jsx` | Objeto de tema. El tema real es **`tierra`**. |
-| `referencia/v1/inbox-view.jsx` | Fila de tarea, sidebar, panel de detalle, rails. **Manda sobre `referencia/inbox-view.jsx`, que es la versión vieja.** |
-| `referencia/v1/hoy-view.jsx` | Vista Hoy. |
-| `referencia/views.jsx` | Átomos compartidos: `PrioP`, `LabelTag`, paleta `PRIO`, formato de fechas. |
-| `referencia/quick-capture.jsx` | Captura rápida. |
-| `tweaks-panel.jsx`, `image-slot.js` | Infraestructura del prototipo — **ignorar**. |
+| Texto principal / secundario / terciario | `--text-primary` / `--text-secondary` / `--text-tertiary` |
+| Lienzo / tarjeta / borde | `--surface-canvas` / `--surface-card` / `--border-default` |
+| Lienzo opaco (`--surface-canvas` es translúcido en oscuro) | `--capa-canvas` |
+| Acento / acento claro / texto sobre acento / tinte | `--c-primary-500` / `--c-primary-300` / `--accent-on` / `--accent-tint` |
+| Fuentes UI / mono / títulos | `--font-sans` / `--font-mono` / `--font-display` |
+| Hover de fila | `--row-hover` (hover de tarea: `--task-hover`) |
 
-**Ojo:** hay dos `inbox-view.jsx` (en `referencia/` y en `referencia/v1/`). Usa siempre el de `v1/`.
-
-### El objeto `t` → tokens CSS
-
-Los JSX se pintan con un objeto de tema `t`. Traducción al tema tierra de producción:
-
-| `t.*` | CSS |
-|---|---|
-| `t.ink` / `ink2` / `ink3` | `--text-primary` / `--text-secondary` / `--text-tertiary` |
-| `t.canvas` / `card` / `border` | `--surface-canvas` / `--surface-card` / `--border-default` |
-| `t.accent` / `accentInk` / `accentOn` / `tintBg` | `--c-primary-500` / `--c-primary-300` / `--accent-on` / `--accent-tint` |
-| `t.fontUI` / `fontMono` / `fontDisplay` | `--font-sans` / `--font-mono` / `--font-display` |
-| `t.rowHover` | `--row-hover` (hover de tarea: `--task-hover`) |
-| `t.sb.*` | El bloque oscuro de sidebar — ver §3 |
-| `t.monoMeta: true` | Los metadatos de fila van en **mono** |
-
-`t.mode === 'dark'` no mapea a nuestro modo oscuro: en tierra vale `'light'`. Para valores por
-tema, mira las dos ramas del ternario en el JSX, no `t.mode`.
+Los metadatos de fila (fechas, contadores) van en **mono**. En oscuro el acento legible sobre
+fondo es `--c-primary-300`; sobre un relleno de acento, el texto va en `--accent-on`.
 
 ## 3. Convenciones de `src/css/style.css` (~9000 líneas)
 

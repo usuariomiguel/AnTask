@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// Búsqueda global — paleta de comandos (referencia/v1, SearchPalette)
+// Búsqueda global — paleta de comandos
 //
 // El módulo no conoce el estado de la app: recibe los datos vía
 // callbacks (`getProjects`) y delega la navegación al caller

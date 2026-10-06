@@ -4,7 +4,7 @@
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 /*
  * Design system v3 — rediseño cálido "Tierra" (acento oliva).
- * Fuente de verdad: design_handoff_antask_v1/tokens.css.
+ * Este :root es la fuente de verdad de los valores.
  * Estructura:
  *   1. Brand primary (escala oliva + gradient)
  *   2. Surface layers (deep / canvas / card / raised / overlay)
@@ -12728,8 +12728,8 @@ button {
 /* ═══════════════════════════════════════════════════════════════
    MÓVIL — mínimo tipográfico de la ficha
 
-   `design_handoff_antask_movil/README.md`: «Nada baja de 12px. Es un
-   mínimo firme para producción», y los metadatos van en mono. Se
+   Regla del diseño móvil: «Nada baja de 12px. Es un mínimo firme
+   para producción», y los metadatos van en mono. Se
    acota a móvil: en escritorio manda la escala del handoff de
    escritorio, que sí usa tamaños menores.
 

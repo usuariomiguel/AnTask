@@ -644,11 +644,9 @@ function showColorPicker(project) {
 }
 
 /**
- * Hoja móvil "Nueva lista": nombre + color, al estilo del handoff móvil
- * (design_handoff_antask_movil/referencia/settings.jsx no cubre esto, pero
- * el patrón nombre+color+crear es el mismo "Nueva/editar lista" de las hojas
- * modales descrito en su README). Sin selector de icono: no es un dato que
- * guardemos hoy, así que se descarta esa fila del prototipo.
+ * Hoja móvil "Nueva lista": nombre + color, con el mismo patrón
+ * nombre+color+crear que el resto de hojas modales de móvil. Sin selector
+ * de icono: no es un dato que guardemos hoy.
  *
  * Sustituye al `modalPrompt` genérico solo en móvil — ahí crear una lista
  * es la vía principal desde el chip "+" del Inbox y "Perfil", no un caso de
@@ -6198,7 +6196,7 @@ function renderTodayView() {
   }
 }
 
-// ── Piezas de la vista Hoy (según referencia/v1/hoy-view.jsx) ──
+// ── Piezas de la vista Hoy ──
 
 var _hoyQuickAddRefocus = false;
 
