@@ -57,7 +57,8 @@ test("en «Limpio» el móvil se ve como el PC: sin cápsula, botones planos y f
   await page.waitForTimeout(600);
   const fondo = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).backgroundColor : "(no existe)"; }, sel);
   const borde = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).borderTopColor : "(no existe)"; }, sel);
-  expect(await fondo("#filter-segments")).toBe("rgba(0, 0, 0, 0)");
+  // Un solo tono: la barra lleva el mismo fondo que la lista.
+  expect(await fondo("#filter-segments")).toBe(await fondo(".task-list-scroll"));
   expect(await fondo("#mobile-search-btn")).toBe("rgba(0, 0, 0, 0)");
   // Sin fondo pero con borde: sin él los iconos flotaban sueltos.
   expect(await borde("#mobile-search-btn")).not.toBe("rgba(0, 0, 0, 0)");
@@ -69,7 +70,9 @@ test("en «Limpio» el móvil se ve como el PC: sin cápsula, botones planos y f
 test("en «Limpio», Hoy también va plano: conmutador y campo de añadir", async ({ page }) => {
   await carga(page, "limpio", "full");
   const fondo = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).backgroundColor : "(no existe)"; }, sel);
-  expect(await fondo(".hoy-tabs")).toBe("rgba(0, 0, 0, 0)");
+  // Un solo tono: conmutador y calendario con el fondo de la lista.
+  expect(await fondo(".hoy-tabs")).toBe(await fondo(".task-list-scroll"));
+  expect(await fondo(".hoy-cal-strip")).toBe(await fondo(".task-list-scroll"));
   expect(await fondo(".hoy-tab:not(.hoy-tab--active)")).toBe("rgba(0, 0, 0, 0)");
   expect(await fondo(".hoy-quickadd")).toBe("rgba(0, 0, 0, 0)");
   // Con «Tarjetas» siguen con su caja

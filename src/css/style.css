@@ -14062,10 +14062,10 @@ button {
   }
 
   /* La barra de filtros de móvil se pinta con un selector de id (ver
-     «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. El carril
-     conserva su borde: sin él, la pastilla activa flotaba suelta. */
+     «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. Mismo tono
+     que la lista de debajo y con su borde (ver «UN SOLO TONO» abajo). */
   html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil #filter-segments {
-    background: transparent;
+    background: var(--surface-canvas);
   }
 
   html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil
@@ -14080,11 +14080,12 @@ button {
     padding-inline: 0;
   }
 
-  /* Conmutador Tareas/Hábitos de Hoy: el mismo trato que los filtros —el
-     carril sin fondo pero con su borde, y la pestaña activa con su relleno
-     de acento. */
-  .main-panel[data-row-style="limpio"] .hoy-tabs:not([hidden]) {
-    background: transparent;
+  /* UN SOLO TONO: calendario, conmutador Tareas/Hábitos y lista comparten
+     el fondo de la lista (--surface-canvas) con su borde. Antes eran tres
+     tratamientos seguidos —calendario en blanco hueso, conmutador sin
+     fondo y lista en beige— y la pantalla no se leía como una sola. */
+  .main-panel[data-row-style="limpio"] :is(.hoy-tabs, .hoy-cal-strip):not([hidden]) {
+    background: var(--surface-canvas);
   }
 
   .main-panel[data-row-style="limpio"] .hoy-tab:not(.hoy-tab--active) {
