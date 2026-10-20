@@ -14064,7 +14064,7 @@ button {
   /* La barra de filtros de móvil se pinta con un selector de id (ver
      «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. Mismo tono
      que la lista de debajo y con su borde (ver «UN SOLO TONO» abajo). */
-  html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil #filter-segments {
+  html[data-mode="simple"] .main-panel:is([data-row-style="limpio"], [data-row-style="tarjetas"]) .list-filter-row--movil #filter-segments {
     background: var(--surface-canvas);
   }
 
@@ -14083,8 +14083,10 @@ button {
   /* UN SOLO TONO: calendario, conmutador Tareas/Hábitos y lista comparten
      el fondo de la lista (--surface-canvas) con su borde. Antes eran tres
      tratamientos seguidos —calendario en blanco hueso, conmutador sin
-     fondo y lista en beige— y la pantalla no se leía como una sola. */
-  .main-panel[data-row-style="limpio"] :is(.hoy-tabs, .hoy-cal-strip):not([hidden]) {
+     fondo y lista en beige— y la pantalla no se leía como una sola.
+     También en «Tarjetas»: ahí las filas ya son tarjetas claras, y el
+     calendario y el conmutador en blanco hueso competían con ellas. */
+  .main-panel:is([data-row-style="limpio"], [data-row-style="tarjetas"]) :is(.hoy-tabs, .hoy-cal-strip):not([hidden]) {
     background: var(--surface-canvas);
   }
 
