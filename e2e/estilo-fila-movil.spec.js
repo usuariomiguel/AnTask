@@ -59,7 +59,8 @@ test("en «Limpio» el móvil se ve como el PC: sin cápsula, botones planos y f
   const borde = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).borderTopColor : "(no existe)"; }, sel);
   expect(await fondo("#filter-segments")).toBe("rgba(0, 0, 0, 0)");
   expect(await fondo("#mobile-search-btn")).toBe("rgba(0, 0, 0, 0)");
-  expect(await borde("#mobile-search-btn")).toBe("rgba(0, 0, 0, 0)");
+  // Sin fondo pero con borde: sin él los iconos flotaban sueltos.
+  expect(await borde("#mobile-search-btn")).not.toBe("rgba(0, 0, 0, 0)");
   expect(await fondo("#theme-toggle-btn")).toBe("rgba(0, 0, 0, 0)");
   // Fecha futura en texto; la vencida conserva su color, que ES el dato.
   expect(await fondo(".task-item:last-of-type .due-badge")).toBe("rgba(0, 0, 0, 0)");

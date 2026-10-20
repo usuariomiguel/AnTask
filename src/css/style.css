@@ -14046,9 +14046,13 @@ button {
    está vencida o es una acción («Mover a hoy»), que ahí el color ES el
    dato. */
 @media (max-width: 768px) {
+  /* Sin fondo pero con su borde: sin él, los dos iconos flotaban sueltos
+     en la cabecera y no se leían como botones. */
   .main-panel[data-row-style="limpio"] :is(#mobile-search-btn, #theme-toggle-btn) {
     background: transparent;
-    border-color: transparent;
+    /* Explícito: la regla de «Limpio» de escritorio, más arriba, se lo
+       quita a .row-style-btn y .theme-toggle-btn. */
+    border-color: var(--border-default);
     color: var(--text-secondary);
   }
 
@@ -14058,10 +14062,10 @@ button {
   }
 
   /* La barra de filtros de móvil se pinta con un selector de id (ver
-     «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. */
+     «FILTROS EN MÓVIL»), así que aquí hace falta el mismo peso. El carril
+     conserva su borde: sin él, la pastilla activa flotaba suelta. */
   html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil #filter-segments {
     background: transparent;
-    border-color: transparent;
   }
 
   html[data-mode="simple"] .main-panel[data-row-style="limpio"] .list-filter-row--movil
@@ -14077,10 +14081,10 @@ button {
   }
 
   /* Conmutador Tareas/Hábitos de Hoy: el mismo trato que los filtros —el
-     carril sin caja y la pestaña activa con su relleno de acento. */
+     carril sin fondo pero con su borde, y la pestaña activa con su relleno
+     de acento. */
   .main-panel[data-row-style="limpio"] .hoy-tabs:not([hidden]) {
     background: transparent;
-    border-color: transparent;
   }
 
   .main-panel[data-row-style="limpio"] .hoy-tab:not(.hoy-tab--active) {
