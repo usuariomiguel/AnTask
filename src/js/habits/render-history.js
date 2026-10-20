@@ -36,6 +36,8 @@ import {
   weekdayIndex,
   weekStart,
 } from "./model.js";
+import { visibles, agruparPorDia } from "../activity/model.js";
+import { lineaTiempoHTML } from "../activity/render.js";
 
 /** Semanas del mapa: un año redondo, como el calendario de GitHub. */
 const SEMANAS_MAPA = 53;
@@ -68,6 +70,18 @@ const PERIODOS = [
 /* El periodo elegido se recuerda mientras dure la sesión: quien mira
    "90 días" suele querer seguir mirándolo al volver a abrir. */
 let _periodo = "30";
+/** Pestaña del visor: «resumen» (hábitos) o «actividad» (registro). */
+let _pestana = "resumen";
+
+/** Conmutador Resumen | Actividad, con el mismo segmentado que el periodo. */
+function pestanasHTML() {
+  const b = (id, clave) => {
+    const on = _pestana === id;
+    return '<button type="button" class="hist-range-btn' + (on ? " hist-range-btn--on" : "") + '"' +
+      ' data-pestana="' + id + '" aria-pressed="' + on + '">' + escHtml(t(clave)) + "</button>";
+  };
+  return '<div class="hist-range hist-pestanas" role="group">' + b("resumen", "hist.tab_summary") + b("actividad", "hist.tab_activity") + "</div>";
+}
 
 function locale() {
   return getLang() === "en" ? "en-GB" : "es-ES";
@@ -342,14 +356,22 @@ function enfocableSiDesborda(el, etiqueta, eje) {
 }
 
 /** Rellena el cuerpo del modal. Se vuelve a llamar al cambiar el filtro. */
-function pintar(cuerpo, habits, todayISO) {
+function pintar(cuerpo, habits, todayISO, actividad) {
+  if (_pestana === "actividad") {
+    const locale = getLang() === "en" ? "en-GB" : "es-ES";
+    const ahora = Date.now();
+    cuerpo.innerHTML = pestanasHTML() +
+      '<div class="act-linea">' + lineaTiempoHTML(agruparPorDia(visibles(actividad || [], { dias: 90 }, ahora)), ahora, locale, t) + "</div>";
+    if (window.lucide) window.lucide.createIcons({ nodes: [cuerpo] });
+    return;
+  }
   const conDatos = habits.length > 0;
-  cuerpo.innerHTML = conDatos
+  cuerpo.innerHTML = pestanasHTML() + (conDatos
     ? resumenHTML(habits, todayISO) +
       filtroHTML() +
       mapaHTML(habits, todayISO) +
       listaHTML(habits, todayISO)
-    : listaHTML(habits, todayISO);
+    : listaHTML(habits, todayISO));
 
   // El mapa nace mirando a hoy, no a hace un año: al abrirlo, lo primero
   // que se ve tiene que ser la parte reciente.
@@ -371,7 +393,8 @@ function pintar(cuerpo, habits, todayISO) {
  * @param {Array<any>} habits
  * @param {string} todayISO
  */
-export function openHabitsHistory(habits, todayISO) {
+export function openHabitsHistory(habits, todayISO, actividad) {
+  _pestana = "resumen";
   const vivos = (habits || []).filter(function (h) { return !h.archived; });
 
   const { overlay, box } = createModalBase();
@@ -394,15 +417,22 @@ export function openHabitsHistory(habits, todayISO) {
     "</div>";
 
   const cuerpo = box.querySelector(".hist-body");
-  pintar(cuerpo, vivos, todayISO);
+  pintar(cuerpo, vivos, todayISO, actividad);
 
   // Delegado: el cuerpo se reconstruye entero en cada cambio de filtro,
   // así que enganchar los botones uno a uno los dejaría muertos.
   cuerpo.addEventListener("click", function (e) {
+    const pest = e.target.closest("[data-pestana]");
+    if (pest) {
+      if (pest.dataset.pestana === _pestana) return;
+      _pestana = pest.dataset.pestana;
+      pintar(cuerpo, vivos, todayISO, actividad);
+      return;
+    }
     const btn = e.target.closest("[data-rango]");
     if (!btn || btn.dataset.rango === _periodo) return;
     _periodo = btn.dataset.rango;
-    pintar(cuerpo, vivos, todayISO);
+    pintar(cuerpo, vivos, todayISO, actividad);
   });
 
   function cerrar() { closeModal(overlay); }

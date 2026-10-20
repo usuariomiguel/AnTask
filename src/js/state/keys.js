@@ -12,6 +12,7 @@ export const PROFILE_KEY      = "antrack-profile";
 export const ROW_STYLE_KEY    = "antrack-row-style";
 export const MODE_KEY         = "antrack-mode";
 export const HABITS_KEY       = "antrack-habits";
+export const ACTIVITY_KEY     = "antrack-activity";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

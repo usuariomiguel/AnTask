@@ -372,7 +372,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
        * puntos de llamada, y con la firma posicional cada campo nuevo
        * obligaba a tocarlos todos.
        *
-       * @param {{projects: any[], sections?: any[], habits?: any[]}} workspace
+       * @param {{projects: any[], sections?: any[], habits?: any[], activity?: any[]}} workspace
        */
       scheduleSave: function (workspace) {
         if (!_user) return;
@@ -390,6 +390,9 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
             version:         3,
           };
           if (Array.isArray(workspace.habits)) payload.habits = workspace.habits;
+          // El registro de actividad, igual: solo si viene. Se une por id
+          // al llegar (ver unirActividad), no se pisa.
+          if (Array.isArray(workspace.activity)) payload.activity = workspace.activity;
           setDoc(docRef(), payload, {
             // Sin `merge` este setDoc REEMPLAZA el documento entero, así que
             // un cliente que no conozca algún campo lo borra de la nube al

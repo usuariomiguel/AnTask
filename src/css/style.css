@@ -14991,3 +14991,229 @@ body,
     height: 0 !important;
   }
 }
+
+/* ─── ACTIVIDAD: REGISTRO DE COMPLETADOS ───────────────────────
+   Vista «Actividad» (PC), «Hechas este día» del calendario (móvil) y
+   pestaña Actividad de Estadísticas. Las filas son de solo lectura:
+   hora · icono · texto · lista, con la hora en mono como el resto de
+   metadatos. En la vista y en el calendario van dentro de la misma
+   sección que Hoy (.hoy-section-list hace de tarjeta). */
+.act-controles {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.act-controles .hist-range {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.act-controles .hist-range-btn {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+}
+
+.act-select {
+  height: 36px;
+  padding: 0 12px;
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-pill);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.act-fila {
+  display: grid;
+  grid-template-columns: 46px 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  list-style: none;
+}
+
+.act-fila + .act-fila {
+  border-top: 1px solid color-mix(in srgb, var(--border-default) 70%, transparent);
+}
+
+.act-hora {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.act-ico {
+  display: grid;
+  place-items: center;
+  color: var(--c-primary-500);
+}
+
+:root[data-theme="dark"] .act-ico {
+  color: var(--c-primary-300);
+}
+
+.act-fila--habito .act-ico {
+  color: var(--text-secondary);
+}
+
+.act-ico .lucide {
+  width: 17px;
+  height: 17px;
+}
+
+.act-cuerpo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.act-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.act-nota {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.act-lista {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 160px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.act-punto {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+.act-lista--habito {
+  color: var(--text-tertiary);
+}
+
+.act-vacio {
+  list-style: none;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 56px 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.act-vacio .lucide {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+}
+
+.act-vacio-titulo {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.act-vacio-texto {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.85rem;
+}
+
+/* En Estadísticas: sin la sección de Hoy, cada día lleva su rótulo y la
+   lista de filas va en una tarjeta como las del visor. */
+.hist-pestanas {
+  margin-bottom: 1.1rem;
+}
+
+.act-dia + .act-dia {
+  margin-top: 16px;
+}
+
+.act-dia-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.act-dia-cuenta {
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  letter-spacing: 0;
+}
+
+.act-lista-dia {
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--border-default);
+  border-radius: 18px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.act-lista-dia .act-fila {
+  padding: 10px 12px;
+  grid-template-columns: 42px 18px minmax(0, 1fr) auto;
+}
+
+@media (max-width: 768px) {
+  .act-fila {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .act-lista {
+    max-width: 110px;
+  }
+}
+
+/* Rótulos de día en Actividad y «Hechas este día»: el verde de «Para
+   hoy» (lo hecho), no el morado por defecto, que es el de hábitos. */
+.hoy-section--activity .hoy-section-ico,
+.hoy-section--hechas .hoy-section-ico {
+  color: var(--c-primary-500);
+}
+
+:root[data-theme="dark"] .hoy-section--activity .hoy-section-ico,
+:root[data-theme="dark"] .hoy-section--hechas .hoy-section-ico {
+  color: var(--c-primary-300);
+}
+
+.hoy-section--activity .hoy-section-title {
+  color: var(--text-secondary);
+}
+
+.hoy-section--hechas .hoy-section-title {
+  color: var(--c-primary-300);
+}
+
+:root[data-theme="light"] .hoy-section--hechas .hoy-section-title {
+  color: var(--c-primary-600);
+}

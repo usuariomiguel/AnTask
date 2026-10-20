@@ -14,7 +14,9 @@ import {
   TASK_PREFS_KEY,
   PROFILE_KEY,
   HABITS_KEY,
+  ACTIVITY_KEY,
 } from "./keys.js";
+import { sanitizeActividad } from "../activity/model.js";
 import { sanitizeProject, sanitizeHabits } from "./sanitize.js";
 
 /** @typedef {import("./types.js").Project}           Project */
@@ -39,6 +41,16 @@ export function loadHabits() {
     const raw = localStorage.getItem(HABITS_KEY);
     if (!raw) return [];
     return sanitizeHabits(JSON.parse(raw));
+  } catch (_) {
+    return [];
+  }
+}
+
+/** Registro de actividad (ver activity/model.js). */
+export function loadActivity() {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_KEY);
+    return raw ? sanitizeActividad(JSON.parse(raw)) : [];
   } catch (_) {
     return [];
   }

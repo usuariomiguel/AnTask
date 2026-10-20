@@ -28,6 +28,7 @@ import {
   ROW_STYLE_KEY,
   MODE_KEY,
   HABITS_KEY,
+  ACTIVITY_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
 import {
@@ -53,10 +54,20 @@ import {
   loadProjects,
   loadSections,
   loadHabits,
+  loadActivity,
   loadMetadata,
   loadTaskPrefs,
   loadProfile,
 } from "./state/persistence.js";
+import {
+  registrarCompletado,
+  anularCompletado,
+  unirActividad,
+  sanitizeActividad,
+  visibles as actividadVisible,
+  agruparPorDia as actividadPorDia,
+} from "./activity/model.js";
+import { filaActividadHTML, etiquetaDia } from "./activity/render.js";
 import {
   IMPORTANT_LABEL,
   RECUR_LABEL,
@@ -256,6 +267,8 @@ let sections        = loadSections();
 // Todavía sin UI que los cree: se cargan, se guardan y se sincronizan para
 // que la tubería esté montada y probada antes de que exista la pantalla.
 let habits          = loadHabits();
+// Registro de completados con fecha y hora (ver activity/model.js).
+let actividad       = loadActivity();
 
 // Las notas se retiraron: borra de una vez su clave para no dejar datos
 // huérfanos ocupando la cuota de localStorage.
@@ -1037,6 +1050,7 @@ exportBtn.addEventListener("click", function() {
     projects: projects,
     sections: sections,
     habits: habits,
+    activity: actividad,
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1078,6 +1092,12 @@ importFile.addEventListener("change", async function() {
       if (Array.isArray(parsed.habits)) {
         habits = sanitizeHabits(parsed.habits);
         saveHabits();
+      }
+      // El registro de actividad se une con el que haya: restaurar una
+      // copia no debe borrar lo hecho desde que se sacó.
+      if (Array.isArray(parsed.activity)) {
+        actividad = unirActividad(actividad, sanitizeActividad(parsed.activity));
+        saveActividad();
       }
       // Los backups antiguos traen `standaloneNotes`: se ignoran sin fallar.
       activeProjectId = projects.length > 0 ? projects[0].id : null;
@@ -1680,6 +1700,133 @@ function activateHabitsView() {
 
 
 /**
+ * Vista virtual "Actividad": lo completado (tareas y hábitos) con su día y
+ * hora, de los últimos 90 días. Monta sobre el mismo panel y lista que
+ * Hábitos; el contenido lo pinta renderActivityView.
+ */
+function activateActivityView() {
+  activeView = "activity";
+  activeProjectId = null;
+  localStorage.removeItem(ACTIVE_KEY);
+
+  _closeAllAltPanels();
+
+  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  // Aquí no se crea nada: el «+» crearía una tarea que no se vería.
+  if (mobileFab) mobileFab.classList.remove("visible");
+  tasksPanel.hidden = false;
+  _setActiveViewTab("tasks");
+
+  if (taskForm) taskForm.style.display = "none";
+
+  var mobileHeader = document.getElementById("mobile-header");
+  var mobileHeaderTitle = document.getElementById("mobile-header-title");
+  var mobileHeaderCount = document.getElementById("mobile-header-count");
+  if (mobileHeader) mobileHeader.classList.add("mobile-header--project");
+  if (mobileHeaderTitle) mobileHeaderTitle.textContent = t("sidebar.activity");
+  if (mobileHeaderCount) mobileHeaderCount.textContent = "";
+
+  document.title = t("sidebar.activity") + " — AnTrack";
+  if (projectTitleEl) projectTitleEl.textContent = t("sidebar.activity");
+
+  currentFilter = "all";
+  _syncFilterPanel("all");
+
+  closeTaskDetail();
+  renderSidebar();
+  renderTasks();
+  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
+  if (window._antrackNavShow) window._antrackNavShow();
+}
+
+/** Filtros de la vista Actividad (no se guardan: al volver, todo). */
+var _actTipo  = "";     // "" | "tarea" | "habito"
+var _actDias  = 30;     // 7 | 30 | 90
+var _actLista = "";     // nombre de lista, o "" = todas
+
+function _actLocale() { return getLang() === "en" ? "en-GB" : "es-ES"; }
+
+/**
+ * Pinta la vista Actividad: controles arriba y un bloque por día, con la
+ * misma sección que Hoy (cabecera con icono y contador) y una fila por
+ * completado.
+ */
+function renderActivityView() {
+  taskList.innerHTML = "";
+  taskList.classList.remove("task-list--project", "task-list--grupos");
+  taskList.classList.add("task-list--hoy", "task-list--actividad");
+  _removeHoyHeaderExtra();
+
+  var ahora = Date.now();
+  var todos = actividadVisible(actividad, { dias: 90 }, ahora);
+  var filtrados = actividadVisible(actividad, {
+    tipo: _actTipo || undefined, dias: _actDias, lista: _actLista || undefined,
+  }, ahora);
+
+  var resumen = t("act.subtitle")
+    .replace("{n}", String(_actDias))
+    .replace("{count}", _plural(filtrados.length, "act.count_one", "act.count_other"));
+  if (projectSubtitle) projectSubtitle.textContent = resumen;
+  if (projectSubtitleM) projectSubtitleM.textContent = resumen;
+
+  // ── Controles: tipo · periodo · lista ──
+  var listas = [];
+  todos.forEach(function(e) { if (e.tipo === "tarea" && e.lista && listas.indexOf(e.lista) < 0) listas.push(e.lista); });
+  listas.sort(function(a, b) { return a.localeCompare(b); });
+  if (_actLista && listas.indexOf(_actLista) < 0) _actLista = "";
+
+  var seg = function(grupo, valor, actual, etiqueta) {
+    var on = valor === actual;
+    return '<button type="button" class="hist-range-btn' + (on ? " hist-range-btn--on" : "") + '"' +
+      ' data-act-' + grupo + '="' + valor + '" aria-pressed="' + on + '">' + escHtml(etiqueta) + '</button>';
+  };
+  var ctrl = document.createElement("li");
+  ctrl.className = "act-controles";
+  ctrl.innerHTML =
+    '<div class="hist-range" role="group" aria-label="' + escHtml(t("act.type_label")) + '">' +
+      seg("tipo", "", _actTipo, t("act.all")) + seg("tipo", "tarea", _actTipo, t("act.tasks")) + seg("tipo", "habito", _actTipo, t("act.habits")) +
+    '</div>' +
+    '<div class="hist-range" role="group" aria-label="' + escHtml(t("act.range_label")) + '">' +
+      [7, 30, 90].map(function(n) { return seg("dias", String(n), String(_actDias), t("act.days").replace("{n}", String(n))); }).join("") +
+    '</div>' +
+    (listas.length > 1 && _actTipo !== "habito"
+      ? '<select class="act-select" aria-label="' + escHtml(t("act.list_label")) + '">' +
+          '<option value="">' + escHtml(t("act.all_lists")) + '</option>' +
+          listas.map(function(n) { return '<option value="' + escHtml(n) + '"' + (n === _actLista ? " selected" : "") + '>' + escHtml(n) + '</option>'; }).join("") +
+        '</select>'
+      : "");
+  ctrl.addEventListener("click", function(e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.actTipo !== undefined) { _actTipo = b.dataset.actTipo; if (_actTipo === "habito") _actLista = ""; }
+    else if (b.dataset.actDias) _actDias = parseInt(b.dataset.actDias, 10);
+    else return;
+    renderTasks();
+  });
+  var sel = ctrl.querySelector(".act-select");
+  if (sel) sel.addEventListener("change", function() { _actLista = sel.value; renderTasks(); });
+  taskList.appendChild(ctrl);
+
+  // ── Un bloque por día ──
+  var grupos = actividadPorDia(filtrados);
+  if (!grupos.length) {
+    var vacio = document.createElement("li");
+    vacio.className = "act-vacio";
+    vacio.innerHTML = '<i data-lucide="history"></i>' +
+      '<p class="act-vacio-titulo">' + escHtml(t(todos.length ? "act.empty_filtered" : "act.empty_title")) + '</p>' +
+      (todos.length ? "" : '<p class="act-vacio-texto">' + escHtml(t("act.empty_body")) + '</p>');
+    taskList.appendChild(vacio);
+  }
+  grupos.forEach(function(g) {
+    var sec = _hoySectionEl("activity", etiquetaDia(g.dia, ahora, _actLocale(), t), String(g.eventos.length), null, null);
+    sec.list.innerHTML = g.eventos.map(function(e) { return filaActividadHTML(e, _actLocale(), t); }).join("");
+    taskList.appendChild(sec.li);
+  });
+
+  if (window.lucide) lucide.createIcons();
+}
+
+/**
  * Pinta los items fijos al tope de la sidebar: vista "Hoy" + proyecto Inbox.
  * Se redibujan en cada renderSidebar().
  */
@@ -1770,6 +1917,18 @@ function renderPinnedItems(inboxProject) {
 
     projectListEl.appendChild(inbox);
   }
+
+  // ── Item "Actividad" — vista virtual (registro de completados) ──
+  var act = document.createElement("li");
+  act.className = "project-item project-item-pinned project-item-activity" +
+    (activeView === "activity" ? " active" : "");
+  act.innerHTML =
+    '<div class="project-item-top">' +
+      '<span class="project-item-icon project-item-icon--system"><i data-lucide="history"></i></span>' +
+      '<span class="project-item-name">' + t("sidebar.activity") + '</span>' +
+    '</div>';
+  act.addEventListener("click", function() { activateActivityView(); });
+  projectListEl.appendChild(act);
 
   // ── Separador visual ───────────────────────────────────────────
   var sep = document.createElement("li");
@@ -1867,6 +2026,9 @@ function syncSidebarRail() {
   if (todayCount > 0) todayBtn.setAttribute("data-attention", "");
   else                todayBtn.removeAttribute("data-attention");
 
+  const activityBtn = document.getElementById("sidebar-rail-activity");
+  if (activityBtn) activityBtn.classList.toggle("active", activeView === "activity");
+
   const habitsBtn = document.getElementById("sidebar-rail-habits");
   if (habitsBtn) {
     habitsBtn.classList.toggle("active", activeView === "habits");
@@ -1940,6 +2102,7 @@ function _claveActiva(li) {
   if (li.dataset.projectId) return li.dataset.projectId;
   if (li.classList.contains("project-item-today")) return "today";
   if (li.classList.contains("project-item-habits")) return "habits";
+  if (li.classList.contains("project-item-activity")) return "activity";
   return null;
 }
 
@@ -3309,7 +3472,8 @@ function renderTasks() {
   // Hábitos no hay ninguna que filtrar: se quitan en vez de dejar botones
   // que no hacen nada.
   var filterSegments = document.getElementById("filter-segments");
-  if (filterSegments) filterSegments.classList.toggle("filter-segments--off", activeView === "habits");
+  if (filterSegments) filterSegments.classList.toggle("filter-segments--off", activeView === "habits" || activeView === "activity");
+  if (activeView !== "activity") taskList.classList.remove("task-list--actividad");
   _colocarIndicadorFiltros();
 
   // Vistas virtuales — render alternativo
@@ -3320,6 +3484,11 @@ function renderTasks() {
   }
   if (activeView === "habits") {
     renderHabitsView();
+    _restaurarScroll();
+    return;
+  }
+  if (activeView === "activity") {
+    renderActivityView();
     _restaurarScroll();
     return;
   }
@@ -5732,7 +5901,7 @@ function _ordenFiltro(f) {
   if (!host) return;
   host.addEventListener("click", function(e) {
     if (e.target.closest("#hoy-tabs-hist")) {
-      openHabitsHistory(habits, _localDateISO(new Date()));
+      openHabitsHistory(habits, _localDateISO(new Date()), actividad);
       return;
     }
     var btn = e.target.closest("[data-hoy-tab]");
@@ -6084,6 +6253,20 @@ function renderTodayView() {
     secD.li.appendChild(_hoyQuickAddEl(_hoySelectedDate, t("hoy.day_quickadd_ph")));
     taskList.appendChild(secD.li);
 
+    // Lo que se completó ESE día, estuviera previsto para cuando fuera: la
+    // lista de arriba agrupa por fecha prevista, no por cuándo se hizo.
+    // Las que ya salen arriba no se repiten.
+    var yaArriba = {};
+    delDia.forEach(function(it) { yaArriba[it.task.id] = true; });
+    var hechasDia = actividadVisible(actividad, { tipo: "tarea" }).filter(function(e) {
+      return e.dia === _hoySelectedDate && !yaArriba[e.ref];
+    });
+    if (hechasDia.length) {
+      var secHe = _hoySectionEl("hechas", t("act.done_that_day"), String(hechasDia.length), null, null);
+      secHe.list.innerHTML = hechasDia.map(function(e) { return filaActividadHTML(e, _actLocale(), t); }).join("");
+      taskList.appendChild(secHe.li);
+    }
+
     if (window.lucide) lucide.createIcons();
     if (_hoyQuickAddRefocus) {
       _hoyQuickAddRefocus = false;
@@ -6162,7 +6345,7 @@ function renderTodayView() {
   var secHab = _hoySectionEl("habits", t("hoy.habits"),
     habitsHechos + "/" + habitsHoy.length,
     habits.length > 0 ? t("hist.open") : null,
-    habits.length > 0 ? function() { openHabitsHistory(habits, _localDateISO(new Date())); } : null);
+    habits.length > 0 ? function() { openHabitsHistory(habits, _localDateISO(new Date()), actividad); } : null);
   habitsHoy.forEach(function(h) {
     secHab.list.appendChild(_renderHabitItem(h, today));
   });
@@ -6231,7 +6414,7 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   // y bandeja para lo que no tiene fecha. Sustituye al punto de color.
   // Hábitos con brote y no con `repeat`: ese es el icono de repetir una
   // tarea, y compartirlo hacía que las dos cosas se leyeran como una.
-  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "sprout", "habits-later": "calendar-clock" };
+  var ICONO_TONO = { overdue: "triangle-alert", today: "sun", nodate: "inbox", habits: "sprout", "habits-later": "calendar-clock", activity: "calendar-check", hechas: "circle-check" };
   head.insertAdjacentHTML("beforeend",
     '<i data-lucide="' + (ICONO_TONO[tone] || "sun") + '" class="hoy-section-ico"></i>' +
     '<span class="hoy-section-title"></span>' +
@@ -6378,7 +6561,7 @@ function renderHabitsView() {
   _renderHoyHeaderExtra(hechos, deHoy.length, 0);
 
   var abrirHistorial = activos.length > 0
-    ? function() { openHabitsHistory(habits, _localDateISO(new Date())); }
+    ? function() { openHabitsHistory(habits, _localDateISO(new Date()), actividad); }
     : null;
   var secHoy = _hoySectionEl("habits", t("hoy.for_today"), hechos + "/" + deHoy.length,
     abrirHistorial ? t("hist.open") : null, abrirHistorial);
@@ -6443,6 +6626,7 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
   cb.addEventListener("click", function(e) { e.stopPropagation(); });
   cb.addEventListener("change", function() {
     setDoneOn(habit, todayISO, cb.checked);
+    _registrarHabito(habit, todayISO, cb.checked);
     _justToggledId   = habit.id;
     _justToggledDone = cb.checked;
     saveHabits();
@@ -7291,6 +7475,7 @@ function startSubtaskInlineEdit(textSpan, subtask) {
  * @param {boolean} done
  */
 function _logCompletado(task, done) {
+  _registrarTarea(task, done);
   if (!task.recurDays) return;
   var hoy = _localDateISO(new Date());
   if (done) {
@@ -8298,7 +8483,7 @@ function showCalendarPanel() {
 }
 
 function _restoreMainPanel() {
-  var isVirtualView = (activeView === "today" || activeView === "habits");
+  var isVirtualView = (activeView === "today" || activeView === "habits" || activeView === "activity");
   // Si el proyecto que estaba abierto ya no existe, "Hoy" hace de red de
   // seguridad: sin estado vacío, el panel se quedaría en blanco.
   if (!isVirtualView && !getActiveProject()) { activateTodayView(); return; }
@@ -8479,7 +8664,46 @@ function _showQuotaModal() {
  * línea en vez de siete, y evita que unos envíen más que otros.
  */
 function _workspace() {
-  return { projects: projects, sections: sections, habits: habits };
+  return { projects: projects, sections: sections, habits: habits, activity: actividad };
+}
+
+/** Persiste el registro de actividad y programa la subida. Espejo de saveHabits(). */
+function saveActividad() {
+  const ok = safeLsSet(ACTIVITY_KEY, JSON.stringify(actividad), _showQuotaModal);
+  if (!ok) return;
+  var user = window.AnsoSync?.getUser?.() ?? null;
+  if (user) _saveAccountCache(user.uid);
+  window.AnsoSync?.scheduleSave?.(_workspace());
+}
+
+/**
+ * Apunta (o anula) en el registro un completado de tarea. Se llama desde
+ * _logCompletado, por donde pasan TODOS los caminos que completan una.
+ */
+function _registrarTarea(task, done) {
+  if (done) {
+    var lista = null;
+    projects.some(function(p) {
+      if ((p.tasks || []).indexOf(task) >= 0) { lista = p; return true; }
+      return false;
+    });
+    actividad = registrarCompletado(actividad, {
+      tipo: "tarea", ref: task.id, texto: task.text,
+      lista: lista ? (lista.id === INBOX_ID ? t("sidebar.inbox") : lista.name) : "",
+      color: lista && lista.color ? lista.color : "",
+    });
+  } else {
+    actividad = anularCompletado(actividad, "tarea", task.id, null);
+  }
+  saveActividad();
+}
+
+/** Igual para un hábito, en el día que se marca (puede ser uno pasado). */
+function _registrarHabito(habit, dia, done) {
+  actividad = done
+    ? registrarCompletado(actividad, { tipo: "habito", ref: habit.id, texto: habit.name, dia: dia })
+    : anularCompletado(actividad, "habito", habit.id, dia);
+  saveActividad();
 }
 
 /**
@@ -8691,6 +8915,7 @@ function _initNavAutoHide() {
   const railSearch       = document.getElementById("sidebar-rail-search");
   const railToday        = document.getElementById("sidebar-rail-today");
   const railHabits       = document.getElementById("sidebar-rail-habits");
+  const railActivity     = document.getElementById("sidebar-rail-activity");
   const railInbox        = document.getElementById("sidebar-rail-inbox");
 
   function aplicarPlegado(collapsed) {
@@ -8774,6 +8999,7 @@ function _initNavAutoHide() {
   if (railSearch)     railSearch.addEventListener("click",     function () { openGlobalSearch(); });
   if (railToday)      railToday.addEventListener("click",      function () { activateTodayView(); });
   if (railHabits)     railHabits.addEventListener("click",     function () { activateHabitsView(); });
+  if (railActivity)   railActivity.addEventListener("click",   function () { activateActivityView(); });
   if (railInbox)      railInbox.addEventListener("click",      function () { activateProject(INBOX_ID); });
 
   // Restaurar estado solo en escritorio
@@ -8796,12 +9022,14 @@ function _acctKey(uid)      { return PROJECTS_KEY + "-" + uid; }
 function _acctSectKey(uid)  { return SECTIONS_KEY + "-" + uid; }
 function _acctMetaKey(uid)  { return METADATA_KEY + "-" + uid; }
 function _acctHabitsKey(uid){ return HABITS_KEY + "-" + uid; }
+function _acctActKey(uid)   { return ACTIVITY_KEY + "-" + uid; }
 
 function _saveAccountCache(uid) {
   var now = new Date().toISOString();
   safeLsSet(_acctKey(uid),       JSON.stringify(projects), _showQuotaModal);
   safeLsSet(_acctSectKey(uid),   JSON.stringify(sections), _showQuotaModal);
   safeLsSet(_acctHabitsKey(uid), JSON.stringify(habits),   _showQuotaModal);
+  safeLsSet(_acctActKey(uid),    JSON.stringify(actividad), _showQuotaModal);
   safeLsSet(_acctMetaKey(uid), JSON.stringify({ lastSavedAt: now }), _showQuotaModal);
 }
 
@@ -8822,6 +9050,7 @@ function _clearLocalData() {
   projects          = [];
   sections          = [];
   habits            = [];
+  actividad         = [];
   activeProjectId   = null;
   activeView        = "project";
 
@@ -8829,6 +9058,7 @@ function _clearLocalData() {
   localStorage.removeItem(PROJECTS_KEY);
   localStorage.removeItem(SECTIONS_KEY);
   localStorage.removeItem(HABITS_KEY);
+  localStorage.removeItem(ACTIVITY_KEY);
   localStorage.removeItem(METADATA_KEY);
   localStorage.removeItem(ACTIVE_KEY);
 
@@ -9047,6 +9277,18 @@ function _noPisarHabitosDeLaNube(cloudData, uid) {
   } catch (e) { /* cuota llena: el guardado normal ya avisa */ }
 }
 
+/**
+ * Antes de subir lo local, une el registro de actividad de la nube: subir
+ * el local tal cual pisaría los completados de otros dispositivos (el
+ * guardado reemplaza el campo entero).
+ * @param {{activity?: any[]}|null} cloudData
+ */
+function _unirActividadDeLaNube(cloudData) {
+  if (!cloudData || !Array.isArray(cloudData.activity)) return;
+  actividad = unirActividad(actividad, sanitizeActividad(cloudData.activity));
+  try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad)); } catch (e) { /* el guardado normal avisa */ }
+}
+
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
@@ -9064,9 +9306,11 @@ function _syncOnFirstConnect(cloudData) {
         projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
         sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
         habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
+        actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
         localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
+        localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
         renderSidebar(); renderTasks();
       } catch(e) {}
       window.AnsoSync?.scheduleSave?.(_workspace());
@@ -9093,12 +9337,15 @@ function _syncOnFirstConnect(cloudData) {
         projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
         sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
         habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
+        actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
         localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
         localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
         localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
+        localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
         renderSidebar(); renderTasks();
       } catch(e) {}
       _noPisarHabitosDeLaNube(cloudData, uid);
+      _unirActividadDeLaNube(cloudData);
       _primeraSincroHecha = true;
       window.AnsoSync?.scheduleSave?.(_workspace());
     }
@@ -9136,6 +9383,7 @@ function _syncOnFirstConnect(cloudData) {
     if (cloudTime2 >= anonTime) _syncApplyRemote(cloudData, uid);
     else {
       _noPisarHabitosDeLaNube(cloudData, uid);
+      _unirActividadDeLaNube(cloudData);
       _primeraSincroHecha = true;
       _saveAccountCache(uid);
       window.AnsoSync?.scheduleSave?.(_workspace());
@@ -9182,6 +9430,7 @@ function _showSyncConflictModal(cloudData, uid) {
     // diálogo y lo único que enseña. No es permiso para tirar unos
     // hábitos que este dispositivo ni siquiera tiene.
     _noPisarHabitosDeLaNube(cloudData, uid);
+      _unirActividadDeLaNube(cloudData);
     _primeraSincroHecha = true;
     _saveAccountCache(uid);
     window.AnsoSync?.scheduleSave?.(_workspace());
@@ -9256,6 +9505,16 @@ async function _syncApplyRemote(remote, uid, opts) {
       }
     }
 
+    // Actividad: se UNE por id (lo anulado gana), salvo que el usuario haya
+    // elegido explícitamente quedarse con la nube.
+    var remoteAct = null, actividadDifiere = false;
+    if (Array.isArray(remote.activity)) {
+      var deLaNube = sanitizeActividad(remote.activity);
+      remoteAct = (opts && opts.reemplazar) ? deLaNube : unirActividad(actividad, deLaNube);
+      var firma = function(lista) { return lista.map(function(e) { return e.id + (e.anulado ? "x" : ""); }).sort().join(","); };
+      actividadDifiere = firma(remoteAct) !== firma(deLaNube);
+    }
+
     // Write to localStorage first — if this throws we haven't touched memory yet.
     localStorage.removeItem(PROJECTS_KEY);
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(cleanProjects));
@@ -9265,15 +9524,21 @@ async function _syncApplyRemote(remote, uid, opts) {
     if (remoteHabits) {
       localStorage.setItem(HABITS_KEY, JSON.stringify(remoteHabits));
     }
+    if (remoteAct) localStorage.setItem(ACTIVITY_KEY, JSON.stringify(remoteAct));
 
     // Commit to memory only after successful persistence.
     projects = cleanProjects;
     ensureInbox();
     if (Array.isArray(remoteSections)) sections = remoteSections;
     if (remoteHabits) habits = remoteHabits;
+    if (remoteAct) actividad = remoteAct;
 
     if (uid) _saveAccountCache(uid);
     _primeraSincroHecha = true;
+    // Este dispositivo tenía completados que la nube aún no: se suben. Con
+    // la unión, el otro dispositivo recibe lo mismo que ya tiene y no
+    // vuelve a subir, así que no hay ida y vuelta infinita.
+    if (actividadDifiere && uid) window.AnsoSync?.scheduleSave?.(_workspace());
 
     renderSidebar();
     // Sin condición: renderTasks() ya decide solo qué pintar —la vista
