@@ -52,6 +52,7 @@
  * @property {number}        [timeLogged]     - Milisegundos acumulados (legacy del timer eliminado)
  * @property {Record<string, number>} [log]   - Historial de completados {"YYYY-MM-DD": 1}; solo se escribe en tareas con `recurDays`
  * @property {Subtask[]}     [subtasks]
+ * @property {{id: string, url: string, title: string}[]} [links] - Enlaces adjuntos (http/https, máx 20)
  */
 
 /**

@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { generateId } from "../utils/id.js";
+import { sanitizeLinks } from "../utils/links.js";
 
 /** @typedef {import("./types.js").Subtask}          Subtask */
 /** @typedef {import("./types.js").Task}             Task */
@@ -121,6 +122,7 @@ export function sanitizeTasks(input) {
         timeLogged: (typeof i.timeLogged === "number" && i.timeLogged > 0) ? i.timeLogged : 0,
         log:        sanitizeCompletionLog(i.log),
         subtasks:   sanitizeSubtasks(i.subtasks),
+        links:      sanitizeLinks(i.links),
       };
     })
     .filter(function (i) { return i.text.length > 0; });

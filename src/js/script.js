@@ -8,6 +8,7 @@ import { parseNaturalLanguage }             from "./utils/nl-parse.js";
 import { buildNLChipsHTML, formatDueLabel, formatRecurLabel } from "./utils/nl-chips.js";
 import { sanitizeRichHtml }                 from "./utils/sanitize-html.js";
 import { safeLsSet }                        from "./utils/storage.js";
+import { normalizarEnlace, tituloDe, dominioDe, ENLACES_MAX } from "./utils/links.js";
 import {
   createModalBase,
   closeModal,
@@ -1383,6 +1384,7 @@ function _matchesQuery(task, project) {
   if (!currentQuery) return true;
   const q = _norm(currentQuery);
   if (_norm(task.text).indexOf(q) !== -1 || _norm(task.comment).indexOf(q) !== -1) return true;
+  if ((task.links || []).some(function(l) { return _norm(l.title + " " + l.url).indexOf(q) !== -1; })) return true;
   // Como en la búsqueda global (Cmd+K): también por nombre de lista.
   if (project && _norm(project.name).indexOf(q) !== -1) return true;
   return false;
@@ -4192,6 +4194,91 @@ function deleteTaskWithUndo(task, project) {
   showUndoToast();
 }
 
+// ─── ENLACES ADJUNTOS ─────────────────────────────────────────
+// Una tarea puede llevar enlaces (Drive, un PDF, Figma…). Se guardan con
+// la tarea, así que se sincronizan y van en la copia como el resto. Solo
+// http(s): ver utils/links.js.
+
+/** Añade un enlace a la tarea abierta. Devuelve false si no es válido. */
+function _anadirEnlace(texto) {
+  var open = _getOpenDetailTask();
+  if (!open) return false;
+  var url = normalizarEnlace(texto);
+  if (!url) return false;
+  var task = open.task;
+  if (!Array.isArray(task.links)) task.links = [];
+  if (task.links.some(function(l) { return l.url === url; })) return true;   // ya estaba
+  if (task.links.length >= ENLACES_MAX) return false;
+  task.links.push({ id: generateId(), url: url, title: tituloDe(url) });
+  _enlaceRecienAnadido = url;
+  saveAndRenderDetail();
+  return true;
+}
+
+var _enlaceRecienAnadido = null;
+
+function _avisarEnlaceNoValido() {
+  var input = _detailPanelEls.linkInput;
+  if (!input) return;
+  input.classList.remove("campo-no-valido");
+  void input.offsetWidth;
+  input.classList.add("campo-no-valido");
+  input.setAttribute("aria-invalid", "true");
+  input.title = t("detail.link_invalid");
+  setTimeout(function() { input.classList.remove("campo-no-valido"); input.removeAttribute("aria-invalid"); input.title = ""; }, 1200);
+}
+
+/** Lista de enlaces del panel de detalle. */
+function _pintarEnlacesDetalle(task) {
+  var els = _detailPanelEls;
+  if (!els.links) return;
+  var enlaces = Array.isArray(task.links) ? task.links : [];
+  if (els.linkCount) els.linkCount.textContent = enlaces.length ? " · " + enlaces.length : "";
+  els.links.innerHTML = "";
+  enlaces.forEach(function(l) {
+    var li = document.createElement("li");
+    li.className = "task-link";
+    li.dataset.linkId = l.id;
+    var a = document.createElement("a");
+    a.className = "task-link-a";
+    a.href = l.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.title = l.url;
+    a.innerHTML = '<span class="task-link-ico"><i data-lucide="link"></i></span>' +
+      '<span class="task-link-cuerpo"><span class="task-link-titulo"></span><span class="task-link-dominio"></span></span>' +
+      '<i data-lucide="arrow-up-right" class="task-link-abrir"></i>';
+    var dominio = dominioDe(l.url);
+    a.querySelector(".task-link-titulo").textContent = l.title || dominio;
+    // Si el nombre ya es el dominio, no se repite debajo.
+    if ((l.title || dominio) === dominio) a.querySelector(".task-link-dominio").remove();
+    else a.querySelector(".task-link-dominio").textContent = dominio;
+    var quitar = document.createElement("button");
+    quitar.type = "button";
+    quitar.className = "task-link-quitar";
+    quitar.setAttribute("aria-label", t("detail.link_remove"));
+    quitar.title = t("detail.link_remove");
+    quitar.innerHTML = '<i data-lucide="x"></i>';
+    quitar.addEventListener("click", function() {
+      var open = _getOpenDetailTask();
+      if (!open || !Array.isArray(open.task.links)) return;
+      open.task.links = open.task.links.filter(function(x) { return x.id !== l.id; });
+      if (_sinAnimarFilas()) { saveAndRenderDetail(); return; }
+      li.animate([{ opacity: 1, transform: "translateX(0)" }, { opacity: 0, transform: "translateX(8px)" }],
+        { duration: 160, easing: "ease-in" }).onfinish = saveAndRenderDetail;
+    });
+    li.appendChild(a);
+    li.appendChild(quitar);
+    els.links.appendChild(li);
+    if (_enlaceRecienAnadido === l.url && !_sinAnimarFilas()) {
+      li.animate([{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 220, easing: FILA_CURVA });
+    }
+  });
+  _enlaceRecienAnadido = null;
+  if (window.lucide) window.lucide.createIcons({ nodes: [els.links] });
+}
+
 /** Duplica una tarea (con sus subtareas) justo debajo del original. */
 function duplicateTask(task, project) {
   const idx = project.tasks.findIndex(function(tk) { return tk.id === task.id; });
@@ -4199,6 +4286,7 @@ function duplicateTask(task, project) {
   const copy = JSON.parse(JSON.stringify(task));
   copy.id = generateId();
   copy.subtasks = (copy.subtasks || []).map(function(s) { return Object.assign({}, s, { id: generateId() }); });
+  copy.links = (copy.links || []).map(function(l) { return Object.assign({}, l, { id: generateId() }); });
   project.tasks.splice(idx + 1, 0, copy);
   saveAndRender();
 }
@@ -4517,6 +4605,10 @@ const _detailPanelEls = {
   subtaskForm:  document.getElementById("task-detail-subtask-form"),
   subtaskInput: document.getElementById("task-detail-subtask-input"),
   subtaskCount: document.getElementById("task-detail-subtask-count"),
+  links:        document.getElementById("task-detail-links"),
+  linkForm:     document.getElementById("task-detail-link-form"),
+  linkInput:    document.getElementById("task-detail-link-input"),
+  linkCount:    document.getElementById("task-detail-link-count"),
   projectField: document.getElementById("task-detail-project-field"),
   projectBtn:   document.getElementById("task-detail-project-btn"),
   projectText:  document.getElementById("task-detail-project-text"),
@@ -5496,6 +5588,8 @@ function _renderTaskDetail() {
       : "";
   }
 
+  _pintarEnlacesDetalle(task);
+
   // Campos que estrenan valor y contador de subtareas que cambia.
   var campos = _camposDetalle(task, project);
   var previo = _detalleCampos;
@@ -5656,6 +5750,39 @@ function _initTaskDetailPanel() {
       open.task.subtasks.unshift({ id: generateId(), text: val, done: false });
       els.subtaskInput.value = "";
       saveAndRenderDetail();
+    });
+  }
+
+  if (els.linkForm) {
+    els.linkForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (_anadirEnlace(els.linkInput.value)) els.linkInput.value = "";
+      else _avisarEnlaceNoValido();
+    });
+    // Pegar un enlace en el campo lo añade sin tener que pulsar Intro.
+    els.linkInput.addEventListener("paste", function(e) {
+      var texto = (e.clipboardData || window.clipboardData).getData("text");
+      if (!els.linkInput.value.trim() && normalizarEnlace(texto)) {
+        e.preventDefault();
+        _anadirEnlace(texto);
+      }
+    });
+  }
+
+  // Ctrl+V con el panel abierto y el foco fuera de un campo de texto:
+  // si lo pegado es un enlace, se adjunta. Solo enlaces claros (con
+  // http(s):// o www.): pegar texto suelto no debe hacer nada aquí.
+  var panelDetalle = document.getElementById("task-detail-panel");
+  if (panelDetalle) {
+    document.addEventListener("paste", function(e) {
+      if (!_getOpenDetailTask()) return;
+      var dest = e.target;
+      if (dest && dest.closest && (dest.closest("input, textarea, [contenteditable='true']"))) return;
+      if (!panelDetalle.contains(document.activeElement) && !panelDetalle.matches(":hover")) return;
+      var texto = (e.clipboardData || window.clipboardData).getData("text");
+      if (!normalizarEnlace(texto, { estricto: true })) return;
+      e.preventDefault();
+      _anadirEnlace(texto);
     });
   }
 

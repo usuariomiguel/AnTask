@@ -184,6 +184,11 @@ export const es = {
   // ── Vista Hábitos ─────────────────────────────────────────
   "sidebar.habits":           "Hábitos",
   "sidebar.activity":         "Actividad",
+  "detail.links":             "Enlaces",
+  "detail.link_add":          "Añadir enlace",
+  "detail.link_placeholder":  "Pega un enlace…",
+  "detail.link_remove":       "Quitar enlace",
+  "detail.link_invalid":      "Eso no parece un enlace (http o https)",
   "act.subtitle":             "Últimos {n} días · {count}",
   "act.count_one":            "1 completado",
   "act.count_other":          "{n} completados",

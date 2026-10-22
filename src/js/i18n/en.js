@@ -184,6 +184,11 @@ export const en = {
   // ── Habits view ───────────────────────────────────────────
   "sidebar.habits":           "Habits",
   "sidebar.activity":         "Activity",
+  "detail.links":             "Links",
+  "detail.link_add":          "Add link",
+  "detail.link_placeholder":  "Paste a link…",
+  "detail.link_remove":       "Remove link",
+  "detail.link_invalid":      "That doesn't look like a link (http or https)",
   "act.subtitle":             "Last {n} days · {count}",
   "act.count_one":            "1 completed",
   "act.count_other":          "{n} completed",

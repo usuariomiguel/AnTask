@@ -908,6 +908,15 @@
               <ul class="subtask-list task-detail-subtasks" id="task-detail-subtasks" aria-label="Subtareas"></ul>
             </div>
 
+            <div class="task-detail-field task-detail-section" data-acc="links">
+              <span class="task-detail-label"><i data-lucide="link"></i> <span data-i18n="detail.links">Enlaces</span><span class="task-detail-label-count" id="task-detail-link-count"></span></span>
+              <form class="task-detail-subtask-form task-detail-link-form" id="task-detail-link-form" novalidate>
+                <button type="submit" aria-label="Añadir enlace" data-i18n-aria="detail.link_add"><i data-lucide="plus"></i></button>
+                <input type="text" id="task-detail-link-input" inputmode="url" maxlength="2048" placeholder="Pega un enlace…" data-i18n-ph="detail.link_placeholder" autocomplete="off" spellcheck="false" />
+              </form>
+              <ul class="task-detail-links" id="task-detail-links" aria-label="Enlaces" data-i18n-aria="detail.links"></ul>
+            </div>
+
             <div class="task-detail-field task-detail-section" id="task-detail-project-field" data-acc="list">
               <span class="task-detail-label"><i data-lucide="inbox"></i> <span data-i18n="detail.list">Lista</span></span>
               <button type="button" class="task-detail-field-btn" id="task-detail-project-btn">
