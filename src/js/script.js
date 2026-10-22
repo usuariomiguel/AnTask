@@ -8766,7 +8766,6 @@ function showShortcutsHelp() {
         row('<kbd>mañana</kbd> <kbd>hoy</kbd> <kbd>viernes</kbd>', 'Fecha límite') +
         row('<kbd>en 3 días</kbd> <kbd>15/3</kbd>', 'Fecha relativa o numérica') +
         row('<kbd>todos los lunes</kbd> <kbd>cada 2 días</kbd>', 'Recurrencia') +
-        row('<kbd>p1</kbd> <kbd>p2</kbd> <kbd>p3</kbd>', 'Prioridad alta · media · baja') +
         row('<kbd>#etiqueta</kbd>', 'Crear/asignar etiqueta') +
         row('<kbd>?</kbd>', 'Ver esta lista de atajos')
       ) +
