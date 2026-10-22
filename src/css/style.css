@@ -1817,152 +1817,12 @@ body {
   color: var(--text-secondary);
 }
 
-/* Popover fecha+repetir de la fila (modo simple, ver
-   _openInlineDateRecurPopover en script.js): dos columnas al 50/50,
-   cada una una sola lista vertical de opciones (fecha ya no tiene
-   rejilla de calendario ni chips en fila, ver .field-popover-date-chip
-   más abajo) — incluida la cantidad de filas (4 + "Quitar" opcional en
-   cada lado), para que ambas columnas midan lo mismo de alto. */
-.field-popover-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  /* stretch, no start: si un lado tiene "Quitar" (fecha u hora puestas)
-     y el otro no, sin esto medirían distinto de alto — con stretch,
-     ambas columnas igualan la altura de la más alta y el sobrante lo
-     reparte cada una por su cuenta (ver .field-popover-col--date/--recur). */
-  align-items: stretch;
-}
-
-/* Las columnas ya no son tarjetas: con el borde del popover y el de cada
-   botón, un tercer nivel de caja recargaba el panel. FECHA y REPETIR se
-   separan por su rótulo y por el hueco entre columnas. */
-.field-popover-col {
-  padding: 0;
-}
-
-.field-popover-col--date,
-.field-popover-col--recur {
-  display: grid;
-  align-content: space-between;
-}
-
-.field-popover-col .field-popover-row {
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-pill);
-}
-
-/* Selector de fecha nativo, con la misma fila que el resto de opciones
-   (Hoy/Mañana/En 1 semana y las de repetir) — nada de rejilla de mes
-   propia (era lo que más alto le sumaba al popover): se apoya en el
-   selector del propio sistema. El icono de calendario del navegador es
-   demasiado genérico (no encaja con el resto de iconos lucide de la
-   app), así que se oculta y se pinta uno propio al lado. */
-.field-popover-date-chip {
-  cursor: default;
-}
-
-/* Comparte fila con field-popover-row-label (ver arriba): mismo flex:1
-   y truncado que el texto de cualquier otra opción, para que las cuatro
-   filas midan y se comporten igual. */
-.field-popover-date-input {
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  color: inherit;
-  color-scheme: light dark;
-}
-
-.field-popover-date-input::-webkit-calendar-picker-indicator {
-  display: none;
-}
-
 .field-popover-chip--clear {
   margin-left: auto;
 }
 
 .field-popover-row.field-popover-row--clear {
   color: var(--c-danger);
-}
-
-/* "Quitar" de fecha: debajo del calendario, no dentro de los chips de
-   arriba, para que quede claro que actúa sobre toda la fecha elegida
-   y no sobre un día del mes. Fuera de la columna de repetir, así que
-   no hereda el borde de `.field-popover-col--recur .field-popover-row`
-   — se repite aquí a mano para que se vea igual que el resto de botones. */
-.field-popover-row.field-popover-date-clear {
-  margin-top: 8px;
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-pill);
-}
-
-/* Título de la tarea, encima de las dos columnas — la única forma de
-   editarlo en el popover ligero del modo simple (sin panel de detalle).
-   El botón de confirmar va dentro del propio input, ocupando toda su
-   altura a la derecha — un <input type=text> no tiene forma obvia de
-   "aceptar" en móvil salvo Enter. */
-.field-popover-title-row {
-  position: relative;
-  margin-bottom: 10px;
-}
-
-.field-popover-title-input {
-  width: 100%;
-  /* Hueco a la derecha para el botón superpuesto, que si no tapa el
-     final del texto según se escribe. */
-  padding: 12px 40px 12px 12px;
-  border-radius: var(--r-md);
-  border: 2px solid var(--border-default);
-  background: var(--surface-input);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  outline: none;
-}
-
-.field-popover-title-input:focus {
-  border-color: var(--c-primary-500);
-}
-
-.field-popover-title-confirm {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 40px;
-  display: grid;
-  place-items: center;
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-}
-
-.field-popover-title-confirm:hover {
-  color: var(--c-primary-300);
-}
-
-/* Los ✓ de guardar (título y «Nº días») solo aparecen cuando hay un cambio
-   que guardar: siempre visibles se leían como «seleccionado», igual que el
-   ✓ de la opción elegida. Intro y salir del campo siguen guardando. */
-:is(.field-popover-title-confirm, .field-popover-custom-confirm) {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.12s ease;
-}
-
-.con-cambios :is(.field-popover-title-confirm, .field-popover-custom-confirm) {
-  opacity: 1;
-  pointer-events: auto;
-  color: var(--c-primary-500);
-}
-
-.field-popover-title-confirm .lucide {
-  width: 14px;
-  height: 14px;
 }
 
 .field-popover-cal-head {
@@ -2062,79 +1922,6 @@ body {
 }
 
 
-/* 6ª celda de la rejilla de repetir: número de días a medida, con el
-   mismo aspecto de fila que las 5 de al lado (ver
-   _openInlineDateRecurPopover en script.js). El botón de confirmar vive
-   dentro de la misma fila porque un <input type=number> no tiene forma
-   propia de "aceptar" salvo Enter, que en el teclado numérico de un
-   móvil no siempre aparece. */
-.field-popover-row--custom {
-  cursor: default;
-}
-
-.field-popover-row--custom.active {
-  background: rgba(163, 179, 102, 0.14);
-}
-
-.field-popover-custom-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--text-primary);
-  /* Quita las flechitas de incremento — a este tamaño solo estorban. */
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.field-popover-custom-confirm {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  min-width: 0;
-  padding: 0;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-}
-
-.field-popover-custom-confirm:hover {
-  color: var(--c-primary-300);
-  background: rgba(163, 179, 102, 0.14);
-}
-
-.field-popover-custom-confirm .lucide {
-  width: 13px;
-  height: 13px;
-}
-
-.field-popover-custom-input::-webkit-outer-spin-button,
-.field-popover-custom-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.field-popover-custom-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Escribiendo, se marca la píldora entera con el acento en vez de pintar
-   un rectángulo de fondo dentro de ella, que en oscuro se veía como un
-   parche más oscuro detrás del número. */
-.field-popover-custom-input:focus {
-  outline: none;
-}
-
-.field-popover-col .field-popover-row--custom:focus-within {
-  border-color: var(--c-primary-500);
-}
-
 .field-popover-row {
   display: flex;
   align-items: center;
@@ -2187,17 +1974,6 @@ body {
 .field-popover-sep {
   height: 1px;
   background: var(--border-default);
-  margin: 6px 3px;
-}
-
-/* Etiqueta de sección dentro del popover combinado fecha+repetir de la
-   fila en modo simple (ver _openInlineDateRecurPopover en script.js). */
-.field-popover-section-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text-tertiary);
   margin: 6px 3px;
 }
 
@@ -15686,4 +15462,82 @@ body,
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+/* ─── HOJA DE HÁBITO (móvil) ───────────────────────────────────
+   Ver _abrirHojaHabito: comparte el armazón de la hoja de tarea y añade
+   los detalles del hábito (tres datos y la tira de los últimos 14 días). */
+.hoja-habito-datos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.hoja-habito-dato {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 2px solid var(--border-default);
+  border-radius: 16px;
+}
+
+.hoja-habito-valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hoja-habito-valor .lucide {
+  width: 16px;
+  height: 16px;
+  color: var(--c-overdue);
+}
+
+.hoja-habito-etq {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.hoja-habito-rotulo {
+  margin-bottom: 6px;
+}
+
+.hoja-habito-tira {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+}
+
+.hoja-habito-dia {
+  height: 14px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text-tertiary) 18%, transparent);
+}
+
+.hoja-habito-dia--hecho {
+  background: var(--c-primary-500);
+}
+
+:root[data-theme="dark"] .hoja-habito-dia--hecho {
+  background: var(--c-primary-300);
+}
+
+.hoja-habito-dia--fallado {
+  background: color-mix(in srgb, var(--c-overdue) 45%, transparent);
+}
+
+.hoja-habito-dia--pendiente {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--border-default);
+}
+
+.hoja-habito-dia--libre {
+  opacity: 0.4;
 }

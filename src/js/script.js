@@ -48,6 +48,9 @@ import {
   setDoneOn,
   mergeHabits,
   computeStreak,
+  statsBetween,
+  startDate,
+  addDays,
 } from "./habits/model.js";
 import { openHabitsHistory } from "./habits/render-history.js";
 import { sugerenciasPara } from "./utils/title-hints.js";
@@ -4704,7 +4707,7 @@ function _buildTaskNode(task, project, showList) {
       if (e.target.closest("button, input")) return;
       e.preventDefault();
       // Móvil: mantener pulsado abre la misma hoja que tocar.
-      if (window.matchMedia("(max-width: 768px)").matches) { _abrirHojaTarea(task, project); return; }
+      if (_esMovil()) { _abrirHojaTarea(task, project); return; }
       openTaskActionsMenu({ x: e.clientX, y: e.clientY });
     });
 
@@ -5329,6 +5332,131 @@ function _abrirHojaTarea(task, project) {
       // Con deshacer, como al deslizar la fila.
       cerrar();
       deleteTaskWithUndo(task, project);
+    }
+  });
+
+  pintar();
+}
+
+function _esMovil() { return window.matchMedia("(max-width: 768px)").matches; }
+
+// ═══════════════════════════════════════════════════════════════
+// HOJA DE HÁBITO (móvil)
+//
+// La misma hoja desde abajo que las tareas: nombre editable, sus detalles
+// (racha, cumplimiento del último mes, desde cuándo y los últimos 14 días),
+// frecuencia, ver estadísticas y eliminar. Sustituye en móvil al menú
+// flotante de escritorio (_showHabitMenu, que sigue en PC).
+// ═══════════════════════════════════════════════════════════════
+function _abrirHojaHabito(habit) {
+  var base = createSheetBase();
+  var overlay = base.overlay, sheet = base.sheet;
+  sheet.classList.add("hoja-tarea", "hoja-habito");
+  var cerrada = false;
+  var localeH = getLang() === "en" ? "en-GB" : "es-ES";
+
+  function guardarNombre() {
+    var input = sheet.querySelector(".hoja-tarea-titulo");
+    if (!input || cerrada) return;
+    var nuevo = capitalizeFirst(input.value.trim()).slice(0, 60);
+    if (nuevo && nuevo !== habit.name) { habit.name = nuevo; saveHabits(); renderTasks(); renderSidebar(); }
+  }
+  function cerrar() {
+    if (cerrada) return;
+    guardarNombre();
+    cerrada = true;
+    closeSheet(overlay);
+  }
+  overlay._cancel = cerrar;
+
+  function pintar() {
+    var hoy = _localDateISO(new Date());
+    var racha = computeStreak(habit, hoy);
+    var mes = statsBetween(habit, addDays(hoy, -29), hoy);
+    var pct = mes.due ? Math.round(mes.done / mes.due * 100) : 0;
+    var desde = new Date(startDate(habit) + "T00:00").toLocaleDateString(localeH, { day: "numeric", month: "short" });
+    var cadaN = habit.schedule === "everyN" && habit.everyNDays > 1;
+    var dias = "";
+    for (var i = 13; i >= 0; i--) {
+      var d = addDays(hoy, -i);
+      var estado = !isDueOn(habit, d) ? "libre" : isDoneOn(habit, d) ? "hecho" : (d === hoy ? "pendiente" : "fallado");
+      dias += '<span class="hoja-habito-dia hoja-habito-dia--' + estado + '" title="' + escHtml(d) + '"></span>';
+    }
+    var html =
+      '<div class="hoja-tarea-cab">' +
+        '<input type="text" class="hoja-tarea-titulo" maxlength="60" aria-label="' + escHtml(t("action.rename")) + '">' +
+      '</div>' +
+      '<div class="hoja-tarea-seccion">' +
+        '<div class="hoja-habito-datos">' +
+          '<div class="hoja-habito-dato"><span class="hoja-habito-valor"><i data-lucide="flame"></i>' + racha + '</span><span class="hoja-habito-etq">' + escHtml(t("hist.streak")) + '</span></div>' +
+          '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + pct + '%</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_month")) + '</span></div>' +
+          '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + escHtml(desde) + '</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_since")) + '</span></div>' +
+        '</div>' +
+        '<p class="hoja-tarea-rotulo hoja-habito-rotulo">' + escHtml(t("hoja.habit_last_days")) + '</p>' +
+        '<div class="hoja-habito-tira" aria-hidden="true">' + dias + '</div>' +
+      '</div>' +
+      '<div class="hoja-tarea-filas">' +
+        '<button type="button" class="hoja-fila" data-accion="frecuencia">' +
+          '<span class="hoja-accion-ico"><i data-lucide="repeat"></i></span>' +
+          '<span class="hoja-fila-texto">' + escHtml(t("hoy.habit_freq_header")) + '</span>' +
+          '<span class="hoja-fila-valor">' + escHtml(cadaN ? t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays)) : t("hoy.habit_freq_daily")) + '</span>' +
+          '<i data-lucide="chevron-right" class="hoja-fila-flecha"></i>' +
+        '</button>' +
+      '</div>' +
+      '<div class="hoja-tarea-acciones">' +
+        '<button type="button" class="hoja-accion" data-accion="estadisticas">' +
+          '<span class="hoja-accion-ico"><i data-lucide="chart-column"></i></span><span>' + escHtml(t("hist.open")) + '</span>' +
+        '</button>' +
+        '<button type="button" class="hoja-accion hoja-accion--peligro" data-accion="eliminar">' +
+          '<span class="hoja-accion-ico"><i data-lucide="trash-2"></i></span><span>' + escHtml(t("action.delete")) + '</span>' +
+        '</button>' +
+      '</div>';
+    var grip = sheet.querySelector(".modal-sheet-grip");
+    sheet.innerHTML = "";
+    if (grip) sheet.appendChild(grip);
+    sheet.insertAdjacentHTML("beforeend", html);
+    var input = sheet.querySelector(".hoja-tarea-titulo");
+    input.value = habit.name;
+    input.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
+    input.addEventListener("blur", guardarNombre);
+    if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
+  }
+
+  sheet.addEventListener("click", async function(e) {
+    var b = e.target.closest("[data-accion]");
+    if (!b) return;
+    var a = b.dataset.accion;
+    if (a === "frecuencia") {
+      guardarNombre();
+      var actualN = habit.schedule === "everyN" ? habit.everyNDays : null;
+      var opciones = [
+        { value: "1", icon: "repeat", label: escHtml(t("hoy.habit_freq_daily")), active: !actualN },
+        { value: "2", icon: "calendar-clock", label: escHtml(t("hoy.habit_freq_everyn").replace("{n}", "2")), active: actualN === 2 },
+        { value: "3", icon: "calendar-clock", label: escHtml(t("hoy.habit_freq_everyn").replace("{n}", "3")), active: actualN === 3 },
+        { value: "otro", icon: "pencil-line", label: escHtml(actualN && actualN > 3 ? t("hoy.habit_freq_everyn").replace("{n}", String(actualN)) : t("hoja.recur_custom")), active: !!(actualN && actualN > 3) },
+      ];
+      var v = await sheetPick(escHtml(t("hoy.habit_freq_header")), [{ options: opciones }]);
+      if (v === null) return;
+      var n = v === "otro" ? Math.round(Number(await modalPrompt(t("hoy.habit_freq_prompt"), actualN ? String(actualN) : "4", "4"))) : parseInt(v, 10);
+      if (!Number.isFinite(n) || n < 1) return;
+      if (n === 1) { habit.schedule = "daily"; habit.everyNDays = null; }
+      else { habit.schedule = "everyN"; habit.everyNDays = Math.min(n, 365); }
+      saveHabits(); renderTasks(); renderSidebar();
+      if (!cerrada) pintar();
+      return;
+    }
+    if (a === "estadisticas") {
+      cerrar();
+      openHabitsHistory(habits, _localDateISO(new Date()), actividad);
+      return;
+    }
+    if (a === "eliminar") {
+      // Sin deshacer para hábitos: se confirma antes, como en escritorio.
+      var ok = await modalConfirm(t("hoy.habit_confirm_delete").replace("{name}", escHtml(habit.name)), t("modal.delete"));
+      if (!ok) return;
+      cerrar();
+      habits = habits.filter(function(h) { return h.id !== habit.id; });
+      saveHabits(); renderTasks(); renderSidebar();
     }
   });
 
@@ -7009,15 +7137,23 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
 
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
+    // Móvil: la misma hoja desde abajo que las tareas, con los detalles
+    // del hábito (ver _abrirHojaHabito).
+    if (_esMovil()) { _abrirHojaHabito(habit); return; }
     // detail 0 = clic sintético del teclado: el menú va bajo la fila.
     _showHabitMenu(habit, li, e.detail ? { x: e.clientX, y: e.clientY } : null);
+  });
+  li.addEventListener("contextmenu", function(e) {
+    if (!_esMovil() || e.target.closest("button, input")) return;
+    e.preventDefault();
+    _abrirHojaHabito(habit);
   });
   // Alcanzable con el teclado, como las filas de tarea: Tab llega a ella e
   // Intro o Espacio abren su menú.
   li.tabIndex = 0;
   li.addEventListener("keydown", function(e) {
     if (e.target !== li) return;
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); _showHabitMenu(habit, li); }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (_esMovil()) _abrirHojaHabito(habit); else _showHabitMenu(habit, li); }
   });
 
   return li;
@@ -7704,7 +7840,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Móvil: mantener pulsado abre la misma hoja (antes Hoy no tenía menú).
   li.addEventListener("contextmenu", function(e) {
     if (e.target.closest("button, input")) return;
-    if (!window.matchMedia("(max-width: 768px)").matches) return;
+    if (!_esMovil()) return;
     e.preventDefault();
     _abrirHojaTarea(task, project);
   });
