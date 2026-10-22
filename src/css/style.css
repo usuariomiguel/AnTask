@@ -15668,3 +15668,22 @@ body,
   background: color-mix(in srgb, var(--c-overdue) 12%, transparent);
   color: var(--c-overdue);
 }
+
+/* Hoja de tarea: el «+» del mismo alto que el campo y centrado con él
+   (el de escritorio mide 34 y el campo 40, y quedaba 3 px más alto), y
+   la lista de subtareas sin caja: solo las líneas entre filas. */
+.hoja-tarea :is(.hoja-subtarea-form, .hoja-enlace-form) {
+  align-items: center;
+}
+
+.hoja-tarea :is(.hoja-subtarea-form, .hoja-enlace-form) button {
+  width: 40px;
+  height: 40px;
+}
+
+.hoja-tarea .hoja-subtareas {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
