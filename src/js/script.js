@@ -4307,13 +4307,45 @@ function duplicateTask(task, project) {
  * elemento que ya existía. Un span recién creado nace en su estado final.
  */
 function _setRowTitle(el, text) {
-  var ink = el.childNodes.length === 1 && el.firstElementChild;
-  if (!ink || !ink.classList.contains("title-ink")) {
+  // El título puede llevar detrás el indicador de enlaces (ver
+  // _pintarIndicadorEnlaces): se busca la tinta entre los hijos en vez de
+  // exigir que sea el único, o se rehacía en cada repintado y cortaba el
+  // tachado animado al completar.
+  var ink = el.firstElementChild;
+  if (!ink || !ink.classList.contains("title-ink") || el.firstChild !== ink) {
     ink = document.createElement("span");
     ink.className = "title-ink";
+    var ind = el.querySelector(":scope > .title-links");
     el.replaceChildren(ink);
+    if (ind) el.appendChild(ind);
   }
   if (ink.textContent !== text) ink.textContent = text;
+}
+
+/**
+ * Clip de enlaces tras el título de la fila: icono y número, solo si la
+ * tarea tiene alguno. Va dentro del título y no en las columnas de chips
+ * de escritorio, que tienen un hueco fijo por tipo y no hay sitio libre.
+ */
+function _pintarIndicadorEnlaces(el, task) {
+  if (!el) return;
+  var n = Array.isArray(task.links) ? task.links.length : 0;
+  var ind = el.querySelector(":scope > .title-links");
+  if (!n) { if (ind) ind.remove(); return; }
+  if (!ind) {
+    ind = document.createElement("span");
+    ind.className = "title-links";
+    el.appendChild(ind);
+  }
+  var etiqueta = _plural(n, "row.links_one", "row.links_other");
+  if (ind.dataset.n !== String(n)) {
+    ind.dataset.n = String(n);
+    ind.innerHTML = '<i data-lucide="link"></i><span></span>';
+    ind.querySelector("span").textContent = String(n);
+    if (window.lucide) window.lucide.createIcons({ nodes: [ind] });
+  }
+  ind.title = etiqueta;
+  ind.setAttribute("aria-label", etiqueta);
 }
 
 function _updateTaskNode(node, task) {
@@ -4324,6 +4356,7 @@ function _updateTaskNode(node, task) {
   checkbox.setAttribute("aria-label", _toggleLabel(task.done));
   _pintarAnilloSubtareas(checkbox.parentElement, task);
   _setRowTitle(text, task.text);
+  _pintarIndicadorEnlaces(text, task);
   node.classList.toggle("done", task.done);
 
   // A diferencia de Hoy, esta fila NO se recrea al marcarla: se refresca
@@ -7390,6 +7423,7 @@ function renderTodayItem(task, project, todayStr, tone) {
   var text = document.createElement("span");
   text.className = "today-text";
   _setRowTitle(text, task.text);
+  _pintarIndicadorEnlaces(text, task);
 
   li.appendChild(check.wrap);
   li.appendChild(text);
@@ -7586,6 +7620,7 @@ function startInlineEdit(textSpan, task) {
       saveAndRender();
     } else {
       _setRowTitle(textSpan, current);
+      _pintarIndicadorEnlaces(textSpan, task);
     }
   }
   input.addEventListener("keydown", function(e) {
@@ -8802,6 +8837,9 @@ function saveAndRenderDetail() {
   if (abierta && taskList) {
     taskList.querySelectorAll('[data-task-id="' + abierta.task.id + '"] .task-toggle-wrap, [data-hoy-task-id="' + abierta.task.id + '"] .task-toggle-wrap')
       .forEach(function(wrap) { _pintarAnilloSubtareas(wrap, abierta.task); });
+    // Igual con el clip de enlaces tras el título.
+    taskList.querySelectorAll('[data-task-id="' + abierta.task.id + '"] .task-text, [data-hoy-task-id="' + abierta.task.id + '"] .today-text')
+      .forEach(function(el) { _pintarIndicadorEnlaces(el, abierta.task); });
   }
 }
 

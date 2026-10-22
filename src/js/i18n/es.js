@@ -185,6 +185,8 @@ export const es = {
   "sidebar.habits":           "Hábitos",
   "sidebar.activity":         "Actividad",
   "detail.links":             "Enlaces",
+  "row.links_one":            "1 enlace",
+  "row.links_other":          "{n} enlaces",
   "detail.link_add":          "Añadir enlace",
   "detail.link_placeholder":  "Pega un enlace…",
   "detail.link_remove":       "Quitar enlace",

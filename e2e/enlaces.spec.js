@@ -48,6 +48,10 @@ test.describe("PC", () => {
     await expect(input).toHaveValue("");
     await expect(page.locator("#task-detail-link-count")).toHaveText(" · 1");
     expect((await guardados(page)).map((l) => l.url)).toEqual(["https://github.com/usuario/mi-proyecto"]);
+    // La fila de la lista lo indica tras el título.
+    const ind = page.locator(".task-item", { hasText: "Informe" }).locator(".title-links");
+    await expect(ind).toHaveText("1");
+    await expect(ind).toHaveAttribute("aria-label", "1 enlace");
 
     await fila.locator(".task-link-quitar").click();
     await page.waitForTimeout(400);

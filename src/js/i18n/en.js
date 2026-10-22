@@ -185,6 +185,8 @@ export const en = {
   "sidebar.habits":           "Habits",
   "sidebar.activity":         "Activity",
   "detail.links":             "Links",
+  "row.links_one":            "1 link",
+  "row.links_other":          "{n} links",
   "detail.link_add":          "Add link",
   "detail.link_placeholder":  "Paste a link…",
   "detail.link_remove":       "Remove link",

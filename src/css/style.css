@@ -15433,3 +15433,26 @@ body,
 :root[data-theme="light"] .hoy-section--hechas .hoy-section-title {
   color: var(--c-primary-600);
 }
+
+/* Clip de enlaces tras el título de una fila (ver _pintarIndicadorEnlaces):
+   discreto, en mono como el resto de metadatos, y no se tacha con la
+   tarea hecha. */
+.title-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  vertical-align: 1px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.title-links .lucide {
+  width: 12px;
+  height: 12px;
+}
