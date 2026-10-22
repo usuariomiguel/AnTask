@@ -251,34 +251,8 @@ import { loadSync } from "./sync-loader.js";
     });
   }
 
-  // ─── Controles de Apariencia/Tareas/Notificaciones que aún no
-  // tienen función real (prioridad por defecto, resumen diario, semana
-  // en lunes): solo reflejan la selección en la sesión actual, igual
-  // que hace el propio prototipo v1 cuando no está conectado a un
-  // ajuste real. ───────────────
-  function wireInertSeg(containerId) {
-    var el = document.getElementById(containerId);
-    if (!el) return;
-    el.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        el.querySelectorAll(".settings-seg-opt").forEach(function(b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-      });
-    });
-  }
-  wireInertSeg("settings-priority-seg");
-
-  function wireInertToggle(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("click", function() {
-      var on = el.classList.toggle("on");
-      el.setAttribute("aria-pressed", String(on));
-    });
-  }
-  // "settings-digest-toggle" queda deshabilitado a propósito (v2, ver
-  // el atributo `disabled` en index.html) — sin wireInertToggle.
-  wireInertToggle("settings-monday-toggle");
+  // "settings-digest-toggle" (resumen diario) queda deshabilitado a
+  // propósito (v2, ver el atributo `disabled` en index.html).
 
   // ─── Color de acento (real: se aplica y persiste) ─────────────
   var accentRow = document.getElementById("settings-accent-row");

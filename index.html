@@ -271,9 +271,6 @@
             <button type="button" class="settings-nav-item" id="settings-nav-notif" data-settings-panel="notif">
               <i data-lucide="bell"></i><span data-i18n="settings.nav.notifications">Notificaciones</span>
             </button>
-            <button type="button" class="settings-nav-item" id="settings-nav-tareas" data-settings-panel="tareas">
-              <i data-lucide="check-circle-2"></i><span data-i18n="settings.nav.tasks">Tareas</span>
-            </button>
             <button type="button" class="settings-nav-item" id="settings-nav-datos" data-settings-panel="datos">
               <i data-lucide="archive"></i><span data-i18n="settings.nav.data">Datos</span>
             </button>
@@ -428,34 +425,6 @@
                   <button type="button" class="settings-switch" id="settings-digest-toggle" aria-pressed="false" disabled aria-disabled="true">
                     <span class="settings-switch-knob"></span>
                   </button>
-                </div>
-                </div>
-              </section>
-
-              <!-- ── Tareas ── -->
-              <section class="settings-section-panel" id="settings-panel-tareas" data-settings-panel="tareas" hidden>
-                <h3 class="settings-section-title" data-i18n="settings.nav.tasks">Tareas</h3>
-                <div class="settings-mobile-card">
-                <div class="settings-row">
-                  <span class="settings-row-ico"><i data-lucide="calendar"></i></span>
-                  <div>
-                    <div class="settings-row-label" data-i18n="settings.tasks.monday">La semana empieza el lunes</div>
-                    <div class="settings-row-desc" data-i18n="settings.tasks.monday_desc">Afecta al orden de los días en las fechas.</div>
-                  </div>
-                  <button type="button" class="settings-switch on" id="settings-monday-toggle" aria-pressed="true">
-                    <span class="settings-switch-knob"></span>
-                  </button>
-                </div>
-                <div class="settings-row settings-row--top">
-                  <span class="settings-row-ico"><i data-lucide="flag"></i></span>
-                  <div>
-                    <div class="settings-row-label" data-i18n="settings.tasks.default_priority">Prioridad por defecto</div>
-                    <div class="settings-row-desc" data-i18n="settings.tasks.default_priority_desc">Se aplica a las tareas nuevas sin prioridad.</div>
-                  </div>
-                  <div class="settings-seg" id="settings-priority-seg">
-                    <button type="button" class="settings-seg-opt active" data-priority="none" data-i18n="settings.tasks.priority_none">Ninguna</button>
-                    <button type="button" class="settings-seg-opt" data-priority="high" data-i18n="detail.priority_important">Importante</button>
-                  </div>
                 </div>
                 </div>
               </section>

@@ -43,7 +43,6 @@ export const es = {
   "settings.nav.account":              "Cuenta",
   "settings.nav.appearance":           "Apariencia",
   "settings.nav.notifications":        "Notificaciones",
-  "settings.nav.tasks":                "Tareas",
   "settings.nav.data":                 "Datos",
   "settings.nav.about":                "Acerca de",
 
@@ -71,11 +70,6 @@ export const es = {
   "settings.notifications.digest_desc":"Un correo cada mañana con el plan del día.",
   "settings.notifications.digest_soon":"Próximamente",
 
-  "settings.tasks.monday":             "La semana empieza el lunes",
-  "settings.tasks.monday_desc":        "Afecta al orden de los días en las fechas.",
-  "settings.tasks.default_priority":       "Prioridad por defecto",
-  "settings.tasks.default_priority_desc":  "Se aplica a las tareas nuevas sin prioridad.",
-  "settings.tasks.priority_none":      "Ninguna",
 
   "settings.data.export":              "Exportar",
   "settings.data.export_desc":         "Descarga todas tus tareas en un archivo.",

@@ -2237,17 +2237,13 @@ body {
   }
 
   /* Ajustes: solo Cuenta, Apariencia, Acerca de y (recortada) Avisos de
-     tareas. Tareas y Datos (exportar/importar) se quedan para modo
-     completo — nada se borra, sus paneles y su código siguen intactos.
+     tareas. Datos (exportar/importar) se queda para modo completo — nada
+     se borra, su panel y su código siguen intactos.
      En móvil, openSettingsModal() les quita el atributo `hidden` para
      mostrar TODAS las secciones apiladas (no hay pestañas ahí, ver
      sections-and-profile.js) — por eso aquí un `display:none` normal
      basta, sin pelear con el `[hidden]{!important}` global: en el
      momento en que esto se evalúa, el atributo ya no está puesto. */
-  html[data-mode="simple"] #settings-panel-tareas {
-    display: none;
-  }
-
   /* De «Datos» se queda solo compartir datos de uso: retirar el permiso
      tiene que ser tan fácil como darlo, y en modo simple desaparecía con
      el panel entero. Exportar, importar y borrar todo siguen siendo cosa
