@@ -28,8 +28,13 @@ export const MODE_DEFAULT = "simple";
  * @param {"simple"|"full"} mode
  */
 export function applyMode(mode) {
-  const forced = window.matchMedia("(max-width: 768px)").matches;
-  document.documentElement.dataset.mode = forced ? "simple" : (mode === "full" ? "full" : "simple");
+  // Ya no hay interruptor: el modo lo decide la pantalla. En móvil,
+  // simple; en escritorio, completo. Antes el escritorio seguía la
+  // preferencia guardada (y por defecto era «simple»), aunque ahí el modo
+  // simple no cambiaba nada: todo su CSS vive dentro del breakpoint móvil.
+  void mode;
+  const movil = window.matchMedia("(max-width: 768px)").matches;
+  document.documentElement.dataset.mode = movil ? "simple" : "full";
 }
 
 /**

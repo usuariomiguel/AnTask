@@ -8698,17 +8698,6 @@ body.task-dragging .project-item:not(.active) {
   color: var(--c-primary-600);
 }
 
-/* "Modo" sigue desactivado en móvil: ahí se fuerza el modo simple, así
-   que su fila de Ajustes no tendría efecto que mostrar. "Estilo de filas"
-   sí se elige (ver _rowStyleEfectivo), y por eso vuelve. En escritorio las
-   dos siguen intactas. */
-@media (max-width: 768px) {
-
-  .settings-row:has(#settings-mode-seg) {
-    display: none;
-  }
-}
-
 /* Switch (toggle booleano) */
 .settings-switch {
   width: 40px;
