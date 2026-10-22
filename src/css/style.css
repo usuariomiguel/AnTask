@@ -15007,26 +15007,95 @@ body,
   margin: 0 0 18px;
 }
 
-.act-controles .hist-range {
-  margin: 0;
-  flex: 0 0 auto;
-}
-
-.act-controles .hist-range-btn {
-  flex: 0 0 auto;
-  padding: 6px 12px;
-}
-
-.act-select {
-  height: 36px;
-  padding: 0 12px;
+/* Segmentados de Actividad: el mismo carril y las mismas píldoras que
+   los filtros de una lista (.filter-segments / .filter-segment en
+   escritorio), para que la vista se lea como el resto. */
+.act-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 6px;
+  background: var(--surface-card);
   border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
-  background: var(--surface-raised);
+}
+
+.act-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-tight);
   color: var(--text-secondary);
-  font: inherit;
-  font-size: 0.78rem;
+  background: var(--surface-canvas);
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-pill);
+  padding: var(--sp-2) var(--sp-3);
+  min-height: 30px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.act-seg-btn--on {
+  background: var(--c-primary-500);
+  border-color: transparent;
+  color: var(--accent-on);
+  font-weight: var(--fw-semibold);
+}
+
+/* «Limpio»: como sus filtros, sin carril ni píldoras; el elegido conserva
+   su relleno de acento y el resto se tiñe al pasar el ratón. */
+.main-panel[data-row-style="limpio"] .act-seg {
+  background: transparent;
+  border-color: transparent;
+}
+
+.main-panel[data-row-style="limpio"] .act-seg-btn:not(.act-seg-btn--on) {
+  background: transparent;
+  border-color: transparent;
+}
+
+.main-panel[data-row-style="limpio"] .act-seg-btn:not(.act-seg-btn--on):is(:hover, .field-btn-open) {
+  background: color-mix(in srgb, var(--text-primary) 6%, var(--capa-canvas));
+  color: var(--text-primary);
+}
+
+/* Selector de lista: botón con el punto de color de la elegida y el
+   desplegable del detalle de tarea. */
+.act-lista-campo {
+  position: relative;
+}
+
+.act-lista-btn .lucide {
+  width: 14px;
+  height: 14px;
+}
+
+.act-lista-btn-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.act-lista-btn-punto[style] {
+  opacity: 1;
+}
+
+.act-lista-pop.field-popover {
+  right: auto;
+  min-width: 230px;
+}
+
+/* «Todas las listas» no es una lista: anillo en vez de punto relleno. */
+.act-lista-pop .field-popover-row-dot[data-todas] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--text-tertiary);
 }
 
 .act-fila {

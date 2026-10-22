@@ -1775,36 +1775,76 @@ function renderActivityView() {
   listas.sort(function(a, b) { return a.localeCompare(b); });
   if (_actLista && listas.indexOf(_actLista) < 0) _actLista = "";
 
+  // Color de cada lista, del evento más reciente que la nombra.
+  var colorDe = {};
+  todos.forEach(function(e) { if (e.lista && !(e.lista in colorDe)) colorDe[e.lista] = e.color || ""; });
+
+  // Mismos segmentados que los filtros de una lista (Todas · Pendientes ·
+  // Hechas), con su aspecto en «Tarjetas» y en «Limpio».
   var seg = function(grupo, valor, actual, etiqueta) {
     var on = valor === actual;
-    return '<button type="button" class="hist-range-btn' + (on ? " hist-range-btn--on" : "") + '"' +
+    return '<button type="button" class="act-seg-btn' + (on ? " act-seg-btn--on" : "") + '"' +
       ' data-act-' + grupo + '="' + valor + '" aria-pressed="' + on + '">' + escHtml(etiqueta) + '</button>';
   };
+  var conListas = listas.length > 1 && _actTipo !== "habito";
   var ctrl = document.createElement("li");
   ctrl.className = "act-controles";
   ctrl.innerHTML =
-    '<div class="hist-range" role="group" aria-label="' + escHtml(t("act.type_label")) + '">' +
+    '<div class="act-seg" role="group" aria-label="' + escHtml(t("act.type_label")) + '">' +
       seg("tipo", "", _actTipo, t("act.all")) + seg("tipo", "tarea", _actTipo, t("act.tasks")) + seg("tipo", "habito", _actTipo, t("act.habits")) +
     '</div>' +
-    '<div class="hist-range" role="group" aria-label="' + escHtml(t("act.range_label")) + '">' +
+    '<div class="act-seg" role="group" aria-label="' + escHtml(t("act.range_label")) + '">' +
       [7, 30, 90].map(function(n) { return seg("dias", String(n), String(_actDias), t("act.days").replace("{n}", String(n))); }).join("") +
     '</div>' +
-    (listas.length > 1 && _actTipo !== "habito"
-      ? '<select class="act-select" aria-label="' + escHtml(t("act.list_label")) + '">' +
-          '<option value="">' + escHtml(t("act.all_lists")) + '</option>' +
-          listas.map(function(n) { return '<option value="' + escHtml(n) + '"' + (n === _actLista ? " selected" : "") + '>' + escHtml(n) + '</option>'; }).join("") +
-        '</select>'
+    // Lista: el mismo botón y desplegable que «Lista» en el detalle de
+    // una tarea (punto de color, nombre y ✓ en la elegida).
+    (conListas
+      ? '<div class="act-seg act-lista-campo">' +
+          '<button type="button" class="act-seg-btn act-lista-btn' + (_actLista ? " act-seg-btn--on" : "") + '" aria-haspopup="listbox"' +
+            ' aria-label="' + escHtml(t("act.list_label")) + '">' +
+            '<span class="act-lista-btn-punto"' + (_actLista && colorDe[_actLista] ? ' style="background:' + escHtml(colorDe[_actLista]) + '"' : "") + '></span>' +
+            '<span>' + escHtml(_actLista || t("act.all_lists")) + '</span>' +
+            '<i data-lucide="chevron-down"></i>' +
+          '</button>' +
+        '</div>'
       : "");
   ctrl.addEventListener("click", function(e) {
     var b = e.target.closest("button");
-    if (!b) return;
+    if (!b || b.closest(".field-popover")) return;
+    if (b.classList.contains("act-lista-btn")) {
+      var campo = b.closest(".act-lista-campo");
+      _openFieldPopover(campo, b, "down", function(pop, close) {
+        pop.classList.add("act-lista-pop");
+        var fila = function(valor, nombre, color) {
+          var activa = valor === _actLista;
+          return '<button type="button" class="field-popover-row' + (activa ? " active" : "") + '" data-act-lista="' + escHtml(valor) + '"' +
+              (color ? ' style="--dot-color:' + escHtml(color) + '"' : "") + '>' +
+            '<span class="field-popover-row-dot"' + (valor ? "" : ' data-todas="1"') + '></span>' +
+            '<span class="field-popover-row-label">' + escHtml(nombre) + '</span>' +
+            (activa ? '<i data-lucide="check"></i>' : "") +
+          '</button>';
+        };
+        pop.innerHTML = '<div class="field-popover-list">' +
+          fila("", t("act.all_lists"), "") +
+          listas.map(function(n) { return fila(n, n, colorDe[n]); }).join("") +
+        '</div>';
+        pop.querySelectorAll("[data-act-lista]").forEach(function(opcion) {
+          opcion.addEventListener("click", function() {
+            var valor = opcion.dataset.actLista;
+            close();
+            if (valor === _actLista) return;
+            _actLista = valor;
+            renderTasks();
+          });
+        });
+      });
+      return;
+    }
     if (b.dataset.actTipo !== undefined) { _actTipo = b.dataset.actTipo; if (_actTipo === "habito") _actLista = ""; }
     else if (b.dataset.actDias) _actDias = parseInt(b.dataset.actDias, 10);
     else return;
     renderTasks();
   });
-  var sel = ctrl.querySelector(".act-select");
-  if (sel) sel.addEventListener("change", function() { _actLista = sel.value; renderTasks(); });
   taskList.appendChild(ctrl);
 
   // ── Un bloque por día ──
@@ -3060,7 +3100,10 @@ var _filasVistaDesde = 0;
 
 /** Identifica la vista pintada: si cambia, no se anima nada. */
 function _claveVistaLista() {
-  return [activeView, activeProjectId, currentFilter, _hoySelectedDate || "", _hoyTab || ""].join("|");
+  // En Actividad, sus filtros también cuentan: cambiar de tipo, periodo o
+  // lista es otra lista, y entra escalonada como al cambiar de filtro.
+  var act = activeView === "activity" ? [_actTipo, _actDias, _actLista].join(",") : "";
+  return [activeView, activeProjectId, currentFilter, _hoySelectedDate || "", _hoyTab || "", act].join("|");
 }
 
 /** Id de un bloque de sección (Hoy) o de grupo (Inbox agrupado). */
@@ -3213,7 +3256,11 @@ function _entradaFiltros() {
     if (visible(el)) entra(el, 40, 4);
   });
   var cont = document.getElementById("filter-segments");
-  if (!cont || cont.classList.contains("filter-segments--off")) return;
+  // Actividad no usa la barra de filtros de las listas: tiene la suya
+  // dentro de la lista, y entra igual, grupo a grupo.
+  if (activeView === "activity") cont = taskList && taskList.querySelector(".act-controles");
+  else if (cont && cont.classList.contains("filter-segments--off")) cont = null;
+  if (!cont) return;
   Array.prototype.filter.call(cont.children, visible).forEach(function(el, i) {
     entra(el, 60 + i * 25, 6);
   });
@@ -3222,7 +3269,7 @@ function _entradaFiltros() {
 function _entradaEscalonada() {
   if (!taskList || _sinAnimarFilas()) return;
   _entradaFiltros();
-  var filas = taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id]");
+  var filas = taskList.querySelectorAll("[data-task-id], [data-hoy-task-id], [data-habit-id], [data-act-id]");
   if (!filas.length) { _entradaBarras(0); return; }
   // Lo visible se mide contra el contenedor de scroll, con getBoundingClientRect
   // en los dos lados: así ambos van en las mismas unidades también con el zoom
