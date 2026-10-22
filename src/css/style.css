@@ -9896,6 +9896,9 @@ button {
 /* Separador entre pinned y resto */
 .project-pinned-sep {
   height: 1px;
+  /* La lista es una columna flex con scroll: con muchas listas, sin esto
+     el separador se encogía a 0 px y desaparecía. */
+  flex-shrink: 0;
   margin: var(--sp-2) var(--sp-3);
   background: var(--border-subtle);
   list-style: none;
@@ -15440,4 +15443,23 @@ body,
 .title-links .lucide {
   width: 12px;
   height: 12px;
+}
+
+/* «Mostrar N más / menos» bajo las listas de la barra lateral: mismo
+   aspecto que «+ Añadir lista», alineado con los nombres de las listas. */
+.sidebar-more-btn {
+  margin: 2px 0;
+  padding: 6px 10px;
+  gap: 9px;
+  font-size: 12.5px;
+}
+
+.sidebar-more-btn:hover,
+.sidebar-more-btn:focus-visible {
+  color: var(--text-secondary);
+}
+
+.sidebar-more-btn .lucide {
+  width: 14px;
+  height: 14px;
 }

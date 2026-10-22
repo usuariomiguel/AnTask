@@ -174,6 +174,8 @@ export const es = {
   // ── Vista Hábitos ─────────────────────────────────────────
   "sidebar.habits":           "Hábitos",
   "sidebar.activity":         "Actividad",
+  "sidebar.show_more":        "Mostrar {n} más",
+  "sidebar.show_less":        "Mostrar menos",
   "detail.links":             "Enlaces",
   "row.links_one":            "1 enlace",
   "row.links_other":          "{n} enlaces",

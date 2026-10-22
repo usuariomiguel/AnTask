@@ -2003,6 +2003,116 @@ function _sidebarAddButton(opts) {
   return li;
 }
 
+// ── «Mostrar más» en las listas de la barra lateral ─────────────
+// Con muchas listas la barra se hacía larguísima: se enseñan las primeras
+// (_listasMax) y un botón para desplegar el resto. Solo aparece a partir
+// de dos ocultas (un «Mostrar 1 más» ocupa lo mismo que la propia lista).
+// La lista abierta se ve siempre, aunque esté entre las ocultas. Lo
+// desplegado se recuerda en este dispositivo.
+//
+// Funciones y no variables de nivel superior con valor: el primer pintado
+// de la barra llega antes de que se evalúen, y saldrían undefined.
+function _listasMax() { return 6; }
+function _listasTodasKey() { return "antrack-sidebar-listas-todas"; }
+var _listasTodas;
+function _leerListasTodas() {
+  if (_listasTodas === undefined) {
+    try { _listasTodas = localStorage.getItem(_listasTodasKey()) === "1"; } catch (_) { _listasTodas = false; }
+  }
+  return _listasTodas;
+}
+/** Ids de las listas que acaban de aparecer al desplegar (para animarlas). */
+var _listasReveladas;
+
+function _listasVisibles(listas) {
+  if (_leerListasTodas() || listas.length <= _listasMax() + 1) return listas;
+  return listas.filter(function(p, i) {
+    return i < _listasMax() || (activeView === "project" && p.id === activeProjectId);
+  });
+}
+
+function _setListasTodas(todas) {
+  _listasTodas = todas;
+  try {
+    if (todas) localStorage.setItem(_listasTodasKey(), "1");
+    else localStorage.removeItem(_listasTodasKey());
+  } catch (_) { /* sin almacenamiento: solo dura la sesión */ }
+}
+
+function _sidebarMasListasBtn(ocultas) {
+  var li = document.createElement("li");
+  li.className = "sidebar-add-btn sidebar-more-btn";
+  li.setAttribute("role", "button");
+  li.tabIndex = 0;
+  var abierto = _leerListasTodas();
+  li.setAttribute("aria-expanded", String(abierto));
+  li.innerHTML = '<i data-lucide="' + (abierto ? "chevron-up" : "chevron-down") + '"></i><span></span>';
+  li.querySelector("span").textContent = abierto
+    ? t("sidebar.show_less")
+    : t("sidebar.show_more").replace("{n}", String(ocultas));
+  function alternar() {
+    if (!_leerListasTodas()) {
+      var antes = {};
+      projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)")
+        .forEach(function(el) { antes[el.dataset.projectId] = true; });
+      _setListasTodas(true);
+      _listasReveladas = antes;
+      renderSidebar();
+      return;
+    }
+    // Plegar: las que se van a ocultar se cierran antes de repintar.
+    var reales = projects.filter(function(p) { return p.id !== INBOX_ID; });
+    _setListasTodas(false);
+    var quedan = {};
+    _listasVisibles(reales).forEach(function(p) { quedan[p.id] = true; });
+    var salen = Array.prototype.filter.call(
+      projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)"),
+      function(el) { return !quedan[el.dataset.projectId]; });
+    if (!salen.length || _sidebarSinAnimar()) { renderSidebar(); return; }
+    var ultima = null;
+    salen.forEach(function(el) {
+      el.style.overflow = "hidden";
+      ultima = el.animate([
+        { height: el.offsetHeight + "px", opacity: 1 },
+        { height: "0px", paddingTop: "0px", paddingBottom: "0px", borderTopWidth: "0px", borderBottomWidth: "0px", opacity: 0 },
+      ], { duration: 200, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" });
+    });
+    ultima.onfinish = function() { renderSidebar(); };
+  }
+  li.addEventListener("click", function(e) { e.stopPropagation(); alternar(); });
+  li.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); }
+  });
+  // Arrastrando una tarea: pasar por encima despliega, para poder soltarla
+  // en una lista oculta.
+  li.addEventListener("dragover", function(e) {
+    if (_leerListasTodas()) return;
+    e.preventDefault();
+    _setListasTodas(true);
+    _listasReveladas = {};
+    renderSidebar();
+  });
+  return li;
+}
+
+/** Tras desplegar: las listas nuevas se abren escalonadas. */
+function _animarListasReveladas() {
+  var antes = _listasReveladas;
+  _listasReveladas = null;
+  if (!antes || _sidebarSinAnimar()) return;
+  var i = 0;
+  projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)").forEach(function(el) {
+    if (antes[el.dataset.projectId]) return;
+    el.style.overflow = "hidden";
+    var anim = el.animate([
+      { height: "0px", paddingTop: "0px", paddingBottom: "0px", borderTopWidth: "0px", borderBottomWidth: "0px", opacity: 0 },
+      { height: el.offsetHeight + "px", opacity: 1 },
+    ], { duration: 220, delay: Math.min(i * 25, 150), easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "backwards" });
+    anim.onfinish = function() { el.style.overflow = ""; };
+    i++;
+  });
+}
+
 /** Input inline para crear una lista. */
 function _sidebarInlineInput(opts) {
   var li = document.createElement("li");
@@ -2104,9 +2214,15 @@ function renderSidebar() {
   projectListEl.appendChild(_sidebarSectionLabel(t("sidebar.pinned_section")));
   renderPinnedItems(inboxProject);
 
-  // Listas: lista plana, sin agrupar.
+  // Listas: lista plana, sin agrupar. Con muchas, solo las primeras y un
+  // «Mostrar N más» (ver _listasVisibles).
   projectListEl.appendChild(_sidebarSectionLabel(t("sidebar.lists_section")));
-  realActive.forEach(function(p) { renderProjectItem(p); });
+  var visibles = _listasVisibles(realActive);
+  visibles.forEach(function(p) { renderProjectItem(p); });
+  var ocultas = realActive.length - visibles.length;
+  if (ocultas > 0 || (_leerListasTodas() && realActive.length > _listasMax() + 1)) {
+    projectListEl.appendChild(_sidebarMasListasBtn(ocultas));
+  }
 
   // "+ Añadir lista" al final (o input activo), como en v1.
   if (_addingList) {
@@ -2126,6 +2242,7 @@ function renderSidebar() {
   _deslizarIndicador(indicadorDesde);
   _animarPastillas(pastillasAntes);
   _animarListas(listasAntes);
+  _animarListasReveladas();
   _animarReceptora();
   syncSidebarRail();
 }

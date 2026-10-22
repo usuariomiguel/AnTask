@@ -174,6 +174,8 @@ export const en = {
   // ── Habits view ───────────────────────────────────────────
   "sidebar.habits":           "Habits",
   "sidebar.activity":         "Activity",
+  "sidebar.show_more":        "Show {n} more",
+  "sidebar.show_less":        "Show less",
   "detail.links":             "Links",
   "row.links_one":            "1 link",
   "row.links_other":          "{n} links",
