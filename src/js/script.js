@@ -2051,33 +2051,48 @@ function _sidebarMasListasBtn(ocultas) {
     ? t("sidebar.show_less")
     : t("sidebar.show_more").replace("{n}", String(ocultas));
   function alternar() {
+    var filas = projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)");
+    var debajo = _posicionesBajoListas();
     if (!_leerListasTodas()) {
+      // Desplegar: las nuevas ocupan su sitio de una vez y aparecen con un
+      // fundido; lo de debajo se desliza hasta su nuevo sitio.
       var antes = {};
-      projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)")
-        .forEach(function(el) { antes[el.dataset.projectId] = true; });
+      filas.forEach(function(el) { antes[el.dataset.projectId] = true; });
       _setListasTodas(true);
-      _listasReveladas = antes;
+      _listasReveladas = { antes: antes, debajo: debajo };
       renderSidebar();
       return;
     }
-    // Plegar: las que se van a ocultar se cierran antes de repintar.
+    // Plegar: las que se ocultan se desvanecen en su sitio, y después lo de
+    // debajo sube deslizándose a ocupar el hueco.
     var reales = projects.filter(function(p) { return p.id !== INBOX_ID; });
     _setListasTodas(false);
     var quedan = {};
     _listasVisibles(reales).forEach(function(p) { quedan[p.id] = true; });
-    var salen = Array.prototype.filter.call(
-      projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)"),
-      function(el) { return !quedan[el.dataset.projectId]; });
+    var salen = Array.prototype.filter.call(filas, function(el) { return !quedan[el.dataset.projectId]; });
     if (!salen.length || _sidebarSinAnimar()) { renderSidebar(); return; }
-    var ultima = null;
+    // Las que se van se apagan rápido y, casi a la vez, lo de debajo sube
+    // con un arranque suave: cuando el botón llega a una lista, ya no queda
+    // texto con el que pisarse. Al terminar, el repintado lo deja todo en
+    // su sitio sin más movimiento.
+    var curva = "cubic-bezier(0.45, 0, 0.2, 1)";
+    var DUR = 260;
+    var hueco = 0;
     salen.forEach(function(el) {
-      el.style.overflow = "hidden";
-      ultima = el.animate([
-        { height: el.offsetHeight + "px", opacity: 1 },
-        { height: "0px", paddingTop: "0px", paddingBottom: "0px", borderTopWidth: "0px", borderBottomWidth: "0px", opacity: 0 },
-      ], { duration: 200, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" });
+      hueco += el.offsetHeight;
+      el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, easing: "ease-out", fill: "forwards" });
     });
-    ultima.onfinish = function() { renderSidebar(); };
+    var ultima = null;
+    projectListEl.querySelectorAll(".sidebar-more-btn, .sidebar-add-btn--group, .sidebar-add-input").forEach(function(el) {
+      ultima = el.animate([{ transform: "translateY(0)" }, { transform: "translateY(" + (-hueco) + "px)" }],
+        { duration: DUR, delay: 50, easing: curva, fill: "forwards" });
+    });
+    var flecha = li.querySelector("svg");
+    if (flecha) flecha.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(180deg)" }], { duration: DUR, easing: curva, fill: "forwards" });
+    (ultima || salen[0].getAnimations()[0]).onfinish = function() {
+      _listasReveladas = null;
+      renderSidebar();
+    };
   }
   li.addEventListener("click", function(e) { e.stopPropagation(); alternar(); });
   li.addEventListener("keydown", function(e) {
@@ -2089,28 +2104,66 @@ function _sidebarMasListasBtn(ocultas) {
     if (_leerListasTodas()) return;
     e.preventDefault();
     _setListasTodas(true);
-    _listasReveladas = {};
+    _listasReveladas = null;
     renderSidebar();
   });
   return li;
 }
 
-/** Tras desplegar: las listas nuevas se abren escalonadas. */
-function _animarListasReveladas() {
-  var antes = _listasReveladas;
-  _listasReveladas = null;
-  if (!antes || _sidebarSinAnimar()) return;
-  var i = 0;
-  projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)").forEach(function(el) {
-    if (antes[el.dataset.projectId]) return;
-    el.style.overflow = "hidden";
-    var anim = el.animate([
-      { height: "0px", paddingTop: "0px", paddingBottom: "0px", borderTopWidth: "0px", borderBottomWidth: "0px", opacity: 0 },
-      { height: el.offsetHeight + "px", opacity: 1 },
-    ], { duration: 220, delay: Math.min(i * 25, 150), easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "backwards" });
-    anim.onfinish = function() { el.style.overflow = ""; };
-    i++;
+/** Dónde está cada pieza de debajo, con offsetTop (a salvo del zoom). */
+function _posicionesBajoListas() {
+  var pos = {};
+  projectListEl.querySelectorAll(".sidebar-more-btn, .sidebar-add-btn--group, .sidebar-add-input").forEach(function(el) {
+    pos[el.classList.contains("sidebar-more-btn") ? "mas" : "anadir"] = el.offsetTop;
   });
+  return pos;
+}
+
+/**
+ * Tras desplegar o plegar: las listas que acaban de aparecer entran con
+ * un fundido escalonado (sin cambiar de alto: nacer aplastadas montaba
+ * el texto de unas sobre otras), y lo de debajo se desliza desde donde
+ * estaba en un solo movimiento en vez de ir a saltos.
+ */
+function _animarListasReveladas() {
+  var estado = _listasReveladas;
+  _listasReveladas = null;
+  if (!estado || _sidebarSinAnimar()) return;
+  var curva = "cubic-bezier(0.2, 0.8, 0.2, 1)";
+  var ahora = _posicionesBajoListas();
+  var DUR = 280;
+  if (estado.antes) {
+    // El botón baja desde donde estaba: cada lista nueva aparece cuando el
+    // botón ya ha pasado por su sitio, para no dejar hueco vacío detrás ni
+    // asomar por delante de él.
+    var desde = estado.debajo.mas != null ? estado.debajo.mas : estado.debajo.anadir;
+    var hasta = ahora.mas != null ? ahora.mas : ahora.anadir;
+    var recorrido = Math.max(1, (hasta || 0) - (desde || 0));
+    projectListEl.querySelectorAll(".project-item[data-project-id]:not(.project-item-pinned)").forEach(function(el) {
+      if (estado.antes[el.dataset.projectId]) return;
+      var f = Math.min(1, Math.max(0, (el.offsetTop - desde) / recorrido));
+      // La curva del botón corre al principio: se corrige con una raíz para
+      // que el retraso siga a su posición y no al tiempo.
+      el.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: 160, delay: Math.round(Math.pow(f, 1.8) * DUR * 0.6), easing: "ease-out", fill: "backwards" });
+    });
+  }
+  projectListEl.querySelectorAll(".sidebar-more-btn, .sidebar-add-btn--group, .sidebar-add-input").forEach(function(el) {
+    var clave = el.classList.contains("sidebar-more-btn") ? "mas" : "anadir";
+    if (estado.debajo[clave] == null || ahora[clave] == null) return;
+    var delta = estado.debajo[clave] - ahora[clave];
+    if (!delta) return;
+    el.animate([{ transform: "translateY(" + delta + "px)" }, { transform: "translateY(0)" }],
+      { duration: DUR, easing: curva });
+  });
+  // La flecha del botón da media vuelta en vez de cambiar de golpe.
+  // Al desplegar, la flecha da media vuelta (al plegar ya la dio antes del
+  // repintado).
+  var flecha = estado.antes && projectListEl.querySelector(".sidebar-more-btn svg");
+  if (flecha) {
+    flecha.animate([{ transform: "rotate(180deg)" }, { transform: "rotate(0deg)" }],
+      { duration: DUR, easing: curva });
+  }
 }
 
 /** Input inline para crear una lista. */
