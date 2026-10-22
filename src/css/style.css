@@ -5159,7 +5159,9 @@ input.inline-edit {
   border: none;
   border-radius: 40px 40px 0 0;
   padding: 0 12px max(22px, env(safe-area-inset-bottom, 0px));
-  background: var(--surface-canvas);
+  /* --capa-canvas y no --surface-canvas: en oscuro esa es translúcida y
+     la hoja dejaba ver la lista (y la barra de abajo) a través. */
+  background: var(--capa-canvas);
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
   /* Sube desde abajo; la caja centrada escala y aquí eso no aplica. */
   transform: translateY(100%);
@@ -15462,4 +15464,184 @@ body,
 .sidebar-more-btn .lucide {
   width: 14px;
   height: 14px;
+}
+
+/* ─── HOJA DE TAREA (móvil) ────────────────────────────────────
+   Ver _abrirHojaTarea. Título grande editable, fechas en chips, dos filas
+   (repetir e importante) y las acciones con zona táctil amplia. */
+.hoja-tarea {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+.hoja-tarea-cab {
+  padding: 4px 18px 10px;
+}
+
+.hoja-tarea-titulo {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  outline: none;
+}
+
+.hoja-tarea-titulo:focus {
+  border-color: var(--border-default);
+  background: var(--surface-canvas);
+}
+
+.hoja-tarea-seccion {
+  padding: 0 18px 12px;
+}
+
+.hoja-tarea-rotulo {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.hoja-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hoja-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-pill);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hoja-chip .lucide {
+  width: 16px;
+  height: 16px;
+}
+
+.hoja-chip--on {
+  background: var(--c-primary-500);
+  border-color: transparent;
+  color: var(--accent-on);
+  font-weight: 600;
+}
+
+.hoja-chip--quitar {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* El input de fecha real ocupa el chip entero (invisible): así el toque
+   abre el selector nativo sin depender de showPicker(). */
+.hoja-chip-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.hoja-tarea-filas,
+.hoja-tarea-acciones {
+  margin: 4px 12px 0;
+  padding: 4px 0;
+  border-top: 2px solid var(--border-subtle);
+}
+
+.hoja-fila,
+.hoja-accion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hoja-fila:active,
+.hoja-accion:active {
+  background: var(--row-hover);
+}
+
+.hoja-accion-ico {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-secondary);
+}
+
+.hoja-accion-ico .lucide {
+  width: 18px;
+  height: 18px;
+}
+
+.hoja-fila-texto {
+  flex: 1;
+}
+
+.hoja-fila-valor {
+  color: var(--text-tertiary);
+  font-size: 15px;
+}
+
+.hoja-fila-flecha {
+  width: 18px;
+  height: 18px;
+  color: var(--text-tertiary);
+}
+
+.hoja-tarea-enlaces {
+  padding-top: 12px;
+  margin: 4px 12px 0;
+  padding-inline: 6px;
+  border-top: 2px solid var(--border-subtle);
+}
+
+.hoja-tarea-enlaces .task-detail-links {
+  margin-top: 2px;
+}
+
+.hoja-accion--peligro {
+  color: var(--c-overdue);
+}
+
+.hoja-accion--peligro .hoja-accion-ico {
+  background: color-mix(in srgb, var(--c-overdue) 12%, transparent);
+  color: var(--c-overdue);
 }

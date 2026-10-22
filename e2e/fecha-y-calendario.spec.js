@@ -43,17 +43,17 @@ test("la fecha personalizada no se asigna sola al abrir el selector", async ({ p
 
   // Lo que hace el selector nativo del móvil al abrirse: escribe hoy y avisa.
   await page.evaluate((hoy) => {
-    const input = document.querySelector("[data-date-input]");
+    const input = document.querySelector(".hoja-chip-input");
     input.value = hoy;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }, iso(0));
   await page.waitForTimeout(300);
   expect(await due(page, "b")).toBeNull();               // sigue sin fecha
-  expect(await page.locator(".field-popover--fixed").count()).toBe(1);   // el panel sigue abierto
+  expect(await page.locator(".hoja-tarea").count()).toBe(1);   // la hoja sigue abierta
 
   // El usuario elige otro día y cierra el selector.
   await page.evaluate((otro) => {
-    const input = document.querySelector("[data-date-input]");
+    const input = document.querySelector(".hoja-chip-input");
     input.value = otro;
     input.dispatchEvent(new Event("change", { bubbles: true }));
     input.dispatchEvent(new Event("blur", { bubbles: true }));

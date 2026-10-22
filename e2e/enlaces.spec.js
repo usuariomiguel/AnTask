@@ -93,17 +93,12 @@ test.describe("PC", () => {
 test.describe("móvil", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-  test("se ven y se abren en la pantalla de detalle", async ({ page }) => {
+  test("se ven y se abren en la hoja de la tarea", async ({ page }) => {
     await carga(page, "full", [{ id: "l1", url: "https://www.figma.com/file/xyz/diseno-app", title: "Diseno app" }]);
     await page.locator("#bnav-inbox-btn").tap(); await page.waitForTimeout(500);
-    await page.locator(".task-item", { hasText: "Informe" }).evaluate((el) => {
-      const r = el.getBoundingClientRect();
-      el.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 120, clientY: r.top + r.height / 2 }));
-    });
-    await page.waitForTimeout(300);
-    await page.locator(".ctx-item", { hasText: "Ver detalles" }).tap();
-    await page.waitForTimeout(600);
-    await expect(page.locator(".task-link .task-link-titulo")).toHaveText("Diseno app");
+    await page.locator(".task-item", { hasText: "Informe" }).locator(".task-text").tap();
+    await page.waitForTimeout(500);
+    await expect(page.locator(".hoja-tarea .task-link .task-link-titulo")).toHaveText("Diseno app");
     await expect(page.locator(".task-link .task-link-dominio")).toHaveText("figma.com");
     await expect(page.locator(".task-link a")).toHaveAttribute("href", "https://www.figma.com/file/xyz/diseno-app");
   });

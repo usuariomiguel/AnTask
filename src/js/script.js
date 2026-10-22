@@ -4703,6 +4703,8 @@ function _buildTaskNode(task, project, showList) {
     node.addEventListener("contextmenu", async function(e) {
       if (e.target.closest("button, input")) return;
       e.preventDefault();
+      // Móvil: mantener pulsado abre la misma hoja que tocar.
+      if (window.matchMedia("(max-width: 768px)").matches) { _abrirHojaTarea(task, project); return; }
       openTaskActionsMenu({ x: e.clientX, y: e.clientY });
     });
 
@@ -4711,9 +4713,9 @@ function _buildTaskNode(task, project, showList) {
     node.addEventListener("click", function(e) {
       if (e.target.closest("button")) return;
       if (e.target.closest("input")) return;
-      // Modo simple: la fila no tiene panel de detalle — se edita fecha y
-      // repetir en el sitio, con un popover ligero anclado a la propia fila.
-      if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node, project); return; }
+      // Móvil: hoja desde abajo con lo rápido (fecha, repetir, importante)
+      // y las acciones (ver _abrirHojaTarea).
+      if (isSimpleMobile()) { _abrirHojaTarea(task, project); return; }
       if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
       openTaskDetail(task.id, project.id);
     });
@@ -4722,7 +4724,7 @@ function _buildTaskNode(task, project, showList) {
 
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        if (isSimpleMobile()) { _openInlineDateRecurPopover(task, node, project); return; }
+        if (isSimpleMobile()) { _abrirHojaTarea(task, project); return; }
         // Alterna, como el clic y como anuncia el modal de atajos.
         if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
         openTaskDetail(task.id, project.id);
@@ -5084,318 +5086,249 @@ function _openRecurPopover(fieldEl, anchorBtn) {
   });
 }
 
-// ─── POPOVER DE FILA (modo simple) ──────────────────────────
-// En modo simple, tocar una fila no abre el panel de detalle completo:
-// abre este popover ligero, anclado a la propia fila, con solo fecha y
-// repetir — los dos únicos campos que ese modo expone. Reutiliza el
-// mismo calendario/presets que _openDatePopover/_openRecurPopover, pero
-// anclado con `position: fixed` (como en quick-capture.js) en vez de
-// depender del panel de detalle, y cierra tras cada elección — igual
-// que el resto de popovers de campo de esta sección.
-let _inlineRowPopoverEl     = null;
-let _inlineRowPopoverTaskId = null;
-let _inlineRowPopoverCleanup = null;
+// ═══════════════════════════════════════════════════════════════
+// HOJA DE TAREA (móvil)
+//
+// Tocar una tarea —o mantenerla pulsada— abre una hoja desde abajo con
+// lo justo del móvil: título editable, fecha, repetir, enlaces, duplicar
+// y eliminar (con deshacer). Lo demás (importante, listas, detalle
+// completo) es de escritorio.
+// Sustituye al panel que se abría dentro de la lista (empujaba las filas
+// y repetía el título) y al menú flotante de escritorio.
+// ═══════════════════════════════════════════════════════════════
+function _abrirHojaTarea(task, project) {
+  var base = createSheetBase();
+  var overlay = base.overlay, sheet = base.sheet;
+  sheet.classList.add("hoja-tarea");
+  var cerrada = false;
 
-function _closeInlineRowPopover() {
-  if (!_inlineRowPopoverEl) return;
-  if (_inlineRowPopoverCleanup) _inlineRowPopoverCleanup();
-  _inlineRowPopoverEl.remove();
-  _inlineRowPopoverEl = null;
-  _inlineRowPopoverTaskId = null;
-  _inlineRowPopoverCleanup = null;
-}
-
-/** Coloca un popover `position: fixed` bajo (o, si no cabe, sobre) la fila. */
-function _placeInlineRowPopover(pop, anchorEl) {
-  const MARGIN = 8;
-  const r      = anchorEl.getBoundingClientRect();
-  // Mismo ancho que la propia fila (tarjeta) que lo abrió, no un ancho
-  // fijo aparte — así el popover se lee como una extensión de la fila,
-  // no como un cuadro flotante de otro tamaño.
-  const width  = Math.min(r.width, window.innerWidth - MARGIN * 2);
-  pop.style.position  = "fixed";
-  pop.style.width     = width + "px";
-  pop.style.overflowY = "auto";
-  // Este popover trae un margin-top:8px de fábrica (pensado para su uso
-  // normal, anclado dentro de un campo) que aquí, con position:fixed,
-  // se suma por encima de `top` y separaba de más de la fila.
-  pop.style.margin    = "0";
-  let left = Math.max(MARGIN, Math.min(r.left, window.innerWidth - width - MARGIN));
-  pop.style.left  = left + "px";
-  pop.style.right = "auto";
-  const spaceBelow = window.innerHeight - r.bottom - MARGIN;
-  const spaceAbove = r.top - MARGIN;
-  const maxH       = Math.min(420, Math.max(spaceBelow, spaceAbove));
-  // 3px, el mismo hueco que separa una tarjeta de la siguiente — el
-  // popover se lee como si fuera una tarjeta más de la lista.
-  if (spaceBelow >= Math.min(maxH, 380) || spaceBelow >= spaceAbove) {
-    pop.style.top = (r.bottom + 3) + "px";
-    pop.style.bottom = "auto";
-    pop.style.maxHeight = spaceBelow + "px";
-  } else {
-    pop.style.bottom = (window.innerHeight - r.top + 3) + "px";
-    pop.style.top = "auto";
-    pop.style.maxHeight = spaceAbove + "px";
+  function cerrar() {
+    if (cerrada) return;
+    guardarTitulo();
+    cerrada = true;
+    closeSheet(overlay);
   }
-}
+  overlay._cancel = cerrar;
 
-function _openInlineDateRecurPopover(task, anchorEl, project) {
-  const wasOpenForSameTask = _inlineRowPopoverEl && _inlineRowPopoverTaskId === task.id;
-  _closeInlineRowPopover();
-  if (wasOpenForSameTask) return;
+  function hoyMas(n) { var d = new Date(); d.setDate(d.getDate() + n); return _localDateISO(d); }
 
-  const RECUR_PRESETS = [
-    { label: t("recur.daily"),        days: 1  },
-    { label: t("recur.every_2_days"), days: 2  },
-    { label: t("recur.weekly"),       days: 7  },
-  ];
+  /**
+   * Cambia la fecha y cierra. En Hoy, el calendario salta a ese día (su
+   * semana o su mes) y lo deja elegido, para ver la tarea donde ha ido a
+   * parar en vez de que desaparezca de la lista. Si es hoy, vuelve a Hoy;
+   * si se quita la fecha, no se mueve nada.
+   */
+  function ponerFecha(nueva) {
+    guardarTitulo();
+    task.dueDate = nueva;
+    if (nueva && activeView === "today" && isSimpleMobile()) {
+      var hoyISO = _localDateISO(new Date());
+      _hoySelectedDate = nueva === hoyISO ? null : nueva;
+      _hoyCalViewISO = nueva;
+      _hoyTab = "tasks";
+    }
+    saveAndRender();
+    cerrar();
+  }
 
-  const pop = document.createElement("div");
-  pop.className = "field-popover field-popover--fixed";
+  function guardarTitulo() {
+    var input = sheet.querySelector(".hoja-tarea-titulo");
+    if (!input || cerrada) return;
+    var nuevo = capitalizeFirst(input.value.trim()).slice(0, 120);
+    if (nuevo && nuevo !== task.text) { task.text = nuevo; saveAndRender(); }
+  }
 
-  function renderPop() {
-    const todayISO    = _localDateISO(new Date());
-    const tomorrow    = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowISO = _localDateISO(tomorrow);
-    const inWeek      = new Date(); inWeek.setDate(inWeek.getDate() + 7);
-    const inWeekISO   = _localDateISO(inWeek);
-    // Cualquier fecha que no sea una de las 3 rápidas se elige con el
-    // selector nativo del sistema — nada de pintar una rejilla de mes
-    // entera aquí, que es lo que más alto le añadía al popover.
-    const isQuickDate = task.dueDate === todayISO || task.dueDate === tomorrowISO || task.dueDate === inWeekISO;
+  function pintar() {
+    var hoy = hoyMas(0), manana = hoyMas(1), semana = hoyMas(7);
+    var rapidas = [[hoy, t("date.today")], [manana, t("date.tomorrow")], [semana, t("date.in_week")]];
+    var esRapida = rapidas.some(function(r) { return r[0] === task.dueDate; });
+    var otra = task.dueDate && !esRapida;
+    var chip = function(valor, etiqueta) {
+      var on = task.dueDate === valor;
+      return '<button type="button" class="hoja-chip' + (on ? " hoja-chip--on" : "") + '" data-fecha="' + valor + '" aria-pressed="' + on + '">' +
+        escHtml(etiqueta) + '</button>';
+    };
+    var enlaces = Array.isArray(task.links) ? task.links : [];
 
-    const isPresetRecur = task.recurDays != null && RECUR_PRESETS.some(function(p) { return p.days === task.recurDays; });
-    const recurRows = RECUR_PRESETS.map(function(p) {
-      const active = task.recurDays === p.days;
-      return '<button type="button" class="field-popover-row' + (active ? " active" : "") + '" data-recur-days="' + p.days + '">' +
-        '<span class="field-popover-row-label">' + p.label + '</span>' +
-        (active ? '<i data-lucide="check"></i>' : "") +
-      '</button>';
-    }).join("") +
-      // 6ª opción: número de días a medida, en la misma rejilla que los 5
-      // presets — no un campo aparte debajo. El botón de confirmar hace
-      // falta porque en un <input type=number> no hay forma de "aceptar"
-      // salvo Enter, que en móvil no siempre es obvio ni está siempre
-      // accesible (algunos teclados numéricos no muestran tecla Intro).
-      '<div class="field-popover-row field-popover-row--custom' + (task.recurDays && !isPresetRecur ? " active" : "") + '">' +
-        '<input type="number" min="1" max="3650" class="field-popover-custom-input" inputmode="numeric"' +
-          ' placeholder="' + t("modal_recur.custom_short") + '" value="' + (task.recurDays && !isPresetRecur ? task.recurDays : "") + '" />' +
-        '<button type="button" class="field-popover-custom-confirm" data-recur-custom-confirm aria-label="' + t("modal.save") + '">' +
-          '<i data-lucide="check"></i>' +
-        '</button>' +
-      '</div>';
-
-    pop.innerHTML =
-      '<div class="field-popover-title-row">' +
-        '<input type="text" class="field-popover-title-input" maxlength="120" value="' + escHtml(task.text) + '" />' +
-        '<button type="button" class="field-popover-title-confirm" data-title-confirm aria-label="' + t("modal.save") + '">' +
-          '<i data-lucide="check"></i>' +
+    var html =
+      '<div class="hoja-tarea-cab">' +
+        '<input type="text" class="hoja-tarea-titulo" maxlength="120" aria-label="' + escHtml(t("action.rename")) + '">' +
+      '</div>' +
+      '<div class="hoja-tarea-seccion">' +
+        '<p class="hoja-tarea-rotulo">' + escHtml(t("detail.due_date")) + '</p>' +
+        '<div class="hoja-chips">' +
+          rapidas.map(function(r) { return chip(r[0], r[1]); }).join("") +
+          '<label class="hoja-chip hoja-chip--fecha' + (otra ? " hoja-chip--on" : "") + '">' +
+            '<i data-lucide="calendar"></i><span>' + escHtml(otra ? formatDueLabel(task.dueDate) : t("hoja.pick_date")) + '</span>' +
+            '<input type="date" class="hoja-chip-input" value="' + (task.dueDate || "") + '" aria-label="' + escHtml(t("hoja.pick_date")) + '">' +
+          '</label>' +
+          (task.dueDate ? '<button type="button" class="hoja-chip hoja-chip--quitar" data-fecha="" aria-label="' + escHtml(t("detail.no_date")) + '"><i data-lucide="x"></i></button>' : "") +
+        '</div>' +
+      '</div>' +
+      '<div class="hoja-tarea-filas">' +
+        '<button type="button" class="hoja-fila" data-accion="repetir">' +
+          '<span class="hoja-accion-ico"><i data-lucide="repeat"></i></span>' +
+          '<span class="hoja-fila-texto">' + escHtml(t("detail.recur")) + '</span>' +
+          '<span class="hoja-fila-valor">' + escHtml(task.recurDays ? _etiquetaRepeticion(task.recurDays) : t("detail.no_recur")) + '</span>' +
+          '<i data-lucide="chevron-right" class="hoja-fila-flecha"></i>' +
         '</button>' +
       '</div>' +
-      '<div class="field-popover-cols">' +
-        '<div class="field-popover-col field-popover-col--date">' +
-          '<div class="field-popover-list">' +
-            '<div class="field-popover-section-label">' + t("detail.due_date") + '</div>' +
-            '<button type="button" class="field-popover-row' + (task.dueDate === todayISO ? " active" : "") + '" data-quick="today">' +
-              '<span class="field-popover-row-label">' + t("date.today") + '</span>' +
-              (task.dueDate === todayISO ? '<i data-lucide="check"></i>' : "") +
-            '</button>' +
-            '<button type="button" class="field-popover-row' + (task.dueDate === tomorrowISO ? " active" : "") + '" data-quick="tomorrow">' +
-              '<span class="field-popover-row-label">' + t("date.tomorrow") + '</span>' +
-              (task.dueDate === tomorrowISO ? '<i data-lucide="check"></i>' : "") +
-            '</button>' +
-            '<button type="button" class="field-popover-row' + (task.dueDate === inWeekISO ? " active" : "") + '" data-quick="week">' +
-              '<span class="field-popover-row-label">' + t("date.in_week") + '</span>' +
-              (task.dueDate === inWeekISO ? '<i data-lucide="check"></i>' : "") +
-            '</button>' +
-            '<div class="field-popover-row field-popover-date-chip' + (task.dueDate && !isQuickDate ? " active" : "") + '" data-date-chip>' +
-              '<i data-lucide="calendar"></i>' +
-              '<input type="date" class="field-popover-date-input field-popover-row-label" data-date-input value="' + (task.dueDate || "") + '" />' +
-              (task.dueDate && !isQuickDate ? '<i data-lucide="check"></i>' : "") +
-            '</div>' +
-          '</div>' +
-          (task.dueDate ? '<button type="button" class="field-popover-row field-popover-row--clear field-popover-date-clear" data-date-clear>' +
-            '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
-          '</button>' : "") +
-        '</div>' +
-        '<div class="field-popover-col field-popover-col--recur">' +
-          '<div class="field-popover-list">' +
-            '<div class="field-popover-section-label">' + t("detail.recur") + '</div>' +
-            recurRows +
-          '</div>' +
-          (task.recurDays ? '<button type="button" class="field-popover-row field-popover-row--clear" data-recur-clear>' +
-            '<span class="field-popover-row-label">' + t("modal.clear") + '</span>' +
-          '</button>' : "") +
-        '</div>' +
+      // Enlaces: los mismos que en el detalle de escritorio.
+      '<div class="hoja-tarea-seccion hoja-tarea-enlaces">' +
+        '<p class="hoja-tarea-rotulo">' + escHtml(t("detail.links")) + (enlaces.length ? " · " + enlaces.length : "") + '</p>' +
+        '<form class="task-detail-subtask-form hoja-enlace-form" novalidate>' +
+          '<button type="submit" aria-label="' + escHtml(t("detail.link_add")) + '"><i data-lucide="plus"></i></button>' +
+          '<input type="text" class="hoja-enlace-input" inputmode="url" maxlength="2048" autocomplete="off" spellcheck="false"' +
+            ' placeholder="' + escHtml(t("detail.link_placeholder")) + '">' +
+        '</form>' +
+        '<ul class="task-detail-links">' + enlaces.map(function(l) {
+          var dominio = dominioDe(l.url);
+          var nombre = l.title || dominio;
+          return '<li class="task-link">' +
+            '<a class="task-link-a" href="' + escHtml(l.url) + '" target="_blank" rel="noopener noreferrer">' +
+              '<span class="task-link-ico"><i data-lucide="link"></i></span>' +
+              '<span class="task-link-cuerpo"><span class="task-link-titulo">' + escHtml(nombre) + '</span>' +
+                (nombre !== dominio ? '<span class="task-link-dominio">' + escHtml(dominio) + '</span>' : "") + '</span>' +
+              '<i data-lucide="arrow-up-right" class="task-link-abrir"></i>' +
+            '</a>' +
+            '<button type="button" class="task-link-quitar" data-quitar-enlace="' + escHtml(l.id) + '" aria-label="' + escHtml(t("detail.link_remove")) + '"><i data-lucide="x"></i></button>' +
+          '</li>';
+        }).join("") + '</ul>' +
+      '</div>' +
+      '<div class="hoja-tarea-acciones">' +
+        '<button type="button" class="hoja-accion" data-accion="duplicar">' +
+          '<span class="hoja-accion-ico"><i data-lucide="copy"></i></span><span>' + escHtml(t("action.duplicate")) + '</span>' +
+        '</button>' +
+        '<button type="button" class="hoja-accion hoja-accion--peligro" data-accion="eliminar">' +
+          '<span class="hoja-accion-ico"><i data-lucide="trash-2"></i></span><span>' + escHtml(t("action.delete")) + '</span>' +
+        '</button>' +
       '</div>';
 
-    if (window.lucide) window.lucide.createIcons({ nodes: [pop] });
+    var grip = sheet.querySelector(".modal-sheet-grip");
+    sheet.innerHTML = "";
+    if (grip) sheet.appendChild(grip);
+    sheet.insertAdjacentHTML("beforeend", html);
+    var input = sheet.querySelector(".hoja-tarea-titulo");
+    input.value = task.text;
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") { e.preventDefault(); input.blur(); }
+    });
+    input.addEventListener("blur", guardarTitulo);
 
-    pop.querySelectorAll("[data-quick]").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        const q = btn.dataset.quick;
-        task.dueDate = q === "today" ? todayISO : q === "tomorrow" ? tomorrowISO : q === "week" ? inWeekISO : null;
-        saveAndRender();
-        _closeInlineRowPopover();
-      });
+    // Fecha a medida: el selector nativo escribe hoy al abrirse y dispara
+    // «change»; se guarda al cerrarse (blur), igual que en el panel de antes.
+    var fecha = sheet.querySelector(".hoja-chip-input");
+    var pendiente = null;
+    fecha.addEventListener("change", function() { pendiente = fecha.value || null; });
+    fecha.addEventListener("blur", function() {
+      if (pendiente === null) return;
+      var elegida = pendiente; pendiente = null;
+      if (elegida === (task.dueDate || null)) return;
+      ponerFecha(elegida);
     });
-    const dateInputEl = pop.querySelector("[data-date-input]");
-    const dateChipEl  = pop.querySelector("[data-date-chip]");
-    if (dateInputEl) {
-      dateInputEl.addEventListener("mousedown", function(e) { e.stopPropagation(); });
-      // El selector nativo del móvil escribe la fecha de HOY en cuanto se
-      // abre y dispara "change" con ella: guardar en ese primer cambio
-      // asignaba hoy y cerraba el panel, sin dejar elegir. Se apunta el
-      // valor y se guarda al cerrarse el selector (blur), que es cuando el
-      // usuario ha terminado de elegir de verdad.
-      var fechaPendiente = null;
-      dateInputEl.addEventListener("change", function() {
-        fechaPendiente = dateInputEl.value || null;
-      });
-      dateInputEl.addEventListener("blur", function() {
-        if (fechaPendiente === null && !dateInputEl.value) return;
-        var elegida = dateInputEl.value || null;
-        fechaPendiente = null;
-        if (elegida === (task.dueDate || null)) return;
-        task.dueDate = elegida;
-        saveAndRender();
-        _closeInlineRowPopover();
-      });
-      // El icono de calendario es decorativo (el nativo del navegador se
-      // oculta por CSS, ver .field-popover-date-input), así que un toque
-      // ahí no cae dentro del <input> real — se reenvía a mano para que
-      // todo el chip abra el selector, no solo el hueco del texto.
-      if (dateChipEl) dateChipEl.addEventListener("click", function(e) {
-        if (e.target === dateInputEl) return;
-        if (typeof dateInputEl.showPicker === "function") dateInputEl.showPicker();
-        else dateInputEl.focus();
-      });
-    }
-    const dateClearBtn = pop.querySelector("[data-date-clear]");
-    if (dateClearBtn) dateClearBtn.addEventListener("click", function() {
-      task.dueDate = null;
-      saveAndRender();
-      _closeInlineRowPopover();
+    sheet.querySelector(".hoja-chip--fecha").addEventListener("click", function(e) {
+      if (e.target === fecha) return;
+      e.preventDefault();
+      if (typeof fecha.showPicker === "function") { try { fecha.showPicker(); return; } catch (_) {} }
+      fecha.focus();
     });
-    pop.querySelectorAll("[data-recur-days]").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        task.recurDays = parseInt(btn.dataset.recurDays, 10);
-        saveAndRender();
-        _closeInlineRowPopover();
-      });
-    });
-    const recurClearBtn = pop.querySelector("[data-recur-clear]");
-    if (recurClearBtn) recurClearBtn.addEventListener("click", function() {
-      task.recurDays = null;
-      saveAndRender();
-      _closeInlineRowPopover();
-    });
-    const customInput = pop.querySelector(".field-popover-custom-input");
-    const customConfirmBtn = pop.querySelector("[data-recur-custom-confirm]");
-    function submitCustomRecur() {
-      const v = parseInt(customInput.value, 10);
-      if (isNaN(v) || v <= 0) return;
-      task.recurDays = Math.min(v, 3650);
-      saveAndRender();
-      _closeInlineRowPopover();
-    }
-    if (customInput) {
-      // Clic dentro del campo no debe cerrar el popover (el overlay
-      // externo escucha mousedown en todo el documento).
-      customInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
-      // El ✓ de guardar solo aparece con un número nuevo escrito.
-      customInput.addEventListener("input", function() {
-        const v = parseInt(customInput.value, 10);
-        customInput.parentElement.classList.toggle("con-cambios", v > 0 && v !== task.recurDays);
-      });
-      customInput.addEventListener("keydown", function(e) {
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-        submitCustomRecur();
-      });
-    }
-    if (customConfirmBtn) {
-      customConfirmBtn.addEventListener("mousedown", function(e) { e.stopPropagation(); });
-      customConfirmBtn.addEventListener("click", submitCustomRecur);
-    }
-    const titleInput = pop.querySelector(".field-popover-title-input");
-    const titleConfirmBtn = pop.querySelector("[data-title-confirm]");
-    if (titleInput) {
-      titleInput.addEventListener("mousedown", function(e) { e.stopPropagation(); });
-      // El ✓ de guardar solo aparece si el título ha cambiado.
-      titleInput.addEventListener("input", function() {
-        const clean = titleInput.value.trim();
-        titleInput.parentElement.classList.toggle("con-cambios", !!clean && clean !== task.text);
-      });
-      function submitTitle() {
-        const clean = titleInput.value.trim().slice(0, 120);
-        if (!clean || clean === task.text) return;
-        task.text = clean;
+
+    // Enlaces: escribir + Intro, o pegar uno (se añade al momento).
+    var formEnlace = sheet.querySelector(".hoja-enlace-form");
+    var inputEnlace = sheet.querySelector(".hoja-enlace-input");
+    function anadirEnlace(texto) {
+      var url = normalizarEnlace(texto);
+      if (!url) return false;
+      if (!Array.isArray(task.links)) task.links = [];
+      if (!task.links.some(function(l) { return l.url === url; }) && task.links.length < ENLACES_MAX) {
+        task.links.push({ id: generateId(), url: url, title: tituloDe(url) });
         saveAndRender();
       }
-      titleInput.addEventListener("keydown", function(e) {
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-        submitTitle();
-        _closeInlineRowPopover();
-      });
-      titleInput.addEventListener("blur", submitTitle);
-      if (titleConfirmBtn) {
-        titleConfirmBtn.addEventListener("mousedown", function(e) { e.stopPropagation(); });
-        titleConfirmBtn.addEventListener("click", function() {
-          submitTitle();
-          _closeInlineRowPopover();
-        });
-      }
+      guardarTitulo();
+      pintar();
+      return true;
     }
-  }
-  renderPop();
+    formEnlace.addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (!anadirEnlace(inputEnlace.value)) {
+        inputEnlace.classList.remove("campo-no-valido");
+        void inputEnlace.offsetWidth;
+        inputEnlace.classList.add("campo-no-valido");
+      }
+    });
+    inputEnlace.addEventListener("paste", function(e) {
+      var texto = (e.clipboardData || window.clipboardData).getData("text");
+      if (!inputEnlace.value.trim() && normalizarEnlace(texto)) { e.preventDefault(); anadirEnlace(texto); }
+    });
 
-  document.body.appendChild(pop);
-  // anchorEl.getBoundingClientRect() justo tras abrir puede devolver un
-  // ancho transitorio de la fila (algún panel vecino con su propia
-  // transición de ancho de por medio) — ni un setTimeout(0) ni un rAF
-  // doble garantizan que ya se haya asentado. Un ResizeObserver reposiciona
-  // cada vez que el ancho real cambia, así que en cuanto se asiente el
-  // popover queda bien puesto solo, sin depender de un plazo adivinado.
-  let firstPlacement = true;
-  // Guardar un cambio desde el panel (el título, al salir del campo) repinta
-  // la lista y cambia la fila por otra nueva: la vieja sale del documento,
-  // mide cero, y el panel se recolocaba contra nada —quedaba como una tira
-  // estrecha en la esquina—. Si la fila ya no está, se busca la nueva de la
-  // misma tarea y se engancha a ella; si la tarea ya no se ve, se cierra.
-  function anclaViva() {
-    if (anchorEl.isConnected) return true;
-    const nueva = taskList && taskList.querySelector(
-      '[data-hoy-task-id="' + task.id + '"], [data-task-id="' + task.id + '"]');
-    if (!nueva) return false;
-    ro.unobserve(anchorEl);
-    anchorEl = nueva;
-    ro.observe(anchorEl);
-    return true;
+    if (window.lucide) window.lucide.createIcons({ nodes: [sheet] });
   }
-  const ro = new ResizeObserver(function() {
-    if (!anclaViva()) { _closeInlineRowPopover(); return; }
-    _placeInlineRowPopover(pop, anchorEl);
-    if (firstPlacement) { firstPlacement = false; pop.style.visibility = ""; }
+
+  sheet.addEventListener("click", async function(e) {
+    var chip = e.target.closest("[data-fecha]");
+    if (chip) {
+      ponerFecha(chip.dataset.fecha || null);
+      return;
+    }
+    var quitar = e.target.closest("[data-quitar-enlace]");
+    if (quitar) {
+      task.links = (task.links || []).filter(function(l) { return l.id !== quitar.dataset.quitarEnlace; });
+      saveAndRender();
+      guardarTitulo();
+      pintar();
+      return;
+    }
+    var b = e.target.closest("[data-accion]");
+    if (!b) return;
+    var a = b.dataset.accion;
+    if (a === "repetir") {
+      guardarTitulo();
+      var dias = await _elegirRepeticion(task.recurDays);
+      if (dias === undefined) return;
+      task.recurDays = dias;
+      saveAndRender();
+      if (!cerrada) pintar();
+      return;
+    }
+    if (a === "duplicar") {
+      cerrar();
+      duplicateTask(task, project);
+    } else if (a === "eliminar") {
+      // Con deshacer, como al deslizar la fila.
+      cerrar();
+      deleteTaskWithUndo(task, project);
+    }
   });
-  pop.style.visibility = "hidden";
-  ro.observe(anchorEl);
 
-  const onDoc = function(e) { if (!anchorEl.contains(e.target) && !pop.contains(e.target)) _closeInlineRowPopover(); };
-  const onEsc = function(e) { if (e.key === "Escape") { e.stopPropagation(); _closeInlineRowPopover(); } };
-  setTimeout(function() {
-    document.addEventListener("mousedown", onDoc, true);
-    document.addEventListener("keydown", onEsc, true);
-  }, 0);
+  pintar();
+}
 
-  _inlineRowPopoverEl      = pop;
-  _inlineRowPopoverTaskId  = task.id;
-  _inlineRowPopoverCleanup = function() {
-    ro.disconnect();
-    document.removeEventListener("mousedown", onDoc, true);
-    document.removeEventListener("keydown", onEsc, true);
-  };
+/** «Diario», «Cada 2 días», «Semanal»… (corto, para la hoja). */
+function _etiquetaRepeticion(d) {
+  var fijas = { 1: "recur.daily", 2: "recur.every_2_days", 7: "recur.weekly", 14: "recur.biweekly", 30: "recur.monthly" };
+  return fijas[d] ? t(fijas[d]) : t("hoja.recur_every_n").replace("{n}", String(d));
+}
+
+/**
+ * Hoja para elegir cada cuánto se repite. Devuelve los días, null para
+ * «No se repite», o undefined si se cierra sin elegir.
+ */
+async function _elegirRepeticion(actual) {
+  var PRESETS = [1, 2, 7, 14, 30];
+  var esPreset = actual && PRESETS.indexOf(actual) >= 0;
+  var opciones = [{ value: "0", icon: "circle-slash", label: escHtml(t("detail.no_recur")), active: !actual }]
+    .concat(PRESETS.map(function(d) {
+      return { value: String(d), icon: "repeat", label: escHtml(_etiquetaRepeticion(d)), active: actual === d };
+    }))
+    .concat([{ value: "otro", icon: "pencil-line", label: escHtml(actual && !esPreset ? _etiquetaRepeticion(actual) : t("hoja.recur_custom")), active: !!(actual && !esPreset) }]);
+  var v = await sheetPick(escHtml(t("detail.recur")), [{ options: opciones }]);
+  if (v === null) return undefined;
+  if (v === "0") return null;
+  if (v !== "otro") return parseInt(v, 10);
+  var txt = await modalPrompt(t("hoja.recur_custom_prompt"), actual && !esPreset ? String(actual) : "", t("modal_recur.custom_short"));
+  var n = parseInt(txt, 10);
+  if (!txt || !isFinite(n) || n < 1) return undefined;
+  return Math.min(n, 3650);
 }
 
 function _openReminderPopover(fieldEl, anchorBtn) {
@@ -7732,9 +7665,16 @@ function renderTodayItem(task, project, todayStr, tone) {
   // Volver a pulsar la fila abierta lo cierra.
   li.addEventListener("click", function(e) {
     if (e.target.closest("button, input")) return;
-    if (simpleRow) { _openInlineDateRecurPopover(task, li, project); return; }
+    if (simpleRow) { _abrirHojaTarea(task, project); return; }
     if (openDetailTaskId === task.id) { closeTaskDetail(); return; }
     openTaskDetail(task.id, project.id);
+  });
+  // Móvil: mantener pulsado abre la misma hoja (antes Hoy no tenía menú).
+  li.addEventListener("contextmenu", function(e) {
+    if (e.target.closest("button, input")) return;
+    if (!window.matchMedia("(max-width: 768px)").matches) return;
+    e.preventDefault();
+    _abrirHojaTarea(task, project);
   });
   // Alcanzable con el teclado, como las filas de las listas: Tab llega a
   // ella e Intro o Espacio hacen lo mismo que el clic.

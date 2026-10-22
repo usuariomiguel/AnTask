@@ -1,6 +1,6 @@
-// Animaciones propias del móvil: el detalle de tarea entra y sale desde la
-// derecha como una pantalla nativa, y el conmutador Tareas/Hábitos de Hoy
-// desliza su resaltado y hace entrar el contenido por ese lado.
+// Animaciones propias del móvil: el conmutador Tareas/Hábitos de Hoy
+// desliza su resaltado y hace entrar el contenido por ese lado. (El
+// detalle de tarea ya no se abre en móvil: lo sustituye la hoja de tarea.)
 import { test, expect } from "@playwright/test";
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
@@ -34,43 +34,6 @@ const recorrido = (page, sel, ms) => page.evaluate(([sel, ms]) => new Promise((r
     if (performance.now() - t0 < ms) requestAnimationFrame(paso); else res(xs);
   })();
 }), [sel, ms]);
-
-test("el detalle entra y sale desde la derecha", async ({ page }) => {
-  const errores = [];
-  page.on("pageerror", (e) => errores.push(e.message));
-  await carga(page, "full");
-  // En móvil tocar una tarea abre el panel rápido de fecha y repetir; al
-  // detalle completo se llega manteniéndola pulsada en una lista → «Ver
-  // detalles».
-  await page.locator("#bnav-inbox-btn").tap();
-  await page.waitForTimeout(500);
-  // Mantener pulsado dispara «contextmenu» con la posición del dedo.
-  await page.locator(".task-item", { hasText: "Revisar contrato" }).evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    el.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 120, clientY: r.top + r.height / 2 }));
-  });
-  await page.waitForTimeout(300);
-  // Abrir: la pantalla pasa por posiciones intermedias entre fuera (x≥390) y 0.
-  const entrada = recorrido(page, "#task-detail-wrap", 1400);
-  await page.locator(".ctx-item", { hasText: "Ver detalles" }).tap();
-  const xs = await entrada;
-  expect(xs.some((x) => x > 30 && x < 360)).toBe(true);
-  await expect(page.locator("#task-detail-title")).toHaveValue("Revisar contrato");
-  expect(await page.evaluate(() => Math.round(document.getElementById("task-detail-wrap").getBoundingClientRect().left))).toBe(0);
-
-  // Cerrar: sale hacia la derecha con su contenido todavía pintado.
-  const salida = recorrido(page, "#task-detail-wrap", 1400);
-  const conContenido = page.evaluate(() => new Promise((res) => {
-    setTimeout(() => res(getComputedStyle(document.getElementById("task-detail-panel")).display), 120);
-  }));
-  await page.locator("#task-detail-back").tap();
-  const ys = await salida;
-  expect(ys.some((x) => x > 30 && x < 360)).toBe(true);
-  expect(await conContenido).toBe("flex");
-  await page.waitForTimeout(200);
-  expect(await page.evaluate(() => getComputedStyle(document.getElementById("task-detail-wrap")).visibility)).toBe("hidden");
-  expect(errores).toEqual([]);
-});
 
 test("el resaltado del conmutador de Hoy se desliza", async ({ page }) => {
   await carga(page, "simple");
