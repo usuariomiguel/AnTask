@@ -8848,8 +8848,12 @@ body.task-dragging .project-item:not(.active) {
      misma jerarquía que en la lista de tareas: tarjeta clara sobre
      lienzo. Solo en móvil — en escritorio el diálogo es de dos paneles y
      el contraste ya lo da `.settings-nav` con su propio tinte. */
+  /* Los mismos colores que las vistas: el fondo dorado de la app y las
+     tarjetas en el beige de los bloques (calendario, conmutador, lista),
+     con su borde y sin sombra. Antes eran un fondo más claro y tarjetas
+     casi blancas: tres tonos apilados. */
   .modal-box-settings-v1 {
-    background: var(--surface-canvas);
+    background: var(--surface-desk);
   }
 
   .settings-nav {
@@ -8879,11 +8883,11 @@ body.task-dragging .project-item:not(.active) {
   }
 
   .settings-mobile-card {
-    background: var(--surface-card);
+    background: var(--surface-canvas);
     border: 2px solid var(--border-default);
     border-radius: 32px;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
     margin-bottom: 14px;
   }
 
@@ -13945,10 +13949,9 @@ button {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 -18px 12px;
-    padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+    margin: 0 -18px 18px;
+    padding: calc(14px + env(safe-area-inset-top)) 12px 14px;
     background: var(--surface-card);
-    border-bottom: 1px solid var(--border-subtle, var(--border-default));
   }
 
   .hist-volver {
@@ -15624,6 +15627,26 @@ body,
   width: 18px;
   height: 18px;
   color: var(--text-tertiary);
+}
+
+.hoja-tarea-subtareas {
+  padding-top: 12px;
+  margin: 4px 12px 0;
+  padding-inline: 6px;
+  border-top: 2px solid var(--border-subtle);
+}
+
+/* En la hoja, sin el «Sin subtareas»: el campo de añadir ya lo dice. */
+.hoja-tarea .subtask-empty {
+  display: none;
+}
+
+.hoja-subtareas .subtask-item {
+  padding: 10px 6px;
+}
+
+.hoja-subtareas .subtask-text {
+  font-size: 15px;
 }
 
 .hoja-tarea-enlaces {

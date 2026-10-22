@@ -5090,8 +5090,8 @@ function _openRecurPopover(fieldEl, anchorBtn) {
 // HOJA DE TAREA (móvil)
 //
 // Tocar una tarea —o mantenerla pulsada— abre una hoja desde abajo con
-// lo justo del móvil: título editable, fecha, repetir, enlaces, duplicar
-// y eliminar (con deshacer). Lo demás (importante, listas, detalle
+// lo justo del móvil: título editable, fecha, repetir, subtareas, enlaces,
+// duplicar y eliminar (con deshacer). Lo demás (importante, listas, detalle
 // completo) es de escritorio.
 // Sustituye al panel que se abría dentro de la lista (empujaba las filas
 // y repetía el título) y al menú flotante de escritorio.
@@ -5149,6 +5149,8 @@ function _abrirHojaTarea(task, project) {
         escHtml(etiqueta) + '</button>';
     };
     var enlaces = Array.isArray(task.links) ? task.links : [];
+    var subs = Array.isArray(task.subtasks) ? task.subtasks : [];
+    var subsHechas = subs.filter(function(x) { return x.done; }).length;
 
     var html =
       '<div class="hoja-tarea-cab">' +
@@ -5172,6 +5174,16 @@ function _abrirHojaTarea(task, project) {
           '<span class="hoja-fila-valor">' + escHtml(task.recurDays ? _etiquetaRepeticion(task.recurDays) : t("detail.no_recur")) + '</span>' +
           '<i data-lucide="chevron-right" class="hoja-fila-flecha"></i>' +
         '</button>' +
+      '</div>' +
+      // Subtareas: la misma lista que en el detalle de escritorio (casilla,
+      // separación entre filas y × para quitar).
+      '<div class="hoja-tarea-seccion hoja-tarea-subtareas">' +
+        '<p class="hoja-tarea-rotulo">' + escHtml(t("detail.subtasks")) + (subs.length ? " · " + subsHechas + "/" + subs.length : "") + '</p>' +
+        '<form class="task-detail-subtask-form hoja-subtarea-form" novalidate>' +
+          '<button type="submit" aria-label="' + escHtml(t("detail.subtask_placeholder")) + '"><i data-lucide="plus"></i></button>' +
+          '<input type="text" class="hoja-subtarea-input" maxlength="120" autocomplete="off" placeholder="' + escHtml(t("detail.subtask_placeholder")) + '">' +
+        '</form>' +
+        '<ul class="subtask-list task-detail-subtasks hoja-subtareas"></ul>' +
       '</div>' +
       // Enlaces: los mismos que en el detalle de escritorio.
       '<div class="hoja-tarea-seccion hoja-tarea-enlaces">' +
@@ -5231,6 +5243,26 @@ function _abrirHojaTarea(task, project) {
       e.preventDefault();
       if (typeof fecha.showPicker === "function") { try { fecha.showPicker(); return; } catch (_) {} }
       fecha.focus();
+    });
+
+    // Subtareas: la lista de siempre (ui/subtasks.js) y su alta.
+    renderSubtasks(task, sheet.querySelector(".hoja-subtareas"), {
+      onMutation: function() { guardarTitulo(); saveAndRender(); pintar(); },
+      onEditStart: startSubtaskInlineEdit,
+    });
+    var formSub = sheet.querySelector(".hoja-subtarea-form");
+    var inputSub = sheet.querySelector(".hoja-subtarea-input");
+    formSub.addEventListener("submit", function(e) {
+      e.preventDefault();
+      var val = capitalizeFirst(inputSub.value.trim()).slice(0, 120);
+      if (!val) return;
+      if (!Array.isArray(task.subtasks)) task.subtasks = [];
+      task.subtasks.unshift({ id: generateId(), text: val, done: false });
+      guardarTitulo();
+      saveAndRender();
+      pintar();
+      var nuevo = sheet.querySelector(".hoja-subtarea-input");
+      if (nuevo) nuevo.focus();
     });
 
     // Enlaces: escribir + Intro, o pegar uno (se añade al momento).

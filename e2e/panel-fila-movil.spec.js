@@ -110,3 +110,19 @@ test("en Hoy, cambiar la fecha lleva el calendario a ese día", async ({ page })
   await expect(page.locator('[data-cal-day="' + iso(0) + '"]')).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".today-item", { hasText: "Revisar contrato" })).toBeVisible();
 });
+
+test("subtareas en la hoja: se añaden, se marcan y la casilla de la fila hace el anillo", async ({ page }) => {
+  await carga(page, "light");
+  await page.locator(".today-item", { hasText: "Revisar contrato" }).locator(".today-text").tap();
+  for (const txt of ["Leer cláusulas", "Firmar"]) {
+    await page.locator(".hoja-subtarea-input").fill(txt);
+    await page.locator(".hoja-subtarea-input").press("Enter");
+  }
+  await expect(page.locator(".hoja-subtareas .subtask-item")).toHaveCount(2);
+  await page.locator(".hoja-subtareas .subtask-item", { hasText: "Firmar" }).locator(".subtask-checkbox").check({ force: true });
+  await expect(page.locator(".hoja-tarea-subtareas .hoja-tarea-rotulo")).toHaveText("Subtareas · 1/2");
+  const t = await tarea(page, "a");
+  expect(t.subtasks.map((s) => [s.text, s.done])).toEqual([["Firmar", true], ["Leer cláusulas", false]]);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".today-item", { hasText: "Revisar contrato" }).locator(".task-subring")).toHaveCount(1);
+});
