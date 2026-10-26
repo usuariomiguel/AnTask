@@ -1602,8 +1602,6 @@ function activateProject(id) {
   // hacían Hoy y el calendario—, así que al arrancar en Inbox, o al abrir una
   // lista, ninguna pestaña quedaba marcada.
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 /**
@@ -1657,8 +1655,6 @@ function activateTodayView() {
   renderSidebar();
   renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 /**
@@ -1700,7 +1696,6 @@ function activateHabitsView() {
   renderSidebar();
   renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 
@@ -1741,7 +1736,6 @@ function activateActivityView() {
   renderSidebar();
   renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 /** Filtros de la vista Actividad (no se guardan: al volver, todo). */
@@ -6716,6 +6710,7 @@ function renderTodayView() {
       { weekday: "short", day: "numeric", month: "short" });
     var secD = _hoySectionEl("today", capitalizeFirst(fechaCorta), String(delDia.length),
       t("hoy.back_to_today"), function() { _hoySelectedDate = null; renderTasks(); });
+    _ayudaSeccion(secD, "hoy.help_day");
     delDia.forEach(function(it) {
       secD.list.appendChild(renderTodayItem(it.task, it.project, today,
         it.task.dueDate < today ? "overdue" : it.task.dueDate === today ? "today" : "nodate"));
@@ -6760,6 +6755,7 @@ function renderTodayView() {
     var secHD = _hoySectionEl("habits", capitalizeFirst(fechaCortaH),
       tocanH.length ? hechosH + "/" + tocanH.length : null,
       t("hoy.back_to_today"), function() { _hoySelectedDate = null; renderTasks(); });
+    _ayudaSeccion(secHD, futuroH ? "hoy.help_day_habits_future" : "hoy.help_day_habits");
     tocanH.forEach(function(h) {
       secHD.list.appendChild(_renderHabitItem(h, diaH, false, futuroH));
     });
@@ -6783,8 +6779,11 @@ function renderTodayView() {
 
   // ── Vencidas ──
   if (verTareas && overdue.length > 0) {
+    // En móvil, rótulos y botón cortos: «Mover todas a hoy» no cabía en
+    // la misma línea que la cabecera y la partía en dos.
     var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
-      t("hoy.move_all"), function() { _hoySetDueToday(overdue); });
+      t(isSimpleMobile() ? "hoy.all_to_today" : "hoy.move_all"), function() { _hoySetDueToday(overdue); });
+    _ayudaSeccion(secV, "hoy.help_overdue");
     overdue.forEach(function(it) {
       secV.list.appendChild(renderTodayItem(it.task, it.project, today, "overdue"));
     });
@@ -6795,6 +6794,7 @@ function renderTodayView() {
   if (verTareas) {
   // Sin contador: el «X de Y hechas» de la cabecera de Hoy ya lo dice.
   var secH = _hoySectionEl("today", t("hoy.for_today"), null, null, null);
+  _ayudaSeccion(secH, "hoy.help_today");
   todays.forEach(function(it) {
     secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
   });
@@ -6825,13 +6825,15 @@ function renderTodayView() {
   // Con el conmutador puesto, la pestaña "Hábitos" ya hace de rótulo
   // justo encima y la cabecera de la sección lo repetía.
   if (conTabs) secHab.li.classList.add("hoy-section--headless");
+  _ayudaSeccion(secHab, "hoy.help_habits");
   taskList.appendChild(secHab.li);
   }
 
   // ── Sin fecha · sugeridas ──
   if (verTareas && nodate.length > 0) {
-    var secN = _hoySectionEl("nodate", t("hoy.nodate"), String(nodate.length),
-      t("hoy.schedule_all"), function() { _hoySetDueToday(nodate); });
+    var secN = _hoySectionEl("nodate", t(isSimpleMobile() ? "hoy.nodate_short" : "hoy.nodate"), String(nodate.length),
+      t(isSimpleMobile() ? "hoy.all_to_today" : "hoy.schedule_all"), function() { _hoySetDueToday(nodate); });
+    _ayudaSeccion(secN, "hoy.help_nodate");
     nodate.forEach(function(it) {
       secN.list.appendChild(renderTodayItem(it.task, it.project, today, "nodate"));
     });
@@ -6915,6 +6917,19 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
   li.appendChild(head);
   li.appendChild(list);
   return { li: li, list: list };
+}
+
+/**
+ * Una línea de ayuda bajo la cabecera de una sección de Hoy, solo en móvil:
+ * qué hay ahí y qué se puede hacer. Va justo antes de la lista (con la
+ * cabecera oculta, como en Hábitos, queda arriba del todo).
+ */
+function _ayudaSeccion(sec, clave) {
+  if (!isSimpleMobile() || !sec || !sec.li) return;
+  var p = document.createElement("p");
+  p.className = "hoy-section-ayuda";
+  p.textContent = t(clave);
+  sec.li.insertBefore(p, sec.list);
 }
 
 /** Acción masiva del prototipo: fija dueDate=hoy en las tareas dadas. */
@@ -8965,8 +8980,6 @@ function showCalendarPanel() {
   if (mobileFab) mobileFab.classList.add("visible");
   renderCalendar();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 function _restoreMainPanel() {
@@ -8979,8 +8992,6 @@ function _restoreMainPanel() {
   _setActiveViewTab("tasks");
   if (isVirtualView) renderTasks();
   if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-  // La barra inferior vuelve al cambiar de vista (ver _initNavAutoHide).
-  if (window._antrackNavShow) window._antrackNavShow();
 }
 
 function _setActiveViewTab(view) {
@@ -9324,74 +9335,8 @@ window.addEventListener("load", function() {
   renderSidebar();
   renderTasks();
   initializeTheme();
-  _initNavAutoHide();
   checkAutoBackup(); // Verificar backup automático al cargar
 });
-/**
- * Auto-ocultar la barra inferior (y el FAB, que va a su lado) al bajar
- * por la lista, y devolverla al subir. Solo móvil: en escritorio la
- * pastilla no se pinta.
- *
- * Escucha el scroll de `.task-list-scroll`, que es quien desplaza de
- * verdad — el `window` no se mueve, el scroll vive en ese contenedor.
- */
-function _initNavAutoHide() {
-  var nav = document.getElementById("mobile-bottom-nav");
-  var fab = document.getElementById("mobile-fab");
-  var scroller = document.querySelector(".task-list-scroll");
-  if (!nav || !scroller) return;
-
-  // Por debajo de esto no se reacciona: sin margen, el temblor del dedo
-  // al mantener el scroll quieto hacía parpadear la barra.
-  var UMBRAL = 8;
-  // Cerca del tope se muestra siempre, aunque el gesto sea hacia abajo:
-  // ahí todavía no estorba y esconderla nada más empezar despista.
-  var ZONA_ALTA = 48;
-  // Un salto mayor que esto no es un dedo, es `_restaurarScroll()`
-  // devolviendo la posición tras repintar: no debe contar como gesto, o
-  // cada render pasaría por un falso "scroll hacia abajo".
-  var SALTO_PROGRAMATICO = 200;
-
-  var ultimoY = scroller.scrollTop;
-
-  function ocultar(v) {
-    nav.classList.toggle("mobile-nav--hidden", v);
-    if (fab) fab.classList.toggle("mobile-nav--hidden", v);
-  }
-
-  scroller.addEventListener("scroll", function() {
-    var y = scroller.scrollTop;
-    var dy = y - ultimoY;
-
-    if (Math.abs(dy) > SALTO_PROGRAMATICO) {
-      // Salto programático: no se decide por la dirección, pero si ha
-      // acabado arriba del todo hay que mostrarla igual — si no, se
-      // quedaría escondida sin nada que la haga volver.
-      ultimoY = y;
-      if (y <= ZONA_ALTA) ocultar(false);
-      return;
-    }
-    if (Math.abs(dy) < UMBRAL) return;
-
-    if (y <= ZONA_ALTA)   ocultar(false);
-    else if (dy > 0)      ocultar(true);
-    else                  ocultar(false);
-
-    ultimoY = y;
-  }, { passive: true });
-
-  /* Cambiar de vista tiene que devolverla siempre: la vista nueva puede
-     ser más corta que la anterior y no dar ni un scroll con el que
-     recuperarla, dejándola escondida para siempre. Lo llaman las
-     funciones que activan vista, no `renderTasks()`: ahí saltaría en
-     cada repintado —marcar una tarea, por ejemplo— y la barra estaría
-     apareciendo sola todo el rato. */
-  window._antrackNavShow = function() {
-    ultimoY = scroller.scrollTop;
-    ocultar(false);
-  };
-}
-
 // ── SIDEBAR COLAPSAR/EXPANDIR (solo escritorio) ─────────────────
 (function () {
   const COLLAPSED_KEY = "anso-sidebar-collapsed";

@@ -6449,37 +6449,6 @@ body.project-dragging .project-item {
     box-shadow: 0 14px 32px -12px rgba(40, 28, 12, 0.38);
   }
 
-  /* ── Auto-ocultar al hacer scroll ──────────────────────────────
-     La pastilla y el FAB se apartan hacia abajo al bajar por la lista y
-     vuelven al subir (ver _initNavAutoHide en script.js). Se mueven
-     juntos a propósito: comparten eje y se leen como una sola fila
-     flotante, así que dejar uno de los dos quieto descoloca el conjunto.
-
-     Se va hacia ABAJO en vez de solo desvanecerse: así se lee como que
-     se aparta para dejar sitio, no como que parpadea. */
-  .mobile-bottom-nav,
-  .mobile-fab.visible {
-    will-change: transform;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-
-    .mobile-bottom-nav,
-    .mobile-fab.visible {
-      transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.18s ease;
-    }
-  }
-
-  /* `pointer-events: none` además de la opacidad: sin esto la barra
-     seguiría capturando toques donde ya no se ve nada. */
-  .mobile-bottom-nav.mobile-nav--hidden,
-  .mobile-fab.visible.mobile-nav--hidden {
-    transform: translateY(calc(100% + 28px));
-    opacity: 0;
-    pointer-events: none;
-  }
-
   .mobile-bottom-btn {
     flex: 0 0 auto;
     width: 52px;
@@ -15540,4 +15509,83 @@ body,
 
 .hoja-habito-dia--libre {
   opacity: 0.4;
+}
+
+/* ─── HOY EN MÓVIL: COMPACTO ───────────────────────────────────
+   Filas 3 px más bajas (casilla y chips de 34–36 a 31–33 px, fila de 52 a
+   49), botón de acción de la cabecera pequeño para que no parta la línea,
+   y la línea de ayuda bajo cada sección (ver _ayudaSeccion). */
+@media (max-width: 768px) {
+  /* También con chips en la fila: una regla anterior les quitaba la
+     altura mínima y la fila con repetir medía 2 px menos. */
+  html[data-mode="simple"] :is(.task-item, .today-item),
+  html[data-mode="simple"] .today-item:has(.today-meta:not(:empty)) {
+    min-height: 49px;
+  }
+
+  html[data-mode="simple"] :is(.task-toggle, .today-check),
+  html[data-mode="simple"] .task-subring {
+    width: 31px;
+    height: 31px;
+  }
+
+  html[data-mode="simple"] .task-list :is(.today-date-pill, .due-badge, .recur-badge) {
+    padding-top: 6.5px !important;
+    padding-bottom: 6.5px !important;
+  }
+
+  .hoy-section-head .hoy-section-action {
+    min-height: 0;
+    padding: 5px 11px;
+    font-size: 12.5px;
+  }
+
+  .hoy-section-ayuda {
+    margin: -2px 4px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+  }
+}
+
+/* Barra de abajo con su nombre bajo cada icono (Hoy, Inbox, Ajustes): en
+   vez de solo iconos, que no decían a dónde llevaban. Mismo alto de botón
+   (52): icono algo menor y la etiqueta debajo. */
+@media (max-width: 768px) {
+  .mobile-bottom-btn {
+    width: 64px;
+    gap: 2px;
+  }
+
+  .mobile-bottom-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-bottom-btn .bnav-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .mobile-bottom-btn > span {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip: auto;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  /* Inbox (y cualquier lista) con el mismo alto que Hoy: la fecha de la
+     fila medía 36 y la fila con repetir perdía la altura mínima. */
+  html[data-mode="simple"] .task-item .due-badge {
+    min-height: 33px;
+  }
+
+  html[data-mode="simple"] .task-item:has(.task-chips span:not(:empty)) {
+    min-height: 49px;
+  }
 }
