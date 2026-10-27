@@ -55,7 +55,7 @@
      se lean como la misma zona de trabajo, igual que en claro. */
   --surface-canvas: #201a13;
   /* canvas principal (panel central hundido) */
-  --surface-card: #251e16;
+  --surface-card: #251e16b8;
   /* tarjetas / paneles */
   --surface-raised: #2c241b;
   /* hover, raised, segmento activo */
@@ -348,7 +348,7 @@
   --surface-desk: #f8e1aa;
   --surface-deep: #e6d19e;
   --surface-canvas: #f9f1de;
-  --surface-card: #fffcf1;
+  --surface-card: #fffcf1b6;
   --surface-raised: #f3e8c9;
   --block-bg: rgba(255, 252, 241, 0.66);
   --surface-overlay: rgba(255, 252, 241, 0.97);
@@ -2846,8 +2846,8 @@ button:focus-visible {
   gap: 6px;
   flex-shrink: 0;
   padding: 6px;
-  background: linear-gradient(var(--surface-input), var(--surface-input)), var(--capa-canvas);
-  border: 2px solid var(--border-subtle);
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
   border-radius: var(--r-lg);
 }
 
