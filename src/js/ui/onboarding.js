@@ -10,8 +10,7 @@
 
 import { createModalBase, closeModal } from "./modal.js";
 import { isSimpleMobile } from "./mode.js";
-
-const STORAGE_KEY = "antrack-onboarded";
+import { ONBOARDED_KEY as STORAGE_KEY } from "../state/keys.js";
 
 const STEPS = [
   {

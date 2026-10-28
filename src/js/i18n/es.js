@@ -122,6 +122,19 @@ export const es = {
   "a11y.mobile_settings":     "Ajustes",
   "a11y.list_chips":         "Cambiar de lista",
 
+  // ── Muestra de bienvenida (ver state/seed.js) ─────────────
+  // Se escriben como tareas de verdad, no como un tutorial: lo que
+  // enseñan es la app, y se borran en cuanto estorben.
+  "seed.task_captura":        "Probar la captura rápida",
+  "seed.task_sintaxis":       "Escribir una tarea con «mañana a las 9»",
+  "seed.task_listas":         "Organizar mis listas",
+  "seed.sub_crear":           "Crear una lista",
+  "seed.sub_mover":           "Mover una tarea a esa lista",
+  "seed.task_borrar":         "Borrar estas tareas de ejemplo",
+  "seed.habit_agua":          "Beber agua",
+  "seed.habit_leer":          "Leer 10 minutos",
+  "seed.habit_andar":         "Salir a andar",
+
   // ── Hoy (vista) ───────────────────────────────────────────
   "hoy.overdue":              "Vencidas",
   "hoy.for_today":            "Para hoy",

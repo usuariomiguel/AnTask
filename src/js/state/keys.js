@@ -13,6 +13,13 @@ export const ROW_STYLE_KEY    = "antrack-row-style";
 export const MODE_KEY         = "antrack-mode";
 export const HABITS_KEY       = "antrack-habits";
 export const ACTIVITY_KEY     = "antrack-activity";
+// Visto el tour de bienvenida. Vive aquí y no suelto en ui/onboarding.js
+// porque la siembra de ejemplo lo mira para saber si alguien es nuevo, y
+// dos literales de la misma clave es justo como se perdieron los hábitos
+// en el cambio de nombre antask -> antrack.
+export const ONBOARDED_KEY    = "antrack-onboarded";
+// Ids de las tareas y hábitos de muestra (ver state/seed.js).
+export const SEMILLA_KEY      = "antrack-semilla";
 
 const LEGACY_PROJECTS_KEY = "ans0-projects";
 const LEGACY_ACTIVE_KEY   = "ans0-active-project";

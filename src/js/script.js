@@ -32,6 +32,7 @@ import {
   ACTIVITY_KEY,
   migrateStorageIfNeeded,
 } from "./state/keys.js";
+import { hayQueSembrar, sembrar, soloHayMuestra } from "./state/seed.js";
 import {
   sanitizeProject,
   sanitizeTasks,
@@ -283,6 +284,16 @@ if (_reactivarRecurrentes()) saveProjects();
 
 // Asegura que el proyecto Inbox existe (sólo la primera vez).
 ensureInbox();
+
+// Primera ejecución de verdad (sin tareas, sin hábitos y sin haber visto
+// el tour): unas tareas y unos hábitos de muestra, para no estrenar la
+// app contra una pantalla vacía. Ver state/seed.js.
+if (hayQueSembrar(projects, habits)) {
+  if (sembrar(projects, habits, INBOX_ID)) {
+    saveProjects();
+    saveHabits();
+  }
+}
 
 // Si no hay nada activo arrancamos directos en el Inbox (sin pantalla de
 // bienvenida) para que el usuario escriba ya.
@@ -9789,7 +9800,10 @@ function _syncOnFirstConnect(cloudData) {
   // ── Primera vez con esta cuenta en este dispositivo ───────────
   // Solo cuenta como "datos anónimos" si hay tareas reales.
   // Proyectos vacíos auto-creados (Inbox) no deben disparar el modal de conflicto.
-  var hasAnonymousData = _tieneContenido(projects, habits);
+  // Y tampoco las tareas y hábitos de muestra que se siembran al estrenar
+  // la app: no son datos de nadie, así que si es lo único que hay se
+  // adopta la nube sin preguntar en vez de abrir el modal de conflicto.
+  var hasAnonymousData = _tieneContenido(projects, habits) && !soloHayMuestra(projects, habits);
 
   if (!cloudData || !Array.isArray(cloudData.projects)) {
     // Sin datos en la nube → inicializar caché con lo que haya en local

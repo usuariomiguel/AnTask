@@ -122,6 +122,17 @@ export const en = {
   "a11y.mobile_settings":     "Settings",
   "a11y.list_chips":         "Switch list",
 
+  // ── Welcome sample (see state/seed.js) ────────────────────
+  "seed.task_captura":        "Try quick capture",
+  "seed.task_sintaxis":       "Write a task with \"tomorrow at 9\"",
+  "seed.task_listas":         "Organise my lists",
+  "seed.sub_crear":           "Create a list",
+  "seed.sub_mover":           "Move a task into it",
+  "seed.task_borrar":         "Delete these sample tasks",
+  "seed.habit_agua":          "Drink water",
+  "seed.habit_leer":          "Read for 10 minutes",
+  "seed.habit_andar":         "Go for a walk",
+
   // ── Today (view) ──────────────────────────────────────────
   "hoy.overdue":              "Overdue",
   "hoy.for_today":            "For today",
