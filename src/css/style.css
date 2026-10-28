@@ -12917,6 +12917,21 @@ button {
     font-weight: 700;
   }
 
+  /* El «N de M hechas» no se pinta en móvil: justo debajo, el conmutador
+     ya lo dice con su propio contador en cada pestaña («Tareas 0/2»,
+     «Hábitos 0/3»), y en una cabecera tan estrecha era repetirlo al lado
+     del título. El anillo se queda: cuenta lo mismo sin palabras.
+
+     Si no quedan vencidas, el envoltorio entero se va también; vacío
+     seguiría aportando su hueco del gap al lado del anillo. */
+  .hoy-stats-done {
+    display: none;
+  }
+
+  .hoy-stats:not(:has(.hoy-stats-overdue)) {
+    display: none;
+  }
+
   .tasks-header .project-title {
     min-width: 0;
   }

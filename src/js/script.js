@@ -7346,10 +7346,15 @@ function _renderHoyHeaderExtra(done, total, overdueN) {
     ? '<p class="hoy-stats-overdue">' + overdueN + " " +
       (overdueN === 1 ? t("hoy.overdue_one") : t("hoy.overdue_other")) + "</p>"
     : "";
+  // La cuenta va en su propio span y no suelta dentro de .hoy-stats: en
+  // móvil se oculta (las pestañas Tareas/Hábitos ya la dicen) y las
+  // vencidas, que no están en ninguna otra parte, tienen que quedarse.
   var statsHtml =
+    '<span class="hoy-stats-done">' +
     t("hoy.done_of")
       .replace("{done}", "<strong>" + done + "</strong>")
       .replace("{total}", String(total)) +
+    "</span>" +
     overdueTxt;
 
   // El primer render construye el SVG; a partir de ahí se parchea en vez

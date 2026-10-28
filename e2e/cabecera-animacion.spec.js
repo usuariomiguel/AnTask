@@ -54,7 +54,10 @@ test("al completar: el tramo se dibuja, el porcentaje cuenta y la cifra gira", a
   const vistos = await cuenta;
   const animadas = await page.evaluate(() => window.__animadas.slice());
   expect(animadas.some((a) => a.includes("hoy-ring-trazo"))).toBe(true);
-  expect(animadas.some((a) => a.startsWith("strong|") && a.endsWith("hoy-stats"))).toBe(true);
+  // La cifra cuelga ahora de .hoy-stats-done y no directamente de
+  // .hoy-stats: ese envoltorio es lo que se oculta en movil, donde las
+  // pestanas Tareas/Habitos ya dan la cuenta.
+  expect(animadas.some((a) => a.startsWith("strong|") && a.endsWith("hoy-stats-done"))).toBe(true);
   // Pasa por valores intermedios entre 0 % y 33 %.
   expect(vistos.some((v) => v !== "0%" && v !== "33%")).toBe(true);
   await page.waitForTimeout(300);
