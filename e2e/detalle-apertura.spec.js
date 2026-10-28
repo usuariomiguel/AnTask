@@ -42,7 +42,10 @@ test("apertura como la sidebar", async ({ page }) => {
   const fin = await medir();
   // La caja crece mientras el contenido guarda su ancho final y no se funde
   expect(pasos.some((p) => p.caja < fin.caja && p.caja > 62)).toBe(true);
-  expect(pasos.every((p) => p.panel === 340 || p.panel === 0)).toBe(true);
+  // El ancho final y no un 340 escrito a mano: en escritorio la caja lleva
+  // borde de 2px y el panel mide 336 para caber dentro (ver
+  // escritorio-cajas.css). Lo que importa es que no cambie en el recorrido.
+  expect(pasos.every((p) => p.panel === fin.panel || p.panel === 0)).toBe(true);
   expect(pasos.every((p) => p.op === "1")).toBe(true);
   // Al cerrar, el rail vuelve sin fundidos
   await page.click("#task-detail-close");

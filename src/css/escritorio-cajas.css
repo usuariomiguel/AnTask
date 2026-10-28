@@ -1,0 +1,218 @@
+/* ═══════════════════════════════════════════════════════════════
+   ESCRITORIO EN CAJAS
+   ═══════════════════════════════════════════════════════════════
+   Solo PC (≥769px). Las tres columnas —sidebar, panel central y
+   detalle— pasan a ser cajas sueltas sobre el fondo, y el panel central
+   deja de ser una sola caja para partirse en tres: cabecera, filtros y
+   tarjetas.
+
+   Las reglas del sistema son tres, y todo lo de aquí sale de ellas:
+     · Contenedor  → fondo --surface-canvas + borde 2px --border-default
+     · Botón       → fondo --surface-card   + borde 2px --border-default
+     · Huecos      → 6px entre contenedores, 3px entre botones
+
+   Va en un fichero aparte, cargado justo después de style.css (ver el
+   <head> de index.html), y no metido en él: así ninguna regla de
+   style.css se edita, y todo el diseño se lee y se revisa en un sitio.
+   Gana por orden de carga a igual especificidad; donde style.css usa
+   selectores más pesados se dice al lado.
+
+   Los rellenos interiores son los que ya había: el diseño pone cajas a
+   lo que existe, no lo recompone. */
+
+@media (min-width: 769px) {
+
+  /* ── 1. Las tres columnas ─────────────────────────────────────
+     El margen exterior se queda en los 12px de siempre; lo que baja a 6px
+     es el hueco ENTRE columnas. */
+  .mobile-body {
+    gap: 6px;
+  }
+
+  .sidebar,
+  .task-detail-wrap {
+    background-color: var(--surface-canvas);
+    border: 2px solid var(--border-default);
+  }
+
+  /* ── 2. El panel central deja de ser una caja ─────────────────
+     Antes envolvía cabecera, filtros y lista con su propio fondo, borde y
+     sombra; ahora es solo la columna que los apila. `background` entero y
+     no solo el color: también lleva el grano (ver el final de style.css),
+     que sin esto se vería en los huecos de 6px entre cajas. */
+  .main-panel {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    gap: 6px;
+  }
+
+  /* El margen de 6px de .ctrl-bar la separaba del borde de la caja que ya
+     no existe; ahora el hueco lo pone el `gap` de la columna. */
+  .main-panel > .ctrl-bar {
+    margin: 0;
+  }
+
+  /* La columna de lista: sin relleno propio (antes 12px a la izquierda y
+     24px a la derecha, para el contenido centrado) y apilando a 6px. */
+  .tasks-panel {
+    padding: 0;
+    gap: 6px;
+  }
+
+  /* ── 3. Filtros y tarjetas: cajas como la cabecera ────────────
+     Mismo radio que .ctrl-bar, para que las tres se lean como hermanas. */
+  .list-filter-row,
+  .task-list-scroll,
+  .main-panel > .alt-panel {
+    background: var(--surface-canvas);
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+
+  .list-filter-row {
+    padding: 12px;
+    gap: 3px;
+  }
+
+  /* El scroll antes se salía 24px por cada lado (margen negativo) para
+     llevar la barra al borde del panel. Ahora la barra va al borde de su
+     propia caja. El relleno de abajo es el hueco de la barra de captura,
+     que flota encima. */
+  .task-list-scroll {
+    margin-inline: 0;
+    padding: 0 16px 82px;
+    scrollbar-gutter: auto;
+  }
+
+  /* El aire de arriba lo pone la lista y no la caja: con los 12px
+     (--sp-3) que traía, sumados a la caja, la primera fila quedaba muy
+     caída. 8px es lo del diseño. */
+  .task-list {
+    padding-top: var(--sp-2);
+  }
+
+  /* ── 4. Sin columna de lectura ────────────────────────────────
+     Cabecera, filtros y lista iban centrados a 960px; en cajas, el título
+     va a la izquierda y las filas llenan su caja. style.css calcula un
+     margen izquierdo (--col-izq) para compensar el relleno asimétrico
+     que ya no existe. */
+  .tasks-header,
+  .list-filter-row,
+  .task-list {
+    max-width: none;
+  }
+
+  .list-filter-row,
+  .task-list {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* ── 5. Filtros: sueltos, sin cápsula que los agrupe ──────────
+     El grupo ya es la propia caja de filtros. */
+  .filter-segments {
+    padding: 0;
+    gap: 3px;
+    background: none;
+    border: 0;
+  }
+
+  .filter-segment {
+    background: var(--surface-card);
+  }
+
+  /* ── 6. Sidebar: cada vista y cada lista es un botón ──────────
+     La fila ya traía su borde de 2px (transparente): solo se le da color,
+     así que no cambia de tamaño. El activo conserva su relleno de acento
+     y, con el borde puesto, se le ve el canto como en el diseño. */
+  .project-list {
+    gap: 3px;
+  }
+
+  .project-item {
+    background-color: var(--surface-card);
+    border-color: var(--border-default);
+  }
+
+  .global-search-btn,
+  .profile-btn {
+    background: var(--surface-card);
+  }
+
+  /* ── 7. Detalle: campos, subtarea, enlace y nota ───────────────
+     Con `:root` delante y los mismos ancestros que style.css: allí los
+     campos se dejan sin caja con `:root .task-detail-props …` y
+     `:root .task-detail-panel .task-detail-section …`, que pesan más que
+     la clase sola. A igual peso, gana este fichero por cargar después. */
+  :root .task-detail-props .task-detail-field-btn,
+  :root .task-detail-panel .task-detail-section .task-detail-field-btn,
+  :root .task-detail-panel .task-detail-subtask-form input,
+  :root .task-detail-panel .task-detail-textarea {
+    background: var(--surface-card);
+    border: 2px solid var(--border-default);
+  }
+
+  /* Campos en rejilla 2×2: 3px entre filas (botones) y 16px entre
+     columnas, como en el diseño. El margen negativo los sacaba 10px por
+     cada lado para que el texto, sin caja, quedara alineado con el
+     título y el hover sobresaliera; con borde visible eso los dejaba
+     pegados al canto. Se quedan en 4px. */
+  .task-detail-props {
+    margin: 0 -4px;
+    gap: 3px;
+  }
+
+  :root .task-detail-props .task-detail-field-row {
+    gap: 3px 16px;
+  }
+
+  /* Más estrechos que antes (146px), con los 10px de relleno y 10 de
+     hueco al icono «Sin recordatorio» se cortaba: pide 102,5px y le
+     quedaban 96. Con 6 y 9 —lo que mide el diseño— le quedan 105. */
+  :root .task-detail-props .task-detail-field-btn {
+    padding-inline: 6px;
+    gap: 9px;
+  }
+
+  /* Sin la raya bajo «Detalle de tarea» ni el hueco que la acompañaba: en
+     una caja el título ya va separado por sí solo. Con `:root` y los
+     mismos ancestros que la regla que pone ese relleno en style.css. */
+  .task-detail-header {
+    border-bottom: 0;
+  }
+
+  :root .task-detail-panel .task-detail-body {
+    padding-top: 0;
+  }
+
+  /* ── 8. Lo de dentro cabe en la caja con su borde ──────────────
+     Panel y rail tienen ancho fijo (340 y 62) para no recomponerse
+     mientras el wrap anima su anchura; el wrap mide eso mismo con
+     border-box. Con el borde de 2px por cada lado, su interior se quedaba
+     en 336 y 58, y el panel se salía 4px por la derecha comiéndose el
+     margen. Se les resta el borde a ellos, no se le suma al wrap: así la
+     columna mide lo mismo que antes. */
+  .task-detail-panel {
+    width: 336px;
+  }
+
+  /* Lo mismo con los dos rails plegados: la caja sigue midiendo 62 por
+     fuera y lo de dentro 58. */
+  .task-detail-rail,
+  .sidebar-rail {
+    width: 58px;
+  }
+
+  /* style.css además les fija un min-width (340 y 62) para que el
+     contenido no se estruje mientras la caja crece; ese mínimo gana al
+     width, así que también hay que bajarlo. Mismos selectores. */
+  .task-detail-wrap--open .task-detail-panel {
+    min-width: 336px;
+  }
+
+  .task-detail-wrap:not(.task-detail-wrap--open) .task-detail-rail {
+    min-width: 58px;
+  }
+}
