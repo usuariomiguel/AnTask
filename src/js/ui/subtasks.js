@@ -23,6 +23,14 @@
  */
 import { t } from "../i18n/index.js";
 
+// Con muchas subtareas la lista se hacía larguísima: como las listas de
+// la barra lateral, se ven las primeras SUBTAREAS_VISIBLES y un «Mostrar
+// N más». Solo a partir de dos ocultas (un «Mostrar 1 más» ocupa lo mismo
+// que la subtarea). Lo desplegado se recuerda por tarea durante la sesión.
+const SUBTAREAS_VISIBLES = 5;
+/** Ids de las tareas con todas sus subtareas a la vista. */
+const _desplegadas = new Set();
+
 export function renderSubtasks(task, subtaskList, callbacks) {
   const cbs = callbacks || {};
   subtaskList.innerHTML = "";
@@ -35,7 +43,12 @@ export function renderSubtasks(task, subtaskList, callbacks) {
     return;
   }
 
-  task.subtasks.forEach(function (subtask) {
+  const total = task.subtasks.length;
+  const plegable = total > SUBTAREAS_VISIBLES + 1;
+  const todas = !plegable || _desplegadas.has(task.id);
+  const visibles = todas ? task.subtasks : task.subtasks.slice(0, SUBTAREAS_VISIBLES);
+
+  visibles.forEach(function (subtask) {
     const item = document.createElement("li");
     item.className = "subtask-item";
     // La lista se rehace entera en cada repintado: el id permite saber qué
@@ -76,4 +89,38 @@ export function renderSubtasks(task, subtaskList, callbacks) {
     item.append(cb, span, del);
     subtaskList.appendChild(item);
   });
+
+  if (plegable) subtaskList.appendChild(botonMas(task, subtaskList, cbs, todas, total - SUBTAREAS_VISIBLES));
+}
+
+/** «Mostrar N más» / «Mostrar menos» al pie de la lista. */
+function botonMas(task, subtaskList, cbs, abierto, ocultas) {
+  const li = document.createElement("li");
+  li.className = "subtask-more";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "subtask-more-btn";
+  btn.setAttribute("aria-expanded", String(abierto));
+  btn.innerHTML = '<i data-lucide="' + (abierto ? "chevron-up" : "chevron-down") + '"></i><span></span>';
+  btn.querySelector("span").textContent = abierto
+    ? t("sidebar.show_less")
+    : t("sidebar.show_more").replace("{n}", String(ocultas));
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (abierto) _desplegadas.delete(task.id);
+    else _desplegadas.add(task.id);
+    renderSubtasks(task, subtaskList, cbs);
+    if (window.lucide) window.lucide.createIcons({ nodes: [subtaskList] });
+    const otra = subtaskList.querySelector(".subtask-more-btn");
+    if (otra) otra.focus();
+    // Las que aparecen entran escalonadas con un fundido.
+    if (abierto || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    subtaskList.querySelectorAll(".subtask-item").forEach(function (el, i) {
+      if (i < SUBTAREAS_VISIBLES) return;
+      el.animate([{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 200, delay: Math.min((i - SUBTAREAS_VISIBLES) * 25, 150), easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "backwards" });
+    });
+  });
+  li.appendChild(btn);
+  return li;
 }

@@ -15588,3 +15588,43 @@ body,
     min-height: 49px;
   }
 }
+
+/* «Mostrar N más / menos» al pie de las subtareas (ver ui/subtasks.js):
+   mismo aspecto que el de las listas de la barra lateral. */
+.subtask-more {
+  list-style: none;
+}
+
+.subtask-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+}
+
+.subtask-more-btn:hover,
+.subtask-more-btn:focus-visible {
+  color: var(--text-secondary);
+}
+
+.subtask-more-btn .lucide {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .subtask-more-btn {
+    min-height: 40px;
+    font-size: 14px;
+  }
+}
