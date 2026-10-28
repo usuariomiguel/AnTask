@@ -3964,8 +3964,8 @@ button:focus-visible {
   .hoy-tabs:not([hidden]) {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-block: 16px;
+    gap: 3px;
+    margin-block: 6px;
     padding: 5px;
     background: var(--surface-card);
     border: 2px solid var(--border-default);
@@ -6140,6 +6140,7 @@ body.project-dragging .project-item {
     background: var(--surface-canvas);
     -webkit-overflow-scrolling: touch;
     margin: 6px;
+    margin-top: 0;
     border-radius: var(--r-xl);
     border: 2px solid var(--border-default);
     padding-inline: 0;
