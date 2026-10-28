@@ -46,6 +46,18 @@ async function carga(page) {
   await page.waitForTimeout(700);
 }
 const anim = (page) => page.evaluate(() => window.__anim.slice());
+// Apunta si llega a aparecer en la página un elemento que casa con `sel`,
+// aunque dure poco: las clases de animación viven 240 ms y mirar tras una
+// espera fija fallaba con el equipo cargado (el clic tardaba en resolver).
+const vigilar = (page, sel) => page.evaluate((sel) => {
+  window.__visto = window.__visto || {};
+  window.__visto[sel] = false;
+  const mirar = () => { if (document.querySelector(sel)) window.__visto[sel] = true; };
+  const obs = new MutationObserver(mirar);
+  obs.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  setTimeout(() => obs.disconnect(), 3000);
+}, sel);
+const visto = (page, sel) => page.waitForFunction((sel) => window.__visto && window.__visto[sel], sel, { timeout: 3000 }).then(() => true, () => false);
 const reset = (page) => page.evaluate(() => { window.__anim = []; });
 
 test("el contenido entra en cascada al abrir y según el salto al cambiar", async ({ page }) => {
@@ -89,19 +101,19 @@ test("subtareas: alta, marcado y baja", async ({ page }) => {
 
   // Marcado: barrido sobre el texto y contador que gira
   await reset(page);
+  await vigilar(page, ".subtask-text.sub-barrido");
   await page.locator(".subtask-item", { hasText: "Paso uno" }).locator(".subtask-checkbox").check();
-  await page.waitForTimeout(150);
-  expect(await page.locator(".subtask-text.sub-barrido").count()).toBe(1);
+  expect(await visto(page, ".subtask-text.sub-barrido")).toBe(true);
   expect((await anim(page)).some((a) => a.id === "task-detail-subtask-count")).toBe(true);
   await expect(page.locator("#task-detail-subtask-count")).toHaveText(" · 1/3");
 
   // Baja: la borrada cierra su hueco
   await reset(page);
+  await vigilar(page, ".subtask-item.fila-saliendo");
   await page.locator(".subtask-item", { hasText: "Paso dos" }).locator(".subtask-delete-btn").click();
-  await page.waitForTimeout(100);
-  expect(await page.locator(".subtask-item.fila-saliendo").count()).toBe(1);
-  await page.waitForTimeout(500);
-  expect(await page.locator(".subtask-item.fila-saliendo").count()).toBe(0);
+  expect(await visto(page, ".subtask-item.fila-saliendo")).toBe(true);
+  // Y se retira al acabar.
+  await expect(page.locator(".subtask-item.fila-saliendo")).toHaveCount(0, { timeout: 2000 });
   await expect(page.locator(".subtask-item")).toHaveCount(2);
 });
 
