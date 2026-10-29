@@ -395,6 +395,9 @@ export const es = {
   "recur.weekly":             "Semanal",
   "recur.biweekly":           "Quincenal",
   "recur.monthly":            "Mensual",
+  "recur.every_n_weeks":      "Cada {n} semanas",
+  "recur.every_n_months":     "Cada {n} meses",
+  "kbd.space":                "Espacio",
 
   // ── Calendario ────────────────────────────────────────────
   "calendar.month.1":  "Enero",   "calendar.month.2":  "Febrero",

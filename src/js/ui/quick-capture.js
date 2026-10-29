@@ -13,7 +13,7 @@ import { createModalBase, closeModal } from "./modal.js";
 import { escHtml } from "../utils/html.js";
 import { parseNaturalLanguage } from "../utils/nl-parse.js";
 import { buildNLChipsHTML, formatRecurLabel, formatDueLabel } from "../utils/nl-chips.js";
-import { t } from "../i18n/index.js";
+import { t, getLang } from "../i18n/index.js";
 import { projectColor } from "../utils/project-color.js";
 import { isSimpleMobile } from "./mode.js";
 
@@ -117,7 +117,7 @@ export function showQuickCapture(deps) {
       '<span class="quick-capture-kbd-hint">' +
         '<span class="qc-kbd">Ctrl</span><span class="qc-kbd-plus">+</span>' +
         '<span class="qc-kbd">⇧</span><span class="qc-kbd-plus">+</span>' +
-        '<span class="qc-kbd qc-kbd--wide">Espacio</span>' +
+        '<span class="qc-kbd qc-kbd--wide">' + t("kbd.space") + '</span>' +
       '</span>' +
       '<button type="button" class="quick-capture-close" aria-label="' + t("modal.close") + '"><i data-lucide="x"></i></button>' +
     '</div>' +
@@ -158,7 +158,9 @@ export function showQuickCapture(deps) {
       '<button type="button" class="quick-capture-cancel">' + t("modal.cancel") + '</button>' +
       '<span class="quick-capture-hint">' +
         '<span class="qc-hint-word">' + t("quick_capture.hint_type") + '</span>' +
-        (simple ? '<code>hoy</code><code>cada 2 días</code>' : '<code>hoy</code><code>#lista</code><code>p1</code>') +
+        (getLang() === "en"
+          ? '<code>#list</code><code>p1</code>'
+          : (simple ? '<code>hoy</code><code>cada 2 días</code>' : '<code>hoy</code><code>#lista</code><code>p1</code>')) +
         '<span class="qc-hint-word">' + t("quick_capture.hint_autocomplete") + '</span>' +
       '</span>' +
       '<span class="quick-capture-spacer"></span>' +
@@ -217,13 +219,14 @@ export function showQuickCapture(deps) {
       const inWeek      = new Date(); inWeek.setDate(inWeek.getDate() + 7);
       const inWeekISO   = _localISO(inWeek);
       const first       = new Date(vy, vm, 1);
-      const monthTitle  = first.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+      const loc         = getLang() === "en" ? "en-GB" : "es-ES";
+      const monthTitle  = first.toLocaleDateString(loc, { month: "long", year: "numeric" });
       const offset      = (first.getDay() + 6) % 7; // lunes = 0
       const nDays       = new Date(vy, vm + 1, 0).getDate();
       const mondayRef   = new Date(2024, 0, 1);
       const dowNames    = Array.from({ length: 7 }, function (_, i) {
         const d = new Date(mondayRef); d.setDate(mondayRef.getDate() + i);
-        return d.toLocaleDateString("es-ES", { weekday: "narrow" }).toUpperCase();
+        return d.toLocaleDateString(loc, { weekday: "narrow" }).toUpperCase();
       });
 
       let cellsHtml = "";
