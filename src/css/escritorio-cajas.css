@@ -215,4 +215,35 @@
   .task-detail-wrap:not(.task-detail-wrap--open) .task-detail-rail {
     min-width: 58px;
   }
+
+  /* ── 9. «Limpio»: botones sin caja ─────────────────────────────
+     Las cajas (columnas, cabecera, filtros, lista) se quedan; lo que pierde
+     fondo y borde son los botones de dentro, y solo el activo conserva su
+     relleno. Al pasar el ratón, el mismo tinte suave que los botones de la
+     cabecera en «Limpio» (ver style.css), para que se note que se pueden
+     pulsar. Los campos de escribir recuperan su caja al usarlos. El estilo
+     se lee de la raíz (<html data-row-style>) porque la sidebar y el
+     detalle no cuelgan del panel central. */
+  html[data-row-style="limpio"] .project-item:not(.active),
+  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn),
+  html[data-row-style="limpio"] .task-detail-props .task-detail-field-btn,
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-section .task-detail-field-btn,
+  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea) {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  html[data-row-style="limpio"] .project-item:not(.active):hover,
+  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn):hover,
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-field-btn:hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea):is(:hover, :focus) {
+    border-color: var(--border-default);
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea):focus {
+    background: var(--surface-card);
+  }
 }

@@ -406,6 +406,9 @@ function _pintarEstiloFila() {
   if (taskList) taskList.dataset.rowStyle = efectivo;
   var panel = document.getElementById("main-panel");
   if (panel) panel.dataset.rowStyle = efectivo;
+  // También en la raíz: la sidebar y el detalle no cuelgan del panel, y en
+  // «Limpio» sus botones también van planos (ver escritorio-cajas.css).
+  document.documentElement.dataset.rowStyle = efectivo;
 }
 
 function applyRowStyle(style, persist) {
