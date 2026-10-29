@@ -93,21 +93,31 @@
     padding-top: var(--sp-2);
   }
 
-  /* ── 4. Sin columna de lectura ────────────────────────────────
-     Cabecera, filtros y lista iban centrados a 960px; en cajas, el título
-     va a la izquierda y las filas llenan su caja. style.css calcula un
-     margen izquierdo (--col-izq) para compensar el relleno asimétrico
-     que ya no existe. */
+  /* ── 4. Columna de lectura dentro de las cajas ─────────────────
+     Las cajas van a todo lo ancho del panel, pero lo de dentro (título,
+     filtros y filas) se centra en 960px: en un monitor ancho, sin tope, la
+     fecha quedaba a más de 1000px del título. El --col-izq de style.css
+     compensaba un relleno asimétrico del panel que aquí ya no existe, así
+     que se anula y se centra sin más. */
   .tasks-header,
-  .list-filter-row,
   .task-list {
-    max-width: none;
+    max-width: 960px;
+    margin-inline: auto;
   }
 
-  .list-filter-row,
   .task-list {
     width: 100%;
+  }
+
+  /* La fila de filtros ES su caja: se centra lo de dentro con el relleno,
+     alineado al píxel con el título y las filas (16px como mínimo, como el
+     relleno de la caja de la lista; −2px por el borde de la caja). El
+     porcentaje se mide sobre el panel, que es lo que ocupa la caja. */
+  .list-filter-row {
+    max-width: none;
+    width: 100%;
     margin-left: 0;
+    padding-inline: max(16px, calc((100% - 960px) / 2 - 2px));
   }
 
   /* ── 5. Filtros: sueltos, sin cápsula que los agrupe ──────────
