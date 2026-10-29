@@ -10802,6 +10802,11 @@ button {
   display: none;
 }
 
+/* Y en Hábitos tampoco la caja que los lleva. Por id, por lo mismo. */
+#list-filter-row.list-filter-row--off {
+  display: none;
+}
+
 /* En móvil el botón no cabe junto al título —"Programar todas hoy"
    pide 171px y en una pantalla de 320 se quedaba en 114, cortado a
    media palabra—, así que la cabecera envuelve y el botón baja a su

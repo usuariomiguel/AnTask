@@ -1800,7 +1800,11 @@ function renderActivityView() {
       ' data-act-' + grupo + '="' + valor + '" aria-pressed="' + on + '">' + escHtml(etiqueta) + '</button>';
   };
   var conListas = listas.length > 1 && _actTipo !== "habito";
-  var ctrl = document.createElement("li");
+  // En PC van en la caja de filtros, donde una lista lleva Todas ·
+  // Pendientes · Hechas; en móvil esa fila no se ve y van arriba de la
+  // lista.
+  var filaFiltros = isSimpleMobile() ? null : document.getElementById("list-filter-row");
+  var ctrl = document.createElement(filaFiltros ? "div" : "li");
   ctrl.className = "act-controles";
   ctrl.innerHTML =
     '<div class="act-seg" role="group" aria-label="' + escHtml(t("act.type_label")) + '">' +
@@ -1858,7 +1862,8 @@ function renderActivityView() {
     else return;
     renderTasks();
   });
-  taskList.appendChild(ctrl);
+  if (filaFiltros) filaFiltros.appendChild(ctrl);
+  else taskList.appendChild(ctrl);
 
   // ── Un bloque por día ──
   var grupos = actividadPorDia(filtrados);
@@ -3439,9 +3444,10 @@ function _entradaFiltros() {
     if (visible(el)) entra(el, 40, 4);
   });
   var cont = document.getElementById("filter-segments");
-  // Actividad no usa la barra de filtros de las listas: tiene la suya
-  // dentro de la lista, y entra igual, grupo a grupo.
-  if (activeView === "activity") cont = taskList && taskList.querySelector(".act-controles");
+  // Actividad no usa los filtros de las listas: tiene los suyos (en la
+  // caja de filtros en PC, arriba de la lista en móvil), y entran igual,
+  // grupo a grupo.
+  if (activeView === "activity") cont = document.querySelector(".act-controles");
   else if (cont && cont.classList.contains("filter-segments--off")) cont = null;
   if (!cont) return;
   Array.prototype.filter.call(cont.children, visible).forEach(function(el, i) {
@@ -3703,6 +3709,13 @@ function renderTasks() {
   // que no hacen nada.
   var filterSegments = document.getElementById("filter-segments");
   if (filterSegments) filterSegments.classList.toggle("filter-segments--off", activeView === "habits" || activeView === "activity");
+  // Los de Actividad se pintan de nuevo en cada render; y en Hábitos, sin
+  // nada que filtrar, la caja de filtros entera sobra.
+  var filaFiltros = document.getElementById("list-filter-row");
+  if (filaFiltros) {
+    filaFiltros.querySelectorAll(".act-controles").forEach(function(el) { el.remove(); });
+    filaFiltros.classList.toggle("list-filter-row--off", activeView === "habits");
+  }
   if (activeView !== "activity") taskList.classList.remove("task-list--actividad");
   _colocarIndicadorFiltros();
 
