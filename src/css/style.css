@@ -15622,3 +15622,32 @@ body,
     font-size: 14px;
   }
 }
+
+/* ─── DETALLE DE HÁBITO (PC) ───────────────────────────────────
+   Ver _abrirDetalleHabito: el mismo panel que una tarea enseña uno u otro
+   cuerpo. En modo hábito sobran el de la tarea y su menú «…». */
+.task-detail-panel:not(.task-detail-panel--habito) #habit-detail-body,
+.task-detail-panel--habito #task-detail-body,
+.task-detail-panel--habito #task-detail-menu-btn {
+  display: none;
+}
+
+.habit-detail-body .hoja-habito-datos {
+  margin-bottom: 0;
+}
+
+.habit-detail-body .hoja-habito-dato {
+  padding: 8px 10px;
+}
+
+.habit-detail-body .hoja-habito-valor {
+  font-size: 17px;
+}
+
+.habit-detail-freq {
+  position: relative;
+}
+
+.habit-detail-freq-btn .lucide {
+  margin-left: auto;
+}

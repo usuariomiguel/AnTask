@@ -343,6 +343,9 @@ var _listasEnCurso = {};       // id → { entra, inicio, clon, siguiente }
 var _listaReceptora = null;    // id de la lista que acaba de recibir una tarea arrastrada
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
 let openDetailTaskId    = null;
+// Hábito abierto en el mismo panel (PC). Excluye al de tarea: el panel
+// enseña uno u otro (ver _abrirDetalleHabito).
+let openDetailHabitId   = null;
 let openDetailProjectId = null;
 let dragSrcId          = null;
 let dropIndicator      = null;
@@ -3676,6 +3679,9 @@ function _animarFilas(antes) {
 }
 
 function renderTasks() {
+  // El panel de un hábito se repinta con la lista: marcarlo en la fila
+  // cambia su racha y su tira de días.
+  if (openDetailHabitId) _renderHabitDetail();
   // La vista de Hoy y el Inbox agrupado rehacen bloques enteros, y quitar
   // contenido por encima del punto de lectura empuja el scroll hacia
   // arriba: completar una tarea a media lista devolvía al principio.
@@ -4874,6 +4880,7 @@ function openTaskDetail(taskId, projectId) {
   }
   openDetailTaskId    = taskId;
   openDetailProjectId = projectId;
+  _soltarPanelHabito();
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.add("task-detail-wrap--open");
   // Los campos del panel son los de otra tarea: no se comparan con los suyos.
   _detalleCampos = null;
@@ -4898,9 +4905,10 @@ function openTaskDetail(taskId, projectId) {
 }
 
 function closeTaskDetail() {
-  if (!openDetailTaskId) return;
+  if (!openDetailTaskId && !openDetailHabitId) return;
   openDetailTaskId    = null;
   openDetailProjectId = null;
+  _soltarPanelHabito();
   if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.remove("task-detail-wrap--open");
   document.body.classList.remove("task-detail-active");
   renderTasks(); // quita la barra de acento de la fila que tenía el panel abierto
@@ -5366,15 +5374,14 @@ function _esMovil() { return window.matchMedia("(max-width: 768px)").matches; }
 //
 // La misma hoja desde abajo que las tareas: nombre editable, sus detalles
 // (racha, cumplimiento del último mes, desde cuándo y los últimos 14 días),
-// frecuencia, ver estadísticas y eliminar. Sustituye en móvil al menú
-// flotante de escritorio (_showHabitMenu, que sigue en PC).
+// frecuencia, ver estadísticas y eliminar. En PC lo mismo va en el panel
+// de detalle (ver _abrirDetalleHabito).
 // ═══════════════════════════════════════════════════════════════
 function _abrirHojaHabito(habit) {
   var base = createSheetBase();
   var overlay = base.overlay, sheet = base.sheet;
   sheet.classList.add("hoja-tarea", "hoja-habito");
   var cerrada = false;
-  var localeH = getLang() === "en" ? "en-GB" : "es-ES";
 
   function guardarNombre() {
     var input = sheet.querySelector(".hoja-tarea-titulo");
@@ -5391,36 +5398,21 @@ function _abrirHojaHabito(habit) {
   overlay._cancel = cerrar;
 
   function pintar() {
-    var hoy = _localDateISO(new Date());
-    var racha = computeStreak(habit, hoy);
-    var mes = statsBetween(habit, addDays(hoy, -29), hoy);
-    var pct = mes.due ? Math.round(mes.done / mes.due * 100) : 0;
-    var desde = new Date(startDate(habit) + "T00:00").toLocaleDateString(localeH, { day: "numeric", month: "short" });
-    var cadaN = habit.schedule === "everyN" && habit.everyNDays > 1;
-    var dias = "";
-    for (var i = 13; i >= 0; i--) {
-      var d = addDays(hoy, -i);
-      var estado = !isDueOn(habit, d) ? "libre" : isDoneOn(habit, d) ? "hecho" : (d === hoy ? "pendiente" : "fallado");
-      dias += '<span class="hoja-habito-dia hoja-habito-dia--' + estado + '" title="' + escHtml(d) + '"></span>';
-    }
+    var d = _datosHabitoHTML(habit);
     var html =
       '<div class="hoja-tarea-cab">' +
         '<input type="text" class="hoja-tarea-titulo" maxlength="60" aria-label="' + escHtml(t("action.rename")) + '">' +
       '</div>' +
       '<div class="hoja-tarea-seccion">' +
-        '<div class="hoja-habito-datos">' +
-          '<div class="hoja-habito-dato"><span class="hoja-habito-valor"><i data-lucide="flame"></i>' + racha + '</span><span class="hoja-habito-etq">' + escHtml(t("hist.streak")) + '</span></div>' +
-          '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + pct + '%</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_month")) + '</span></div>' +
-          '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + escHtml(desde) + '</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_since")) + '</span></div>' +
-        '</div>' +
+        d.datos +
         '<p class="hoja-tarea-rotulo hoja-habito-rotulo">' + escHtml(t("hoja.habit_last_days")) + '</p>' +
-        '<div class="hoja-habito-tira" aria-hidden="true">' + dias + '</div>' +
+        d.tira +
       '</div>' +
       '<div class="hoja-tarea-filas">' +
         '<button type="button" class="hoja-fila" data-accion="frecuencia">' +
           '<span class="hoja-accion-ico"><i data-lucide="repeat"></i></span>' +
           '<span class="hoja-fila-texto">' + escHtml(t("hoy.habit_freq_header")) + '</span>' +
-          '<span class="hoja-fila-valor">' + escHtml(cadaN ? t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays)) : t("hoy.habit_freq_daily")) + '</span>' +
+          '<span class="hoja-fila-valor">' + escHtml(_etiquetaFrecuencia(habit)) + '</span>' +
           '<i data-lucide="chevron-right" class="hoja-fila-flecha"></i>' +
         '</button>' +
       '</div>' +
@@ -5459,10 +5451,7 @@ function _abrirHojaHabito(habit) {
       var v = await sheetPick(escHtml(t("hoy.habit_freq_header")), [{ options: opciones }]);
       if (v === null) return;
       var n = v === "otro" ? Math.round(Number(await modalPrompt(t("hoy.habit_freq_prompt"), actualN ? String(actualN) : "4", "4"))) : parseInt(v, 10);
-      if (!Number.isFinite(n) || n < 1) return;
-      if (n === 1) { habit.schedule = "daily"; habit.everyNDays = null; }
-      else { habit.schedule = "everyN"; habit.everyNDays = Math.min(n, 365); }
-      saveHabits(); renderTasks(); renderSidebar();
+      _ponerFrecuencia(habit, n);
       if (!cerrada) pintar();
       return;
     }
@@ -5472,16 +5461,195 @@ function _abrirHojaHabito(habit) {
       return;
     }
     if (a === "eliminar") {
-      // Sin deshacer para hábitos: se confirma antes, como en escritorio.
-      var ok = await modalConfirm(t("hoy.habit_confirm_delete").replace("{name}", escHtml(habit.name)), t("modal.delete"));
-      if (!ok) return;
-      cerrar();
-      habits = habits.filter(function(h) { return h.id !== habit.id; });
-      saveHabits(); renderTasks(); renderSidebar();
+      if (await _eliminarHabito(habit)) cerrar();
     }
   });
 
   pintar();
+}
+
+/**
+ * Borra un hábito tras confirmarlo. Sin deshacer: `_undoStack` está atado
+ * a listas y tareas, por eso aquí se pregunta antes. Devuelve si se borró.
+ */
+async function _eliminarHabito(habit) {
+  var ok = await modalConfirm(t("hoy.habit_confirm_delete").replace("{name}", escHtml(habit.name)), t("modal.delete"));
+  if (!ok) return false;
+  habits = habits.filter(function(h) { return h.id !== habit.id; });
+  saveHabits(); renderTasks(); renderSidebar();
+  return true;
+}
+
+/** Racha, % del último mes, desde cuándo y la tira de 14 días (hoja y panel). */
+function _datosHabitoHTML(habit) {
+  var hoy = _localDateISO(new Date());
+  var racha = computeStreak(habit, hoy);
+  var mes = statsBetween(habit, addDays(hoy, -29), hoy);
+  var pct = mes.due ? Math.round(mes.done / mes.due * 100) : 0;
+  var locale = getLang() === "en" ? "en-GB" : "es-ES";
+  var desde = new Date(startDate(habit) + "T00:00").toLocaleDateString(locale, { day: "numeric", month: "short" });
+  var dias = "";
+  for (var i = 13; i >= 0; i--) {
+    var d = addDays(hoy, -i);
+    var estado = !isDueOn(habit, d) ? "libre" : isDoneOn(habit, d) ? "hecho" : (d === hoy ? "pendiente" : "fallado");
+    dias += '<span class="hoja-habito-dia hoja-habito-dia--' + estado + '" title="' + escHtml(d) + '"></span>';
+  }
+  return {
+    datos: '<div class="hoja-habito-datos">' +
+        '<div class="hoja-habito-dato"><span class="hoja-habito-valor"><i data-lucide="flame"></i>' + racha + '</span><span class="hoja-habito-etq">' + escHtml(t("hist.streak")) + '</span></div>' +
+        '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + pct + '%</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_month")) + '</span></div>' +
+        '<div class="hoja-habito-dato"><span class="hoja-habito-valor">' + escHtml(desde) + '</span><span class="hoja-habito-etq">' + escHtml(t("hoja.habit_since")) + '</span></div>' +
+      '</div>',
+    tira: '<div class="hoja-habito-tira" aria-hidden="true">' + dias + '</div>',
+  };
+}
+
+function _etiquetaFrecuencia(habit) {
+  return habit.schedule === "everyN" && habit.everyNDays > 1
+    ? t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays))
+    : t("hoy.habit_freq_daily");
+}
+
+/** Pone la frecuencia: 1 = cada día; si no, cada N días (hasta 365). */
+function _ponerFrecuencia(habit, n) {
+  if (!Number.isFinite(n) || n < 1) return;
+  if (n === 1) { habit.schedule = "daily"; habit.everyNDays = null; }
+  else { habit.schedule = "everyN"; habit.everyNDays = Math.min(n, 365); }
+  saveHabits(); renderTasks(); renderSidebar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETALLE DE HÁBITO EN PC
+//
+// El mismo panel de la derecha que una tarea, con lo de la hoja de móvil:
+// nombre, racha, % del mes, desde cuándo, últimos 14 días, frecuencia,
+// historial y eliminar (el pie del panel). El cuerpo de la tarea se
+// oculta por CSS con .task-detail-panel--habito.
+// ═══════════════════════════════════════════════════════════════
+
+function _abrirDetalleHabito(habit) {
+  var els = _detailPanelEls;
+  if (!els.wrap) return;
+  // Pulsar el que ya está abierto lo cierra, como con las tareas.
+  if (openDetailHabitId === habit.id) { closeTaskDetail(); return; }
+  var yaAbierto = els.wrap.classList.contains("task-detail-wrap--open");
+  openDetailTaskId = null;
+  openDetailProjectId = null;
+  openDetailHabitId = habit.id;
+  var panel = document.getElementById("task-detail-panel");
+  if (panel) panel.classList.add("task-detail-panel--habito");
+  var cejilla = panel && panel.querySelector(".task-detail-eyebrow");
+  if (cejilla) cejilla.textContent = t("detail.habit_title");
+  els.wrap.classList.add("task-detail-wrap--open");
+  document.body.classList.add("task-detail-active");
+  renderTasks(); // pinta el panel y la marca de la fila abierta
+  _cascadaDetalle(yaAbierto ? "cambio" : "abrir");
+}
+
+/** Deja el panel en modo tarea; si no hay tarea abierta, lo cierra. Sin repintar. */
+function _soltarPanelHabito() {
+  if (!openDetailHabitId) return;
+  openDetailHabitId = null;
+  var panel = document.getElementById("task-detail-panel");
+  if (panel) panel.classList.remove("task-detail-panel--habito");
+  var cejilla = panel && panel.querySelector(".task-detail-eyebrow");
+  if (cejilla) cejilla.textContent = t("detail.title");
+  if (!openDetailTaskId) {
+    if (_detailPanelEls.wrap) _detailPanelEls.wrap.classList.remove("task-detail-wrap--open");
+    document.body.classList.remove("task-detail-active");
+  }
+}
+
+function _renderHabitDetail() {
+  var habit = habits.find(function(h) { return h.id === openDetailHabitId; });
+  var cuerpo = document.getElementById("habit-detail-body");
+  // Borrado (o quitado por sync), o fuera de las vistas que enseñan
+  // hábitos: el panel se cierra.
+  if (!habit || !cuerpo || (activeView !== "habits" && activeView !== "today")) { _soltarPanelHabito(); return; }
+
+  var titulo = cuerpo.querySelector(".habit-detail-title");
+  var escribiendo = titulo && document.activeElement === titulo && titulo.dataset.habitId === habit.id;
+  var texto = escribiendo ? titulo.value : habit.name;
+  var d = _datosHabitoHTML(habit);
+  cuerpo.innerHTML =
+    '<div class="task-detail-title-row">' +
+      '<textarea class="task-detail-title habit-detail-title" rows="1" maxlength="60" aria-label="' + escHtml(t("action.rename")) + '"></textarea>' +
+    '</div>' +
+    '<div class="task-detail-field task-detail-section">' +
+      '<span class="task-detail-label"><i data-lucide="chart-column"></i> <span>' + escHtml(t("detail.habit_summary")) + '</span></span>' +
+      d.datos +
+    '</div>' +
+    '<div class="task-detail-field task-detail-section">' +
+      '<span class="task-detail-label"><i data-lucide="calendar-days"></i> <span>' + escHtml(t("hoja.habit_last_days")) + '</span></span>' +
+      d.tira +
+    '</div>' +
+    '<div class="task-detail-field task-detail-section habit-detail-freq">' +
+      '<span class="task-detail-label"><i data-lucide="repeat"></i> <span>' + escHtml(t("hoy.habit_freq_header")) + '</span></span>' +
+      '<button type="button" class="task-detail-field-btn habit-detail-freq-btn">' +
+        '<span>' + escHtml(_etiquetaFrecuencia(habit)) + '</span><i data-lucide="chevron-down"></i>' +
+      '</button>' +
+    '</div>' +
+    '<div class="task-detail-field task-detail-section">' +
+      '<button type="button" class="task-detail-field-btn habit-detail-hist-btn">' +
+        '<i data-lucide="chart-column"></i><span>' + escHtml(t("hist.open")) + '</span>' +
+      '</button>' +
+    '</div>';
+
+  titulo = cuerpo.querySelector(".habit-detail-title");
+  titulo.dataset.habitId = habit.id;
+  titulo.value = texto;
+  var crecer = function() { titulo.style.height = "auto"; titulo.style.height = titulo.scrollHeight + "px"; };
+  crecer();
+  if (escribiendo) { titulo.focus(); titulo.setSelectionRange(texto.length, texto.length); }
+  titulo.addEventListener("input", crecer);
+  titulo.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); titulo.blur(); }
+    else if (e.key === "Escape") { e.stopPropagation(); titulo.value = habit.name; titulo.blur(); }
+  });
+  titulo.addEventListener("blur", function() {
+    var nuevo = capitalizeFirst(titulo.value.trim()).slice(0, 60);
+    if (!nuevo) { titulo.value = habit.name; crecer(); return; }
+    if (nuevo === habit.name) return;
+    habit.name = nuevo;
+    saveHabits(); renderTasks(); renderSidebar();
+  });
+
+  var campoFrec = cuerpo.querySelector(".habit-detail-freq");
+  var btnFrec = campoFrec.querySelector(".habit-detail-freq-btn");
+  btnFrec.addEventListener("click", function() {
+    var actualN = habit.schedule === "everyN" ? habit.everyNDays : null;
+    _openFieldPopover(campoFrec, btnFrec, "down", function(pop, close) {
+      var fila = function(valor, etiqueta, activa) {
+        return '<button type="button" class="field-popover-row' + (activa ? " active" : "") + '" data-frec="' + valor + '">' +
+          '<span class="field-popover-row-label">' + escHtml(etiqueta) + '</span>' +
+          (activa ? '<i data-lucide="check"></i>' : "") +
+        '</button>';
+      };
+      var otro = !!(actualN && actualN > 3);
+      pop.innerHTML = '<div class="field-popover-list">' +
+        fila("1", t("hoy.habit_freq_daily"), !actualN) +
+        fila("2", t("hoy.habit_freq_everyn").replace("{n}", "2"), actualN === 2) +
+        fila("3", t("hoy.habit_freq_everyn").replace("{n}", "3"), actualN === 3) +
+        fila("otro", otro ? t("hoy.habit_freq_everyn").replace("{n}", String(actualN)) : t("hoja.recur_custom"), otro) +
+      '</div>';
+      pop.querySelectorAll("[data-frec]").forEach(function(b) {
+        b.addEventListener("click", async function() {
+          close();
+          var v = b.dataset.frec;
+          if (v !== "otro") { _ponerFrecuencia(habit, parseInt(v, 10)); return; }
+          var txt = await modalPrompt(t("hoy.habit_freq_prompt"), actualN ? String(actualN) : "4", "4");
+          if (txt === null) return;
+          _ponerFrecuencia(habit, Math.round(Number(txt)));
+        });
+      });
+    });
+  });
+
+  cuerpo.querySelector(".habit-detail-hist-btn").addEventListener("click", function() {
+    openHabitsHistory(habits, _localDateISO(new Date()), actividad);
+  });
+
+  if (window.lucide) window.lucide.createIcons({ nodes: [cuerpo] });
 }
 
 /** «Diario», «Cada 2 días», «Semanal»… (corto, para la hoja). */
@@ -5790,7 +5958,7 @@ function _camposDetalle(task, project) {
  * cambio pasaba desapercibido.
  */
 function _cascadaDetalle(desde) {
-  var body = document.getElementById("task-detail-body");
+  var body = document.getElementById(openDetailHabitId ? "habit-detail-body" : "task-detail-body");
   if (!body || _sinAnimarFilas()) return;
   var bloques = Array.prototype.filter.call(body.children, function(el) {
     return el.getClientRects().length > 0;
@@ -5968,8 +6136,13 @@ function _initTaskDetailPanel() {
   }
 
   document.addEventListener("keydown", function(e) {
-    if (e.key !== "Escape" || !openDetailTaskId) return;
-    if (document.querySelector(".modal-overlay")) return; // deja que el modal se cierre primero
+    if (e.key !== "Escape" || (!openDetailTaskId && !openDetailHabitId)) return;
+    // Deja que el modal se cierre primero. Solo uno que se vea: el de
+    // Ajustes vive siempre en el DOM, oculto, y bloqueaba el Escape.
+    var modalVisible = Array.prototype.some.call(document.querySelectorAll(".modal-overlay"), function(el) {
+      return el.getClientRects().length > 0;
+    });
+    if (modalVisible) return;
     closeTaskDetail();
   });
 
@@ -6112,6 +6285,8 @@ function _initTaskDetailPanel() {
 
   if (els.deleteBtn) {
     els.deleteBtn.addEventListener("click", function() {
+      const habito = openDetailHabitId && habits.find(function(h) { return h.id === openDetailHabitId; });
+      if (habito) { _eliminarHabito(habito); return; }
       const open = _getOpenDetailTask();
       if (open) deleteTaskWithUndo(open.task, open.project);
     });
@@ -7120,6 +7295,7 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
 
   var li = document.createElement("li");
   li.className = "today-item today-item--habit" +
+    (openDetailHabitId === habit.id ? " detail-open" : "") +
     (hecho ? " today-item--done" : "") +
     (noTocaHoy ? " today-item--notdue" : "") +
     (celebra ? " today-item--celebrate" : "") +
@@ -7181,9 +7357,9 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
     if (e.target.closest("button, input")) return;
     // Móvil: la misma hoja desde abajo que las tareas, con los detalles
     // del hábito (ver _abrirHojaHabito).
-    if (_esMovil()) { _abrirHojaHabito(habit); return; }
-    // detail 0 = clic sintético del teclado: el menú va bajo la fila.
-    _showHabitMenu(habit, li, e.detail ? { x: e.clientX, y: e.clientY } : null);
+    // PC: sus detalles en el panel de la derecha, como una tarea.
+    if (_esMovil()) _abrirHojaHabito(habit);
+    else _abrirDetalleHabito(habit);
   });
   li.addEventListener("contextmenu", function(e) {
     if (!_esMovil() || e.target.closest("button, input")) return;
@@ -7191,11 +7367,11 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
     _abrirHojaHabito(habit);
   });
   // Alcanzable con el teclado, como las filas de tarea: Tab llega a ella e
-  // Intro o Espacio abren su menú.
+  // Intro o Espacio abren sus detalles.
   li.tabIndex = 0;
   li.addEventListener("keydown", function(e) {
     if (e.target !== li) return;
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (_esMovil()) _abrirHojaHabito(habit); else _showHabitMenu(habit, li); }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (_esMovil()) _abrirHojaHabito(habit); else _abrirDetalleHabito(habit); }
   });
 
   return li;
@@ -7240,93 +7416,6 @@ function _hoyHabitAddEl() {
   btn.addEventListener("click", submit);
   wrap.addEventListener("click", function(e) { if (e.target === wrap) input.focus(); });
   return wrap;
-}
-
-/** Menú de la fila: renombrar, frecuencia y eliminar. Como `showProjectMenu`. */
-function _showHabitMenu(habit, anchor, punto) {
-  var cadaN = habit.schedule === "everyN" && habit.everyNDays;
-  var items = [
-    {
-      icon: "pencil-line",
-      label: t("action.rename"),
-      action: async function() {
-        var nuevo = await modalPrompt(t("hoy.habit_rename_prompt"), habit.name, habit.name);
-        if (nuevo === null) return;
-        var limpio = capitalizeFirst(nuevo.trim()).slice(0, 60);
-        if (!limpio || limpio === habit.name) return;
-        habit.name = limpio;
-        saveHabits();
-        renderTasks();
-        renderSidebar();
-      },
-    },
-    null,
-    { header: true, label: t("hoy.habit_freq_header") },
-    {
-      icon: "repeat",
-      label: t("hoy.habit_freq_daily"),
-      checked: !cadaN,
-      action: function() {
-        habit.schedule = "daily";
-        habit.everyNDays = null;
-        saveHabits();
-        renderTasks();
-        renderSidebar();
-      },
-    },
-    {
-      icon: "calendar-clock",
-      // Con la frecuencia ya elegida se ve cuál es («Cada 2 días»); sigue
-      // abriendo el diálogo para cambiar el número.
-      label: cadaN
-        ? t("hoy.habit_freq_everyn").replace("{n}", String(habit.everyNDays))
-        : t("hoy.habit_freq_everyn_menu"),
-      checked: !!cadaN,
-      action: async function() {
-        var n = await modalPrompt(t("hoy.habit_freq_prompt"),
-          habit.everyNDays ? String(habit.everyNDays) : "2", "2");
-        if (n === null) return;
-        var num = Math.round(Number(n));
-        if (!Number.isFinite(num) || num < 2) return;
-        habit.schedule = "everyN";
-        habit.everyNDays = Math.min(num, 365);
-        saveHabits();
-        renderTasks();
-        renderSidebar();
-      },
-    },
-    null,
-    {
-      icon: "trash-2",
-      label: t("action.delete"),
-      danger: true,
-      action: async function() {
-        // Sin deshacer: `_undoStack`/`undoDelete()` están atados a
-        // projects/tasks, y generalizarlos no toca en esta fase. Por eso
-        // aquí sí se confirma antes de borrar.
-        var ok = await modalConfirm(
-          t("hoy.habit_confirm_delete").replace("{name}", escHtml(habit.name)),
-          t("modal.delete")
-        );
-        if (!ok) return;
-        habits = habits.filter(function(h) { return h.id !== habit.id; });
-        saveHabits();
-        renderTasks();
-        renderSidebar();
-      },
-    },
-  ];
-
-  closeCtxMenu();
-  var menu = _buildCtxMenu(items);
-  if (punto && typeof punto.x === "number") positionCtxMenuAt(menu, punto.x, punto.y);
-  else positionCtxMenu(menu, anchor);
-  _ctxMenu = menu;
-  if (anchor && anchor.classList) anchor.classList.add("menu-abierto");
-  requestAnimationFrame(function() {
-    _ctxCloseHandler = function(e) { if (!menu.contains(e.target)) closeCtxMenu(); };
-    document.addEventListener("mousedown", _ctxCloseHandler);
-  });
 }
 
 /** Stats "N de M hechas · X vencidas" + anillo de progreso en la cabecera. */

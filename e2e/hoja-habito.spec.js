@@ -1,5 +1,5 @@
 // Hoja de hábito en móvil (ver _abrirHojaHabito): la misma hoja que las
-// tareas, con los detalles del hábito. En PC el hábito sigue con su menú.
+// tareas, con los detalles del hábito. En PC, lo mismo en el panel de detalle.
 import { test, expect } from "@playwright/test";
 
 const iso = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -59,10 +59,50 @@ test.describe("móvil", () => {
   });
 });
 
-test("en PC el hábito sigue con su menú", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await carga(page);
-  await page.locator(".today-item--habit", { hasText: "Leer" }).locator(".today-text").click();
-  await expect(page.locator(".ctx-menu")).toBeVisible();
-  await expect(page.locator(".hoja-habito")).toHaveCount(0);
+test.describe("PC", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("el hábito abre sus detalles en el panel; renombrar y frecuencia", async ({ page }) => {
+    const errores = []; page.on("pageerror", (e) => errores.push(e.message));
+    await carga(page);
+    const fila = page.locator(".today-item--habit", { hasText: "Leer" });
+    await fila.locator(".today-text").click();
+    const cuerpo = page.locator("#habit-detail-body");
+    await expect(cuerpo).toBeVisible();
+    await expect(page.locator("#task-detail-body")).toBeHidden();
+    await expect(page.locator(".ctx-menu")).toHaveCount(0);
+    await expect(page.locator(".hoja-habito")).toHaveCount(0);
+    await expect(page.locator(".task-detail-eyebrow")).toHaveText("Detalle de hábito");
+    await expect(fila).toHaveClass(/detail-open/);
+    await expect(cuerpo.locator(".hoja-habito-dato").first().locator(".hoja-habito-valor")).toHaveText("3");
+    await expect(cuerpo.locator(".hoja-habito-dia--hecho")).toHaveCount(3);
+
+    await cuerpo.locator(".habit-detail-title").fill("Leer 20 minutos");
+    await cuerpo.locator(".habit-detail-title").press("Enter");
+    await expect(fila).toContainText("Leer 20 minutos");
+
+    // Pulsar la fila abierta lo cierra; otra vez, lo abre.
+    await fila.locator(".today-text").click();
+    await expect(page.locator("#task-detail-wrap")).not.toHaveClass(/task-detail-wrap--open/);
+    await fila.locator(".today-text").click();
+    await expect(cuerpo).toBeVisible();
+
+    await cuerpo.locator(".habit-detail-freq-btn").click();
+    await page.locator(".field-popover-row[data-frec='3']").click();
+    await expect(cuerpo.locator(".habit-detail-freq-btn")).toHaveText("Cada 3 días");
+    const h = await habito(page);
+    expect(h.name).toBe("Leer 20 minutos");
+    expect([h.schedule, h.everyNDays]).toEqual(["everyN", 3]);
+    expect(errores).toEqual([]);
+  });
+
+  test("eliminar desde el pie del panel pide confirmación y lo cierra", async ({ page }) => {
+    await carga(page);
+    await page.locator(".today-item--habit", { hasText: "Leer" }).locator(".today-text").click();
+    await page.locator("#task-detail-delete-btn").click();
+    await page.locator(".modal-btn-danger").click();
+    await page.waitForTimeout(400);
+    expect(await habito(page)).toBeNull();
+    await expect(page.locator("#task-detail-wrap")).not.toHaveClass(/task-detail-wrap--open/);
+  });
 });

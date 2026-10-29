@@ -316,6 +316,8 @@ export const es = {
 
   // ── Panel de detalle de tarea ─────────────────────────────
   "detail.title":             "Detalle de tarea",
+  "detail.habit_title":       "Detalle de hábito",
+  "detail.habit_summary":     "Resumen",
   "detail.close":             "Cerrar panel de detalles",
   "detail.rail_hint":         "Detalle de tarea — selecciona una tarea para ver sus campos",
   "detail.title_placeholder": "Sin título",

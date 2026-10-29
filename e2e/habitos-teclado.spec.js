@@ -1,5 +1,5 @@
-// Las filas de hábito se alcanzan con Tab e Intro abre su menú, como las
-// filas de tarea.
+// Las filas de hábito se alcanzan con Tab e Intro abre sus detalles en el
+// panel, como las filas de tarea.
 import { test, expect } from "@playwright/test";
 test("hábitos con teclado", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -17,5 +17,8 @@ test("hábitos con teclado", async ({ page }) => {
   await fila.focus();
   expect(await fila.evaluate((el) => document.activeElement === el)).toBe(true);
   await page.keyboard.press("Enter");
-  await expect(page.getByText("Renombrar", { exact: false }).first()).toBeVisible();
+  await expect(page.locator("#habit-detail-body .habit-detail-title")).toHaveValue("Leer");
+  // Escape lo cierra.
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#task-detail-wrap")).not.toHaveClass(/task-detail-wrap--open/);
 });

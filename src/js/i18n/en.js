@@ -314,6 +314,8 @@ export const en = {
 
   // ── Task detail panel ─────────────────────────────────────
   "detail.title":             "Task details",
+  "detail.habit_title":       "Habit details",
+  "detail.habit_summary":     "Summary",
   "detail.close":             "Close details panel",
   "detail.rail_hint":         "Task detail — select a task to see its fields",
   "detail.title_placeholder": "Untitled",
