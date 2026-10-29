@@ -339,23 +339,27 @@ export function showQuickCapture(deps) {
     const maxH = Math.min(320, window.innerHeight - MARGIN * 2);
     pop.style.maxHeight = maxH + "px";
     pop.style.overflowY = "auto";
-    // Ancho fijo (240px, ver .field-popover--narrow): se alinea al borde
-    // derecho del disparador sin salirse por la izquierda del viewport.
+    // Fixed ANTES de medir: como bloque suelto en el body ocupaba todo el
+    // ancho de la página, y el calendario (sin ancho propio) acababa
+    // empujado contra el borde izquierdo de la pantalla.
+    pop.style.position = "fixed";
+    pop.style.left = "0px";
+    pop.style.right = "auto";
     const width = pop.offsetWidth || 240;
-    let left = r.right - width;
+    // Debajo del botón, empezando en su borde izquierdo (pegado a él, no
+    // sobresaliendo hacia un lado), sin salirse del viewport.
+    let left = r.left;
     left = Math.max(MARGIN, Math.min(left, window.innerWidth - width - MARGIN));
     const spaceBelow = window.innerHeight - r.bottom - MARGIN;
     const spaceAbove = r.top - MARGIN;
     const openDown = spaceBelow >= Math.min(maxH, pop.scrollHeight) || spaceBelow >= spaceAbove;
-    pop.style.position = "fixed";
     pop.style.left = left + "px";
-    pop.style.right = "auto";
     if (openDown) {
-      pop.style.top = (r.bottom + 6) + "px";
+      pop.style.top = (r.bottom + 4) + "px";
       pop.style.bottom = "auto";
       pop.style.maxHeight = Math.min(maxH, spaceBelow) + "px";
     } else {
-      pop.style.bottom = (window.innerHeight - r.top + 6) + "px";
+      pop.style.bottom = (window.innerHeight - r.top + 4) + "px";
       pop.style.top = "auto";
       pop.style.maxHeight = Math.min(maxH, spaceAbove) + "px";
     }

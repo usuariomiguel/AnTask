@@ -15758,3 +15758,13 @@ body,
 .habit-detail-freq-btn .lucide {
   margin-left: auto;
 }
+
+/* Repetir y Lista de la captura rápida: a la medida de sus opciones y no
+   240px fijos, que con «Diario», «Semanal»… dejaban media caja vacía
+   lejos del botón. Nunca más estrecho que un botón ni tan ancho que un
+   nombre de lista largo se coma la pantalla (se corta con «…»). */
+.field-popover--fixed.field-popover--narrow {
+  width: max-content;
+  min-width: 160px;
+  max-width: 260px;
+}
