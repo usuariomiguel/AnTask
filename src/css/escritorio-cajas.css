@@ -133,17 +133,21 @@
     background: var(--surface-card);
   }
 
-  /* ── 6. Sidebar: cada vista y cada lista es un botón ──────────
-     La fila ya traía su borde de 2px (transparente): solo se le da color,
-     así que no cambia de tamaño. El activo conserva su relleno de acento
-     y, con el borde puesto, se le ve el canto como en el diseño. */
+  /* ── 6. Sidebar: vistas y listas sin caja salvo la elegida ────
+     En «Limpio» y en «Tarjetas»: solo la vista o lista abierta lleva
+     fondo y borde (el canto, como en el diseño); las demás van planas y
+     al pasar el ratón se tiñen. El borde de 2px sigue ahí, transparente,
+     así que la fila no cambia de tamaño al elegirla. */
   .project-list {
     gap: 3px;
   }
 
-  .project-item {
-    background-color: var(--surface-card);
+  .project-item.active {
     border-color: var(--border-default);
+  }
+
+  .project-item:not(.active):hover {
+    background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
   }
 
   .global-search-btn,
@@ -234,7 +238,6 @@
      pulsar. Los campos de escribir recuperan su caja al usarlos. El estilo
      se lee de la raíz (<html data-row-style>) porque la sidebar y el
      detalle no cuelgan del panel central. */
-  html[data-row-style="limpio"] .project-item:not(.active),
   html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn),
   html[data-row-style="limpio"] .task-detail-props .task-detail-field-btn,
   html[data-row-style="limpio"] .task-detail-panel .task-detail-section .task-detail-field-btn,
@@ -243,7 +246,6 @@
     border-color: transparent;
   }
 
-  html[data-row-style="limpio"] .project-item:not(.active):hover,
   html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn):hover,
   html[data-row-style="limpio"] .task-detail-panel .task-detail-field-btn:hover {
     background: color-mix(in srgb, var(--text-primary) 6%, transparent);
