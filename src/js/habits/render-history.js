@@ -3,22 +3,23 @@
 //
 // Tres bloques, de lo simple a lo detallado:
 //
-//  1. Resumen del periodo — el titular es el cumplimiento real
-//     ("12 de 48 hábitos completados"), no los días perfectos. Con
-//     varios hábitos, cumplir todos menos uno cada día daba cero días
-//     perfectos, y eso presidiendo el panel castiga sin informar. Los
-//     días perfectos siguen, de estadística secundaria.
-//  2. Mapa de calor del ÚLTIMO AÑO, estilo calendario de contribuciones.
-//     La intensidad de cada día es la proporción de lo que tocaba que se
-//     cumplió, no un hecho/no hecho.
-//  3. Listado por hábito: racha, porcentaje y su tira de días recientes
-//     en verde/rojo.
+//  1. Resumen del periodo — cuatro tarjetas: cumplimiento (el dato que
+//     manda, con su barra), completados, días perfectos y mejor racha.
+//     El cumplimiento va primero y no los días perfectos: con varios
+//     hábitos, cumplir todos menos uno cada día daba cero días perfectos,
+//     y eso presidiendo el panel castiga sin informar.
+//  2. Mapa de calor, estilo calendario de contribuciones, de hasta un
+//     año. La intensidad de cada día es la proporción de lo que tocaba
+//     que se cumplió, no un hecho/no hecho.
+//  3. Una tarjeta por hábito: racha, porcentaje y su tira de días
+//     recientes en verde/rojo.
 //
-// El filtro de periodo (7 / 30 / 90 / todo) manda sobre 1 y sobre el
-// porcentaje de 3. El mapa se queda SIEMPRE en el último año: es la
-// vista panorámica, y recortarlo a una semana lo dejaría sin la forma
-// que lo hace útil. La racha tampoco lo sigue: es un dato del hábito,
-// no del periodo que se esté mirando.
+// El filtro de periodo (7 / 30 / 90 / todo) va arriba y manda sobre 1 y
+// sobre el porcentaje de 3. El mapa no lo sigue: es la vista panorámica,
+// y recortarlo a una semana lo dejaría sin la forma que lo hace útil. Sí
+// empieza en el hábito más viejo (con un mínimo de semanas): meses en
+// blanco de antes de que existiera nada no cuentan nada. La racha
+// tampoco sigue al filtro: es un dato del hábito, no del periodo.
 // ═══════════════════════════════════════════════════════════════
 
 import { t, getLang } from "../i18n/index.js";
@@ -39,8 +40,10 @@ import {
 import { visibles, agruparPorDia } from "../activity/model.js";
 import { lineaTiempoHTML } from "../activity/render.js";
 
-/** Semanas del mapa: un año redondo, como el calendario de GitHub. */
+/** Semanas del mapa: hasta un año redondo, como el calendario de GitHub,
+ *  y al menos unas 4 meses para que tenga forma aunque todo sea nuevo. */
 const SEMANAS_MAPA = 53;
+const SEMANAS_MAPA_MIN = 18;
 
 /* Días de la tira de cada hábito. Es MUCHO más corta que el mapa a
    propósito: repartir un año en el ancho del modal deja celdas de 2px,
@@ -114,7 +117,7 @@ function desdeDelPeriodo(habits, todayISO) {
   return masViejo;
 }
 
-/** Bloque 1: el titular y su línea de apoyo. */
+/** Bloque 1: cuatro tarjetas con los datos del periodo. */
 function resumenHTML(habits, todayISO) {
   const desde = desdeDelPeriodo(habits, todayISO);
   let done = 0;
@@ -126,18 +129,30 @@ function resumenHTML(habits, todayISO) {
 
   const pct = due ? Math.round((done / due) * 100) : 0;
   const perfectos = perfectDays(habits, desde, todayISO);
+  let mejor = 0;
+  habits.forEach(function (h) { mejor = Math.max(mejor, computeStreak(h, todayISO)); });
+
+  const tarjeta = function (clase, valor, etiqueta, extra) {
+    return '<div class="hist-tile' + (clase ? " " + clase : "") + '">' +
+      '<span class="hist-tile-valor">' + valor + "</span>" +
+      '<span class="hist-tile-etq">' + escHtml(etiqueta) + "</span>" +
+      (extra || "") +
+    "</div>";
+  };
+  // La frase entera, para el lector de pantalla: las tarjetas sueltas
+  // («72 %», «Cumplimiento») se leerían sin hilo.
+  const frase = t("hist.summary").replace("{done}", String(done)).replace("{total}", String(due)) +
+    ". " + t("hist.pct").replace("{n}", String(pct)) + ". " +
+    (perfectos === 1 ? t("hist.perfect_one") : t("hist.perfect").replace("{n}", String(perfectos))) + ".";
 
   return (
-    '<p class="hist-hero">' +
-      escHtml(t("hist.summary").replace("{done}", String(done)).replace("{total}", String(due))) +
-    "</p>" +
-    '<p class="hist-sub">' +
-      escHtml(t("hist.pct").replace("{n}", String(pct))) +
-      " · " +
-      escHtml(perfectos === 1
-        ? t("hist.perfect_one")
-        : t("hist.perfect").replace("{n}", String(perfectos))) +
-    "</p>"
+    '<div class="hist-tiles" role="group" aria-label="' + escHtml(frase) + '">' +
+      tarjeta("hist-tile--pct", pct + "%", t("hist.tile_pct"),
+        '<span class="hist-tile-barra" aria-hidden="true"><span style="width:' + pct + '%"></span></span>') +
+      tarjeta("", done + '<small>/' + due + "</small>", t("hist.tile_done")) +
+      tarjeta("", String(perfectos), t("hist.tile_perfect")) +
+      tarjeta("hist-tile--racha", '<i data-lucide="flame" class="hist-flame"></i>' + mejor, t("hist.tile_best")) +
+    "</div>"
   );
 }
 
@@ -166,12 +181,17 @@ function filtroHTML() {
  * el ratón. 370 elementos enfocables serían una trampa para el teclado.
  */
 function mapaHTML(habits, todayISO) {
+  // Desde la semana del hábito más viejo, entre el mínimo y un año.
+  let masViejo = todayISO;
+  habits.forEach(function (h) { const ini = startDate(h); if (ini < masViejo) masViejo = ini; });
+  const diasDesde = Math.round((new Date(todayISO + "T00:00:00Z").getTime() - new Date(masViejo + "T00:00:00Z").getTime()) / 864e5);
+  const semanas = Math.min(SEMANAS_MAPA, Math.max(SEMANAS_MAPA_MIN, Math.ceil(diasDesde / 7) + 1));
   // Se alinea a lunes para que cada columna sea una semana entera.
-  const desde = weekStart(addDays(todayISO, -((SEMANAS_MAPA - 1) * 7)));
+  const desde = weekStart(addDays(todayISO, -((semanas - 1) * 7)));
   const serie = heatSeries(habits, desde, todayISO);
   const base  = new Date(desde + "T00:00:00Z").getTime();
 
-  const ancho = SEMANAS_MAPA * PASO - HUECO;
+  const ancho = semanas * PASO - HUECO;
   const alto  = 7 * PASO - HUECO;
 
   let celdas = "";
@@ -193,8 +213,8 @@ function mapaHTML(habits, todayISO) {
       : fechaLegible(d.date) + " — " + d.done + "/" + d.due;
 
     celdas +=
-      '<rect class="hm-cell hm-cell--' + d.level + '" x="' + x + '" y="' + y + '"' +
-      ' width="' + CELDA + '" height="' + CELDA + '" rx="2">' +
+      '<rect class="hm-cell hm-cell--' + d.level + (d.date === todayISO ? " hm-cell--hoy" : "") + '" x="' + x + '" y="' + y + '"' +
+      ' width="' + CELDA + '" height="' + CELDA + '" rx="2.5">' +
       "<title>" + escHtml(titulo) + "</title></rect>";
   });
 
@@ -203,12 +223,12 @@ function mapaHTML(habits, todayISO) {
   // parte del año estás mirando.
   let meses = "";
   let mesPrevio = -1;
-  for (let c = 0; c < SEMANAS_MAPA; c++) {
+  for (let c = 0; c < semanas; c++) {
     const lunes = new Date(base + c * 604800000);
     const m = lunes.getUTCMonth();
     if (m !== mesPrevio) {
       // La última columna se salta: la etiqueta se saldría del SVG.
-      if (mesPrevio !== -1 && c < SEMANAS_MAPA - 1) {
+      if (mesPrevio !== -1 && c < semanas - 1) {
         const txt = lunes.toLocaleDateString(locale(), { month: "short", timeZone: "UTC" })
           .replace(/\.$/, "");
         meses += '<text class="hm-mes" x="' + (c * PASO) + '" y="10">' + escHtml(txt) + "</text>";
@@ -231,8 +251,13 @@ function mapaHTML(habits, todayISO) {
     .replace("{done}", String(hechos))
     .replace("{total}", String(conAlgo));
 
+  const rotulo = semanas >= SEMANAS_MAPA
+    ? t("hist.map_year")
+    : t("hist.map_since").replace("{date}", new Date(desde + "T00:00:00").toLocaleDateString(locale(), { month: "long", year: "numeric" }));
+
   return (
-    '<p class="hist-caption">' + escHtml(t("hist.map_year")) + "</p>" +
+    '<section class="hist-bloque">' +
+    '<p class="hist-caption">' + escHtml(rotulo) + "</p>" +
     '<div class="hm-wrap">' +
       '<div class="hm-dows" aria-hidden="true">' + dows + "</div>" +
       '<div class="hm-scroll" id="hm-scroll">' +
@@ -244,7 +269,8 @@ function mapaHTML(habits, todayISO) {
         "</svg>" +
       "</div>" +
     "</div>" +
-    leyendaHTML()
+    leyendaHTML() +
+    "</section>"
   );
 }
 
@@ -269,8 +295,8 @@ function tiraHabito(habit, todayISO, dias) {
   for (let i = dias - 1; i >= 0; i--) {
     const d = addDays(todayISO, -i);
     let clase = "hs-cell--none";
-    if (isDueOn(habit, d)) clase = isDoneOn(habit, d) ? "hs-cell--done" : "hs-cell--miss";
-    celdas += '<span class="hs-cell ' + clase + '"></span>';
+    if (isDueOn(habit, d)) clase = isDoneOn(habit, d) ? "hs-cell--done" : (i === 0 ? "hs-cell--pend" : "hs-cell--miss");
+    celdas += '<span class="hs-cell ' + clase + (i === 0 ? " hs-cell--hoy" : "") + '"></span>';
   }
   return '<span class="hs-strip" aria-hidden="true" title="' +
     escHtml(t("hist.recent").replace("{n}", String(dias))) + '">' + celdas + "</span>";
@@ -325,8 +351,10 @@ function listaHTML(habits, todayISO) {
   // porcentaje de al lado obedece al filtro, y un rótulo con un número
   // de días fijo estaría contradiciendo a la mitad de la fila. La tira
   // dice su ventana en el tooltip.
-  return '<p class="hist-caption">' + escHtml(t("hist.per_habit")) + "</p>" +
-    '<ul class="hist-list">' + filas + "</ul>";
+  return '<section class="hist-bloque hist-bloque--lista">' +
+    '<p class="hist-caption">' + escHtml(t("hist.per_habit")) + "</p>" +
+    '<ul class="hist-list">' + filas + "</ul>" +
+  "</section>";
 }
 
 /**
@@ -355,6 +383,27 @@ function enfocableSiDesborda(el, etiqueta, eje) {
   el.setAttribute("aria-label", etiqueta);
 }
 
+/**
+ * Con pocas semanas (hábitos nuevos) el mapa ocupaba un tercio de su
+ * tarjeta y el resto quedaba vacío. Si sobra sitio, crece hasta llenarla,
+ * con un tope de casi el doble para que las casillas no se vuelvan
+ * baldosas. Los rótulos de día escalan con él (--hm-escala) para seguir
+ * cayendo en su fila. Si no cabe, se queda a su tamaño y se desplaza.
+ */
+function escalarMapa(cuerpo, scroll) {
+  const svg = scroll && scroll.querySelector(".hm-grid");
+  const wrap = scroll && scroll.closest(".hm-wrap");
+  if (!svg || !wrap) return;
+  const ancho = Number(svg.getAttribute("width"));
+  const dows = wrap.querySelector(".hm-dows");
+  const sitio = wrap.clientWidth - (dows ? dows.offsetWidth + 6 : 0);
+  const escala = Math.max(1, Math.min(1.8, sitio / ancho));
+  if (escala === 1) return;
+  svg.style.width = (ancho * escala) + "px";
+  svg.style.height = "auto";
+  wrap.style.setProperty("--hm-escala", String(escala));
+}
+
 /** Rellena el cuerpo del modal. Se vuelve a llamar al cambiar el filtro. */
 function pintar(cuerpo, habits, todayISO, actividad) {
   if (_pestana === "actividad") {
@@ -367,8 +416,8 @@ function pintar(cuerpo, habits, todayISO, actividad) {
   }
   const conDatos = habits.length > 0;
   cuerpo.innerHTML = pestanasHTML() + (conDatos
-    ? resumenHTML(habits, todayISO) +
-      filtroHTML() +
+    ? filtroHTML() +
+      resumenHTML(habits, todayISO) +
       mapaHTML(habits, todayISO) +
       listaHTML(habits, todayISO)
     : listaHTML(habits, todayISO));
@@ -376,6 +425,7 @@ function pintar(cuerpo, habits, todayISO, actividad) {
   // El mapa nace mirando a hoy, no a hace un año: al abrirlo, lo primero
   // que se ve tiene que ser la parte reciente.
   const scroll = cuerpo.querySelector("#hm-scroll");
+  escalarMapa(cuerpo, scroll);
   if (scroll) scroll.scrollLeft = scroll.scrollWidth;
 
   enfocableSiDesborda(scroll, t("hist.map_year"), "x");

@@ -13258,26 +13258,111 @@ button {
    una escala de 8 pasos validada en ambos temas: no hace falta inventar
    colores nuevos para la intensidad. */
 
+/* Caja en el tono de los contenedores de la app y, dentro, tarjetas con
+   su borde (resumen, mapa, cada hábito): las mismas dos capas que las
+   vistas. Opaco (--capa-canvas) porque en oscuro el lienzo es
+   translúcido. Más ancho que antes para que quepa más mapa. */
 .hist-modal {
-  max-width: 560px;
-  width: min(560px, 92vw);
+  max-width: 760px;
+  width: min(760px, 94vw);
 }
 
-/* ── 1. Resumen del periodo ─────────────────────────────────────
-   El titular es el cumplimiento real, no los días perfectos: con varios
-   hábitos, cumplir todos menos uno cada día daba un cero y eso
-   presidiendo el panel castiga sin informar. */
-.hist-hero {
-  font-size: 1.15rem;
-  font-weight: var(--fw-semibold, 600);
+:root .modal-box.hist-modal,
+:root[data-theme="light"] .modal-box.hist-modal {
+  background: var(--capa-canvas);
+}
+
+.hist-bloque,
+.hist-tile,
+.hist-row {
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
+}
+
+.hist-bloque {
+  padding: 14px 16px 12px;
+  border-radius: 22px;
+  margin-bottom: 12px;
+}
+
+/* La lista no lleva caja propia: cada hábito ya es una tarjeta. */
+.hist-bloque--lista {
+  padding: 0;
+  background: none;
+  border: 0;
+  margin-bottom: 0;
+}
+
+/* ── Tarjetas del resumen ── */
+.hist-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.hist-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 20px;
+}
+
+.hist-tile-valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
-  margin: 0 0 0.2rem;
 }
 
-.hist-sub {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin: 0 0 0.9rem;
+.hist-tile-valor small {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.hist-tile-etq {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hist-tile--racha .hist-tile-valor {
+  color: var(--c-overdue);
+}
+
+.hist-tile--racha .hist-flame {
+  width: 18px;
+  height: 18px;
+}
+
+.hist-tile-barra {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.hist-tile-barra > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c-primary-500);
+}
+
+:root[data-theme="dark"] .hist-tile-barra > span {
+  background: var(--c-primary-300);
 }
 
 /* ── Filtro de periodo ──────────────────────────────────────────
@@ -13288,8 +13373,8 @@ button {
   display: flex;
   gap: 3px;
   padding: 3px;
-  margin: 0 0 1.1rem;
-  background: var(--surface-raised);
+  margin: 0 0 12px;
+  background: var(--surface-card);
   border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
 }
@@ -13333,8 +13418,8 @@ button {
    salta la banda de meses. */
 .hm-dows {
   display: grid;
-  grid-template-rows: repeat(7, 14px);
-  margin-top: 15px;
+  grid-template-rows: repeat(7, calc(14px * var(--hm-escala, 1)));
+  margin-top: calc(15px * var(--hm-escala, 1));
   font-size: 0.62rem;
   line-height: 11px;
   color: var(--text-tertiary);
@@ -13357,7 +13442,15 @@ button {
 
 .hm-mes {
   fill: var(--text-tertiary);
-  font-size: 9px;
+  /* Contra la escala del mapa (ver escalarMapa): el SVG crece y el
+     texto no tiene por qué. */
+  font-size: calc(10px / var(--hm-escala, 1));
+}
+
+/* Hoy, con un anillo: dónde acaba lo que se está mirando. */
+.hm-cell--hoy {
+  stroke: var(--text-primary);
+  stroke-width: 1.5;
 }
 
 /* Nivel 0 = "no tocaba nada". Deliberadamente NEUTRO: un día sin nada
@@ -13402,8 +13495,9 @@ button {
 .hm-key {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  margin: 0.6rem 0 1.2rem;
+  margin: 0.5rem 0 0;
   font-size: 0.72rem;
   color: var(--text-tertiary);
 }
@@ -13456,15 +13550,17 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-height: 34vh;
+  gap: 6px;
+  max-height: 40vh;
   overflow-y: auto;
 }
 
 .hist-row {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 20px;
 }
 
 .hist-row-top {
@@ -13475,8 +13571,8 @@ button {
 }
 
 .hist-name {
-  font-size: 0.88rem;
-  font-weight: var(--fw-medium);
+  font-size: 0.92rem;
+  font-weight: var(--fw-semibold, 600);
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -13520,6 +13616,16 @@ button {
   color: var(--text-tertiary);
 }
 
+/* Hoy en la tira: aún por hacer (sin rojo, que no ha fallado) y con el
+   mismo anillo que en el mapa. */
+.hs-cell--pend {
+  background: transparent;
+}
+
+.hs-cell--hoy {
+  box-shadow: inset 0 0 0 1.5px var(--text-primary);
+}
+
 /* Tira por hábito: una celda por día, binaria. La intensidad no aplica
    aquí — un hábito suelto solo puede estar hecho o no. */
 .hs-strip {
@@ -13533,8 +13639,8 @@ button {
 .hs-cell {
   flex: 1 1 0;
   min-width: 2px;
-  height: 14px;
-  border-radius: 2px;
+  height: 16px;
+  border-radius: 4px;
 }
 
 .hs-cell--none {
@@ -13576,6 +13682,11 @@ button {
 @media (max-width: 768px) {
   .hist-list {
     max-height: 38vh;
+  }
+
+  /* Cuatro en fila no caben a 390: dos y dos. */
+  .hist-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   /* El nombre ya se recorta con puntos suspensivos; lo que no puede
@@ -13660,9 +13771,9 @@ button {
     border: none;
     border-radius: 0;
     box-shadow: none;
-    /* La tarjeta y no el lienzo: las casillas vacías del mapa son del
-       color del lienzo y sobre él desaparecían. */
-    background: var(--surface-card);
+    /* El lienzo, como la caja de PC: las casillas del mapa van ahora
+       sobre su tarjeta, donde se distinguen. */
+    background: var(--capa-canvas);
     opacity: 1;
     transform: translateX(100%);
     transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
@@ -13690,7 +13801,7 @@ button {
     gap: 8px;
     margin: 0 -18px 18px;
     padding: calc(14px + env(safe-area-inset-top)) 12px 14px;
-    background: var(--surface-card);
+    background: var(--capa-canvas);
   }
 
   .hist-volver {
@@ -13735,10 +13846,6 @@ button {
     overflow: visible;
   }
 
-  .modal-overlay--pantalla .hist-hero {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-  }
 }
 
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
