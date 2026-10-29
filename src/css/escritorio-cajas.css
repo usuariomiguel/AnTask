@@ -155,14 +155,36 @@
     background: var(--surface-card);
   }
 
-  /* ── 7. Detalle: campos, subtarea, enlace y nota ───────────────
+  /* ── 7. Detalle: solo Lista y Nota con caja ────────────────────
+     En «Limpio» y en «Tarjetas». Los campos (importante, fecha, repetir,
+     recordatorio) y los de añadir subtarea y enlace van sin caja: se
+     tiñen al pasar el ratón y los de escribir recuperan su borde al
+     usarlos. Lista y Nota sí llevan fondo y borde. El borde de 2px se
+     queda siempre (transparente), así que nada cambia de tamaño.
+
      Con `:root` delante y los mismos ancestros que style.css: allí los
      campos se dejan sin caja con `:root .task-detail-props …` y
      `:root .task-detail-panel .task-detail-section …`, que pesan más que
      la clase sola. A igual peso, gana este fichero por cargar después. */
   :root .task-detail-props .task-detail-field-btn,
+  :root .task-detail-panel .task-detail-subtask-form input {
+    background: transparent;
+    border: 2px solid transparent;
+  }
+
+  :root .task-detail-props .task-detail-field-btn:hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  }
+
+  :root .task-detail-panel .task-detail-subtask-form input:is(:hover, :focus) {
+    border-color: var(--border-default);
+  }
+
+  :root .task-detail-panel .task-detail-subtask-form input:focus {
+    background: var(--surface-card);
+  }
+
   :root .task-detail-panel .task-detail-section .task-detail-field-btn,
-  :root .task-detail-panel .task-detail-subtask-form input,
   :root .task-detail-panel .task-detail-textarea {
     background: var(--surface-card);
     border: 2px solid var(--border-default);
@@ -238,24 +260,12 @@
      pulsar. Los campos de escribir recuperan su caja al usarlos. El estilo
      se lee de la raíz (<html data-row-style>) porque la sidebar y el
      detalle no cuelgan del panel central. */
-  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn),
-  html[data-row-style="limpio"] .task-detail-props .task-detail-field-btn,
-  html[data-row-style="limpio"] .task-detail-panel .task-detail-section .task-detail-field-btn,
-  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea) {
+  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn) {
     background: transparent;
     border-color: transparent;
   }
 
-  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn):hover,
-  html[data-row-style="limpio"] .task-detail-panel .task-detail-field-btn:hover {
+  html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn):hover {
     background: color-mix(in srgb, var(--text-primary) 6%, transparent);
-  }
-
-  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea):is(:hover, :focus) {
-    border-color: var(--border-default);
-  }
-
-  html[data-row-style="limpio"] .task-detail-panel :is(.task-detail-subtask-form input, .task-detail-textarea):focus {
-    background: var(--surface-card);
   }
 }
