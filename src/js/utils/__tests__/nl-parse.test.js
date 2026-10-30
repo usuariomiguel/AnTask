@@ -187,3 +187,53 @@ describe("parseNaturalLanguage — combinaciones", () => {
     expect(res.text).toBe("Stand-up");
   });
 });
+
+// Referencia: domingo 24-05-2026.
+describe("parseNaturalLanguage — inglés", () => {
+  const casos = [
+    ["Call mom today",                 "Call mom",     "2026-05-24", null],
+    ["Take out the trash tonight",     "Take out the trash", "2026-05-24", null],
+    ["Call mom tomorrow",              "Call mom",     "2026-05-25", null],
+    ["Dentist the day after tomorrow", "Dentist",      "2026-05-26", null],
+    ["Renew passport in 3 days",       "Renew passport", "2026-05-27", null],
+    ["Review budget in 2 weeks",       "Review budget", "2026-06-07", null],
+    ["Send invoice friday",            "Send invoice", "2026-05-29", null],
+    ["Send invoice on Friday",         "Send invoice", "2026-05-29", null],
+    ["Groceries next sunday",          "Groceries",    "2026-05-31", null],
+    ["Water plants every 2 days",      "Water plants", null,         2],
+    ["Backup every 3 weeks",           "Backup",       null,         21],
+    ["Pay rent every month",           "Pay rent",     null,         30],
+    ["Run every other day",            "Run",          null,         2],
+    ["Stretch every day",              "Stretch",      null,         1],
+    ["Stand-up every monday",          "Stand-up",     "2026-05-25", 7],
+  ];
+  for (const [entrada, texto, fecha, rep] of casos) {
+    it(entrada, () => {
+      const res = parseNaturalLanguage(entrada);
+      expect(res.text).toBe(texto);
+      expect(res.dueDate).toBe(fecha);
+      expect(res.recurDays).toBe(rep);
+    });
+  }
+
+  it('"3/15" no vale como día/mes → se lee como 15 de marzo', () => {
+    expect(parseNaturalLanguage("Taxes 3/15").dueDate).toBe("2027-03-15");
+  });
+
+  it('"3/4" sigue siendo 3 de abril', () => {
+    expect(parseNaturalLanguage("Cita 3/4").dueDate).toBe("2027-04-03");
+  });
+
+  it('los adjetivos sueltos no se comen el título ("Daily con el equipo")', () => {
+    const res = parseNaturalLanguage("Daily con el equipo");
+    expect(res.text).toBe("Daily con el equipo");
+    expect(res.recurDays).toBeNull();
+  });
+
+  it("inglés y prioridad juntos", () => {
+    const res = parseNaturalLanguage("Quarterly report tomorrow p1");
+    expect(res.text).toBe("Quarterly report");
+    expect(res.dueDate).toBe("2026-05-25");
+    expect(res.priority).toBe("high");
+  });
+});

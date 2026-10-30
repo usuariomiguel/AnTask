@@ -159,7 +159,7 @@ export function showQuickCapture(deps) {
       '<span class="quick-capture-hint">' +
         '<span class="qc-hint-word">' + t("quick_capture.hint_type") + '</span>' +
         (getLang() === "en"
-          ? '<code>#list</code><code>p1</code>'
+          ? (simple ? '<code>today</code><code>every 2 days</code>' : '<code>today</code><code>#list</code><code>p1</code>')
           : (simple ? '<code>hoy</code><code>cada 2 días</code>' : '<code>hoy</code><code>#lista</code><code>p1</code>')) +
         '<span class="qc-hint-word">' + t("quick_capture.hint_autocomplete") + '</span>' +
       '</span>' +

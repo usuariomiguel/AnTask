@@ -9,6 +9,16 @@
 //   - Prioridad   ("p1" — sin niveles, solo marca "importante")
 //   - Recurrencia ("todos los lunes", "cada 2 días", "mensualmente"…)
 //
+// Entiende también inglés, siempre, sin mirar el idioma de la app: quien
+// tiene la interfaz en español puede escribir "tomorrow", y al revés.
+//   - Fecha       ("today", "tonight", "tomorrow", "day after tomorrow",
+//                  "friday", "next monday", "on monday", "in 3 days",
+//                  "in 2 weeks", "3/15" cuando no vale como día/mes)
+//   - Recurrencia ("every day", "every 2 weeks", "every monday",
+//                  "every other day"…)
+// Los adjetivos sueltos ("daily", "weekly") NO cuentan: "Daily con el
+// equipo" es un título, no una orden. Esos los sugiere title-hints.js.
+//
 // Devuelve el texto limpio de esos tokens más la metadata extraída.
 // ═══════════════════════════════════════════════════════════════
 
@@ -35,6 +45,13 @@ const WEEKDAY_INDICES = {
   viernes: 5,
   sabado: 6,
   "sábado": 6,
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
 };
 
 /** @param {number} n */
@@ -60,6 +77,23 @@ function startOfDay(d) {
 }
 
 /**
+ * Próxima vez que cae ese día de la semana. Si es hoy, o se pidió el
+ * "próximo"/"next", salta a la semana siguiente.
+ *
+ * @param {string} dia
+ * @param {boolean} proximo
+ * @returns {string|null}
+ */
+function proximoDiaSemana(dia, proximo) {
+  const target = WEEKDAY_INDICES[dia.toLowerCase()];
+  if (typeof target !== "number") return null;
+  const now  = new Date();
+  let   diff = (target - now.getDay() + 7) % 7;
+  if (diff === 0 || proximo) diff = diff === 0 ? 7 : diff;
+  return toISODate(addDays(now, diff));
+}
+
+/**
  * Intenta detectar UNA fecha en el texto. Devuelve { dueDate, removed, index }
  * o null si no encuentra ninguna. Sólo extrae la primera ocurrencia.
  *
@@ -69,49 +103,52 @@ function startOfDay(d) {
 function parseDate(text) {
   let m;
 
-  // "pasado mañana" (probar antes que "mañana")
-  m = text.match(/\bpasado\s+(?:mañana|manana)\b/i);
+  // "pasado mañana" / "day after tomorrow" (probar antes que "mañana")
+  m = text.match(/\b(?:pasado\s+(?:mañana|manana)|(?:the\s+)?day\s+after\s+tomorrow)\b/i);
   if (m) return { dueDate: toISODate(addDays(new Date(), 2)), removed: m[0], index: m.index };
 
-  // "hoy"
-  m = text.match(/\bhoy\b/i);
+  // "hoy" / "today" / "tonight"
+  m = text.match(/\b(?:hoy|today|tonight)\b/i);
   if (m) return { dueDate: toISODate(new Date()), removed: m[0], index: m.index };
 
-  // "mañana" / "manana"
-  m = text.match(/\b(?:mañana|manana)\b/i);
+  // "mañana" / "manana" / "tomorrow"
+  m = text.match(/\b(?:mañana|manana|tomorrow)\b/i);
   if (m) return { dueDate: toISODate(addDays(new Date(), 1)), removed: m[0], index: m.index };
 
-  // "en N días/semanas"
-  m = text.match(/\ben\s+(\d+)\s+d[ií]as?\b/i);
+  // "en N días/semanas" / "in N days/weeks"
+  m = text.match(/\b(?:en\s+(\d+)\s+d[ií]as?|in\s+(\d+)\s+days?)\b/i);
   if (m) {
-    const n = parseInt(m[1], 10);
+    const n = parseInt(m[1] || m[2], 10);
     return { dueDate: toISODate(addDays(new Date(), n)), removed: m[0], index: m.index };
   }
-  m = text.match(/\ben\s+(\d+)\s+semanas?\b/i);
+  m = text.match(/\b(?:en\s+(\d+)\s+semanas?|in\s+(\d+)\s+weeks?)\b/i);
   if (m) {
-    const n = parseInt(m[1], 10);
+    const n = parseInt(m[1] || m[2], 10);
     return { dueDate: toISODate(addDays(new Date(), n * 7)), removed: m[0], index: m.index };
   }
 
   // "(el|próximo|proximo) <día>" o sólo "<día>"
   m = text.match(/\b(?:(el|próximo|proximo|próxima|proxima)\s+)?(domingo|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado)\b/i);
   if (m) {
-    const target = WEEKDAY_INDICES[m[2].toLowerCase()];
-    if (typeof target === "number") {
-      const now    = new Date();
-      const today  = now.getDay();
-      let   diff   = (target - today + 7) % 7;
-      // "próximo X" o si coincide hoy → la PRÓXIMA ocurrencia (no la de hoy)
-      if (diff === 0 || /próximo|proximo|próxima|proxima/i.test(m[1] || "")) diff = diff === 0 ? 7 : diff;
-      return { dueDate: toISODate(addDays(now, diff)), removed: m[0], index: m.index };
-    }
+    const fecha = proximoDiaSemana(m[2], /próximo|proximo|próxima|proxima/i.test(m[1] || ""));
+    if (fecha) return { dueDate: fecha, removed: m[0], index: m.index };
+  }
+
+  // "(on|next|this) <day>" o sólo "<day>"
+  m = text.match(/\b(?:(on|next|this)\s+)?(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/i);
+  if (m) {
+    const fecha = proximoDiaSemana(m[2], /next/i.test(m[1] || ""));
+    if (fecha) return { dueDate: fecha, removed: m[0], index: m.index };
   }
 
   // "15/3" o "15-03-2026" o "15.3.26"
   m = text.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
-    const day   = parseInt(m[1], 10);
-    const month = parseInt(m[2], 10) - 1;
+    let day   = parseInt(m[1], 10);
+    let month = parseInt(m[2], 10) - 1;
+    // "3/15" no existe como día/mes: se lee como mes/día, al estilo de
+    // EE. UU. Lo ambiguo ("3/4") sigue siendo día/mes, como siempre.
+    if (month > 11 && day <= 12) { const d = day; day = month + 1; month = d - 1; }
     let   year  = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
     if (year < 100) year += 2000;
     if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 2000) {
@@ -139,34 +176,43 @@ function parseRecurrence(text) {
   let m;
 
   // "cada N días" / "cada N semanas" / "cada N meses" — variantes numéricas
-  m = text.match(/\bcada\s+(\d+)\s+d[ií]as?\b/i);
+  // (y en inglés, "every N days/weeks/months")
+  m = text.match(/\b(?:cada|every)\s+(\d+)\s+(?:d[ií]as?|days?)\b/i);
   if (m) return { recurDays: Math.min(parseInt(m[1], 10), 3650), removed: m[0], index: m.index };
 
-  m = text.match(/\bcada\s+(\d+)\s+semanas?\b/i);
+  m = text.match(/\b(?:cada|every)\s+(\d+)\s+(?:semanas?|weeks?)\b/i);
   if (m) return { recurDays: Math.min(parseInt(m[1], 10) * 7, 3650), removed: m[0], index: m.index };
 
-  m = text.match(/\bcada\s+(\d+)\s+meses?\b/i);
+  m = text.match(/\b(?:cada|every)\s+(\d+)\s+(?:meses?|months?)\b/i);
   if (m) return { recurDays: Math.min(parseInt(m[1], 10) * 30, 3650), removed: m[0], index: m.index };
 
+  // "every other day/week/month" — cada 2
+  m = text.match(/\bevery\s+other\s+(day|week|month)\b/i);
+  if (m) {
+    const base = m[1].toLowerCase() === "week" ? 7 : m[1].toLowerCase() === "month" ? 30 : 1;
+    return { recurDays: base * 2, removed: m[0], index: m.index };
+  }
+
   // Diario
-  m = text.match(/\b(?:todos\s+los\s+d[ií]as?|cada\s+d[ií]a|diariamente)\b/i);
+  m = text.match(/\b(?:todos\s+los\s+d[ií]as?|cada\s+d[ií]a|diariamente|every\s*day)\b/i);
   if (m) return { recurDays: 1, removed: m[0], index: m.index };
 
   // Quincenal — antes que "semanal" para que no se solape
-  m = text.match(/\b(?:quincenalmente|cada\s+quincena|cada\s+15\s+d[ií]as?)\b/i);
+  m = text.match(/\b(?:quincenalmente|cada\s+quincena|cada\s+15\s+d[ií]as?|every\s+fortnight)\b/i);
   if (m) return { recurDays: 14, removed: m[0], index: m.index };
 
   // Semanal
-  m = text.match(/\b(?:cada\s+semana|semanalmente)\b/i);
+  m = text.match(/\b(?:cada\s+semana|semanalmente|every\s+week)\b/i);
   if (m) return { recurDays: 7, removed: m[0], index: m.index };
 
   // Mensual
-  m = text.match(/\b(?:cada\s+mes|mensualmente)\b/i);
+  m = text.match(/\b(?:cada\s+mes|mensualmente|every\s+month)\b/i);
   if (m) return { recurDays: 30, removed: m[0], index: m.index };
 
-  // "(todos los|cada) <día>" — consume sólo el prefijo. El día se lo
+  // "(todos los|cada|every) <día>" — consume sólo el prefijo. El día se lo
   // queda parseDate para fijar la próxima ocurrencia como dueDate.
-  m = text.match(/\b(?:todos\s+los|cada)\s+(?=domingo|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado)/i);
+  m = text.match(/\b(?:todos\s+los|cada)\s+(?=domingo|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado)/i)
+   || text.match(/\bevery\s+(?=(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b)/i);
   if (m) return { recurDays: 7, removed: m[0], index: m.index };
 
   return null;
