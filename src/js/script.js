@@ -9589,6 +9589,11 @@ function _saveAccountCache(uid) {
 }
 
 var _syncWasConnected = false;
+// Se pone a true al terminar la primera sincronización de la sesión. Se
+// asignaba en seis sitios sin estar declarada, y en un módulo (modo
+// estricto) cada asignación lanzaba: la sincronización se cortaba a medias
+// —sin repintar al llegar datos de la nube, sin subir lo local al conectar—.
+var _primeraSincroHecha = false;
 
 function _syncOnAuthChange(user) {
   _updateProfileMenu(user);
@@ -9844,6 +9849,55 @@ function _unirActividadDeLaNube(cloudData) {
   try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad)); } catch (e) { /* el guardado normal avisa */ }
 }
 
+/**
+ * Tareas creadas en este dispositivo que ni la nube ni la caché de la
+ * cuenta conocen todavía.
+ *
+ * Firebase se carga aparte (ver sync-loader.js) y la sesión tarda unos
+ * segundos en resolverse. Lo que se crea en ese rato se guarda en local
+ * pero no en la caché de la cuenta, porque saveProjects() aún no ve al
+ * usuario. Al conectar, la nube o esa caché sustituían a `projects` y la
+ * tarea desaparecía: «la primera que creo al abrir no se crea».
+ *
+ * @param {string} uid
+ * @param {any[]|undefined} remoteProjects
+ * @returns {{projectId: string, task: any}[]}
+ */
+function _tareasSinSubir(uid, remoteProjects) {
+  var conocidas = {};
+  var cache = [];
+  try { cache = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]"); } catch (e) { cache = []; }
+  [cache, remoteProjects || []].forEach(function(lista) {
+    lista.forEach(function(p) {
+      (p && Array.isArray(p.tasks) ? p.tasks : []).forEach(function(tk) { if (tk && tk.id) conocidas[tk.id] = true; });
+    });
+  });
+  var nuevas = [];
+  projects.forEach(function(p) {
+    p.tasks.forEach(function(tk) { if (!conocidas[tk.id]) nuevas.push({ projectId: p.id, task: tk }); });
+  });
+  return nuevas;
+}
+
+/**
+ * Vuelve a meter esas tareas en su lista (o en el Inbox si la lista ya no
+ * existe), en el mismo orden, y las guarda y sube.
+ * @param {{projectId: string, task: any}[]} nuevas
+ */
+function _recolocarTareasSinSubir(nuevas) {
+  if (!nuevas.length) return;
+  for (var i = nuevas.length - 1; i >= 0; i--) {
+    var n = nuevas[i];
+    var destino = projects.find(function(p) { return p.id === n.projectId; }) ||
+      projects.find(function(p) { return p.id === INBOX_ID; });
+    if (!destino || destino.tasks.some(function(tk) { return tk.id === n.task.id; })) continue;
+    destino.tasks.unshift(n.task);
+  }
+  saveProjects();
+  renderSidebar();
+  renderTasks();
+}
+
 function _syncOnFirstConnect(cloudData) {
   var user = window.AnsoSync?.getUser?.() ?? null;
   if (!user) return;
@@ -9853,60 +9907,74 @@ function _syncOnFirstConnect(cloudData) {
   var hasAccountCache = localStorage.getItem(_acctKey(uid)) !== null;
 
   if (hasAccountCache) {
-    // Dispositivo ya usado con esta cuenta → comparar caché vs nube
-    if (!cloudData || !Array.isArray(cloudData.projects)) {
-      // Nube vacía → subir caché local
-      _primeraSincroHecha = true;
-      try {
-        projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
-        sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
-        habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
-        actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
-        localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-        localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
-        localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
-        localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
-        renderSidebar(); renderTasks();
-      } catch(e) {}
-      window.AnsoSync?.scheduleSave?.(_workspace());
-      return;
-    }
-    var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
-    var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
-    var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
-    var cachedProjects  = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]");
-    var cachedHabits    = JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]");
-    var cloudHasContent = _tieneContenido(cloudData.projects, cloudData.habits);
-    var localHasContent = _tieneContenido(cachedProjects, cachedHabits);
-
-    // Una caché local VACÍA con marca de tiempo más reciente no debe ganar
-    // nunca a datos reales de la nube: solo dice "aquí no se guardó nada
-    // desde entonces", no "esto es lo correcto". Sin esta excepción, un
-    // dispositivo recién limpiado que cachea su vacío se queda sordo a la
-    // nube para siempre, aunque tenga todas las tareas esperando ahí.
-    if (cloudTime >= localTime || (cloudHasContent && !localHasContent)) {
-      _syncApplyRemote(cloudData, uid);
-    } else {
-      // Caché local más reciente → restaurar y subir
-      try {
-        projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
-        sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
-        habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
-        actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
-        localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-        localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
-        localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
-        localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
-        renderSidebar(); renderTasks();
-      } catch(e) {}
-      _noPisarHabitosDeLaNube(cloudData, uid);
-      _unirActividadDeLaNube(cloudData);
-      _primeraSincroHecha = true;
-      window.AnsoSync?.scheduleSave?.(_workspace());
-    }
+    // Lo creado antes de que la sesión estuviera lista, antes de que la
+    // nube o la caché sustituyan lo que hay en memoria.
+    var sinSubir = _tareasSinSubir(uid, cloudData && cloudData.projects);
+    _primerContactoCuenta(cloudData, uid);
+    _recolocarTareasSinSubir(sinSubir);
     return;
   }
+  _primerContactoSinCache(cloudData, uid);
+}
 
+/** Primera conexión en un dispositivo que ya usó esta cuenta. */
+function _primerContactoCuenta(cloudData, uid) {
+  // Dispositivo ya usado con esta cuenta → comparar caché vs nube
+  if (!cloudData || !Array.isArray(cloudData.projects)) {
+    // Nube vacía → subir caché local
+    _primeraSincroHecha = true;
+    try {
+      projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
+      sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+      habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
+      actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+      localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
+      localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
+      renderSidebar(); renderTasks();
+    } catch(e) {}
+    window.AnsoSync?.scheduleSave?.(_workspace());
+    return;
+  }
+  var cachedMeta = JSON.parse(localStorage.getItem(_acctMetaKey(uid)) || "null");
+  var localTime  = cachedMeta && cachedMeta.lastSavedAt ? new Date(cachedMeta.lastSavedAt).getTime() : 0;
+  var cloudTime  = cloudData.updatedAt ? cloudData.updatedAt.toMillis() : 0;
+  var cachedProjects  = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]");
+  var cachedHabits    = JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]");
+  var cloudHasContent = _tieneContenido(cloudData.projects, cloudData.habits);
+  var localHasContent = _tieneContenido(cachedProjects, cachedHabits);
+
+  // Una caché local VACÍA con marca de tiempo más reciente no debe ganar
+  // nunca a datos reales de la nube: solo dice "aquí no se guardó nada
+  // desde entonces", no "esto es lo correcto". Sin esta excepción, un
+  // dispositivo recién limpiado que cachea su vacío se queda sordo a la
+  // nube para siempre, aunque tenga todas las tareas esperando ahí.
+  if (cloudTime >= localTime || (cloudHasContent && !localHasContent)) {
+    _syncApplyRemote(cloudData, uid);
+  } else {
+    // Caché local más reciente → restaurar y subir
+    try {
+      projects = JSON.parse(localStorage.getItem(_acctKey(uid)) || "[]").map(sanitizeProject);
+      sections = JSON.parse(localStorage.getItem(_acctSectKey(uid)) || "[]");
+      habits   = sanitizeHabits(JSON.parse(localStorage.getItem(_acctHabitsKey(uid)) || "[]"));
+      actividad = sanitizeActividad(JSON.parse(localStorage.getItem(_acctActKey(uid)) || "[]"));
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+      localStorage.setItem(HABITS_KEY,   JSON.stringify(habits));
+      localStorage.setItem(ACTIVITY_KEY, JSON.stringify(actividad));
+      renderSidebar(); renderTasks();
+    } catch(e) {}
+    _noPisarHabitosDeLaNube(cloudData, uid);
+    _unirActividadDeLaNube(cloudData);
+    _primeraSincroHecha = true;
+    window.AnsoSync?.scheduleSave?.(_workspace());
+  }
+  return;
+}
+
+/** Primera conexión con esta cuenta en este dispositivo. */
+function _primerContactoSinCache(cloudData, uid) {
   // ── Primera vez con esta cuenta en este dispositivo ───────────
   // Solo cuenta como "datos anónimos" si hay tareas reales.
   // Proyectos vacíos auto-creados (Inbox) no deben disparar el modal de conflicto.
