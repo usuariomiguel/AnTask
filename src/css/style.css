@@ -15646,6 +15646,35 @@ body,
     line-height: 1.4;
     color: var(--text-tertiary);
   }
+
+  .hoy-section-ayuda[hidden] {
+    display: none;
+  }
+
+  /* El «?» que despliega la ayuda: icono pequeño junto al rótulo, con área
+     de toque de 32 px sin empujar la cabecera (márgenes negativos). */
+  .hoy-section-ayuda-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -8px -6px -8px -4px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .hoy-section-ayuda-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hoy-section-ayuda-btn[aria-expanded="true"] {
+    color: var(--text-secondary);
+  }
 }
 
 /* Barra de abajo con su nombre bajo cada icono (Hoy, Inbox, Ajustes): en

@@ -7126,11 +7126,33 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
  * qué hay ahí y qué se puede hacer. Va justo antes de la lista (con la
  * cabecera oculta, como en Hábitos, queda arriba del todo).
  */
+/** Ayudas de sección abiertas (clave i18n → true). Solo en memoria. */
+var _ayudasAbiertas = {};
 function _ayudaSeccion(sec, clave) {
   if (!isSimpleMobile() || !sec || !sec.li) return;
+  // Plegada tras un «?» junto al rótulo: abierta, cada sección perdía dos
+  // líneas de pantalla con algo que solo hace falta leer una vez.
   var p = document.createElement("p");
   p.className = "hoy-section-ayuda";
+  p.id = "ayuda-" + clave.replace(/\./g, "-");
   p.textContent = t(clave);
+  p.hidden = !_ayudasAbiertas[clave];
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "hoy-section-ayuda-btn";
+  btn.innerHTML = '<i data-lucide="circle-question-mark"></i>';
+  btn.setAttribute("aria-label", t("hoy.help_toggle"));
+  btn.setAttribute("aria-controls", p.id);
+  btn.setAttribute("aria-expanded", String(!p.hidden));
+  btn.addEventListener("click", function() {
+    p.hidden = !p.hidden;
+    btn.setAttribute("aria-expanded", String(!p.hidden));
+    // Se recuerda mientras dure la sesión: la vista se repinta con cada
+    // cambio y, si no, se cerraría sola al marcar una tarea.
+    if (p.hidden) delete _ayudasAbiertas[clave]; else _ayudasAbiertas[clave] = true;
+  });
+  var head = sec.li.querySelector(".hoy-section-head");
+  head.insertBefore(btn, head.querySelector(".hoy-section-rule"));
   sec.li.insertBefore(p, sec.list);
 }
 

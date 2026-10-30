@@ -141,6 +141,7 @@ export const en = {
   "hoy.schedule_all":         "Schedule all for today",
   "hoy.all_to_today":         "All to today",
   "hoy.nodate_short":         "No date",
+  "hoy.help_toggle":          "What is this section",
   "hoy.help_overdue":         "Their date has passed. Move them to today or change the day.",
   "hoy.help_today":           "What you have for today. Tap a task to change its date or repeat it.",
   "hoy.help_nodate":          "Tasks with no day. If you have time, bring them to today.",

@@ -143,6 +143,7 @@ export const es = {
   "hoy.schedule_all":         "Programar todas hoy",
   "hoy.all_to_today":         "Todas a hoy",
   "hoy.nodate_short":         "Sin fecha",
+  "hoy.help_toggle":          "Qué es esta sección",
   "hoy.help_overdue":         "Tenían fecha y ya pasó. Muévelas a hoy o cámbiales el día.",
   "hoy.help_today":           "Lo que tienes para hoy. Toca una tarea para cambiarle la fecha o repetirla.",
   "hoy.help_nodate":          "Tareas sin día. Si te da tiempo, tráelas a hoy.",
