@@ -57,6 +57,7 @@ export default defineConfig(({ command }) => ({
       input: {
         app: resolve(__dirname, "index.html"),
         inicio: resolve(__dirname, "inicio/index.html"),
+        en: resolve(__dirname, "en/index.html"),
         privacidad: resolve(__dirname, "privacidad/index.html"),
         terminos: resolve(__dirname, "terminos/index.html"),
       },

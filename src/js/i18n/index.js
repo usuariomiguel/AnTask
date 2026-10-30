@@ -9,7 +9,10 @@ const SUPPORTED = ["es", "en"];
 const CATALOGS = { es, en };
 
 /**
- * Detecta el idioma preferido: localStorage → navigator.language → "es".
+ * Detecta el idioma preferido: localStorage → navigator.language.
+ * Español para el español y las lenguas de España (catalán, gallego,
+ * euskera); inglés para todo lo demás: a un francés o un alemán le sirve
+ * más el inglés que el español.
  * @returns {"es"|"en"}
  */
 function detectLang() {
@@ -17,7 +20,7 @@ function detectLang() {
   if (stored && SUPPORTED.includes(stored)) return /** @type {any} */ (stored);
 
   const nav = (navigator.language || "").toLowerCase().slice(0, 2);
-  return nav === "en" ? "en" : "es";
+  return ["es", "ca", "gl", "eu"].includes(nav) ? "es" : "en";
 }
 
 let _lang = detectLang();

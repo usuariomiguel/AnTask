@@ -1,8 +1,16 @@
-// Entrada de las páginas públicas (/inicio, /privacidad, /terminos): solo
+// Entrada de las páginas públicas (/inicio, /en, /privacidad, /terminos): solo
 // las fuentes. Sin la app, sin Firebase y sin analítica.
 import "@fontsource-variable/inter";
 import "@fontsource-variable/bricolage-grotesque/wght.css";
 import "@fontsource-variable/jetbrains-mono";
+
+// Desde la landing en inglés, la app se abre en inglés aunque el navegador
+// esté en otro idioma. Solo si no se ha elegido ya uno en la app.
+document.querySelectorAll("[data-app-en]").forEach(function (enlace) {
+  enlace.addEventListener("click", function () {
+    try { if (!localStorage.getItem("antrack_lang")) localStorage.setItem("antrack_lang", "en"); } catch (e) { /* sin almacenamiento: manda el navegador */ }
+  });
+});
 
 // Botón de tema: alterna claro/oscuro y lo recuerda en la misma clave que la
 // app (mismo origen), así que la preferencia vale para las dos.

@@ -52,7 +52,11 @@
             var k = localStorage.key(i) || "";
             if (k.indexOf("anso-") === 0 || k.indexOf("antrack") === 0 || k.indexOf("antask") === 0) return;
           }
-          location.replace("./inicio/");
+          // Landing en el idioma del navegador: la española para el español
+          // (y catalán, gallego y euskera), la inglesa para todo lo demás.
+          // Mismo criterio que detectLang() en i18n/index.js.
+          var nav = (navigator.language || "").toLowerCase().slice(0, 2);
+          location.replace(["es", "ca", "gl", "eu"].indexOf(nav) !== -1 ? "./inicio/" : "./en/");
         } catch (e) { /* sin localStorage: se queda en la app */ }
       })();
     </script>
@@ -71,7 +75,7 @@
           // que cargue i18n. Misma detección que detectLang() en i18n/index.js.
           var idioma = localStorage.getItem("antrack_lang");
           if (idioma !== "es" && idioma !== "en") {
-            idioma = (navigator.language || "").toLowerCase().slice(0, 2) === "en" ? "en" : "es";
+            idioma = ["es", "ca", "gl", "eu"].indexOf((navigator.language || "").toLowerCase().slice(0, 2)) !== -1 ? "es" : "en";
           }
           root.dataset.splashLang = idioma;
         } catch (e) { /* sin localStorage: manda theme.js al cargar */ }
