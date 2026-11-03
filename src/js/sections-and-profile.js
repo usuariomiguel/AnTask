@@ -96,9 +96,11 @@ import { loadSync } from "./sync-loader.js";
   function syncThemeSeg() {
     var seg = document.getElementById("settings-theme-seg");
     if (!seg) return;
-    var cur = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    // Marca la preferencia (Automático/Claro/Oscuro), no el tema a la vista.
+    var cur = window.getThemePref ? window.getThemePref() : (document.documentElement.dataset.theme === "dark" ? "dark" : "light");
     seg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
       btn.classList.toggle("active", btn.dataset.themeValue === cur);
+      btn.setAttribute("aria-checked", String(btn.dataset.themeValue === cur));
     });
   }
 
@@ -195,22 +197,23 @@ import { loadSync } from "./sync-loader.js";
     });
   }
 
-  // ─── Tema (segmentado real: Claro/Oscuro) ─────────────────────
+  window.syncThemeSeg = syncThemeSeg;
+
+  // ─── Tema (segmentado real: Automático/Claro/Oscuro) ──────────
   var themeSeg = document.getElementById("settings-theme-seg");
   if (themeSeg) {
     themeSeg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
       btn.addEventListener("click", function() {
         var next = btn.dataset.themeValue;
-        if (document.documentElement.dataset.theme === next) return;
+        if (window.getThemePref && window.getThemePref() === next) return;
         if (window.toggleThemeWithTransition) {
           // El callback del View Transition es asíncrono: syncThemeSeg()
           // debe correr cuando el tema YA está aplicado, no justo después
           // de disparar el cambio (si no, resincroniza con el valor viejo
           // y el segmentado queda marcando la opción contraria).
-          window.toggleThemeWithTransition(btn, syncThemeSeg);
+          window.toggleThemeWithTransition(btn, syncThemeSeg, next);
         } else {
-          document.documentElement.dataset.theme = next;
-          localStorage.setItem(THEME_KEY, next);
+          if (next === "auto") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next);
           syncThemeSeg();
         }
       });

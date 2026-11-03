@@ -1,9 +1,14 @@
 // ═══════════════════════════════════════════════════════════════
 // Tema claro / oscuro
 //
-// - `initializeTheme()` se llama al arrancar y aplica lo guardado
-//   en localStorage, o `prefers-color-scheme` si no hay preferencia.
-// - `setTheme(theme)` cambia el tema y persiste.
+// Tres preferencias: "auto" (por defecto: sigue el modo del dispositivo,
+// también en directo si cambia con la app abierta; en el móvil y en el
+// sistema suele ir con la hora), "light" y "dark". "auto" es no tener
+// nada guardado en localStorage.
+//
+// - `initializeTheme()` se llama al arrancar y aplica la preferencia.
+// - `setThemePref(pref)` la cambia y persiste.
+// - `watchSystemTheme()` repinta en "auto" cuando cambia el dispositivo.
 // - `toggleThemeWithTransition(sourceEl)` invierte el tema usando
 //   la View Transition API cuando está disponible, para animar el
 //   cambio desde la posición del botón pulsado.
@@ -24,24 +29,59 @@ export function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
 }
 
-/**
- * Aplica + guarda en localStorage.
- *
- * @param {"dark"|"light"} nextTheme
- */
-export function setTheme(nextTheme) {
-  applyTheme(nextTheme);
-  localStorage.setItem(THEME_KEY, nextTheme);
+/** @returns {"dark"|"light"} el modo del dispositivo ahora mismo */
+export function systemTheme() {
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/** @returns {"auto"|"dark"|"light"} */
+export function getThemePref() {
+  const saved = localStorage.getItem(THEME_KEY);
+  return saved === "light" || saved === "dark" ? saved : "auto";
 }
 
 /**
- * Lee la preferencia guardada (o la del SO) y la aplica.
+ * @param {"auto"|"dark"|"light"} pref
+ * @returns {"dark"|"light"}
+ */
+export function resolveTheme(pref) {
+  return pref === "light" || pref === "dark" ? pref : systemTheme();
+}
+
+/**
+ * Aplica + guarda la preferencia. "auto" borra la clave.
+ *
+ * @param {"auto"|"dark"|"light"} pref
+ */
+export function setThemePref(pref) {
+  if (pref === "light" || pref === "dark") localStorage.setItem(THEME_KEY, pref);
+  else localStorage.removeItem(THEME_KEY);
+  applyTheme(resolveTheme(pref));
+}
+
+/**
+ * Lee la preferencia guardada (o la del dispositivo) y la aplica.
  */
 export function initializeTheme() {
-  const saved       = localStorage.getItem(THEME_KEY);
-  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme       = saved === "light" || saved === "dark" ? saved : prefersDark ? "dark" : "light";
-  applyTheme(theme);
+  applyTheme(resolveTheme(getThemePref()));
+}
+
+/**
+ * En "auto", repinta cuando el dispositivo cambia de modo (p. ej. al
+ * anochecer). `onChange` sirve para resincronizar controles.
+ *
+ * @param {() => void} [onChange]
+ */
+export function watchSystemTheme(onChange) {
+  if (!window.matchMedia) return;
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const alCambiar = function () {
+    if (getThemePref() !== "auto") return;
+    initializeTheme();
+    if (onChange) onChange();
+  };
+  if (mq.addEventListener) mq.addEventListener("change", alCambiar);
+  else if (mq.addListener) mq.addListener(alCambiar);
 }
 
 /**
@@ -70,9 +110,14 @@ export function initializeAccent() {
 }
 
 /**
- * Alterna el tema actual con animación de View Transition API si
- * está disponible, irradiando desde la posición del elemento que
- * disparó el evento (típicamente el botón clickado).
+ * Cambia el tema con animación de View Transition API si está
+ * disponible, irradiando desde la posición del elemento que disparó
+ * el evento (típicamente el botón clickado).
+ *
+ * Sin `pref`, invierte el tema: si el resultado coincide con el del
+ * dispositivo vuelve a "auto"; si no, se queda fijo. Así el botón del
+ * sol nunca deja la app atascada en un tema. Con `pref` (el selector de
+ * Ajustes) aplica esa preferencia tal cual.
  *
  * El callback del View Transition NO es síncrono (el navegador lo
  * difiere), así que quien necesite reaccionar al tema ya aplicado
@@ -82,10 +127,24 @@ export function initializeAccent() {
  *
  * @param {HTMLElement|null} sourceEl
  * @param {() => void} [onApplied]
+ * @param {"auto"|"dark"|"light"} [pref]
  */
-export function toggleThemeWithTransition(sourceEl, onApplied) {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+export function toggleThemeWithTransition(sourceEl, onApplied, pref) {
+  if (!pref) {
+    const opuesto = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    pref = opuesto === systemTheme() ? "auto" : opuesto;
+  }
+  const next = pref;
   const root = document.documentElement;
+
+  // Mismo tema a la vista (p. ej. de «Oscuro» a «Automático» de noche):
+  // solo cambia la preferencia, sin animación.
+  if (resolveTheme(next) === root.dataset.theme || !document.startViewTransition) {
+    setThemePref(next);
+    if (onApplied) onApplied();
+    return;
+  }
+
   const rect = sourceEl && sourceEl.getBoundingClientRect ? sourceEl.getBoundingClientRect() : null;
   const x    = rect ? rect.left + rect.width  / 2 : window.innerWidth - 30;
   const y    = rect ? rect.top  + rect.height / 2 : 30;
@@ -93,14 +152,8 @@ export function toggleThemeWithTransition(sourceEl, onApplied) {
   root.style.setProperty("--vt-x", x + "px");
   root.style.setProperty("--vt-y", y + "px");
 
-  if (!document.startViewTransition) {
-    setTheme(next);
-    if (onApplied) onApplied();
-    return;
-  }
-
   document.startViewTransition(function () {
-    setTheme(next);
+    setThemePref(next);
     if (onApplied) onApplied();
   });
 }

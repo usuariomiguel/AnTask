@@ -104,6 +104,8 @@ import { cargarGeneradorAvatar, nuevaSemillaAvatar } from "./utils/avatar.js";
 import {
   initializeTheme,
   toggleThemeWithTransition,
+  getThemePref,
+  watchSystemTheme,
   initializeAccent,
   setAccent,
   ACCENT_KEY,
@@ -119,6 +121,7 @@ function renderCalendar() {
 // sections-and-profile.js usa window.toggleThemeWithTransition para
 // el fallback cuando se pulsa "Cambiar tema" sin View Transition API.
 window.toggleThemeWithTransition = toggleThemeWithTransition;
+window.getThemePref = getThemePref;
 // sections-and-profile.js usa window.setAccent para aplicar y persistir
 // el color de acento elegido en Ajustes → Apariencia.
 window.setAccent = setAccent;
@@ -10207,6 +10210,9 @@ async function _syncApplyRemote(remote, uid, opts) {
 // todas las const/let de nivel superior que usan las funciones de render
 // (TASK_FILTERS, currentQuery, etc.) ya estén inicializadas.
 try { initializeTheme(); } catch(e) { console.error("initializeTheme error:", e); }
+// En «Automático», la app cambia sola si el dispositivo pasa a oscuro (o a
+// claro) con ella abierta. El selector de Ajustes se resincroniza.
+try { watchSystemTheme(function() { if (window.syncThemeSeg) window.syncThemeSeg(); }); } catch(e) { console.error("watchSystemTheme error:", e); }
 try { initializeAccent(); } catch(e) { console.error("initializeAccent error:", e); }
 try { initializeMode(); } catch(e) { console.error("initializeMode error:", e); }
 try { applyTaskPrefs(); } catch(e) { console.error("applyTaskPrefs error:", e); }

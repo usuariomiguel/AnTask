@@ -53,7 +53,8 @@ export const en = {
   "settings.account.language_desc":    "Interface language.",
 
   "settings.appearance.theme":         "Theme",
-  "settings.appearance.theme_desc":    "Light for the day, dark for the night.",
+  "settings.appearance.theme_desc":    "Auto follows your device's mode.",
+  "settings.appearance.auto":          "Auto",
   "settings.appearance.light":         "Light",
   "settings.appearance.dark":          "Dark",
   "settings.appearance.rowstyle_desc": "Clean: flat rows. Cards: with background and spacing.",
