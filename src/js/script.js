@@ -7245,7 +7245,7 @@ function _reordenableEnHoy(li, lista, alSoltar) {
     // el destino sale de dónde está de verdad el puntero: con el tope, el
     // margen de 8px impedía llegar al primer y al último puesto.
     var dyVisto = Math.max(a.info[0].top - src.top, Math.min(ultima.top + ultima.alto - (src.top + src.alto), dy));
-    li.style.transform = "translateY(" + (dyVisto / a.zoom) + "px) scale(1.02)";
+    li.style.transform = "translateY(" + (dyVisto / a.zoom) + "px)";
 
     var centro = src.top + src.alto / 2 + dy;
     var otras = a.info.filter(function(_, i) { return i !== a.srcIndex; });
