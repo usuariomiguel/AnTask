@@ -34,6 +34,7 @@ If you choose to turn on sync with Google:
 |---|---|---|---|
 | Your Google account's email and name | Firebase Authentication (Google LLC) | Identification and sign-in | Consent (Art. 6.1.a GDPR) |
 | Tasks, projects, notes | Firebase Firestore (Google LLC) | Syncing between devices | Consent (Art. 6.1.a GDPR) |
+| Date of your last visit to the app (at most once a day) | Firebase Firestore (Google LLC) | Knowing whether the app is still being used, and by how many accounts | Legitimate interest (Art. 6.1.f GDPR) |
 
 Sync is **entirely optional**. You can withdraw your consent at any time by signing out from the profile menu or from Settings → Account → "Sign out".
 

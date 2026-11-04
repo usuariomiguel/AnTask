@@ -189,6 +189,37 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
       if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
     }
 
+    /**
+     * Último acceso: la «Fecha de acceso» de Firebase Authentication solo
+     * cambia al INICIAR sesión, y quien ya la tiene abierta nunca vuelve a
+     * hacerlo. Así que la app lo apunta ella misma, una vez al día como
+     * mucho, al conectar y al volver a la app.
+     *
+     * Va en un documento aparte (workspace/meta), no en workspace/data: ese
+     * lo escucha onSnapshot en todos los dispositivos, y escribir ahí haría
+     * llegar el documento entero como «cambio remoto», con riesgo de pisar
+     * una edición que aún no se ha guardado. Lleva el email para que en la
+     * consola de Firestore se sepa de quién es sin cruzar UIDs.
+     */
+    function anotarAcceso() {
+      if (!_user) return;
+      var hoy = new Date().toISOString().slice(0, 10);
+      var clave = "antrack-lastseen-" + _user.uid;
+      try { if (localStorage.getItem(clave) === hoy) return; } catch (e) { /* sin storage: se anota igual */ }
+      setDoc(doc(db, "users", _user.uid, "workspace", "meta"), {
+        lastSeen: serverTimestamp(),
+        email:    _user.email || null,
+      }, { merge: true }).then(function () {
+        try { localStorage.setItem(clave, hoy); } catch (e) { /* ignorado */ }
+      }).catch(function (err) {
+        // Nunca molesta al usuario: es solo una estadística.
+        console.warn("AnsoSync: no se pudo anotar el último acceso:", err);
+      });
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") anotarAcceso();
+    });
+
     // Con la app instalada (PWA standalone/en el móvil, sin barra del
     // navegador alrededor) `signInWithPopup` falla de forma intermitente:
     // el popup de Google no siempre puede avisar a la ventana que lo abrió
@@ -288,7 +319,7 @@ if (firebaseConfig.apiKey === "YOUR_API_KEY") {
           // único punto por el que pasan tanto el login como el logout.
           if (user) markSyncEnabled();
           else      clearSyncEnabled();
-          if (user) startListening();
+          if (user) { startListening(); anotarAcceso(); }
           else      stopListening();
           if (typeof _onAuthChange === "function") _onAuthChange(user);
         });

@@ -32,6 +32,7 @@ Si decides activar la sincronización con Google:
 |---|---|---|---|
 | Email y nombre de tu cuenta Google | Firebase Authentication (Google LLC) | Identificación y autenticación | Consentimiento (Art. 6.1.a RGPD) |
 | Tareas, proyectos, notas | Firebase Firestore (Google LLC) | Sincronización entre dispositivos | Consentimiento (Art. 6.1.a RGPD) |
+| Fecha de tu último acceso a la app (una vez al día como mucho) | Firebase Firestore (Google LLC) | Saber si la app se sigue usando y por cuántas cuentas | Interés legítimo (Art. 6.1.f RGPD) |
 
 La sincronización es **completamente voluntaria**. Puedes revocar tu consentimiento en cualquier momento cerrando sesión desde el menú de perfil o desde Ajustes → Cuenta → «Cerrar sesión».
 
