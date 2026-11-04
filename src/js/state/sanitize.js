@@ -108,9 +108,9 @@ export function recortarNota(texto) {
 const SECCIONES_HOY = ["overdue", "today", "nodate"];
 
 /**
- * Puesto puesto a mano en una sección de Hoy, o null.
+ * Puesto a mano en una sección de Hoy, o null.
  * @param {any} o
- * @returns {{s: string, n: number}|null}
+ * @returns {{s: "overdue"|"today"|"nodate", n: number}|null}
  */
 export function sanitizeHoyOrden(o) {
   if (!o || typeof o !== "object" || !SECCIONES_HOY.includes(o.s)) return null;

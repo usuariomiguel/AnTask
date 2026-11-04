@@ -190,6 +190,7 @@ describe("parseNaturalLanguage — combinaciones", () => {
 
 // Referencia: domingo 24-05-2026.
 describe("parseNaturalLanguage — inglés", () => {
+  /** @type {Array<[string, string, string|null, number|null]>} */
   const casos = [
     ["Call mom today",                 "Call mom",     "2026-05-24", null],
     ["Take out the trash tonight",     "Take out the trash", "2026-05-24", null],
