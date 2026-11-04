@@ -99,7 +99,6 @@ export const en = {
 
   // ── Bottom nav (mobile) ───────────────────────────────────
   "nav.today":                "Today",
-  "nav.calendar":             "Calendar",
   "nav.profile":              "Profile",
 
   // ── Toast / status ────────────────────────────────────────
@@ -184,12 +183,10 @@ export const en = {
   "hoy.habits":               "Habits",
   "hoy.tab_tasks":            "Tasks",
   "hoy.habit_name_ph":        "Add a habit…",
-  "hoy.habit_rename_prompt":  "Habit name",
   "hoy.habit_confirm_delete": "Delete the habit <strong>{name}</strong> and all its history?",
   "hoy.habit_freq_daily":     "Every day",
   "hoy.habit_freq_everyn":    "Every {n} days",
   "hoy.habit_freq_header":    "Frequency",
-  "hoy.habit_freq_everyn_menu": "Every few days…",
   "hoy.habit_freq_prompt":    "Every how many days? (2 or more)",
   "hoy.habit_done_toggle":    "Mark done today",
 
@@ -233,8 +230,6 @@ export const en = {
   "act.done_that_day":        "Done this day",
   "hist.tab_summary":         "Summary",
   "hist.tab_activity":        "Activity",
-  "habits.count_one":         "{count} habit",
-  "habits.count_other":       "{count} habits",
   "habits.other_days":        "Other days",
   "habits.not_due":           "Not due today",
 
@@ -399,19 +394,6 @@ export const en = {
   "recur.every_n_months":     "Every {n} months",
   "kbd.space":                "Space",
 
-  // ── Calendar ──────────────────────────────────────────────
-  "calendar.month.1":  "January",   "calendar.month.2":  "February",
-  "calendar.month.3":  "March",     "calendar.month.4":  "April",
-  "calendar.month.5":  "May",       "calendar.month.6":  "June",
-  "calendar.month.7":  "July",      "calendar.month.8":  "August",
-  "calendar.month.9":  "September", "calendar.month.10": "October",
-  "calendar.month.11": "November",  "calendar.month.12": "December",
-  "calendar.day.mon":  "Mo", "calendar.day.tue": "Tu",
-  "calendar.day.wed":  "We", "calendar.day.thu": "Th",
-  "calendar.day.fri":  "Fr", "calendar.day.sat": "Sa",
-  "calendar.day.sun":  "Su",
-  "calendar.more":     "more",
-
   // ── Due badge (per task) ──────────────────────────────────
 
   // ── Search ────────────────────────────────────────────────
@@ -517,8 +499,6 @@ export const en = {
   "profile.user_default":     "User",
   "project.kebab_title":      "Options",
   "project.dblclick_rename":  "Double-click to rename",
-  "nav.tasks":                "List",
-  "nav.calendar_short":       "Month",
   "filter.section_show":      "Show",
   "filter.section_when":      "When",
   "filter.section_attrs":     "Attributes",
@@ -531,7 +511,6 @@ export const en = {
   "task.no_other_projects":   "No other lists available.",
   "task.nothing_to_export":   "No lists to export.",
   "view.eyebrow_tasks":       "List",
-  "view.eyebrow_calendar":    "Calendar",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "You have <strong>{local} local list</strong> and <strong>{cloud} list in the cloud</strong>. Which do you want to use?",

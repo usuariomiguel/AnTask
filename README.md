@@ -75,7 +75,7 @@ Chips de preview en vivo muestran lo detectado mientras escribes.
 - **Proyectos múltiples** con sidebar y secciones colapsables
 - **Proyecto Inbox** auto-creado y fijado al tope — destino fallback para captura
 - **Plantillas de proyecto**: 6 listas para arrancar rápido (mudanza, viaje, nuevo trabajo, curso, trámites médicos, evento)
-- **Vistas**: Lista · Calendario mensual · Hoy (virtual)
+- **Vistas**: Hoy · Hábitos · Actividad · Lista
 - **Archivado** de proyectos
 - **Búsqueda global** (Cmd/Ctrl + K) — tareas, con resaltado de coincidencias
 - **Exportar / Importar** todo el workspace como `.json`
@@ -200,7 +200,6 @@ AnTask/
         │   ├── subtasks.js        # Lista de subtareas
         │   ├── search.js          # Búsqueda global
         │   ├── theme.js           # Tema, acento de color
-        │   ├── calendar.js        # Vista Calendario
         │   ├── project-templates.js  # Galería de plantillas de proyecto
         │   ├── quick-capture.js   # Modal Ctrl+Shift+Espacio
         │   └── onboarding.js      # Tour guiado

@@ -239,7 +239,6 @@
               </div>
               <!-- El calendario no forma parte de v1 (sin atajo ni entrada en el
                    menú); se deja oculto en vez de borrar el panel. -->
-              <button type="button" class="profile-item profile-mobile-only" id="pf-calendar-btn" hidden><span class="profile-item-ico"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendario</span></button>
               <div class="profile-sep"></div>
               <button type="button" class="profile-item" id="pf-settings-btn">
                 <span class="profile-item-ico"><i data-lucide="settings"></i></span>
@@ -548,15 +547,6 @@
               </div>
             </div>
             <div class="header-actions">
-              <!-- Tabs de vista -->
-              <!-- <div class="view-nav-tabs" id="view-nav-tabs">
-                <button type="button" class="view-tab view-tab--active" data-view="tasks" id="view-tab-tasks">
-                  <i data-lucide="list-todo"></i><span data-i18n="nav.tasks">Lista</span>
-                </button>
-                <button type="button" class="view-tab" data-view="cal" id="view-tab-cal">
-                  <i data-lucide="calendar-days"></i><span data-i18n="nav.calendar_short">Mes</span>
-                </button>
-              </div> -->
               <div class="view-nav-right">
                 <!-- Modo simple + móvil: la Búsqueda no tiene pestaña propia
                      en la barra inferior (solo Hoy/Inbox/Ajustes) — vive aquí
@@ -613,16 +603,8 @@
                     </button>
                   </div>
                 </div>
-                <!-- Refs ocultas que el JS necesita. Como en el prototipo v1, el
-                     header de una lista es sólo título + contador: el filtro vive
-                     ahora en el cuerpo (#list-filter-row) y la gestión del
-                     proyecto (limpiar/eliminar) vive en el menú contextual de la
-                     lista en la barra lateral. Estos botones se conservan ocultos
-                     para no romper las referencias del script. -->
-                <div id="more-actions-wrap" hidden aria-hidden="true">
-                  <button type="button" id="clear-done"></button>
-                  <button type="button" class="danger" id="delete-project-btn"></button>
-                </div>
+                <!-- Exportar e importar se lanzan desde Ajustes → Datos, que
+                     pulsa estos dos por código (ver sections-and-profile.js). -->
                 <button id="export-btn" type="button" style="display:none" aria-hidden="true"></button>
                 <input id="import-file" type="file" accept="application/json" aria-label="Import workspace JSON" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
               </div>
@@ -761,16 +743,6 @@
           <div class="task-list-scroll">
             <ul id="task-list" class="task-list" aria-live="polite"></ul>
           </div>
-        </div>
-
-        <!-- Vista Calendario -->
-        <div class="alt-panel cal-panel" id="cal-panel" hidden>
-          <div class="cal-month-nav">
-            <button type="button" id="cal-prev-btn" class="cal-nav-btn" aria-label="Mes anterior"><i data-lucide="chevron-left"></i></button>
-            <span id="cal-month-label" class="cal-month-label"></span>
-            <button type="button" id="cal-next-btn" class="cal-nav-btn" aria-label="Mes siguiente"><i data-lucide="chevron-right"></i></button>
-          </div>
-          <div id="cal-content" class="cal-content"></div>
         </div>
 
         <!-- Barra de captura rápida flotante (solo escritorio, prototipo Tierra) -->
@@ -1181,17 +1153,6 @@
       // barra inferior. El drawer sigue en el DOM porque es la MISMA sidebar
       // que usa el escritorio, pero en móvil ya no hay forma de abrirlo.
 
-      // Calendario dentro del dropdown de perfil (solo móvil, y oculto: no
-      // forma parte de v1): ejecuta la acción y cierra el drawer para que se
-      // vea la vista.
-      var pfCalendarBtn = document.getElementById("pf-calendar-btn");
-      if (pfCalendarBtn) {
-        pfCalendarBtn.addEventListener("click", function() {
-          closeSidebar();
-          if (typeof window.showCalendarPanel === "function") window.showCalendarPanel();
-        });
-      }
-
       // Cerrar drawer desde el botón ✕ del header del sidebar.
       var sidebarCloseBtn = document.getElementById("sidebar-close-btn");
       if (sidebarCloseBtn) {
@@ -1267,7 +1228,7 @@
       // Al cambiar de vista (cambio de panel scrolleable), resetear lastScrollY
       // y mostrar el header. Lo hacemos vigilando mutaciones del atributo
       // 'hidden' en los paneles principales.
-      ["tasks-panel", "cal-panel"].forEach(function(id) {
+      ["tasks-panel"].forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
         new MutationObserver(function() {

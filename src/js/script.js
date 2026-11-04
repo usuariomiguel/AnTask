@@ -110,13 +110,7 @@ import {
   setAccent,
   ACCENT_KEY,
 } from "./ui/theme.js";
-import { renderCalendar as _renderCalendarModule } from "./ui/calendar.js";
 import { initializeMode, setMode, isSimpleMode, isSimpleMobile } from "./ui/mode.js";
-
-/** Wrapper local que inyecta el estado actual al módulo de calendario. */
-function renderCalendar() {
-  _renderCalendarModule(calState.year, calState.month, projects, activateProject);
-}
 
 // sections-and-profile.js usa window.toggleThemeWithTransition para
 // el fallback cuando se pulsa "Cambiar tema" sin View Transition API.
@@ -251,14 +245,12 @@ function _setMobileSubtitle(pending, vencidas) {
   if (vencidas) txt += " · " + vencidas + " vencida" + (vencidas === 1 ? "" : "s");
   projectSubtitleM.textContent = txt;
 }
-const deleteProjectBtn = document.getElementById("delete-project-btn");
 const taskForm         = document.getElementById("task-form");
 const taskInput        = document.getElementById("task-input");
 const taskList         = document.getElementById("task-list");
 
 // ─── MOBILE FAB REFS ─────────────────────────────────────────
 const mobileFab    = document.getElementById("mobile-fab");
-const clearDoneBtn     = document.getElementById("clear-done");
 const exportBtn        = document.getElementById("export-btn");
 const importFile       = document.getElementById("import-file");
 const template         = document.getElementById("task-item-template");
@@ -339,9 +331,7 @@ var _sidebarPrevCounts = {};
 var _sidebarPrevRings = {};
 var _indicadorActivo = null;   // { fantasma, anim, pseudo, clave } mientras se desliza
 var _anillosEnCurso = {};      // id de lista → { inicio, sube, indice, total }
-var _pastillasPrevias = null;  // clave de vista fija → texto del contador (o "")
 var _pastillasEnCurso = {};    // clave → { entra, texto, inicio }
-var _listasPrevias = null;     // ids de lista del render anterior, en orden
 var _listasEnCurso = {};       // id → { entra, inicio, clon, siguiente }
 var _listaReceptora = null;    // id de la lista que acaba de recibir una tarea arrastrada
 // ─── PANEL DE DETALLE DE TAREA (columna derecha) ──────────────
@@ -868,23 +858,6 @@ function startNewProject() {
 }
 newProjectBtn.addEventListener("click", function() { startNewProject(); });
 
-// ─── ELIMINAR PROYECTO ───────────────────────────────────────
-if (deleteProjectBtn) deleteProjectBtn.addEventListener("click", async function() {
-  const project = getActiveProject();
-  if (!project) return;
-  const confirmed = await modalConfirm(
-    t("project.confirm_delete").replace("{name}", escHtml(project.name)),
-    t("modal.delete")
-  );
-  if (!confirmed) return;
-  projects = projects.filter(function(p) { return p.id !== project.id; });
-  saveProjects();
-  activeProjectId = null;
-  localStorage.removeItem(ACTIVE_KEY);
-  renderSidebar();
-  activateProject(null);
-});
-
 // ─── ELIMINAR TODO (Ajustes → Datos) ─────────────────────────
 // Vacía el workspace entero: todas las listas, todas las tareas, todos
 // los grupos. Confirmación reforzada porque no hay deshacer — a
@@ -1046,14 +1019,6 @@ if (captureBar) {
     openQuickCapture({ redirectToInbox: activeView !== "project" });
   });
 }
-
-// ─── LIMPIAR HECHAS ──────────────────────────────────────────
-clearDoneBtn.addEventListener("click", function() {
-  const project = getActiveProject();
-  if (!project) return;
-  project.tasks = project.tasks.filter(function(t) { return !t.done; });
-  saveAndRender();
-});
 
 // ─── EXPORTAR (workspace completo) ───────────────────────────
 exportBtn.addEventListener("click", function() {
@@ -1570,9 +1535,6 @@ function activateProject(id) {
   if (id) localStorage.setItem(ACTIVE_KEY, id);
   else localStorage.removeItem(ACTIVE_KEY);
 
-  // Cierra paneles alternativos si estaban abiertos
-  _closeAllAltPanels();
-
   const project = getActiveProject();
 
   // Sin proyecto —id nulo, o la lista que había abierta se acaba de borrar—
@@ -1584,12 +1546,12 @@ function activateProject(id) {
     return;
   }
 
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (ctrlBar) ctrlBar.hidden = false;
   if (mobileFab) mobileFab.classList.add("visible");
   tasksPanel.hidden = false;
   // Restauramos el formulario por si veníamos de la vista Hoy.
   if (taskForm) taskForm.style.display = "";
-  _setActiveViewTab("tasks");
+  _mostrarControlesLista();
 
   // Update mobile header: show project title
   var mobileHeader = document.getElementById("mobile-header");
@@ -1633,12 +1595,10 @@ function activateTodayView() {
   activeProjectId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
-  _closeAllAltPanels();
-
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (ctrlBar) ctrlBar.hidden = false;
   if (mobileFab) mobileFab.classList.add("visible");
   tasksPanel.hidden = false;
-  _setActiveViewTab("tasks");
+  _mostrarControlesLista();
 
   // El task-form no aplica en Hoy — ocultar input.
   if (taskForm) taskForm.style.display = "none";
@@ -1689,12 +1649,10 @@ function activateHabitsView() {
   activeProjectId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
-  _closeAllAltPanels();
-
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (ctrlBar) ctrlBar.hidden = false;
   if (mobileFab) mobileFab.classList.add("visible");
   tasksPanel.hidden = false;
-  _setActiveViewTab("tasks");
+  _mostrarControlesLista();
 
   if (taskForm) taskForm.style.display = "none";
 
@@ -1729,13 +1687,11 @@ function activateActivityView() {
   activeProjectId = null;
   localStorage.removeItem(ACTIVE_KEY);
 
-  _closeAllAltPanels();
-
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
+  if (ctrlBar) ctrlBar.hidden = false;
   // Aquí no se crea nada: el «+» crearía una tarea que no se vería.
   if (mobileFab) mobileFab.classList.remove("visible");
   tasksPanel.hidden = false;
-  _setActiveViewTab("tasks");
+  _mostrarControlesLista();
 
   if (taskForm) taskForm.style.display = "none";
 
@@ -5838,7 +5794,6 @@ function _autoGrowTitle() {
 // más, y los campos pasaban de «Sin fecha» a «Mañana» sin avisar.
 // ═══════════════════════════════════════════════════════════════
 var DETALLE_MS = 240;
-var _detalleSubPrev = null;     // subtareas del repintado anterior
 var _detalleCampos  = null;     // valores de los campos del repintado anterior
 
 /** Dónde está y cómo está cada subtarea antes de rehacer la lista. */
@@ -9149,22 +9104,10 @@ function undoDelete() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// VIEW-NAV: TABS + FILTER PANEL + MORE-ACTIONS
+// BARRA DE LA LISTA: BUSCADOR, FILTROS Y PREFERENCIAS
 // ═══════════════════════════════════════════════════════════════
 
 (function() {
-  // ── Tab clicks ───────────────────────────────────────────────
-  var viewNavTabs = document.getElementById("view-nav-tabs");
-  if (viewNavTabs) {
-    viewNavTabs.addEventListener("click", function(e) {
-      var tab = e.target.closest(".view-tab");
-      if (!tab) return;
-      var view = tab.dataset.view;
-      if (view === "tasks")  { _closeAllAltPanels(); _restoreMainPanel(); }
-      else if (view === "cal")     showCalendarPanel();
-    });
-  }
-
   // ── Filter panel toggle ──────────────────────────────────────
   // Buscador de la lista (móvil).
   var listSearch = document.getElementById("list-search-input");
@@ -9349,110 +9292,18 @@ function undoDelete() {
   });
 })();
 
-function _closeAllAltPanels() {
-  var calPanel = document.getElementById("cal-panel");
-  var calBtn   = document.getElementById("cal-btn");
-  if (calPanel) calPanel.hidden = true;
-  if (calBtn)   calBtn.classList.remove("active");
-}
-
-// ═══════════════════════════════════════════════════════════════
-// CALENDARIO
-// ═══════════════════════════════════════════════════════════════
-
-var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
-
-(function() {
-  var calBtn = document.getElementById("cal-btn");
-  if (calBtn) calBtn.addEventListener("click", function() { showCalendarPanel(); });
-
-  var calExpandBtn = document.getElementById("cal-expand-btn");
-  if (calExpandBtn) {
-    calExpandBtn.addEventListener("click", function() {
-      var layout = document.querySelector(".layout");
-      if (layout) {
-        layout.classList.remove("sidebar-is-collapsed");
-        var sidebar = document.querySelector(".sidebar");
-        if (sidebar) sidebar.classList.remove("sidebar-collapsed");
-        localStorage.removeItem("sidebar-collapsed");
-      }
-    });
-  }
-
-  var prevBtn = document.getElementById("cal-prev-btn");
-  var nextBtn = document.getElementById("cal-next-btn");
-  if (prevBtn) {
-    prevBtn.addEventListener("click", function() {
-      calState.month--;
-      if (calState.month < 0) { calState.month = 11; calState.year--; }
-      renderCalendar();
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener("click", function() {
-      calState.month++;
-      if (calState.month > 11) { calState.month = 0; calState.year++; }
-      renderCalendar();
-    });
-  }
-})();
-
-window.showCalendarPanel = showCalendarPanel;
 window.activateTodayView = activateTodayView;
 
-function showCalendarPanel() {
-  var calPanel = document.getElementById("cal-panel");
-  if (!calPanel) return;
-
-  if (!calPanel.hidden) {
-    _closeAllAltPanels();
-    _restoreMainPanel();
-    return;
-  }
-
-  _closeAllAltPanels();
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.add("ctrl-bar--alt"); }
-  tasksPanel.hidden = true;
-  calPanel.hidden = false;
-  _setActiveViewTab("cal");
-  if (mobileFab) mobileFab.classList.add("visible");
-  renderCalendar();
-  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-}
-
-function _restoreMainPanel() {
-  var isVirtualView = (activeView === "today" || activeView === "habits" || activeView === "activity");
-  // Si el proyecto que estaba abierto ya no existe, "Hoy" hace de red de
-  // seguridad: sin estado vacío, el panel se quedaría en blanco.
-  if (!isVirtualView && !getActiveProject()) { activateTodayView(); return; }
-  if (ctrlBar) { ctrlBar.hidden = false; ctrlBar.classList.remove("ctrl-bar--alt"); }
-  tasksPanel.hidden = false;
-  _setActiveViewTab("tasks");
-  if (isVirtualView) renderTasks();
-  if (typeof window.syncBnavActive === "function") window.syncBnavActive();
-}
-
-function _setActiveViewTab(view) {
-  document.querySelectorAll(".view-tab").forEach(function(t) {
-    t.classList.toggle("view-tab--active", t.dataset.view === view);
-  });
-  var isTasksView    = (view === "tasks");
-  var listActions    = isTasksView;
-  var listFilterRow  = document.getElementById("list-filter-row");
-  if (listFilterRow) listFilterRow.style.display = listActions ? "" : "none";
-  // El selector de estilo de fila acompaña a Hoy y a las listas normales
-  // (como en el prototipo v1); se oculta sólo en la vista de mes.
-  var rowStyleWrap   = document.getElementById("row-style-wrap");
-  if (rowStyleWrap) rowStyleWrap.style.display = isTasksView ? "" : "none";
-  // Ocultar task-form en vistas alternativas
+/** Barra de filtros, estilo de fila, formulario y rótulo de la vista, a la vista. */
+function _mostrarControlesLista() {
+  var listFilterRow = document.getElementById("list-filter-row");
+  if (listFilterRow) listFilterRow.style.display = "";
+  var rowStyleWrap = document.getElementById("row-style-wrap");
+  if (rowStyleWrap) rowStyleWrap.style.display = "";
   var taskFormEl = document.getElementById("task-form");
-  if (taskFormEl) taskFormEl.style.display = isTasksView ? "" : "none";
-  // Eyebrow que indica la vista actual encima del título
+  if (taskFormEl) taskFormEl.style.display = "";
   var eyebrow = document.getElementById("view-eyebrow");
-  if (eyebrow) {
-    var labels = { tasks: t("view.eyebrow_tasks"), cal: t("view.eyebrow_calendar") };
-    eyebrow.textContent = labels[view] || "";
-  }
+  if (eyebrow) eyebrow.textContent = t("view.eyebrow_tasks");
 }
 
 

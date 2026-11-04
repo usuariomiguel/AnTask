@@ -99,7 +99,6 @@ export const es = {
 
   // ── Navegación inferior (móvil) ───────────────────────────
   "nav.today":                "Hoy",
-  "nav.calendar":             "Calendario",
   "nav.profile":              "Perfil",
 
   // ── Toast / estado ────────────────────────────────────────
@@ -186,12 +185,10 @@ export const es = {
   "hoy.habits":               "Hábitos",
   "hoy.tab_tasks":            "Tareas",
   "hoy.habit_name_ph":        "Añadir un hábito…",
-  "hoy.habit_rename_prompt":  "Nombre del hábito",
   "hoy.habit_confirm_delete": "¿Eliminar el hábito <strong>{name}</strong> y todo su historial?",
   "hoy.habit_freq_daily":     "Cada día",
   "hoy.habit_freq_everyn":    "Cada {n} días",
   "hoy.habit_freq_header":    "Frecuencia",
-  "hoy.habit_freq_everyn_menu": "Cada varios días…",
   "hoy.habit_freq_prompt":    "¿Cada cuántos días? (2 o más)",
   "hoy.habit_done_toggle":    "Marcar hecho hoy",
 
@@ -235,8 +232,6 @@ export const es = {
   "act.done_that_day":        "Hechas este día",
   "hist.tab_summary":         "Resumen",
   "hist.tab_activity":        "Actividad",
-  "habits.count_one":         "{count} hábito",
-  "habits.count_other":       "{count} hábitos",
   "habits.other_days":        "Otros días",
   "habits.not_due":           "Hoy no toca",
 
@@ -401,19 +396,6 @@ export const es = {
   "recur.every_n_months":     "Cada {n} meses",
   "kbd.space":                "Espacio",
 
-  // ── Calendario ────────────────────────────────────────────
-  "calendar.month.1":  "Enero",   "calendar.month.2":  "Febrero",
-  "calendar.month.3":  "Marzo",   "calendar.month.4":  "Abril",
-  "calendar.month.5":  "Mayo",    "calendar.month.6":  "Junio",
-  "calendar.month.7":  "Julio",   "calendar.month.8":  "Agosto",
-  "calendar.month.9":  "Septiembre","calendar.month.10":"Octubre",
-  "calendar.month.11": "Noviembre","calendar.month.12":"Diciembre",
-  "calendar.day.mon":  "Lu", "calendar.day.tue": "Ma",
-  "calendar.day.wed":  "Mi", "calendar.day.thu": "Ju",
-  "calendar.day.fri":  "Vi", "calendar.day.sat": "Sa",
-  "calendar.day.sun":  "Do",
-  "calendar.more":     "más",
-
   // ── Fecha límite (badge por tarea) ───────────────────────
 
   // ── Búsqueda ──────────────────────────────────────────────
@@ -520,8 +502,6 @@ export const es = {
   "profile.user_default":     "Usuario",
   "project.kebab_title":      "Opciones",
   "project.dblclick_rename":  "Doble clic para renombrar",
-  "nav.tasks":                "Lista",
-  "nav.calendar_short":       "Mes",
   "filter.section_show":      "Mostrar",
   "filter.section_when":      "Cuándo",
   "filter.section_attrs":     "Atributos",
@@ -534,7 +514,6 @@ export const es = {
   "task.no_other_projects":   "No hay otras listas disponibles.",
   "task.nothing_to_export":   "No hay listas que exportar.",
   "view.eyebrow_tasks":       "Lista",
-  "view.eyebrow_calendar":    "Calendario",
 
   // ── Conflict / cloud-vs-local (body con placeholders) ─────
   "sync.conflict_body_one_one":     "Tienes <strong>{local} lista local</strong> y <strong>{cloud} lista en la nube</strong>. ¿Cuáles quieres usar?",

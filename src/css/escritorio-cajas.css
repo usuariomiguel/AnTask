@@ -64,8 +64,7 @@
   /* ── 3. Filtros y tarjetas: cajas como la cabecera ────────────
      Mismo radio que .ctrl-bar, para que las tres se lean como hermanas. */
   .list-filter-row,
-  .task-list-scroll,
-  .main-panel > .alt-panel {
+  .task-list-scroll {
     background: var(--surface-canvas);
     border: 2px solid var(--border-default);
     border-radius: var(--radius-lg);

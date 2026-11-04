@@ -699,7 +699,6 @@ body {
   display: block;
 }
 
-
 /* ─── LAYOUT ─────────────────────────────────────────────────── */
 .layout {
   position: relative;
@@ -1188,7 +1187,6 @@ body {
 
 /* barra de progreso: mismo track translúcido claro en ambos temas
    (la sidebar es siempre oscura) */
-
 
 .sidebar-footer {
   padding: 15px 8px 8px 8px;
@@ -1921,7 +1919,6 @@ body {
   overflow-y: auto;
 }
 
-
 .field-popover-row {
   display: flex;
   align-items: center;
@@ -2000,8 +1997,6 @@ body {
   html[data-mode="simple"] #task-prefs-wrap {
     display: none;
   }
-
-
 
   /* Sin filtros: Todas/Pendientes/Hechas + el desplegable "Filtrar" (7
      opciones más) desaparecen — la lista se queda siempre en "Todas".
@@ -2566,20 +2561,6 @@ body {
   flex-shrink: 0;
 }
 
-.delete-project-btn {
-  min-height: 2.2rem;
-}
-
-.delete-project-btn {
-  font-size: 0.78rem;
-  padding: 0.48rem 0.85rem;
-  color: var(--c-pink);
-  background: rgba(224, 122, 106, 0.07);
-  border: 2px solid rgba(224, 122, 106, 0.20);
-  border-radius: var(--radius-sm);
-  box-shadow: none;
-}
-
 /* ─── TYPOGRAPHY ─────────────────────────────────────────────── */
 h1 {
   font-family: var(--font-display);
@@ -2763,81 +2744,10 @@ button:focus-visible {
 }
 
 /* ─── TOOLBAR ────────────────────────────────────────────────── */
-/* ── Alt panel (calendario) — sólo contenido, sin header propio */
-.alt-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: panelIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
 
 /* ── View nav — los tabs y controles viven dentro de .header-actions ── */
 
 /* Segmented control — todas las tabs viven dentro del mismo "rail" */
-/* Segmentos de filtro (prototipo): pista --surface-input, activo
-   --surface-raised + sombra sutil. */
-.view-nav-tabs {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  background: var(--surface-input);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--r-lg);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.view-nav-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.view-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  letter-spacing: var(--tracking-normal);
-  color: var(--text-tertiary);
-  background: transparent;
-  border: 2px solid transparent;
-  border-radius: var(--r-md);
-  padding: 5px var(--sp-3);
-  min-height: 30px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.view-tab svg {
-  width: 13px;
-  height: 13px;
-  stroke-width: 2;
-  flex-shrink: 0;
-}
-
-.view-tab--active {
-  color: var(--c-primary-500);
-  background: var(--surface-raised);
-  border-color: var(--border-default);
-  box-shadow: var(--shadow-sm);
-}
-
-:root[data-theme="light"] .view-nav-tabs {
-  background: var(--kbd-bg);
-  /* pista #e7dfcf (segBg del prototipo) */
-}
-
-:root[data-theme="light"] .view-tab--active {
-  background: var(--surface-card);
-  /* segOn claro = papel */
-  color: var(--c-primary-600);
-  box-shadow: 0 1px 2px rgba(80, 55, 10, 0.10);
-}
 
 .view-nav-right {
   display: flex;
@@ -3226,32 +3136,6 @@ button:focus-visible {
   margin: 0;
 }
 
-/* ── Cal month-nav row ────────────────────────────────────────── */
-.cal-month-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-6) var(--sp-3);
-  border-bottom: 2px solid var(--border-subtle);
-  margin-bottom: var(--sp-3);
-  flex-shrink: 0;
-}
-
-/* ─── SORT SELECT ────────────────────────────────────────────── */
-
-
-
-
-
-
-
-#clear-done {
-  color: var(--c-pink);
-  background: rgba(224, 122, 106, 0.06);
-  border-color: rgba(224, 122, 106, 0.20);
-}
-
 /* ─── BACKUP TOOLS ───────────────────────────────────────────── */
 
 #import-file {
@@ -3383,12 +3267,9 @@ button:focus-visible {
   animation: none;
 }
 
-
-
 :root[data-theme="light"] .task-item {
   box-shadow: var(--shadow-sm);
 }
-
 
 /* ─── ESTILOS DE FILA (como el prototipo v1) ───────────────────
    El estilo por defecto de .task-item es "Tarjetas". Estas variantes
@@ -3423,7 +3304,6 @@ button:focus-visible {
    Sin margin-bottom añadido a propósito: `.inbox-group-list` ya separa
    con `gap: 6px` (flex) y `.hoy-section-list` con `margin-top` entre
    filas — sumarle margin-bottom encima doblaba el hueco a 12px. */
-
 
 .task-list[data-row-style="tarjetas"] .hoy-section-list .today-item {
   margin-bottom: 3px;
@@ -4063,7 +3943,6 @@ button:focus-visible {
   .hoy-tabs.con-indicador .hoy-tab--active {
     background: transparent;
   }
-
 
   .hoy-section--headless>.hoy-section-head {
     display: none;
@@ -5964,40 +5843,6 @@ body.project-dragging .project-item {
     flex-wrap: nowrap;
   }
 
-  /* ── Tabs de vista (Lista/Mes) — ocultas en móvil porque
-        la navegación entre vistas vive en el bottom nav ─────────── */
-  .view-nav-tabs {
-    display: none !important;
-  }
-
-  .view-tab {
-    flex: unset;
-    justify-content: center;
-    font-size: 0;
-    padding: 6px;
-    gap: 0;
-    border-radius: var(--r-sm);
-  }
-
-  .view-tab:first-child {
-    border-radius: var(--r-sm);
-  }
-
-  .view-tab:last-child {
-    border-radius: var(--r-sm);
-  }
-
-  .view-tab svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 2;
-  }
-
-  /* Etiquetas ocultas en mobile — icon-only */
-  .view-tab span {
-    display: none;
-  }
-
   .view-nav-right {
     flex: 0 0 auto;
     display: flex;
@@ -6203,7 +6048,6 @@ body.project-dragging .project-item {
     flex-wrap: wrap;
     align-items: center;
   }
-
 
   .task-summary {
     flex: 0 0 100%;
@@ -6946,7 +6790,6 @@ body.project-dragging .project-item {
   opacity: 1;
 }
 
-
 mark.search-hl {
   background: color-mix(in srgb, var(--c-gold) 30%, transparent);
   color: var(--c-gold);
@@ -7154,7 +6997,6 @@ mark.search-hl {
   border-color: var(--task-hover-border) !important;
 }
 
-
 /* ─── MODAL PROJECT PICKER ──────────────────────────────────── */
 .modal-project-list {
   display: flex;
@@ -7220,11 +7062,6 @@ kbd {
   white-space: nowrap;
 }
 
-
-
-
-
-
 /* ── Atajos en 2 columnas (ventana más ancha, sin scroll) ── */
 .modal-box-shortcuts {
   width: min(720px, 94vw);
@@ -7282,14 +7119,6 @@ kbd {
  * en el header de la sidebar. */
 
 /* ─── CLOUD SYNC UI ─────────────────────────────────────────── */
-
-
-
-
-
-
-
-
 
 /* ─── SPLASH / LOADING SCREEN ────────────────────────────────── */
 /* Fondo opaco: el desk con su grano, el mismo papel sobre el que aparece
@@ -7715,7 +7544,6 @@ body.task-dragging .project-item:not(.active) {
   stroke-width: 2;
 }
 
-
 /* ── Context menu (shared) ────────────────────────────────────── */
 .ctx-menu {
   list-style: none;
@@ -7976,7 +7804,6 @@ body.task-dragging .project-item:not(.active) {
   backdrop-filter: blur(14px);
   animation: profile-drop-in 0.18s cubic-bezier(0.34, 1.3, 0.64, 1) both;
 }
-
 
 /* En claro, la sombra negra de la base pesaba demasiado sobre el papel:
    cálida y suave, como la del menú contextual (.ctx-menu), hacia arriba
@@ -8974,352 +8801,8 @@ body.task-dragging .project-item:not(.active) {
    PANEL CALENDARIO
    ═══════════════════════════════════════════════════════════════ */
 
-.cal-panel {
-  padding: 0;
-}
-
-.cal-month-label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--text-primary);
-  min-width: 11rem;
-  text-align: center;
-  letter-spacing: var(--tracking-tight);
-}
-
-.cal-nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--border-default);
-  border-radius: var(--r-md);
-  background: var(--surface-card);
-  color: var(--text-secondary);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
-}
-
-.cal-nav-btn:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Scroll container */
-.cal-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0px var(--sp-6) var(--sp-3);
-}
-
-.cal-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.cal-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Day-of-week header row */
-.cal-day-headers {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
-.cal-day-header {
-  text-align: center;
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
-  padding: var(--sp-2) 0;
-}
-
-/* Calendar grid */
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  flex: 1;
-}
-
-/* Day cell */
-.cal-cell {
-  min-height: 108px;
-  background: var(--surface-card);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--r-md);
-  padding: var(--sp-2) var(--sp-2) var(--sp-1);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  cursor: default;
-  overflow: hidden;
-}
-
-.cal-cell-has-tasks {
-  cursor: pointer;
-}
-
-.cal-cell-other {
-  background: transparent;
-  border-color: transparent;
-  opacity: 0.25;
-  pointer-events: none;
-}
-
-.cal-cell-today {
-  border-color: var(--c-primary-500);
-  background: rgba(163, 179, 102, 0.08);
-  box-shadow: 0 0 0 1px rgba(163, 179, 102, 0.15) inset;
-}
-
-.cal-cell-selected {
-  border-color: var(--c-primary-400) !important;
-  background: rgba(163, 179, 102, 0.12) !important;
-  box-shadow: 0 0 0 1px rgba(163, 179, 102, 0.25) inset !important;
-}
-
-/* Day number */
-.cal-cell-num {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--text-tertiary);
-  line-height: 1;
-  align-self: flex-end;
-  flex-shrink: 0;
-}
-
-.cal-cell-today .cal-cell-num {
-  color: #fff;
-  background: var(--c-primary-500);
-  border-radius: 50%;
-  width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-end;
-  box-shadow: 0 2px 6px rgba(163, 179, 102, 0.50);
-}
-
-/* ── Dots row (hidden on desktop, shown on mobile) ──────────── */
-.cal-dots {
-  display: none;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin-top: 0.2rem;
-}
-
-.cal-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(163, 179, 102, 0.65);
-  flex-shrink: 0;
-}
-
-.cal-dot-important {
-  background: var(--c-pink);
-}
-
-.cal-dot-done {
-  opacity: 0.35;
-}
-
-.cal-dot-extra {
-  font-size: 0.58rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--t-muted);
-  line-height: 6px;
-  align-self: center;
-}
-
-/* ── Text chips (shown on desktop, hidden on mobile) ──────── */
-.cal-task-chip {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  line-height: 1.25;
-  padding: 0.15rem 0.40rem;
-  border-radius: var(--r-xs);
-  background: rgba(163, 179, 102, 0.10);
-  color: var(--text-secondary);
-  border-left: 2px solid rgba(163, 179, 102, 0.45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* Sin niveles: "importante" es la única marca de prioridad. */
-.cal-chip-important {
-  background: rgba(224, 122, 106, 0.10);
-  border-left-color: var(--c-danger);
-  color: var(--c-danger);
-}
-
-.cal-chip-done {
-  opacity: 0.40;
-  text-decoration: line-through;
-}
-
-/* Overflow count */
-.cal-task-more {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  color: var(--text-tertiary);
-  padding: 0 var(--sp-1);
-  cursor: default;
-  flex-shrink: 0;
-}
-
-/* ── Day detail panel ──────────────────────────────────────── */
-.cal-day-detail {
-  margin-top: var(--sp-3);
-  border: 2px solid rgba(163, 179, 102, 0.30);
-  border-radius: var(--r-lg);
-  background: rgba(163, 179, 102, 0.04);
-  overflow: hidden;
-  animation: panelIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-card);
-}
-
-.cal-day-detail-title {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--c-primary-300);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
-  padding: var(--sp-3) var(--sp-4) var(--sp-2);
-  border-bottom: 2px solid var(--border-subtle);
-}
-
-.cal-day-detail-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.cal-day-detail-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
-  border-bottom: 2px solid var(--border-subtle);
-  cursor: pointer;
-}
-
-.cal-day-detail-item:last-child {
-  border-bottom: none;
-}
-
-.cal-day-detail-left {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-width: 0;
-  flex: 1;
-}
-
-.cal-day-detail-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(163, 179, 102, 0.65);
-  flex-shrink: 0;
-}
-
-.cal-detail-important .cal-day-detail-dot {
-  background: var(--c-danger);
-}
-
-.cal-day-detail-text {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cal-detail-done .cal-day-detail-text {
-  opacity: 0.40;
-  text-decoration: line-through;
-}
-
-.cal-day-detail-proj {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 /* ── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .cal-panel {
-    padding: 0;
-  }
-
-  .cal-month-nav {
-    padding: 0.5rem 0.85rem 0.4rem;
-  }
-
-  .cal-month-label {
-    min-width: 7.5rem;
-    font-size: 0.8rem;
-  }
-
-  /* Day-of-week labels — sticky al tope del scroll para que no se
-     pierdan al desplazar, y con padding+line-height generosos para
-     que el texto no quede clippeado. */
-  .cal-day-headers {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: var(--surface-base);
-    margin: 0;
-    padding-top: 6px;
-    padding-bottom: 4px;
-  }
-
-  :root[data-theme="light"] .cal-day-headers {
-    background: var(--surface-base);
-  }
-
-  .cal-day-header {
-    font-size: 10px;
-    line-height: 1.4;
-    padding: 0;
-    letter-spacing: 0.06em;
-  }
-
-  /* Compact cells */
-  .cal-cell {
-    min-height: 56px;
-    padding: 0.28rem 0.2rem 0.22rem;
-    gap: 0.1rem;
-    border-radius: 21px;
-  }
 
   /* ── Touch targets 44px+ (HIG / Material) ──────────────────────
      Checkbox: hit area 44×44, círculo visual sigue 18px vía ::before
@@ -9349,17 +8832,6 @@ body.task-dragging .project-item:not(.active) {
     border-color: var(--c-primary-400);
   }
 
-  /* Botones ◀ ▶ de navegación del mes — subir de 32 a 44 */
-  .cal-nav-btn {
-    width: 44px;
-    height: 44px;
-  }
-
-  .cal-nav-btn .lucide {
-    width: 18px;
-    height: 18px;
-  }
-
   /* Opciones de filtro/orden dentro del panel de filtros: 44px alto */
   .filter-opt {
     min-height: 44px;
@@ -9367,142 +8839,6 @@ body.task-dragging .project-item:not(.active) {
     font-size: 13px;
   }
 
-  .cal-cell-num {
-    font-size: 0.65rem;
-    align-self: flex-start;
-  }
-
-  .cal-cell-today .cal-cell-num {
-    width: 1.2rem;
-    height: 1.2rem;
-    font-size: 0.65rem;
-    align-self: flex-start;
-  }
-
-  /* Show dots on mobile */
-  .cal-dots {
-    display: flex;
-  }
-
-  .cal-dot {
-    width: 5px;
-    height: 5px;
-  }
-
-  /* Hide text chips and overflow on mobile */
-  .cal-task-chip,
-  .cal-task-more {
-    display: none;
-  }
-
-  /* Grid gap tighter */
-  .cal-grid,
-  .cal-day-headers {
-    gap: 1px;
-  }
-
-  .cal-content {
-    /* Espacio para que la última tarea no quede tapada por el bottom
-       nav (64px) + FAB que sobresale (~28px) + safe-area. */
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0));
-    padding-left: var(--sp-3);
-    padding-right: var(--sp-3);
-  }
-
-  /* Detail panel: integrado, sin "card flotante" — fluye con el scroll */
-  .cal-day-detail {
-    margin-top: var(--sp-4);
-    margin-left: calc(var(--sp-3) * -1);
-    margin-right: calc(var(--sp-3) * -1);
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    box-shadow: none;
-    background: var(--surface-card);
-  }
-
-  /* Título del día — sentence case, sin uppercase */
-  .cal-day-detail-title {
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 13px;
-    font-weight: var(--fw-semibold);
-    color: var(--text-secondary);
-    padding: 14px 16px 10px;
-  }
-
-  /* Detail panel: bigger touch targets */
-  .cal-day-detail-item {
-    padding: 0.7rem 1rem;
-    min-height: 48px;
-    gap: var(--sp-2);
-  }
-
-  /* Texto de la tarea: prioridad sobre el nombre del proyecto */
-  .cal-day-detail-left {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .cal-day-detail-text {
-    font-size: 14px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* Nombre de proyecto: limitado en ancho, puede truncarse */
-  .cal-day-detail-proj {
-    flex-shrink: 1;
-    min-width: 0;
-    max-width: 35%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 11.5px;
-  }
-}
-
-/* ─── LIGHT MODE — Calendario ────────────────────────────────── */
-:root[data-theme="light"] .cal-cell {
-  background: var(--surface-card);
-  border-color: var(--border-default);
-  box-shadow: var(--shadow-sm);
-}
-
-:root[data-theme="light"] .cal-cell-today {
-  border-color: rgba(112, 120, 80, 0.50);
-  background: rgba(112, 120, 80, 0.05);
-}
-
-:root[data-theme="light"] .cal-cell-today .cal-cell-num {
-  color: #fffcf1;
-  background: var(--c-primary-500);
-  box-shadow: 0 2px 6px rgba(112, 120, 80, 0.40);
-}
-
-:root[data-theme="light"] .cal-cell-selected {
-  border-color: var(--c-primary-500) !important;
-  background: rgba(112, 120, 80, 0.08) !important;
-}
-
-:root[data-theme="light"] .cal-nav-btn {
-  border-color: var(--border-default);
-}
-
-:root[data-theme="light"] .cal-day-detail {
-  border-color: rgba(112, 120, 80, 0.22);
-  background: rgba(112, 120, 80, 0.03);
-  box-shadow: var(--shadow-md);
-}
-
-:root[data-theme="light"] .cal-day-detail-title {
-  color: var(--c-primary-500);
-}
-
-:root[data-theme="light"] .cal-task-chip {
-  background: rgba(112, 120, 80, 0.08);
-  border-left-color: rgba(112, 120, 80, 0.40);
-  color: var(--text-secondary);
 }
 
 /* ─── TOUCH: suppress hover transforms on touch-screen devices ── */
@@ -9516,7 +8852,6 @@ button {
 /* garantizar ripple en los botones más usados */
 .modal-btn,
 .new-project-btn,
-.view-tab,
 .filter-trigger-btn,
 .sidebar-footer button {
   position: relative;
@@ -9539,7 +8874,6 @@ button {
     opacity: 0;
   }
 }
-
 
 /* ── Counter flip animation ─────────────────────────────────── */
 @keyframes count-roll-in {
@@ -9726,7 +9060,6 @@ button {
   margin-bottom: 6px;
 }
 
-
 /* Casilla de Hoy: lo común con .task-toggle va en su regla (ver ahí). */
 .today-check {
   margin: 0;
@@ -9839,7 +9172,6 @@ button {
     color: var(--c-primary-500);
   }
 }
-
 
 /* Igual que en las listas: completar apaga el título, no la fila, y sin
    tocarle el peso (ver .task-item.done .task-text). */
@@ -9968,7 +9300,6 @@ button {
 .today-project-badge {
   cursor: pointer;
 }
-
 
 /* Pill de fecha a la derecha. Tipografía, relleno y borde los comparte con
    .due-badge (ver ahí); aquí solo lo propio de Hoy. */
@@ -10279,7 +9610,6 @@ button {
   :is(.task-item, .today-item):hover .chip-brote-texto {
     display: inline;
   }
-
 
   :is(.task-item, .today-item):hover .chip-brote:hover {
     opacity: 1;
@@ -11170,7 +10500,6 @@ button {
     display: none;
   }
 }
-
 
 /* Hueco al pie para la barra de captura flotante. Va en el contenedor de
  * scroll y no en `.task-list`, para que el hueco sea el mismo pase lo
@@ -12380,11 +11709,6 @@ button {
    resto de la UI que no forma parte de v1 (antes tras "modo simple").
    ═══════════════════════════════════════════════════════════════ */
 
-/* — Cabecera de vista: solo "Lista" (sin Mes) — */
-#view-tab-cal {
-  display: none !important;
-}
-
 /* — Menú de perfil: fuera el tour (ruido) — */
 
 /* La vista de una lista concreta ya NO lleva una caja envolviendo todas
@@ -12474,7 +11798,6 @@ button {
     color: var(--accent-on);
     font-weight: var(--fw-semibold);
   }
-
 
   /* En el panel sobra la sección «Mostrar»: ya está fuera. Se oculta en
      vez de borrarse para no romper la hoja de móvil, que lee este DOM. */
@@ -14531,7 +13854,6 @@ button {
 .search-results,
 .settings-nav,
 .settings-content-body,
-.cal-content,
 .hist-list,
 .field-popover-list,
 .tpl-tasks-preview-wrap {
