@@ -15797,3 +15797,29 @@ body,
   min-width: 160px;
   max-width: 260px;
 }
+
+/* ── Reordenar dentro de una sección de Hoy (ver _reordenableEnHoy) ──
+   Mantener pulsado en el móvil no debe seleccionar texto ni sacar el menú
+   del sistema. Mientras se arrastra, las demás filas se apartan con
+   transición y la arrastrada va pegada al dedo, por encima. */
+.hoy-reordenable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hoy-lista--reordenando > .today-item {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hoy-lista--reordenando > .today-item.hoy-fila--arrastrada {
+  position: relative;
+  z-index: 5;
+  transition: none;
+  box-shadow: 0 10px 24px rgba(40, 28, 10, 0.18);
+}
+
+body.hoy-arrastrando,
+body.hoy-arrastrando * {
+  cursor: grabbing !important;
+}

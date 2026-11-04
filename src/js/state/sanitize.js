@@ -105,12 +105,28 @@ export function recortarNota(texto) {
   return s;
 }
 
+const SECCIONES_HOY = ["overdue", "today", "nodate"];
+
+/**
+ * Puesto puesto a mano en una sección de Hoy, o null.
+ * @param {any} o
+ * @returns {{s: string, n: number}|null}
+ */
+export function sanitizeHoyOrden(o) {
+  if (!o || typeof o !== "object" || !SECCIONES_HOY.includes(o.s)) return null;
+  const n = Number(o.n);
+  return Number.isInteger(n) && n >= 0 && n < 100000 ? { s: o.s, n } : null;
+}
+
 export function sanitizeTasks(input) {
   if (!Array.isArray(input)) return [];
   return input
     .filter(function (i) { return i && typeof i.text === "string"; })
     .map(function (i) {
+      const hoyOrden = sanitizeHoyOrden(i.hoyOrden);
       return {
+        // Solo si lo tiene: las tareas sin orden a mano no llevan el campo.
+        ...(hoyOrden ? { hoyOrden } : {}),
         id:         typeof i.id === "string" ? i.id : generateId(),
         text:       i.text.trim().slice(0, 120),
         comment:    typeof i.comment === "string" ? recortarNota(i.comment.trim()) : "",

@@ -6848,6 +6848,18 @@ function renderTodayView() {
   overdue.sort(byDue);
   todays.sort(byDue);
   nodate.sort(function(a, b) { return prioOf(a) - prioOf(b); });
+  // Encima del automático, el orden que se haya puesto a mano en cada sección.
+  overdue = _ordenHoy(overdue, "overdue");
+  todays  = _ordenHoy(todays, "today");
+  nodate  = _ordenHoy(nodate, "nodate");
+  // Con un filtro solo se ve parte de la sección: reordenar ahí dejaría el
+  // resto con puestos viejos. Igual que en las listas.
+  var reordenar = currentFilter === "all";
+  function filaHoy(sec, it, tono) {
+    var fila = renderTodayItem(it.task, it.project, today, tono);
+    if (reordenar) _reordenableEnHoy(fila, sec.list, function(ids) { _guardarOrdenHoy(tono, ids); });
+    sec.list.appendChild(fila);
+  }
 
   // Se declaran aquí arriba y no junto a su sección porque el anillo de la
   // cabecera, unas líneas más abajo, ya los necesita: al ser `var`, tenerlos
@@ -6989,9 +7001,7 @@ function renderTodayView() {
     var secV = _hoySectionEl("overdue", t("hoy.overdue"), String(overdue.length),
       t(isSimpleMobile() ? "hoy.all_to_today" : "hoy.move_all"), function() { _hoySetDueToday(overdue); });
     _ayudaSeccion(secV, "hoy.help_overdue");
-    overdue.forEach(function(it) {
-      secV.list.appendChild(renderTodayItem(it.task, it.project, today, "overdue"));
-    });
+    overdue.forEach(function(it) { filaHoy(secV, it, "overdue"); });
     taskList.appendChild(secV.li);
   }
 
@@ -7000,9 +7010,7 @@ function renderTodayView() {
   // Sin contador: el «X de Y hechas» de la cabecera de Hoy ya lo dice.
   var secH = _hoySectionEl("today", t("hoy.for_today"), null, null, null);
   _ayudaSeccion(secH, "hoy.help_today");
-  todays.forEach(function(it) {
-    secH.list.appendChild(renderTodayItem(it.task, it.project, today, "today"));
-  });
+  todays.forEach(function(it) { filaHoy(secH, it, "today"); });
   // Fuera de la lista, no dentro: la lista es la tarjeta redondeada y su
   // `overflow: hidden` le comía el borde. El quick-add es su propia caja
   // debajo, separada por un hueco.
@@ -7022,7 +7030,9 @@ function renderTodayView() {
     habits.length > 0 ? t("hist.open") : null,
     habits.length > 0 ? function() { openHabitsHistory(habits, _localDateISO(new Date()), actividad); } : null);
   habitsHoy.forEach(function(h) {
-    secHab.list.appendChild(_renderHabitItem(h, today));
+    var filaH = _renderHabitItem(h, today);
+    _reordenableEnHoy(filaH, secHab.list, _guardarOrdenHabitos);
+    secHab.list.appendChild(filaH);
   });
   // Fuera de la lista, igual que el quick-add de "Para hoy": la lista es la
   // tarjeta redondeada y su `overflow: hidden` se comería el borde.
@@ -7039,9 +7049,7 @@ function renderTodayView() {
     var secN = _hoySectionEl("nodate", t(isSimpleMobile() ? "hoy.nodate_short" : "hoy.nodate"), String(nodate.length),
       t(isSimpleMobile() ? "hoy.all_to_today" : "hoy.schedule_all"), function() { _hoySetDueToday(nodate); });
     _ayudaSeccion(secN, "hoy.help_nodate");
-    nodate.forEach(function(it) {
-      secN.list.appendChild(renderTodayItem(it.task, it.project, today, "nodate"));
-    });
+    nodate.forEach(function(it) { filaHoy(secN, it, "nodate"); });
     taskList.appendChild(secN.li);
   }
 
@@ -7129,6 +7137,286 @@ function _hoySectionEl(tone, label, count, actionLabel, onAction, actionIcon) {
  * qué hay ahí y qué se puede hacer. Va justo antes de la lista (con la
  * cabecera oculta, como en Hábitos, queda arriba del todo).
  */
+// ═══════════════════════════════════════════════════════════════
+// REORDENAR DENTRO DE UNA SECCIÓN DE HOY
+//
+// Vencidas, Para hoy y Sin fecha juntan tareas de varias listas, así que su
+// orden no puede ser el de cada lista: cada tarea guarda su puesto en
+// `hoyOrden` ({ s: sección, n: puesto }), que viaja con la sincronización.
+// Las que no tienen puesto en esa sección (nuevas, o que vienen de otra)
+// van detrás, en el orden automático de siempre. Los hábitos sí tienen una
+// sola lista: se reordena `habits` tal cual.
+//
+// Ratón: se arrastra la fila. Táctil: mantener pulsado y mover; si se
+// suelta sin mover, abre la hoja como siempre (se reenvía el contextmenu).
+// Teclado: Alt + ↑/↓ con la fila enfocada.
+// ═══════════════════════════════════════════════════════════════
+var HOY_PULSACION_MS = 380;
+var _hoyArrastre = null;
+
+/** Con orden propio en esa sección primero (por puesto); el resto detrás. */
+function _ordenHoy(items, tono) {
+  var con = [], sin = [];
+  items.forEach(function(it) {
+    var o = it.task.hoyOrden;
+    (o && o.s === tono ? con : sin).push(it);
+  });
+  con.sort(function(a, b) { return a.task.hoyOrden.n - b.task.hoyOrden.n; });
+  return con.concat(sin);
+}
+
+function _guardarOrdenHoy(tono, ids) {
+  var porId = {};
+  projects.forEach(function(p) { (p.tasks || []).forEach(function(tk) { porId[tk.id] = tk; }); });
+  ids.forEach(function(id, i) { if (porId[id]) porId[id].hoyOrden = { s: tono, n: i }; });
+  saveAndRender();
+}
+
+/** Los hábitos de la sección se recolocan en los huecos que ya ocupaban. */
+function _guardarOrdenHabitos(ids) {
+  var porId = {}, puestos = [];
+  habits.forEach(function(h, i) {
+    porId[h.id] = h;
+    if (ids.indexOf(h.id) !== -1) puestos.push(i);
+  });
+  puestos.forEach(function(p, k) { habits[p] = porId[ids[k]]; });
+  saveHabits();
+  renderTasks();
+}
+
+function _idFilaHoy(el) {
+  return el.dataset.hoyTaskId || el.dataset.habitId || null;
+}
+
+/** El contenedor que hace scroll (en móvil, el documento). */
+function _scrollerDe(el) {
+  for (var p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    var oy = getComputedStyle(p).overflowY;
+    if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight) return p;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+/**
+ * Hace que `li` se pueda reordenar dentro de `lista`. `alSoltar(ids)` recibe
+ * los ids de la sección en su orden nuevo.
+ */
+function _reordenableEnHoy(li, lista, alSoltar) {
+  li.classList.add("hoy-reordenable");
+
+  function filas() {
+    return Array.prototype.filter.call(lista.children, function(el) {
+      return el.classList.contains("today-item") && _idFilaHoy(el);
+    });
+  }
+
+  function empezar(yInicio) {
+    var fs = filas();
+    var srcIndex = fs.indexOf(li);
+    if (fs.length < 2 || srcIndex === -1) return false;
+    var scroller = _scrollerDe(lista);
+    var info = fs.map(function(el) {
+      var r = el.getBoundingClientRect();
+      return { el: el, top: r.top, alto: r.height };
+    });
+    var vecina = info[srcIndex + 1] || info[srcIndex - 1];
+    var paso = Math.abs(vecina.top - info[srcIndex].top) || info[srcIndex].alto;
+    _hoyArrastre = {
+      li: li, info: info, srcIndex: srcIndex, destino: srcIndex, paso: paso,
+      zoom: parseFloat(getComputedStyle(document.documentElement).zoom) || 1,
+      y0: yInicio, y: yInicio, scroller: scroller, s0: scroller.scrollTop, movido: false,
+    };
+    lista.classList.add("hoy-lista--reordenando");
+    li.classList.add("hoy-fila--arrastrada");
+    document.body.classList.add("hoy-arrastrando");
+    _autoScroll();
+    return true;
+  }
+
+  function mover(y) {
+    var a = _hoyArrastre;
+    if (!a || a.li !== li) return;
+    a.y = y;
+    var src = a.info[a.srcIndex];
+    var ultima = a.info[a.info.length - 1];
+    var dy = (y - a.y0) + (a.scroller.scrollTop - a.s0);
+    if (Math.abs(dy) > 4) a.movido = true;
+    // Se pinta sin salir de la sección (de la primera fila a la última), pero
+    // el destino sale de dónde está de verdad el puntero: con el tope, el
+    // margen de 8px impedía llegar al primer y al último puesto.
+    var dyVisto = Math.max(a.info[0].top - src.top, Math.min(ultima.top + ultima.alto - (src.top + src.alto), dy));
+    li.style.transform = "translateY(" + (dyVisto / a.zoom) + "px) scale(1.02)";
+
+    var centro = src.top + src.alto / 2 + dy;
+    var otras = a.info.filter(function(_, i) { return i !== a.srcIndex; });
+    var destino = 0;
+    otras.forEach(function(f, j) {
+      var margen = j < a.destino ? -DROP_MARGEN : DROP_MARGEN;
+      if (centro > f.top + f.alto / 2 + margen) destino = j + 1;
+    });
+    if (destino === a.destino && a.pintado) return;
+    a.destino = destino;
+    a.pintado = true;
+    a.info.forEach(function(f, i) {
+      if (i === a.srcIndex) return;
+      var j = i > a.srcIndex ? i - 1 : i;
+      var puesto = j < destino ? j : j + 1;
+      var salto = (puesto - i) * a.paso / a.zoom;
+      f.el.style.transform = salto ? "translateY(" + salto + "px)" : "";
+    });
+  }
+
+  function terminar() {
+    lista.classList.remove("hoy-lista--reordenando");
+    li.classList.remove("hoy-fila--arrastrada");
+    document.body.classList.remove("hoy-arrastrando");
+  }
+
+  function cancelar() {
+    var a = _hoyArrastre;
+    _hoyArrastre = null;
+    if (!a) return;
+    a.info.forEach(function(f) { f.el.style.transform = ""; });
+    terminar();
+  }
+
+  /** @returns {boolean} si cambió algo */
+  function soltar() {
+    var a = _hoyArrastre;
+    if (!a || a.destino === a.srcIndex) { cancelar(); return false; }
+    _hoyArrastre = null;
+    var ids = a.info.filter(function(_, i) { return i !== a.srcIndex; })
+      .map(function(f) { return _idFilaHoy(f.el); });
+    ids.splice(a.destino, 0, _idFilaHoy(li));
+    terminar();
+    // Los transform se quedan puestos: el repintado mide las filas donde se
+    // ven, así que no saltan; la soltada se asienta desde donde se dejó.
+    alSoltar(ids);
+    return true;
+  }
+
+  // ── Ratón ──
+  li.addEventListener("mousedown", function(e) {
+    if (e.button !== 0 || _hoyArrastre) return;
+    if (e.target.closest("button, input, a, textarea, select, [contenteditable]")) return;
+    var x0 = e.clientX, y0 = e.clientY, activo = false;
+    function alMover(ev) {
+      if (!activo) {
+        if (Math.abs(ev.clientX - x0) < 5 && Math.abs(ev.clientY - y0) < 5) return;
+        activo = empezar(y0);
+        if (!activo) { quitar(); return; }
+      }
+      ev.preventDefault();
+      mover(ev.clientY);
+    }
+    function alSoltarRaton() {
+      quitar();
+      if (!activo) return;
+      soltar();
+      // El clic que sigue al soltar abriría el detalle: se descarta.
+      // Si el ratón se soltó fuera de la fila no llega ningún clic: el
+      // filtro se retira solo en el siguiente ciclo.
+      function tragar(ev) { ev.stopPropagation(); ev.preventDefault(); }
+      window.addEventListener("click", tragar, true);
+      setTimeout(function() { window.removeEventListener("click", tragar, true); }, 0);
+    }
+    function alTecla(ev) { if (ev.key === "Escape" && activo) { quitar(); cancelar(); } }
+    function quitar() {
+      document.removeEventListener("mousemove", alMover);
+      document.removeEventListener("mouseup", alSoltarRaton);
+      document.removeEventListener("keydown", alTecla);
+    }
+    document.addEventListener("mousemove", alMover);
+    document.addEventListener("mouseup", alSoltarRaton);
+    document.addEventListener("keydown", alTecla);
+  });
+
+  // ── Táctil ──
+  var temporizador = null, tx0 = 0, ty0 = 0;
+  li.addEventListener("touchstart", function(e) {
+    if (e.touches.length !== 1 || _hoyArrastre) return;
+    if (e.target.closest("button, input, a, textarea, select")) return;
+    tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+    clearTimeout(temporizador);
+    temporizador = setTimeout(function() {
+      temporizador = null;
+      if (empezar(ty0) && navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+    }, HOY_PULSACION_MS);
+  }, { passive: true });
+
+  li.addEventListener("touchmove", function(e) {
+    var t0 = e.touches[0];
+    if (!_hoyArrastre || _hoyArrastre.li !== li) {
+      // Se mueve antes de tiempo: es scroll o deslizar, no reordenar.
+      if (temporizador && (Math.abs(t0.clientX - tx0) > 8 || Math.abs(t0.clientY - ty0) > 8)) {
+        clearTimeout(temporizador); temporizador = null;
+      }
+      return;
+    }
+    e.preventDefault();
+    mover(t0.clientY);
+  }, { passive: false });
+
+  li.addEventListener("touchend", function(e) {
+    clearTimeout(temporizador); temporizador = null;
+    var a = _hoyArrastre;
+    if (!a || a.li !== li) return;
+    // Sin el clic sintético que vendría después (abriría la hoja dos veces).
+    e.preventDefault();
+    if (a.movido) { soltar(); return; }
+    // Mantener pulsado sin mover: lo de siempre, abrir su hoja.
+    cancelar();
+    li.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  });
+
+  li.addEventListener("touchcancel", function() {
+    clearTimeout(temporizador); temporizador = null;
+    if (_hoyArrastre && _hoyArrastre.li === li) cancelar();
+  });
+
+  // El scroll automático vuelve a colocar la fila con la misma y.
+  li.addEventListener("hoy-reordenar-mover", function(e) { mover(e.detail); });
+
+  // ── Teclado ──
+  li.addEventListener("keydown", function(e) {
+    if (e.target !== li || !e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault();
+    var ids = filas().map(_idFilaHoy);
+    var i = ids.indexOf(_idFilaHoy(li));
+    var j = e.key === "ArrowUp" ? i - 1 : i + 1;
+    if (i === -1 || j < 0 || j >= ids.length) return;
+    ids.splice(i, 1);
+    ids.splice(j, 0, _idFilaHoy(li));
+    var id = _idFilaHoy(li);
+    alSoltar(ids);
+    // Tras el repintado, el foco sigue en la misma fila.
+    var nueva = taskList.querySelector('[data-hoy-task-id="' + id + '"], [data-habit-id="' + id + '"]');
+    if (nueva) nueva.focus();
+  });
+}
+
+/** Scroll automático cerca de los bordes mientras se arrastra. */
+function _autoScroll() {
+  var a = _hoyArrastre;
+  if (!a) return;
+  var sc = a.scroller;
+  var esDoc = sc === document.scrollingElement || sc === document.documentElement;
+  var arriba = esDoc ? 0 : sc.getBoundingClientRect().top;
+  var abajo  = esDoc ? window.innerHeight : sc.getBoundingClientRect().bottom;
+  var BORDE = 64, v = 0;
+  if (a.y < arriba + BORDE) v = -Math.ceil((arriba + BORDE - a.y) / 6);
+  else if (a.y > abajo - BORDE) v = Math.ceil((a.y - (abajo - BORDE)) / 6);
+  if (v) {
+    var antes = sc.scrollTop;
+    sc.scrollTop += v;
+    if (sc.scrollTop !== antes) {
+      // Mover de nuevo con la misma y: el scroll ha corrido la fila.
+      a.li.dispatchEvent(new CustomEvent("hoy-reordenar-mover", { detail: a.y }));
+    }
+  }
+  requestAnimationFrame(_autoScroll);
+}
+
 /** Ayudas de sección abiertas (clave i18n → true). Solo en memoria. */
 var _ayudasAbiertas = {};
 function _ayudaSeccion(sec, clave) {
@@ -7389,6 +7677,7 @@ function _renderHabitItem(habit, todayISO, noTocaHoy, futuro) {
   li.addEventListener("contextmenu", function(e) {
     if (!_esMovil() || e.target.closest("button, input")) return;
     e.preventDefault();
+    if (_hoyArrastre) return;   // mantener pulsado para reordenar
     _abrirHojaHabito(habit);
   });
   // Alcanzable con el teclado, como las filas de tarea: Tab llega a ella e
@@ -8003,6 +8292,7 @@ function renderTodayItem(task, project, todayStr, tone) {
     if (e.target.closest("button, input")) return;
     if (!_esMovil()) return;
     e.preventDefault();
+    if (_hoyArrastre) return;   // mantener pulsado para reordenar
     _abrirHojaTarea(task, project);
   });
   // Alcanzable con el teclado, como las filas de las listas: Tab llega a
@@ -8274,6 +8564,8 @@ function initSwipeGesture(node, task, project) {
 
   node.addEventListener("touchmove", function(e) {
     if (!tracking || e.touches.length !== 1) return;
+    // Mantenida para reordenar (Hoy): el gesto es suyo, no un deslizar.
+    if (_hoyArrastre) { tracking = false; content.style.transform = "translateX(0)"; return; }
     var t = e.touches[0];
     var dx = t.clientX - startX;
     var dy = t.clientY - startY;
