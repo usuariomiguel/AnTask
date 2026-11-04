@@ -8495,14 +8495,24 @@ function initSwipeGesture(node, task, project) {
   if (canMoveToday && !node.previousElementSibling && _shouldHintSwipe()) {
     _markSwipeHinted();
     setTimeout(function() {
+      node.classList.add("task-swipe-activo");
       content.style.transition = "transform 0.45s cubic-bezier(0.22,1,0.36,1)";
       content.style.transform  = "translateX(54px)";
       actToday.style.opacity   = 0.85;
       setTimeout(function() {
         content.style.transform = "translateX(0)";
         actToday.style.opacity  = 0;
+        _finSwipe(500);
       }, 700);
     }, 900);
+  }
+
+  // La fila recorta lo que se mueve solo mientras dura el gesto (ver
+  // .task-swipe-activo); se quita cuando la vuelta a su sitio ha acabado.
+  var finSwipeTimer = null;
+  function _finSwipe(ms) {
+    clearTimeout(finSwipeTimer);
+    finSwipeTimer = setTimeout(function() { node.classList.remove("task-swipe-activo"); }, ms);
   }
 
   node.addEventListener("touchstart", function(e) {
@@ -8520,7 +8530,7 @@ function initSwipeGesture(node, task, project) {
   node.addEventListener("touchmove", function(e) {
     if (!tracking || e.touches.length !== 1) return;
     // Mantenida para reordenar (Hoy): el gesto es suyo, no un deslizar.
-    if (_hoyArrastre) { tracking = false; content.style.transform = "translateX(0)"; return; }
+    if (_hoyArrastre) { tracking = false; content.style.transform = "translateX(0)"; _finSwipe(0); return; }
     var t = e.touches[0];
     var dx = t.clientX - startX;
     var dy = t.clientY - startY;
@@ -8530,6 +8540,8 @@ function initSwipeGesture(node, task, project) {
       isHorizontal = Math.abs(dx) > Math.abs(dy);
       axisLocked = true;
       if (!isHorizontal) { tracking = false; return; }
+      clearTimeout(finSwipeTimer);
+      node.classList.add("task-swipe-activo");
     }
 
     if (!isHorizontal) return;
@@ -8597,6 +8609,7 @@ function initSwipeGesture(node, task, project) {
       actDelete.style.opacity = 0;
       actToday.classList.remove("task-swipe-act-armed");
       actDelete.classList.remove("task-swipe-act-armed");
+      _finSwipe(260);
     }
   });
 
@@ -8609,6 +8622,7 @@ function initSwipeGesture(node, task, project) {
     actDelete.style.opacity  = 0;
     actToday.classList.remove("task-swipe-act-armed");
     actDelete.classList.remove("task-swipe-act-armed");
+    _finSwipe(260);
   });
 }
 

@@ -25,6 +25,13 @@ async function carga(page, estilo, modo) {
   await page.waitForTimeout(600);
 }
 const estiloAplicado = (page) => page.evaluate(() => document.getElementById("task-list").dataset.rowStyle);
+// Fondo de lo que se mueve con la fila a medio deslizar (la clase la pone
+// initSwipeGesture al fijar el gesto en horizontal).
+const fondoDeslizando = (page) => page.evaluate(() => {
+  const fila = document.querySelector(".today-item");
+  fila.classList.add("task-swipe-activo");
+  return getComputedStyle(fila.querySelector(".task-swipe-content")).backgroundColor;
+});
 
 test("el estilo elegido se aplica en móvil", async ({ page }) => {
   const errores = [];
@@ -36,7 +43,7 @@ test("el estilo elegido se aplica en móvil", async ({ page }) => {
   // Y al deslizar, lo que se mueve no deja ver las acciones de debajo: su
   // fondo tiene que ser OPACO. Con el translúcido del lienzo se sumaba al
   // del contenedor y en oscuro se veía la caja de cada fila.
-  const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
+  const fondo = await fondoDeslizando(page);
   expect(fondo).not.toBe("rgba(0, 0, 0, 0)");
   expect(fondo).not.toMatch(/^rgba\(/);   // rgba = lleva alfa; tiene que ser rgb()
   expect(errores).toEqual([]);
@@ -47,7 +54,7 @@ test("en oscuro las filas de «Limpio» no enseñan su caja", async ({ page }) =
   await carga(page, "limpio", "full");
   await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
   await page.waitForTimeout(300);
-  const fondo = await page.evaluate(() => getComputedStyle(document.querySelector(".task-swipe-content")).backgroundColor);
+  const fondo = await fondoDeslizando(page);
   expect(fondo).not.toMatch(/^rgba\(/);   // en oscuro era translúcido y se veía la caja
 });
 
@@ -104,4 +111,37 @@ test("el ajuste se puede tocar desde el móvil, también en modo simple", async 
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
   expect(await estiloAplicado(page)).toBe("limpio");
+});
+
+test("al deslizar, la fila recorta lo que se mueve y al soltar vuelve a su sitio", async ({ page, context }) => {
+  for (const estilo of ["limpio", "tarjetas"]) {
+    await carga(page, estilo, "full");
+    const fila = page.locator(".today-item").first();
+    const box = await fila.boundingBox();
+    const y = box.y + box.height / 2;
+    const cdp = await context.newCDPSession(page);
+    const toque = (type, x) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y }] });
+    // A la izquierda (eliminar) sin llegar al umbral de 80px.
+    await toque("touchStart", box.x + 300);
+    for (let i = 1; i <= 6; i++) await toque("touchMove", box.x + 300 - i * 10);
+    await page.waitForTimeout(50);
+    const durante = await fila.evaluate((el) => ({
+      clase: el.classList.contains("task-swipe-activo"),
+      recorte: getComputedStyle(el).overflow,
+      fondo: getComputedStyle(el.querySelector(".task-swipe-content")).backgroundColor,
+    }));
+    expect(durante.clase, estilo).toBe(true);
+    expect(durante.recorte, estilo).toBe("hidden");
+    expect(durante.fondo, estilo).not.toMatch(/^rgba\(/);
+    await toque("touchEnd", 0);
+    await page.waitForTimeout(500);
+    const despues = await fila.evaluate((el) => ({
+      clase: el.classList.contains("task-swipe-activo"),
+      fondo: getComputedStyle(el.querySelector(".task-swipe-content")).backgroundColor,
+    }));
+    expect(despues.clase, estilo).toBe(false);
+    expect(despues.fondo, estilo).toBe("rgba(0, 0, 0, 0)");
+    await cdp.detach();
+  }
+  expect(await page.locator(".today-item").count()).toBe(1); // no se borró nada (la otra vence en 3 días)
 });

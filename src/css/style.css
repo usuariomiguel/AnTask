@@ -5998,6 +5998,16 @@ body.project-dragging .project-item {
     justify-content: center;
   }
 
+  /* Vista «Limpio» en móvil: la fila es transparente, pero al deslizarla
+     tiene que tapar las acciones que descubre por debajo (eliminar / mover
+     a hoy); sin esto el texto se pintaba encima del panel rojo. Va
+     --capa-canvas y no --surface-canvas: en oscuro esa es translúcida y,
+     sumada al contenedor que ya la lleva, se veía la caja de cada fila.
+     --capa-canvas es ese mismo color ya resuelto contra el fondo. */
+  .task-list[data-row-style="limpio"] .task-swipe-activo > .task-swipe-content {
+    background-color: var(--capa-canvas);
+  }
+
   /* Claro/oscuro va junto al buscador del header (ver _placeRowStyleControl):
      mismo tamaño y misma superficie que él, o se leían como dos botones de
      familias distintas. */
@@ -6903,6 +6913,20 @@ mark.search-hl {
   display: block;
   position: relative;
   z-index: 3;
+  margin: -6px;
+  padding: 6px;
+}
+
+/* Mientras se desliza, la fila recorta lo que se mueve dentro: sin esto el
+   contenido salía por fuera de la caja de la sección y el panel rojo
+   asomaba por las esquinas redondeadas. Y lo que se mueve lleva el fondo
+   de la fila, para tapar el panel que descubre. Solo durante el gesto: en
+   reposo esa capa es cuadrada y asomaría por las esquinas de la tarjeta. */
+.task-swipe-activo {
+  overflow: hidden;
+}
+
+.task-swipe-activo > .task-swipe-content {
   background-color: inherit;
 }
 
@@ -13782,6 +13806,11 @@ button {
 .subtitle-hecho {
   color: var(--c-primary-500);
   font-weight: var(--fw-semibold);
+}
+/* En claro el 500 no llega a 4.5:1 sobre el papel (oliva 3.8:1): un tono
+   por debajo del 600 sí, con todos los acentos (el más justo, miel, 4.9:1). */
+:root[data-theme="light"] .subtitle-hecho {
+  color: color-mix(in srgb, var(--c-primary-600) 85%, #000);
 }
 
 /* Copia de una fila que se va, cerrándose en su propio hueco (ver
