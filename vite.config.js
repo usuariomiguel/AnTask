@@ -20,7 +20,7 @@ const SITE_URL = (process.env.SITE_URL ||
  * Páginas estáticas (landing, privacidad, términos):
  * - `%SITE_URL%` se sustituye por la URL pública.
  * - `<!-- LEGAL:PRIVACY.md -->` se sustituye por ese Markdown convertido a
- *   HTML: la política y los términos viven en un único sitio (los .md del
+ *   HTML (`PRIVACY.en.md` y `TERMS.en.md` para las inglesas): la política y los términos viven en un único sitio (los .md del
  *   repo) y la web los publica tal cual.
  */
 function paginasEstaticas() {
@@ -30,7 +30,7 @@ function paginasEstaticas() {
       return html
         .replace(/%SITE_URL%/g, SITE_URL)
         .replace(/%APP_VERSION%/g, APP_VERSION)
-        .replace(/<!-- LEGAL:([A-Z]+\.md) -->/g, function (_, fichero) {
+        .replace(/<!-- LEGAL:([A-Z]+(?:\.en)?\.md) -->/g, function (_, fichero) {
           // breaks: un salto de línea simple del .md es un salto en la web
           // (p. ej. «AnTrack» y el email de contacto, cada uno en su línea).
           return marked.parse(readFileSync(resolve(__dirname, fichero), "utf8"), { breaks: true });
@@ -60,6 +60,8 @@ export default defineConfig(({ command }) => ({
         en: resolve(__dirname, "en/index.html"),
         privacidad: resolve(__dirname, "privacidad/index.html"),
         terminos: resolve(__dirname, "terminos/index.html"),
+        privacy: resolve(__dirname, "en/privacy/index.html"),
+        terms: resolve(__dirname, "en/terms/index.html"),
       },
       output: {
         manualChunks(id) {

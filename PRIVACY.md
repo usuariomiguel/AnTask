@@ -1,6 +1,6 @@
 # Política de Privacidad de AnTrack
 
-_Última actualización: septiembre de 2026_
+_Última actualización: noviembre de 2026_
 
 ---
 
@@ -33,7 +33,7 @@ Si decides activar la sincronización con Google:
 | Email y nombre de tu cuenta Google | Firebase Authentication (Google LLC) | Identificación y autenticación | Consentimiento (Art. 6.1.a RGPD) |
 | Tareas, proyectos, notas | Firebase Firestore (Google LLC) | Sincronización entre dispositivos | Consentimiento (Art. 6.1.a RGPD) |
 
-La sincronización es **completamente voluntaria**. Puedes revocar tu consentimiento en cualquier momento desconectando tu cuenta desde el menú de perfil → "Desconectar".
+La sincronización es **completamente voluntaria**. Puedes revocar tu consentimiento en cualquier momento cerrando sesión desde el menú de perfil o desde Ajustes → Cuenta → «Cerrar sesión».
 
 ### 2.3 Estadística anónima de visitas (Vercel Web Analytics)
 
@@ -71,7 +71,7 @@ Vercel Inc. (hosting y estadística anónima, apartado 2.3) también tiene sede 
 
 - **Datos locales:** permanecen en tu dispositivo hasta que los eliminas manualmente o limpias el almacenamiento del navegador.
 - **Estadística anónima:** Vercel solo guarda cifras agregadas; el identificador de visitante se descarta cada día.
-- **Datos en Firebase (si usas sync):** se conservan mientras tengas cuenta activa. Al desconectar tu cuenta desde la app, los datos permanecen en Firestore hasta que los elimines o solicites su supresión (ver sección 5).
+- **Datos en Firebase (si usas sync):** se conservan mientras tengas cuenta activa. Al cerrar sesión en la app, los datos permanecen en Firestore hasta que los elimines o solicites su supresión (ver sección 5).
 
 ---
 
@@ -82,7 +82,7 @@ Puedes ejercer en cualquier momento los siguientes derechos escribiendo a **migu
 - **Acceso:** obtener confirmación de si tratamos tus datos y recibir una copia.
 - **Rectificación:** corregir datos inexactos.
 - **Supresión ("derecho al olvido"):** solicitar la eliminación de tus datos de Firebase.
-- **Portabilidad:** exportar tus datos en formato JSON desde la propia app (Perfil → Exportar workspace).
+- **Portabilidad:** exportar tus datos en formato JSON desde la propia app (Ajustes → Datos → «Exportar workspace»).
 - **Oposición / Limitación:** oponerte a determinados tratamientos o solicitar su limitación. Para la estadística anónima basta con desactivarla en Ajustes → Datos.
 - **Retirada del consentimiento:** desconectar la cuenta en cualquier momento sin que ello afecte al uso local de la app.
 
@@ -107,7 +107,7 @@ Aplicamos medidas técnicas razonables para proteger tus datos:
 | Firebase Auth + Firestore | Google LLC | Autenticación y sync (opt-in) | [firebase.google.com/support/privacy](https://firebase.google.com/support/privacy) |
 | Vercel Web Analytics | Vercel Inc. | Estadística anónima de visitas, sin cookies (activada por defecto, desactivable) | [vercel.com/docs/analytics/privacy-policy](https://vercel.com/docs/analytics/privacy-policy) |
 
-Las tipografías (Inter, JetBrains Mono) y los iconos (Lucide) se sirven **self-hosted** desde nuestro propio dominio. Aparte de la estadística anónima (que puedes desactivar) y de Firebase si decides iniciar sesión, **no se realiza ninguna petición a servidores de terceros**.
+Las tipografías (Inter, Bricolage Grotesque, JetBrains Mono) y los iconos (Lucide) se sirven **self-hosted** desde nuestro propio dominio. Aparte de la estadística anónima (que puedes desactivar) y de Firebase si decides iniciar sesión, **no se realiza ninguna petición a servidores de terceros**.
 
 ---
 

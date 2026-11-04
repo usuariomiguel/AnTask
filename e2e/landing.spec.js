@@ -55,4 +55,19 @@ test.describe("navegador en inglés", () => {
     await page.locator(".pie a[lang=en]").click();
     await expect(page).toHaveURL(/\/en\/$/);
   });
+  test("privacidad y términos en inglés, enlazados con los españoles", async ({ page }) => {
+    await page.goto("/en/");
+    await page.locator(".pie a", { hasText: "Privacy" }).click();
+    await expect(page).toHaveURL(/\/en\/privacy\/$/);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator(".legal h1")).toHaveText("AnTrack Privacy Policy");
+    await page.locator(".pie a", { hasText: "Terms" }).click();
+    await expect(page).toHaveURL(/\/en\/terms\/$/);
+    await expect(page.locator(".legal h1")).toHaveText("AnTrack Terms of Service");
+    await page.locator(".pie a[lang=es]").click();
+    await expect(page).toHaveURL(/\/terminos\/$/);
+    await expect(page.locator(".legal h1")).toHaveText("Términos de Servicio de AnTrack");
+    await page.locator(".pie a[lang=en]").click();
+    await expect(page).toHaveURL(/\/en\/terms\/$/);
+  });
 });

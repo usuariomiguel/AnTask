@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy policy · AnTrack</title>
+    <meta name="description" content="What data AnTrack processes, where it is stored and what your rights are." />
+    <!-- Theme before first paint: the one saved in the app or, failing that,
+         the system one. Same rule as the app's <head>. -->
+    <script>
+      (function () {
+        try {
+          var tema = localStorage.getItem("mis-tareas-theme");
+          if (tema !== "light" && tema !== "dark") {
+            tema = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.dataset.theme = tema;
+        } catch (e) { document.documentElement.dataset.theme = "light"; }
+      })();
+    </script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#f8e1aa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080605" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="canonical" href="%SITE_URL%/en/privacy/" />
+    <link rel="alternate" hreflang="es" href="%SITE_URL%/privacidad/" />
+    <link rel="alternate" hreflang="en" href="%SITE_URL%/en/privacy/" />
+
+    <!-- Link preview (Open Graph + X/Twitter). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AnTrack" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Privacy policy · AnTrack" />
+    <meta property="og:description" content="What data AnTrack processes, where it is stored and what your rights are." />
+    <meta property="og:url" content="%SITE_URL%/en/privacy/" />
+    <meta property="og:image" content="%SITE_URL%/og-image-en.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AnTrack: Do it today. Repeat tomorrow." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Privacy policy · AnTrack" />
+    <meta name="twitter:description" content="What data AnTrack processes, where it is stored and what your rights are." />
+    <meta name="twitter:image" content="%SITE_URL%/og-image-en.jpg" />
+
+    <link rel="stylesheet" href="/src/css/landing.css" />
+    <script type="module" src="/src/js/landing.js"></script>
+  </head>
+  <body>
+    <header class="cabecera">
+      <div class="wrap">
+        <a class="marca" href="/en/" aria-label="AnTrack, home">
+          <img class="solo-claro" src="/src/img/logo-mark-light.webp" alt="" width="30" height="30" />
+          <img class="solo-oscuro" src="/src/img/logo-mark-dark.webp" alt="" width="30" height="30" />
+          AnTrack
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="/en/#funciones">Features</a>
+          <a href="/en/#instalar">Install</a>
+          <a href="/en/privacy/">Privacy</a>
+          <a href="/privacidad/" hreflang="es" lang="es">Español</a>
+        </nav>
+        <button type="button" class="tema-toggle" data-tema-toggle aria-label="Switch between light and dark theme" title="Switch between light and dark theme">
+          <span class="tema-ico tema-ico--sol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+          <span class="tema-ico tema-ico--luna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg></span>
+        </button>
+        <a class="boton boton--principal boton--pequeno" href="/?app" data-app-en>Open the app</a>
+      </div>
+    </header>
+
+    <main class="legal">
+      <a class="legal-volver" href="/en/">← Back to AnTrack</a>
+      <!-- LEGAL:PRIVACY.en.md -->
+    </main>
+    <footer class="pie">
+      <div class="wrap">
+        <span>© 2026 AnTrack</span>
+        <nav aria-label="Legal">
+          <a href="/en/privacy/">Privacy</a>
+          <a href="/en/terms/">Terms</a>
+          <a href="/?app" data-app-en>Open the app</a>
+          <a href="/privacidad/" hreflang="es" lang="es">Español</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

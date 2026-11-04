@@ -1,6 +1,6 @@
 # Términos de Servicio de AnTrack
 
-_Última actualización: mayo de 2026_
+_Última actualización: noviembre de 2026_
 
 ---
 
@@ -45,13 +45,13 @@ La función de sincronización utiliza Google Sign-In. Al activarla:
 
 - Aceptas también los [Términos de Servicio de Google](https://policies.google.com/terms).
 - Eres responsable de mantener la seguridad de tu cuenta de Google.
-- Puedes desconectar tu cuenta en cualquier momento desde el menú de perfil.
+- Puedes desconectar tu cuenta en cualquier momento desde el menú de perfil o desde Ajustes → Cuenta.
 
 ---
 
 ## 5. Propiedad intelectual
 
-El código fuente de AnTrack se distribuye bajo licencia **MIT** (ver [LICENSE](./LICENSE)). Eres libre de usar, modificar y distribuir el código según los términos de dicha licencia.
+El código fuente de AnTrack se distribuye bajo licencia **MIT** (ver [LICENSE](https://github.com/usuariomiguel/AnTask/blob/main/LICENSE)). Eres libre de usar, modificar y distribuir el código según los términos de dicha licencia.
 
 El contenido que introduces en la aplicación (tareas, notas, etc.) es tuyo. No reclamamos ningún derecho sobre él.
 
@@ -79,7 +79,7 @@ Nada en estos Términos excluye o limita responsabilidades que no puedan excluir
 
 ## 8. Exportación y portabilidad de datos
 
-Puedes exportar todos tus datos en cualquier momento desde Perfil → "Exportar workspace". Te recomendamos hacer copias de seguridad periódicas, especialmente si usas el modo local sin sincronización.
+Puedes exportar todos tus datos en cualquier momento desde Ajustes → Datos → «Exportar workspace». Te recomendamos hacer copias de seguridad periódicas, especialmente si usas el modo local sin sincronización.
 
 ---
 
