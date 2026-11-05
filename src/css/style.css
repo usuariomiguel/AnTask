@@ -15159,21 +15159,28 @@ body,
   user-select: none;
 }
 
-.hoy-lista--reordenando > .today-item {
+/* También las filas de las listas e Inbox en el móvil (ver
+   _reordenableEnLista): mismo gesto, misma animación. */
+.hoy-lista--reordenando > .today-item,
+.hoy-lista--reordenando > .task-item {
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Sin escalar: a todo el ancho, crecer un 2 % la sacaba de la sección.
    En «Limpio», donde las filas no tienen caja, lleva fondo y esquinas
    propios para leerse como una tarjeta levantada. */
-.hoy-lista--reordenando > .today-item.hoy-fila--arrastrada {
+.hoy-lista--reordenando > .today-item.hoy-fila--arrastrada,
+.hoy-lista--reordenando > .task-item.hoy-fila--arrastrada {
   position: relative;
   z-index: 5;
   transition: none;
   box-shadow: 0 8px 20px rgba(40, 28, 10, 0.16);
 }
 
-.task-list[data-row-style="limpio"] .hoy-lista--reordenando > .today-item.hoy-fila--arrastrada {
+/* En una lista plana la que se reordena es la propia .task-list. */
+.task-list[data-row-style="limpio"] .hoy-lista--reordenando > .today-item.hoy-fila--arrastrada,
+.task-list[data-row-style="limpio"] .hoy-lista--reordenando > .task-item.hoy-fila--arrastrada,
+.task-list[data-row-style="limpio"].hoy-lista--reordenando > .task-item.hoy-fila--arrastrada {
   background: var(--surface-raised);
   border-radius: var(--r-md);
 }

@@ -4692,6 +4692,7 @@ function _buildTaskNode(task, project, showList) {
     node.addEventListener("contextmenu", async function(e) {
       if (e.target.closest("button, input")) return;
       e.preventDefault();
+      if (_hoyArrastre) return;   // mantener pulsado para reordenar
       // Móvil: mantener pulsado abre la misma hoja que tocar.
       if (_esMovil()) { _abrirHojaTarea(task, project); return; }
       openTaskActionsMenu({ x: e.clientX, y: e.clientY });
@@ -4755,7 +4756,10 @@ function _buildTaskNode(task, project, showList) {
       }
     });
 
-    initDragDrop(node, task.id);
+    // En el móvil se reordena como en Hoy; en el PC, arrastrando (que además
+    // deja soltarla en una lista de la barra lateral).
+    if (_esMovil()) _reordenableEnLista(node);
+    else initDragDrop(node, task.id);
     if (window.matchMedia("(max-width: 768px)").matches) {
       initSwipeGesture(node, task, project);
     }
@@ -7140,7 +7144,7 @@ function _guardarOrdenHabitos(ids) {
 }
 
 function _idFilaHoy(el) {
-  return el.dataset.hoyTaskId || el.dataset.habitId || null;
+  return el.dataset.hoyTaskId || el.dataset.habitId || el.dataset.taskId || null;
 }
 
 /** El contenedor que hace scroll (en móvil, el documento). */
@@ -7155,17 +7159,28 @@ function _scrollerDe(el) {
 /**
  * Hace que `li` se pueda reordenar dentro de `lista`. `alSoltar(ids)` recibe
  * los ids de la sección en su orden nuevo.
+ *
+ * Lo usan también las listas e Inbox en el móvil (ver _reordenableEnLista),
+ * para que mover una tarea se vea y se sienta igual en todas partes. Para
+ * ellas: `lista` puede ser null (el contenedor de la fila cuando empieza el
+ * gesto: la fila se crea antes de colgarla), `filasDe(lista)` dice qué filas
+ * entran en juego y `puede()` si se puede reordenar ahora mismo.
  */
-function _reordenableEnHoy(li, lista, alSoltar) {
+function _reordenableEnHoy(li, listaFija, alSoltar, opciones) {
+  opciones = opciones || {};
   li.classList.add("hoy-reordenable");
+  var lista = listaFija;
 
   function filas() {
+    if (opciones.filasDe) return opciones.filasDe(lista);
     return Array.prototype.filter.call(lista.children, function(el) {
       return el.classList.contains("today-item") && _idFilaHoy(el);
     });
   }
 
   function empezar(yInicio) {
+    lista = listaFija || li.parentElement;
+    if (!lista || (opciones.puede && !opciones.puede())) return false;
     var fs = filas();
     var srcIndex = fs.indexOf(li);
     if (fs.length < 2 || srcIndex === -1) return false;
@@ -7335,6 +7350,8 @@ function _reordenableEnHoy(li, lista, alSoltar) {
   // ── Teclado ──
   li.addEventListener("keydown", function(e) {
     if (e.target !== li || !e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    lista = listaFija || li.parentElement;
+    if (!lista || (opciones.puede && !opciones.puede())) return;
     e.preventDefault();
     var ids = filas().map(_idFilaHoy);
     var i = ids.indexOf(_idFilaHoy(li));
@@ -7345,7 +7362,7 @@ function _reordenableEnHoy(li, lista, alSoltar) {
     var id = _idFilaHoy(li);
     alSoltar(ids);
     // Tras el repintado, el foco sigue en la misma fila.
-    var nueva = taskList.querySelector('[data-hoy-task-id="' + id + '"], [data-habit-id="' + id + '"]');
+    var nueva = taskList.querySelector('[data-hoy-task-id="' + id + '"], [data-habit-id="' + id + '"], .task-item[data-task-id="' + id + '"]');
     if (nueva) nueva.focus();
   });
 }
@@ -7370,6 +7387,53 @@ function _autoScroll() {
     }
   }
   requestAnimationFrame(_autoScroll);
+}
+
+/**
+ * Listas e Inbox en el móvil: el mismo gesto que en Hoy (mantener pulsado,
+ * la fila se levanta y las demás se apartan), en vez del arrastre nativo del
+ * navegador, que sacaba una copia translúcida de la fila y no apartaba nada.
+ *
+ * Solo entre tareas de la MISMA lista y seguidas: en el Inbox se ven las de
+ * todas, pero el orden de cada una vive en su lista, y moverla entre las de
+ * otra no se podría guardar. Lo que se guarda: esas tareas, en el orden
+ * nuevo, en los huecos que ya ocupaban en su lista (las ocultas no se mueven).
+ */
+function _reordenableEnLista(li) {
+  _reordenableEnHoy(li, null, _guardarOrdenLista, {
+    puede: function() { return currentFilter === "all"; },
+    filasDe: function(lista) {
+      var propia = _listaDeTarea(li.dataset.taskId);
+      if (!propia) return [];
+      var hermanas = Array.prototype.filter.call(lista.children, function(el) {
+        return el.classList.contains("task-item") && el.dataset.taskId;
+      });
+      // El tramo seguido de filas de su lista alrededor de la suya.
+      var i = hermanas.indexOf(li);
+      var deSuLista = function(el) { var p = _listaDeTarea(el.dataset.taskId); return p && p.id === propia.id; };
+      var a = i, b = i;
+      while (a > 0 && deSuLista(hermanas[a - 1])) a--;
+      while (b < hermanas.length - 1 && deSuLista(hermanas[b + 1])) b++;
+      return i === -1 ? [] : hermanas.slice(a, b + 1);
+    },
+  });
+}
+
+function _guardarOrdenLista(ids) {
+  var lista = _listaDeTarea(ids[0]);
+  if (!lista) return;
+  var porId = {}, puestos = [];
+  lista.tasks.forEach(function(tk, i) {
+    porId[tk.id] = tk;
+    if (ids.indexOf(tk.id) !== -1) puestos.push(i);
+  });
+  if (puestos.length !== ids.length) return;
+  puestos.forEach(function(p, k) { lista.tasks[p] = porId[ids[k]]; });
+  // Las filas se reutilizan al repintar: los transform que las dejan donde
+  // se ven se quitan justo después de medirlas (ver _limpiarHuecoAlRepintar),
+  // y desde ahí cada una se asienta en su sitio nuevo.
+  taskList.classList.add("lista-con-hueco");
+  saveAndRender();
 }
 
 /** Ayudas de sección abiertas (clave i18n → true). Solo en memoria. */
