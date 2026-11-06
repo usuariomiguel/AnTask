@@ -109,13 +109,13 @@
 
   /* ─── 5. TYPOGRAPHY ─────────────────────────────────────────────
      Las tres familias del tema "tierra" del prototipo v1:
-       fontUI      → Inter                 (interfaz, texto de tarea)
-       fontMono    → JetBrains Mono        (metadatos: `monoMeta: true`)
+       fontUI      → Figtree               (interfaz, texto de tarea; antes Inter)
+       fontMono    → JetBrains Mono        (solo números: contadores, horas)
        fontDisplay → Bricolage Grotesque   (títulos, marca)               */
-  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Figtree Variable', 'Figtree', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', monospace;
   --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque',
-    'Inter Variable', 'Inter', system-ui, sans-serif;
+    'Figtree Variable', 'Figtree', system-ui, sans-serif;
 
   /* Escala alineada con el prototipo v1 (tema tierra). */
   --fs-xs: 11px;
@@ -140,7 +140,9 @@
   /* Títulos display — v1 tierra: titleWeight 700, titleTrack -0.035em. */
   --title-track: -0.035em;
 
-  --fw-semiregular: 300;
+  /* 380 y no 300: con Figtree, 300 ya es «ligera» de verdad y el título de
+     las tareas se quedaba sin cuerpo, sobre todo en oscuro. */
+  --fw-semiregular: 380;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
@@ -15199,3 +15201,33 @@ body.hoy-arrastrando,
 body.hoy-arrastrando * {
   cursor: grabbing !important;
 }
+
+/* ─── MENOS MONOESPACIADA ─────────────────────────────────────
+   La mono se queda para los números (contadores, horas, «0/3»). Las
+   fechas y acciones de las filas («Ayer», «Mover a hoy») y los rótulos
+   de sección pasan a la letra normal: en mono se leían como una terminal,
+   ocupaban más ancho y cortaban antes el título de la tarea. Elegido
+   comparando capturas de la app real (nov-2026).
+
+   Con !important a propósito: esas piezas fijan su familia y su
+   espaciado en muchos sitios (base, móvil, cada estilo de fila, tema
+   claro), varios con más peso que una clase. Aquí se decide una vez. */
+.due-badge,
+.today-date-pill,
+.task-list-badge {
+  font-family: var(--font-sans) !important;
+  letter-spacing: 0 !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+
+.hoy-section-title,
+.inbox-tasks-label,
+.sidebar-section-label,
+.profile-section-label,
+.hoja-tarea-rotulo,
+.modal-sheet-heading {
+  font-family: var(--font-sans) !important;
+  letter-spacing: 0.07em !important;
+}
+
