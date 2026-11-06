@@ -6948,6 +6948,16 @@ mark.search-hl {
      estiraba a la altura entera de la celda en vez de centrarse, y el
      texto quedaba pegado arriba en vez de en medio de la fila. */
   align-items: center;
+  /* Aquí no vale el margen negativo de la regla general: Safari no lo
+     descuenta en un subgrid pero sí suma el relleno, y cada fila de Hoy
+     crecía 12px. Se pasa el relleno de la fila a esta capa, que así cubre
+     la fila entera al deslizar, sin margen. */
+  margin: 0;
+  padding: 6px;
+}
+
+.today-item:has(> .task-swipe-content) {
+  padding: 0;
 }
 
 /* Paneles de acción del swipe. A sangre sobre toda la fila, con icono y
