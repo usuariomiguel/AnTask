@@ -956,7 +956,11 @@ if (taskInput) {
  */
 function _createTaskInProject(project, rawText, overrides) {
   overrides = overrides || {};
-  const parsed = parseNaturalLanguage(rawText);
+  // `literal`: el texto se guarda tal cual, sin leer fechas, «p1», «cada
+  // 2 días» ni «#lista» (lo usa el campo de Hoy; ver _hoyQuickAddEl).
+  const parsed = overrides.literal
+    ? { text: String(rawText || "").trim(), dueDate: null, priority: null, recurDays: null }
+    : parseNaturalLanguage(rawText);
   const text = capitalizeFirst(parsed.text).slice(0, 120);
   if (!text) return null;
 
@@ -7500,10 +7504,11 @@ function _hoyQuickAddEl(todayStr, placeholder) {
     if (!value) return;
     var inbox = projects.find(function(p) { return p.id === INBOX_ID; });
     if (!inbox) return;
-    var created = _createTaskInProject(inbox, value);
+    // Sin atajos: lo que se escribe aquí es el título y va al día de la
+    // sección (hoy, o el elegido en la tira). Escribir «mañana» o «p1» no
+    // la mandaba a otro sitio sin querer; para eso está la captura rápida.
+    var created = _createTaskInProject(inbox, value, { literal: true, dueDate: todayStr });
     if (!created) return;
-    // El parser NL puede haber fijado ya una fecha ("mañana"); si no, va a hoy.
-    if (!created.dueDate) created.dueDate = todayStr;
     saveProjects();
     _hoyQuickAddRefocus = true;
     renderTasks();
