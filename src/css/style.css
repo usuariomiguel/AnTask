@@ -10508,8 +10508,10 @@ button {
 }
 
 .capture-bar-kbd {
-  display: grid;
-  place-items: center;
+  /* flex y no grid: con grid, «Espacio» (va en su propio <span> para
+     traducirse) era otra celda y caía a una segunda línea. */
+  display: flex;
+  align-items: center;
   height: 100%;
   margin-left: auto;
   font-family: var(--font-mono, monospace);
@@ -10521,6 +10523,9 @@ button {
   background: var(--kbd-bg);
   border: 2px solid var(--border-default);
   flex-shrink: 0;
+  /* pre: conserva el espacio de «+ » delante de «Espacio», que como hijo
+     de flex se perdería; y además no parte la línea. */
+  white-space: pre;
 }
 
 @media (max-width: 768px) {

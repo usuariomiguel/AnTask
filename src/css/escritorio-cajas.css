@@ -123,6 +123,14 @@
     padding-top: var(--sp-2);
   }
 
+  /* Una lista sin rótulos (una lista, o el Inbox sin agrupar) empezaba
+     con la primera fila a 10px del borde, pegada. En Hoy y en el Inbox
+     agrupado el rótulo de sección pone ese aire; aquí lo pone la lista:
+     primera fila a ~24px, como el rótulo de Hoy más su respiro. */
+  .task-list.task-list--project {
+    padding-top: 22px;
+  }
+
   /* ── 4. Columna de lectura dentro de las cajas ─────────────────
      Las cajas van a todo lo ancho del panel, pero lo de dentro (título,
      filtros y filas) se centra en 960px: en un monitor ancho, sin tope, la
@@ -179,6 +187,13 @@
 
   .act-seg-btn:not(.act-seg-btn--on) {
     background: var(--surface-card);
+  }
+
+  /* ── Rótulos de sección sin icono ─────────────────────────────
+     Vencidas, Para hoy, Hábitos, Sin fecha, Actividad…: en el PC el rótulo
+     va solo, en texto (lo pidió el usuario). En el móvil se quedan. */
+  .hoy-section-ico {
+    display: none;
   }
 
   /* ── 6. Sidebar: vistas y listas sin caja ─────────────────────
