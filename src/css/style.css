@@ -7997,6 +7997,8 @@ body.task-dragging .project-item:not(.active) {
 }
 
 .settings-nav {
+  position: relative;
+  isolation: isolate;
   width: 200px;
   flex-shrink: 0;
   display: flex;
@@ -8035,6 +8037,42 @@ body.task-dragging .project-item:not(.active) {
   font-size: 12.5px;
   font-weight: 550;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Como las vistas de la barra lateral: el resto se tiñe al pasar el ratón. */
+.settings-nav-item:not(.active):hover {
+  background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-primary);
+}
+
+/* Indicador que viaja al elegido (ver _moverIndicadorAjustes en
+   sections-and-profile.js), igual que el de la barra lateral. Va detrás de
+   las filas; mientras existe, el elegido no pinta su propio fondo. */
+.settings-nav-indicador {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+  border-radius: 25px;
+  background: var(--accent-tint);
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.settings-nav-indicador.sin-transicion {
+  transition: none;
+}
+
+.settings-nav--con-indicador .settings-nav-item.active {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-nav-item,
+  .settings-nav-indicador {
+    transition: none;
+  }
 }
 
 .settings-nav-item .lucide {
@@ -8313,7 +8351,10 @@ body.task-dragging .project-item:not(.active) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
 }
 
-.settings-switch.on {
+/* Con :root[data-theme] también: «:root[data-theme="dark"] .settings-switch»
+   pesa más que «.settings-switch.on» y en oscuro el activado salía gris. */
+.settings-switch.on,
+:root[data-theme="dark"] .settings-switch.on {
   background: var(--c-primary-500);
   justify-content: flex-end;
 }
@@ -8354,6 +8395,12 @@ body.task-dragging .project-item:not(.active) {
   border: 2px solid var(--border-default);
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-input));
+  color: var(--text-primary);
 }
 
 .settings-btn .lucide {
@@ -8461,16 +8508,28 @@ body.task-dragging .project-item:not(.active) {
 
   .settings-section-title {
     margin: 22px 6px 9px;
-    font-family: var(--font-mono);
-    font-size: 11px;
+    font-family: var(--font-sans);
+    font-size: 11.5px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     color: var(--text-tertiary);
   }
 
   .settings-section-panel:first-of-type .settings-section-title {
     margin-top: 6px;
+  }
+
+  /* Opciones de avisos dentro de su tarjeta: alineadas con el texto de la
+     fila (la tarjeta lleva 15px de relleno y el icono delante). Con la
+     tarjeta delante: este @media va antes que la regla base, que si no
+     ganaría a igual peso. */
+  .settings-mobile-card .profile-notif-options {
+    padding: 0 15px 14px 50px;
+  }
+
+  .profile-notif-simple-time {
+    width: 100%;
   }
 
   .settings-mobile-card {
@@ -8551,65 +8610,68 @@ body.task-dragging .project-item:not(.active) {
   border-color: rgba(95, 179, 163, 0.32);
 }
 
+/* ── Avisos de tareas: opciones al activarlos ──────────────────
+   Alineadas con el texto de la fila de arriba (sin caja propia), con las
+   piezas del diseño actual: chips de hora en píldora, campo de hora y
+   botones como .settings-btn (los botones llevan esa clase en el HTML). */
 .profile-notif-options {
-  padding: 0.45rem 0.75rem 0.55rem;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  background: rgba(163, 179, 102, 0.04);
-  border-top: 2px solid var(--b-subtle);
-  border-bottom: 2px solid var(--b-subtle);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 0 16px 32px;
+}
+
+/* En el PC la raya de la fila pasa al final de sus opciones: si no, las
+   horas quedaban debajo de la separación y parecían de otra fila. En el
+   móvil van dentro de su tarjeta y la raya se queda donde está. */
+@media (min-width: 769px) {
+  .settings-row:has(+ .profile-notif-options:not([hidden])) {
+    border-bottom-color: transparent;
+  }
+
+  .profile-notif-options {
+    border-bottom: 2px solid var(--border-default);
+  }
 }
 
 .profile-notif-times-block {
   display: flex;
   flex-direction: column;
-  gap: 0.40rem;
+  gap: 8px;
+  width: 100%;
 }
 
-/* Fila de un único horario (modo simple, ver style.css @media más arriba
-   y sections-and-profile.js) — oculta por defecto: solo se enciende ahí. */
+/* Fila de un único horario (modo simple, ver el @media de móvil más
+   arriba y sections-and-profile.js) — oculta por defecto: solo se
+   enciende ahí. */
 .profile-notif-simple-time {
   display: none;
 }
 
-.profile-notif-simple-time input[type="time"] {
-  background: var(--bg-glass);
-  border: 2px solid var(--b-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.3rem 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--t-primary);
-  color-scheme: dark;
-}
-
 .profile-notif-times-label {
-  font-size: 0.60rem;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .profile-notif-times-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.30rem;
-  min-height: 1.4rem;
+  gap: 6px;
 }
 
 .profile-notif-time-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.18rem 0.30rem 0.18rem 0.50rem;
-  background: rgba(163, 179, 102, 0.10);
-  border: 2px solid rgba(163, 179, 102, 0.28);
+  gap: 4px;
+  padding: 4px 5px 4px 12px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
   border-radius: var(--r-pill);
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--c-primary-300);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -8617,79 +8679,59 @@ body.task-dragging .project-item:not(.active) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  background: transparent;
-  border: none;
-  border-radius: 21px;
-  color: var(--t-muted);
-  cursor: pointer;
+  width: 20px;
+  height: 20px;
   padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.profile-notif-time-del:hover {
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  color: var(--text-primary);
 }
 
 .profile-notif-time-del .lucide {
-  width: 11px;
-  height: 11px;
-  stroke-width: 2.5;
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.4;
 }
 
 .profile-notif-times-add {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 8px;
 }
 
-.profile-notif-times-add input[type="time"] {
-  flex: 1;
-  background: var(--bg-glass);
-  border: 2px solid var(--b-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.20rem 0.40rem;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--t-primary);
-  color-scheme: dark;
-}
-
-.profile-notif-add-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: rgba(163, 179, 102, 0.08);
-  border: 2px solid rgba(163, 179, 102, 0.30);
-  border-radius: var(--r-sm);
-  color: var(--c-primary-400);
-  font-size: 0.68rem;
+/* El campo de hora, como una píldora más (en modo simple y completo). */
+.profile-notif-times-add input[type="time"],
+.profile-notif-simple-time input[type="time"] {
+  width: 118px;
+  padding: 6px 12px;
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-pill);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 600;
-  padding: 0.26rem 0.45rem;
-  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s ease;
 }
 
-.profile-notif-add-btn .lucide {
-  width: 11px;
-  height: 11px;
-  stroke-width: 2.5;
+.profile-notif-times-add input[type="time"]:hover,
+.profile-notif-simple-time input[type="time"]:hover {
+  border-color: color-mix(in srgb, var(--text-primary) 22%, var(--border-default));
 }
 
-.profile-notif-test-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  background: transparent;
-  border: 2px solid var(--b-subtle);
-  border-radius: var(--r-sm);
-  color: var(--t-soft);
-  font-size: 0.70rem;
-  font-weight: 500;
-  padding: 0.32rem 0.55rem;
-  cursor: pointer;
-}
-
-.profile-notif-test-btn .lucide {
-  width: 11px;
-  height: 11px;
-  stroke-width: 2.5;
+.profile-notif-times-add input[type="time"]:focus-visible,
+.profile-notif-simple-time input[type="time"]:focus-visible {
+  outline: none;
+  border-color: var(--c-primary-500);
 }
 
 .profile-sync-row {

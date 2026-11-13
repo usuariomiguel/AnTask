@@ -126,6 +126,8 @@ import { loadSync } from "./sync-loader.js";
       settingsPanels.forEach(function(p) { p.hidden = false; });
     }
     settingsOverlay.hidden = false;
+    // Con el modal ya visible, para que la fila elegida tenga medidas.
+    _moverIndicadorAjustes(false);
     requestAnimationFrame(function() { settingsOverlay.classList.add("modal-visible"); });
   }
   function closeSettingsModal() {
@@ -167,11 +169,49 @@ import { loadSync } from "./sync-loader.js";
   // ─── Navegación entre secciones del modal de Ajustes ──────────
   var settingsNavBtns = document.querySelectorAll(".settings-nav-item");
   var settingsPanels  = document.querySelectorAll(".settings-section-panel");
+  // Como en la barra lateral: un indicador que viaja hasta la sección
+  // elegida, y el contenido nuevo entra con un fundido corto en vez de
+  // aparecer de golpe. Solo en el PC (en el móvil no hay menú: las
+  // secciones van todas seguidas).
+  var settingsNav = document.querySelector(".settings-nav");
+  var settingsIndicador = null;
+  function _sinMovimiento() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+  function _moverIndicadorAjustes(conTransicion) {
+    if (!settingsNav || window.matchMedia("(max-width: 768px)").matches) return;
+    var activo = settingsNav.querySelector(".settings-nav-item.active");
+    if (!activo || !activo.offsetHeight) return;
+    if (!settingsIndicador) {
+      settingsIndicador = document.createElement("span");
+      settingsIndicador.className = "settings-nav-indicador";
+      settingsIndicador.setAttribute("aria-hidden", "true");
+      settingsNav.appendChild(settingsIndicador);
+      settingsNav.classList.add("settings-nav--con-indicador");
+      conTransicion = false;
+    }
+    settingsIndicador.classList.toggle("sin-transicion", !conTransicion);
+    settingsIndicador.style.left = activo.offsetLeft + "px";
+    settingsIndicador.style.width = activo.offsetWidth + "px";
+    settingsIndicador.style.height = activo.offsetHeight + "px";
+    settingsIndicador.style.transform = "translateY(" + activo.offsetTop + "px)";
+  }
+  window._moverIndicadorAjustes = _moverIndicadorAjustes;
+
   settingsNavBtns.forEach(function(btn) {
     btn.addEventListener("click", function() {
       var target = btn.dataset.settingsPanel;
+      if (btn.classList.contains("active")) return;
       settingsNavBtns.forEach(function(b) { b.classList.toggle("active", b === btn); });
       settingsPanels.forEach(function(p) { p.hidden = (p.dataset.settingsPanel !== target); });
+      _moverIndicadorAjustes(true);
+      var nuevo = Array.prototype.find.call(settingsPanels, function(p) { return p.dataset.settingsPanel === target; });
+      if (nuevo && nuevo.animate && !_sinMovimiento()) {
+        nuevo.animate([
+          { opacity: 0, transform: "translateY(6px)" },
+          { opacity: 1, transform: "translateY(0)" },
+        ], { duration: 200, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
+      }
     });
   });
 
