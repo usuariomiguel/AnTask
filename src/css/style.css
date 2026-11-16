@@ -4409,20 +4409,27 @@ button:focus-visible {
    al borde del círculo mientras la tarea tiene subtareas y está pendiente.
    Mismo centro, radio y grosor que el borde, así que no cambia nada de
    tamaño; el pendiente conserva el gris al 70 % del borde de siempre y lo
-   hecho va en acento. */
+   hecho va en acento.
+   El SVG (viewBox 34) escala entero con la casilla: arcos, huecos y trazo.
+   Cada sitio solo dice su tamaño en --anillo-tam, y el trazo se compensa
+   para medir siempre 2px en pantalla, como el borde del círculo. */
 .task-subring {
+  --anillo-tam: 34;
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 34px;
-  height: 34px;
+  width: calc(var(--anillo-tam) * 1px);
+  height: calc(var(--anillo-tam) * 1px);
   overflow: visible;
   pointer-events: none;
 }
 
+.task-subring circle {
+  stroke-width: calc(68 / var(--anillo-tam));
+}
+
 .task-detail-toggle-wrap .task-subring {
-  width: 28px;
-  height: 28px;
+  --anillo-tam: 28;
 }
 
 .task-toggle-wrap.con-subtareas :is(.task-toggle, .today-check):not(:checked) {
@@ -15170,10 +15177,13 @@ body,
     min-height: 49px;
   }
 
-  html[data-mode="simple"] :is(.task-toggle, .today-check),
-  html[data-mode="simple"] .task-subring {
+  html[data-mode="simple"] :is(.task-toggle, .today-check) {
     width: 31px;
     height: 31px;
+  }
+
+  html[data-mode="simple"] .task-subring {
+    --anillo-tam: 31;
   }
 
   html[data-mode="simple"] .task-list :is(.today-date-pill, .due-badge, .recur-badge) {

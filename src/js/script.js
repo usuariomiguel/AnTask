@@ -2651,6 +2651,8 @@ function _animarSegmentoAnillo(fila, projectId, done, total, R, STROKE) {
 // Separación visible entre arcos de los anillos de las listas (sidebar) y de
 // subtareas (casilla), para que los dos se lean igual.
 var ANILLO_HUECO = 1.8;
+// Máximo de subtareas con anillo en la casilla (ver _pintarAnilloSubtareas).
+var ANILLO_MAX_SUBTAREAS = 8;
 
 function _segmentedRingDash(total, done, C, strokeWidth, huecoVisible) {
   if (total <= 0) return { track: "none", fill: "0 " + C.toFixed(2) };
@@ -7988,7 +7990,9 @@ function _pintarAnilloSubtareas(wrap, task) {
   if (!wrap) return;
   var subs = task.subtasks || [];
   var anillo = wrap.querySelector(".task-subring");
-  if (!subs.length || task.done) {
+  // Con más de ANILLO_MAX_SUBTAREAS los arcos se quedan en puntitos que no
+  // se leen: queda la casilla normal.
+  if (!subs.length || subs.length > ANILLO_MAX_SUBTAREAS || task.done) {
     if (wrap._anilloAnim) wrap._anilloAnim.anim.cancel();
     wrap._anilloAnim = null;
     if (anillo) anillo.remove();
@@ -8027,7 +8031,6 @@ function _pintarAnilloSubtareas(wrap, task) {
       c.setAttribute("fill", "none");
       c.setAttribute("stroke-width", String(STROKE));
       c.setAttribute("stroke-linecap", "round");
-      c.setAttribute("vector-effect", "non-scaling-stroke");
       c.setAttribute("transform", "rotate(-90 17 17)");
       anillo.appendChild(c);
     });
@@ -8035,8 +8038,14 @@ function _pintarAnilloSubtareas(wrap, task) {
   }
   var pista = anillo.children[0];
   var fill = anillo.children[1];
+  // Con 0 hechas el arco de acento mide 0, pero el remate redondeado lo
+  // pintaba como un punto verde arriba: se oculta mientras no haya ninguna.
+  function ponerHechas(n) {
+    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, n, C, STROKE, HUECO).fill);
+    fill.style.visibility = n ? "" : "hidden";
+  }
   pista.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).track);
-  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).fill);
+  ponerHechas(hechas);
   wrap.classList.add("con-subtareas");
   wrap.dataset.subtareas = hechas + "/" + total;
 
@@ -8048,8 +8057,9 @@ function _pintarAnilloSubtareas(wrap, task) {
   var indice = Math.min(hechas, previo[0]);
   var slot = C / total;
   var seg = parseFloat(_segmentedRingDash(total, 1, C, STROKE, HUECO).fill.split(" ")[0]);
-  fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, indice, C, STROKE, HUECO).fill);
+  ponerHechas(indice);
   var trazo = fill.cloneNode(false);
+  trazo.style.visibility = "";
   trazo.setAttribute("class", "task-subring-fill task-subring-trazo");
   trazo.setAttribute("stroke-dashoffset", (-(indice * slot)).toFixed(2));
   anillo.appendChild(trazo);
@@ -8063,7 +8073,7 @@ function _pintarAnilloSubtareas(wrap, task) {
   var registro = wrap._anilloAnim = { anim: anim, trazo: trazo, hasta: hechas, total: total };
   anim.onfinish = function() {
     if (wrap._anilloAnim !== registro) return;
-    fill.setAttribute("stroke-dasharray", _segmentedRingDash(total, hechas, C, STROKE, HUECO).fill);
+    ponerHechas(hechas);
     trazo.remove();
     wrap._anilloAnim = null;
   };
