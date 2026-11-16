@@ -334,4 +334,23 @@
   html[data-row-style="limpio"] :is(.global-search-btn, .profile-btn, .sidebar-collapse-btn):hover {
     background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   }
+
+  /* ── Casillas de completar a 30px ──────────────────────────────
+     En listas y en Hoy, con y sin subtareas. El panel de detalle tiene
+     su propio tamaño y no cambia. El anillo de subtareas es un SVG de
+     viewBox 34 que escala con la caja; el trazo se engorda en proporción
+     (2 × 34/30) para que siga midiendo 2px, como el borde del círculo. */
+  :is(.task-item, .today-item) :is(.task-toggle, .today-check) {
+    width: 30px;
+    height: 30px;
+  }
+
+  :is(.task-item, .today-item) .task-subring {
+    width: 30px;
+    height: 30px;
+  }
+
+  :is(.task-item, .today-item) .task-subring circle {
+    stroke-width: 2.27;
+  }
 }
