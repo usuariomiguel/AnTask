@@ -102,6 +102,7 @@ import { loadSync } from "./sync-loader.js";
       btn.classList.toggle("active", btn.dataset.themeValue === cur);
       btn.setAttribute("aria-checked", String(btn.dataset.themeValue === cur));
     });
+    _moverPastillaSeg(seg, true);
   }
 
   function syncRowStyleSeg() {
@@ -111,6 +112,34 @@ import { loadSync } from "./sync-loader.js";
     var cur = taskList.dataset.rowStyle === "limpio" ? "limpio" : "tarjetas";
     seg.querySelectorAll(".settings-seg-opt").forEach(function(btn) {
       btn.classList.toggle("active", btn.dataset.rowstyleValue === cur);
+    });
+    _moverPastillaSeg(seg, true);
+  }
+
+  // Pastilla que se desliza a la opción elegida de un segmentado de Ajustes,
+  // como el indicador de la nav. Mientras existe, la opción activa no pinta
+  // su propio fondo. Si el segmentado está oculto (otra pestaña de Ajustes)
+  // no hay medidas: se recoloca sin animar al volver a verse.
+  function _moverPastillaSeg(seg, conTransicion) {
+    var activo = seg.querySelector(".settings-seg-opt.active");
+    if (!activo || !activo.offsetWidth) return;
+    var pastilla = seg.querySelector(".settings-seg-pastilla");
+    if (!pastilla) {
+      pastilla = document.createElement("span");
+      pastilla.className = "settings-seg-pastilla";
+      pastilla.setAttribute("aria-hidden", "true");
+      seg.appendChild(pastilla);
+      seg.classList.add("settings-seg--con-pastilla");
+      conTransicion = false;
+    }
+    pastilla.classList.toggle("sin-transicion", !conTransicion);
+    pastilla.style.width = activo.offsetWidth + "px";
+    pastilla.style.height = activo.offsetHeight + "px";
+    pastilla.style.transform = "translate(" + activo.offsetLeft + "px, " + activo.offsetTop + "px)";
+  }
+  function _recolocarPastillasSeg() {
+    document.querySelectorAll("#settings-overlay .settings-seg").forEach(function(seg) {
+      _moverPastillaSeg(seg, false);
     });
   }
 
@@ -128,6 +157,7 @@ import { loadSync } from "./sync-loader.js";
     settingsOverlay.hidden = false;
     // Con el modal ya visible, para que la fila elegida tenga medidas.
     _moverIndicadorAjustes(false);
+    _recolocarPastillasSeg();
     requestAnimationFrame(function() { settingsOverlay.classList.add("modal-visible"); });
   }
   function closeSettingsModal() {
@@ -205,7 +235,8 @@ import { loadSync } from "./sync-loader.js";
       settingsNavBtns.forEach(function(b) { b.classList.toggle("active", b === btn); });
       settingsPanels.forEach(function(p) { p.hidden = (p.dataset.settingsPanel !== target); });
       _moverIndicadorAjustes(true);
-      var nuevo = Array.prototype.find.call(settingsPanels, function(p) { return p.dataset.settingsPanel === target; });
+      _recolocarPastillasSeg();
+      var nuevo =Array.prototype.find.call(settingsPanels, function(p) { return p.dataset.settingsPanel === target; });
       if (nuevo && nuevo.animate && !_sinMovimiento()) {
         nuevo.animate([
           { opacity: 0, transform: "translateY(6px)" },
@@ -246,6 +277,13 @@ import { loadSync } from "./sync-loader.js";
       btn.addEventListener("click", function() {
         var next = btn.dataset.themeValue;
         if (window.getThemePref && window.getThemePref() === next) return;
+        // La pastilla sale ya hacia la opción pulsada: el tema llega un
+        // poco después (el View Transition difiere su callback) y, sin
+        // esto, el segmentado se quedaba quieto ese rato.
+        themeSeg.querySelectorAll(".settings-seg-opt").forEach(function(b) {
+          b.classList.toggle("active", b === btn);
+        });
+        _moverPastillaSeg(themeSeg, true);
         if (window.toggleThemeWithTransition) {
           // El callback del View Transition es asíncrono: syncThemeSeg()
           // debe correr cuando el tema YA está aplicado, no justo después

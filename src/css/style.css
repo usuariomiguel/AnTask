@@ -8409,6 +8409,46 @@ label.profile-avatar-picker-label {
   color: var(--c-primary-600);
 }
 
+/* Pastilla deslizante (ver _moverPastillaSeg en sections-and-profile.js):
+   va detrás de las opciones y viaja a la elegida; mientras existe, la
+   opción activa deja de pintar su propio fondo. */
+.settings-seg {
+  position: relative;
+  isolation: isolate;
+}
+
+.settings-seg-opt {
+  transition: color 0.2s ease;
+}
+
+.settings-seg-pastilla {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+  border-radius: 24px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.settings-seg-pastilla.sin-transicion {
+  transition: none;
+}
+
+.settings-seg--con-pastilla .settings-seg-opt.active {
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-seg-opt,
+  .settings-seg-pastilla {
+    transition: none;
+  }
+}
+
 /* Switch (toggle booleano) */
 .settings-switch {
   width: 40px;
