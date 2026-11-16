@@ -5,6 +5,11 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   retries: 1,
+  // Dos navegadores a la vez en local. Con el valor por defecto (la mitad de
+  // los núcleos) la máquina se saturaba: el primer test de cada tanda
+  // tardaba 1,5–2 min y caía por tiempo, y la batería entera iba a 24 min
+  // con una docena de «flaky». Con 2, los mismos tests pasan todos y antes.
+  workers: process.env.CI ? undefined : 2,
   reporter: "list",
 
   use: {

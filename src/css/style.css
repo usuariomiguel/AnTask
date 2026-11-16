@@ -13976,6 +13976,19 @@ button {
     opacity: 1;
   }
 
+  /* Con subtareas el borde lo dibuja el anillo segmentado (ver
+     .task-subring): el del círculo sigue transparente, o asomaba entero por
+     debajo, tapaba los huecos y ya no se veía qué subtareas estaban hechas.
+     Se tiñen los tramos pendientes (65 %), algo menos que los hechos (100 %). */
+  :is(.task-item, .today-item):hover .task-toggle-wrap.con-subtareas :is(.task-toggle, .today-check):not(:checked):not(:disabled) {
+    border-color: transparent;
+  }
+
+  :is(.task-item, .today-item):hover .task-toggle-wrap.con-subtareas .task-subring-track {
+    stroke: color-mix(in srgb, var(--c-primary-500) 65%, transparent);
+    opacity: 1;
+  }
+
   :is(.task-toggle, .today-check):not(:checked):not(:disabled):hover ~ .task-check {
     opacity: 0.55;
     transition: opacity 0.12s ease;
