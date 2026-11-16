@@ -8040,6 +8040,37 @@ label.profile-avatar-picker-label {
   flex-shrink: 0;
 }
 
+/* Hover del menú de perfil, como las vistas de la barra lateral y la nav de
+   Ajustes: una pastilla teñida que no toca los bordes del menú. */
+#profile-dropdown .profile-item {
+  width: calc(100% - 0.6rem);
+  margin: 0 0.3rem;
+  padding-inline: 0.45rem;
+  border-radius: 25px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  #profile-dropdown .profile-item:hover {
+    background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
+    color: var(--text-primary);
+  }
+
+  #profile-dropdown .profile-item:hover .profile-item-kbd {
+    color: var(--text-secondary);
+  }
+
+  #profile-dropdown .profile-item-danger:hover {
+    background-color: color-mix(in srgb, var(--c-pink) 12%, transparent);
+    color: var(--c-pink);
+  }
+}
+
+#profile-dropdown .profile-item:focus-visible {
+  outline: 2px solid var(--c-primary-500);
+  outline-offset: -2px;
+}
+
 /* ─── Modal de Ajustes: diálogo de dos paneles (v1) ──────────── */
 .modal-box-settings-v1 {
   width: min(760px, 96vw);
