@@ -9985,8 +9985,10 @@ function saveProfile() {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (_) {}
 }
 
-// Modal de edición del perfil local: solo el nombre. El avatar es siempre
-// la inicial — el selector de emojis se retiró.
+// Modal de edición del perfil local: el avatar y el nombre. El avatar se
+// elige entre caras generadas (Critters); «Otras caras» saca otra tanda y la
+// elegida se queda siempre la primera para no perderla al barajar.
+var AVATARES_POR_TANDA = 8;
 function showProfileModal() {
   var { overlay, box } = createModalBase();
 
@@ -9994,7 +9996,15 @@ function showProfileModal() {
   box.innerHTML =
     modalHead(t("profile.edit_title"), "user-round") +
     '<div class="modal-body">' +
-      '<input class="modal-input profile-name-input" type="text" maxlength="40"' +
+      '<div class="profile-avatar-picker">' +
+        '<div class="profile-avatar-picker-head">' +
+          '<span class="profile-avatar-picker-label" id="profile-avatar-label">' + escHtml(t("profile.avatar")) + '</span>' +
+          '<button type="button" class="settings-btn profile-avatar-shuffle"><i data-lucide="shuffle"></i><span>' + escHtml(t("profile.avatar_shuffle")) + '</span></button>' +
+        '</div>' +
+        '<div class="profile-avatar-grid" role="radiogroup" aria-labelledby="profile-avatar-label"></div>' +
+      '</div>' +
+      '<label class="profile-avatar-picker-label" for="profile-name-input">' + escHtml(t("profile.name_label")) + '</label>' +
+      '<input class="modal-input profile-name-input" id="profile-name-input" type="text" maxlength="40"' +
         ' placeholder="' + escHtml(t("profile.name_placeholder")) + '"' +
         ' value="' + escHtml(userProfile.name || "") + '" autocomplete="off"/>' +
     '</div>' +
@@ -10005,9 +10015,63 @@ function showProfileModal() {
   if (window.lucide) window.lucide.createIcons({ nodes: [box] });
 
   var nameInput = box.querySelector('.profile-name-input');
+  var grid = box.querySelector('.profile-avatar-grid');
+  var semillaElegida = userProfile.avatarSeed || nuevaSemillaAvatar();
+  var candidatas = [];
+
+  function pintarCandidatas() {
+    grid.replaceChildren();
+    candidatas.forEach(function(semilla, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "profile-avatar-option avatar-dibujado";
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-label", t("profile.avatar_option").replace("{n}", String(i + 1)));
+      b.dataset.seed = semilla;
+      b.addEventListener("click", function() { elegir(semilla, false); });
+      grid.appendChild(b);
+    });
+    elegir(semillaElegida, false);
+    cargarGeneradorAvatar().then(function(pintar) {
+      grid.querySelectorAll(".profile-avatar-option").forEach(function(b) {
+        var img = document.createElement("img");
+        img.src = pintar(b.dataset.seed);
+        img.alt = "";
+        b.replaceChildren(img);
+      });
+    }).catch(function() { /* sin estilo: quedan los discos vacíos */ });
+  }
+
+  function elegir(semilla, enfocar) {
+    semillaElegida = semilla;
+    grid.querySelectorAll(".profile-avatar-option").forEach(function(b) {
+      var si = b.dataset.seed === semilla;
+      b.setAttribute("aria-checked", String(si));
+      b.tabIndex = si ? 0 : -1;
+      if (si && enfocar) b.focus();
+    });
+  }
+
+  function nuevaTanda() {
+    candidatas = [semillaElegida];
+    while (candidatas.length < AVATARES_POR_TANDA) candidatas.push(nuevaSemillaAvatar());
+    pintarCandidatas();
+  }
+
+  // Flechas para moverse entre caras, como en un grupo de radios.
+  grid.addEventListener("keydown", function(e) {
+    var paso = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 })[e.key];
+    if (!paso) return;
+    e.preventDefault();
+    var i = candidatas.indexOf(semillaElegida);
+    elegir(candidatas[(i + paso + candidatas.length) % candidatas.length], true);
+  });
+  box.querySelector('.profile-avatar-shuffle').addEventListener('click', nuevaTanda);
+  nuevaTanda();
 
   function save() {
     userProfile.name = nameInput.value.trim();
+    userProfile.avatarSeed = semillaElegida;
     // Limpia el emoji que hubiera guardado de antes: sin selector no habría
     // forma de quitarlo y el avatar se quedaría clavado.
     userProfile.icon = "";

@@ -18,7 +18,11 @@ export const en = {
   // ── Profile ───────────────────────────────────────────────
   "profile.local":            "Local",
   "profile.local_storage":    "Local storage",
-  "profile.edit_title":       "Your name",
+  "profile.edit_title":       "Your profile",
+  "profile.name_label":       "Name",
+  "profile.avatar":           "Avatar",
+  "profile.avatar_shuffle":   "Shuffle",
+  "profile.avatar_option":    "Avatar {n}",
   "profile.name_placeholder": "Type your name...",
   "profile.settings":         "Settings",
   "profile.export":           "Export workspace",

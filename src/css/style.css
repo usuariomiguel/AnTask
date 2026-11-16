@@ -7894,6 +7894,59 @@ body.task-dragging .project-item:not(.active) {
   height: 100%;
 }
 
+/* Selector de avatar (diálogo «Tu perfil»): 8 caras en 4 columnas; la
+   elegida lleva el anillo de acento. Va tras .avatar-dibujado, que pone
+   el fondo de papel mientras carga cada cara. */
+.profile-avatar-picker {
+  margin-bottom: 14px;
+}
+.profile-avatar-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: 10px;
+}
+.profile-avatar-picker-label {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold, 600);
+  color: var(--text-secondary);
+}
+label.profile-avatar-picker-label {
+  margin-bottom: 6px;
+}
+.profile-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.profile-avatar-option {
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 64px;
+  justify-self: center;
+  border: 0;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--border-default);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+@media (hover: hover) {
+  .profile-avatar-option:hover { transform: scale(1.05); }
+}
+.profile-avatar-option[aria-checked="true"] {
+  box-shadow: 0 0 0 3px var(--surface-card), 0 0 0 5px var(--c-primary-500);
+}
+.profile-avatar-option:focus-visible {
+  outline: 2px solid var(--c-primary-500);
+  outline-offset: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-avatar-option { transition: none; }
+  .profile-avatar-option:hover { transform: none; }
+}
+
 .profile-dropdown-name {
   font-family: var(--font-display);
   font-size: 0.84rem;
