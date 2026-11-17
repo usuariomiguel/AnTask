@@ -1,6 +1,6 @@
 // @ts-check
 // ═══════════════════════════════════════════════════════════════
-// Avatar dibujado (DiceBear · Critters en tonos tierra)
+// Avatar dibujado (DiceBear · Clay, variante «Bare»)
 // ═══════════════════════════════════════════════════════════════
 //
 // Se genera en el propio navegador: la semilla no sale del dispositivo
@@ -8,9 +8,10 @@
 // sin conexión. La definición del estilo se carga en diferido: mientras
 // llega, el avatar enseña la inicial de siempre.
 //
-// Critters es de DiceBear, bajo CC0 1.0 (dominio público): no pide
-// atribución. Trae su propia animación (respira, parpadea y mueve las
-// orejas) en CSS dentro del SVG.
+// Clay es de DiceBear, bajo CC0 1.0 (dominio público): no pide atribución.
+// Variante «Bare» (preset de dicebear.com/styles/clay/presets): sin pieza
+// en la cabeza ni estampado, solo cuerpo y cara, con los colores del
+// estilo. Trae su propia animación en CSS dentro del SVG.
 //
 // Por defecto se pinta QUIETO: un SVG animado dentro de un <img> obliga al
 // navegador a redibujarlo en cada fotograma, y solo el avatar de la barra
@@ -18,14 +19,10 @@
 // ~20 % en un móvil lento). Además, «reducir movimiento» no lo paraba. La
 // versión animada se pide aparte, para ratos cortos (ver avatarAnimable).
 
-/** Colores en tonos tierra, a juego con la paleta de la app. */
+/** Preset «Bare»: sin pieza en la cabeza (top) ni estampado (pattern). */
 const OPCIONES = {
-  backgroundColor: ["#43301c"],
-  bodyColor: ["#d9bd94", "#c4a377", "#e3cdb0", "#b08d5f"],
-  accentColor: ["#a8865a", "#8f6d43"],
-  inkColor: ["#2b1d10"],
-  mouthVariant: ["smile", "tinySmile", "teeth", "ooh", "line", "smirk", "wavy",
-    "catMouth", "zigzag", "frown", "sad", "slant", "dot", "tooth"],
+  topProbability: 0,
+  patternProbability: 0,
 };
 
 /** @typedef {(seed: string, animado?: boolean) => string} PintarAvatar */
@@ -42,12 +39,13 @@ export function cargarGeneradorAvatar() {
   if (!_generador) {
     _generador = Promise.all([
       import("@dicebear/core"),
-      import("@dicebear/styles/critters.json"),
+      import("@dicebear/styles/clay.json"),
     ]).then(function ([core, def]) {
       const estilo = new core.Style(/** @type {any} */ (def.default || def));
       return function (seed, animado) {
         return new core.Avatar(estilo, Object.assign({ seed: seed }, OPCIONES, {
-          animationVariant: [animado ? "slow" : "none"],
+          animationVariant: ["slow"],
+          animationProbability: animado ? 100 : 0,
         })).toDataUri();
       };
     });

@@ -330,4 +330,4 @@ Lo que escribes se queda en tu dispositivo. Ver también [PRIVACY.md](PRIVACY.md
 
 [MIT](LICENSE) — úsalo, modifícalo y distribúyelo libremente.
 
-El avatar del perfil usa el estilo [Critters](https://www.dicebear.com/styles/critters/) de [DiceBear](https://www.dicebear.com), bajo [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+El avatar del perfil usa el estilo [Clay](https://www.dicebear.com/styles/clay/) (variante «Bare») de [DiceBear](https://www.dicebear.com), bajo [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).

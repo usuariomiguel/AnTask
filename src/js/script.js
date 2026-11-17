@@ -10004,7 +10004,7 @@ function saveProfile() {
 }
 
 // Modal de edición del perfil local: el avatar y el nombre. El avatar se
-// elige entre caras generadas (Critters); «Otras caras» saca otra tanda y la
+// elige entre caras generadas (Clay); «Otras caras» saca otra tanda y la
 // elegida se queda siempre la primera para no perderla al barajar.
 var AVATARES_POR_TANDA = 8;
 function showProfileModal() {

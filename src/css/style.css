@@ -7886,7 +7886,7 @@ body.task-dragging .project-item:not(.active) {
   border: 1.5px solid var(--b-subtle);
 }
 
-/* Avatar dibujado (Critters): trae su propio fondo; el disco de
+/* Avatar dibujado (Clay): trae su propio fondo; el disco de
    papel solo se ve mientras carga. Va después de todas las reglas de
    avatar para ganarles el fondo. */
 .avatar-dibujado {
