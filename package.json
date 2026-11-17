@@ -1,6 +1,6 @@
 {
   "name": "antask",
-  "version": "2.37.4",
+  "version": "2.37.5",
   "private": true,
   "type": "module",
   "description": "Tareas y hábitos — sin servidores, sin cuentas, sin rastro.",
@@ -10,9 +10,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p jsconfig.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "node scripts/vitest.mjs run",
+    "test:watch": "node scripts/vitest.mjs",
+    "test:coverage": "node scripts/vitest.mjs run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -39,5 +39,14 @@
     "firebase": "^12.13.0",
     "lucide": "^1.16.0",
     "workbox-precaching": "^7.4.1"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.7",
+    "workbox-build": {
+      "glob": "^14.0.6"
+    },
+    "glob": {
+      "minimatch": "^11.0.9"
+    }
   }
 }

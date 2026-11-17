@@ -20,10 +20,17 @@ for (const [ancho, alto] of [[1280, 900], [1920, 1080]]) test(`escalonado ${anch
   const r = await page.evaluate(() => {
     const vista = document.querySelector(".task-list-scroll").getBoundingClientRect();
     const filas = [...document.querySelectorAll("#task-list .task-item")];
+    // Se anota qué filas animan y con qué retraso, y luego se miden en su
+    // sitio final: a mitad de la entrada van 7px más abajo, y una fila
+    // pegada al borde inferior (la app la mide antes de animar, en su
+    // sitio) salía «fuera» sin estarlo.
+    const anims = new Map(filas.map((el) => [el, el.getAnimations()]));
+    const retrasoDe = (el) => anims.get(el)[0] ? Math.round(anims.get(el)[0].effect.getTiming().delay) : null;
+    anims.forEach((lista) => lista.forEach((a) => a.finish()));
     const visibles = filas.filter((el) => { const b = el.getBoundingClientRect(); return b.bottom > vista.top && b.top < vista.bottom; });
-    const animadas = visibles.filter((el) => el.getAnimations().length > 0);
-    const retrasos = visibles.map((el) => el.getAnimations()[0] ? Math.round(el.getAnimations()[0].effect.getTiming().delay) : null);
-    return { visibles: visibles.length, animadas: animadas.length, maxRetraso: Math.max(...retrasos.filter((x) => x !== null)), fuera: filas.length - visibles.length, fueraAnimadas: filas.filter((el) => !visibles.includes(el) && el.getAnimations().length).length };
+    const animadas = visibles.filter((el) => anims.get(el).length > 0);
+    const retrasos = visibles.map(retrasoDe);
+    return { visibles: visibles.length, animadas: animadas.length, maxRetraso: Math.max(...retrasos.filter((x) => x !== null)), fuera: filas.length - visibles.length, fueraAnimadas: filas.filter((el) => !visibles.includes(el) && anims.get(el).length).length };
   });
   expect(r.animadas).toBe(r.visibles);
   expect(r.maxRetraso).toBeLessThanOrEqual(200);
