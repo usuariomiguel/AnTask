@@ -100,7 +100,7 @@ import {
   shouldShowOnboarding,
   markOnboardingDone,
 } from "./ui/onboarding.js";
-import { cargarGeneradorAvatar, nuevaSemillaAvatar } from "./utils/avatar.js";
+import { cargarGeneradorAvatar, nuevaSemillaAvatar, avatarAnimable, avatarPuedeMoverse } from "./utils/avatar.js";
 import {
   initializeTheme,
   toggleThemeWithTransition,
@@ -9986,8 +9986,16 @@ function _pintarAvatarDibujado(avatares, avatarValue) {
   }
   var seed = userProfile.avatarSeed;
   cargarGeneradorAvatar().then(function(pintar) {
+    // Quieto siempre a la vista; animado solo con el ratón encima del botón
+    // que lo lleva (ver avatarAnimable en utils/avatar.js: el animado
+    // constante costaba ~11 % de CPU con la app en reposo).
     var uri = pintar(seed);
-    avatares.forEach(function(el) { _applyAvatar(el, avatarValue, uri); });
+    var animado = pintar(seed, true);
+    avatares.forEach(function(el) {
+      _applyAvatar(el, avatarValue, uri);
+      var img = el && el.querySelector("img");
+      if (img) avatarAnimable(el.closest("button, .settings-account-row") || el, img, uri, animado);
+    });
   }).catch(function() { /* sin estilo: se queda la inicial */ });
 }
 
@@ -10041,17 +10049,21 @@ function showProfileModal() {
       b.addEventListener("click", function() { elegir(semilla, false); });
       grid.appendChild(b);
     });
-    elegir(semillaElegida, false);
     cargarGeneradorAvatar().then(function(pintar) {
+      pintarAvatar = pintar;
       grid.querySelectorAll(".profile-avatar-option").forEach(function(b) {
         var img = document.createElement("img");
-        img.src = pintar(b.dataset.seed);
         img.alt = "";
         b.replaceChildren(img);
       });
+      elegir(semillaElegida, false);
     }).catch(function() { /* sin estilo: quedan los discos vacíos */ });
+    elegir(semillaElegida, false);
   }
 
+  // Solo la cara elegida se mueve (y solo con el diálogo abierto): ocho
+  // animadas a la vez costaban lo mismo que ocho avatares en la barra.
+  var pintarAvatar = null;
   function elegir(semilla, enfocar) {
     semillaElegida = semilla;
     grid.querySelectorAll(".profile-avatar-option").forEach(function(b) {
@@ -10059,6 +10071,11 @@ function showProfileModal() {
       b.setAttribute("aria-checked", String(si));
       b.tabIndex = si ? 0 : -1;
       if (si && enfocar) b.focus();
+      var img = b.querySelector("img");
+      if (img && pintarAvatar) {
+        var src = pintarAvatar(b.dataset.seed, si && avatarPuedeMoverse());
+        if (img.getAttribute("src") !== src) img.src = src;
+      }
     });
   }
 
