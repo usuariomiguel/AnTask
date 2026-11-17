@@ -60,11 +60,11 @@
     gap: 6px;
   }
 
-  .sidebar,
+  /* .sidebar,
   .task-detail-wrap {
     background-color: var(--surface-canvas);
     border: 2px solid var(--border-default);
-  }
+  } */
 
   /* ── 2. El panel central deja de ser una caja ─────────────────
      Antes envolvía cabecera, filtros y lista con su propio fondo, borde y
