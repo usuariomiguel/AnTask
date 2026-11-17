@@ -335,6 +335,39 @@
     background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   }
 
+  /* Detalle: Lista y Nota eran los únicos campos con caja (ver «Lista, al
+     ancho de la Nota» arriba). En «Limpio» van como Fecha o Subtareas: sin
+     fondo ni borde, sacados 10px por lado para que el texto quede alineado
+     con su título. Lista lleva el tinte al pasar el ratón; la Nota recupera
+     su caja al pasar el ratón y al escribir, como el campo de subtareas.
+     :root + atributo pesa más que el `:root .task-detail-panel #…` de
+     arriba, que es lo que les ponía la caja. */
+  html[data-row-style="limpio"] .task-detail-panel #task-detail-project-btn,
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-textarea {
+    width: calc(100% + 20px);
+    margin: 0 -10px;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-textarea {
+    padding-inline: 8px;
+    transition: border-color 0.12s ease, background-color 0.12s ease;
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel #task-detail-project-btn:is(:hover, .field-btn-open) {
+    background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-textarea:hover {
+    border-color: var(--border-default);
+  }
+
+  html[data-row-style="limpio"] .task-detail-panel .task-detail-textarea:focus {
+    border-color: color-mix(in srgb, var(--c-primary-500) 50%, transparent);
+    background: var(--surface-card);
+  }
+
   /* ── Casillas de completar a 30px ──────────────────────────────
      En listas y en Hoy, con y sin subtareas. El panel de detalle tiene
      su propio tamaño y no cambia. El anillo de subtareas escala con
