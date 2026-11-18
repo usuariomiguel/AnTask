@@ -29,18 +29,20 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --desk: #080605;
-  --card: #251e16;
-  --ink: #f1e9dc;
-  --ink-2: #b6a691;
-  --ink-3: #9d8e76;
+  /* Oscuro cálido, el de la app desde la v2.40: marrón café y letra crema
+     en vez del casi negro #080605 y el blanco roto. */
+  --desk: #2a221c;
+  --card: #3a2f27;
+  --ink: #e6d1aa;
+  --ink-2: #cdb690;
+  --ink-3: #b6a17f;
   --accent: #a4b272;
   --accent-ink: #c4d195;
   --accent-on: #241910;
   --accent-tint: rgba(164, 178, 114, 0.15);
-  --border: rgba(255, 238, 214, 0.09);
-  --border-soft: rgba(255, 238, 214, 0.06);
-  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7);
+  --border: rgba(255, 226, 190, 0.11);
+  --border-soft: rgba(255, 226, 190, 0.07);
+  --shadow: 0 30px 80px -30px rgba(20, 12, 6, 0.65);
   --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 0.941 0 0 0 0 0.839 1.3 0 0 0 -0.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
@@ -348,7 +350,7 @@ h3 {
 }
 
 :root[data-theme="dark"] .bloque-imagen {
-  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 24px 40px rgba(20, 12, 6, 0.5));
 }
 
 /* La del móvil es la pantalla entera: esa sí va en su marco. */
