@@ -9520,7 +9520,7 @@ function _showQuotaModal() {
   var { overlay, box } = createModalBase();
   box.innerHTML =
     '<p class="modal-label" style="color:var(--c-danger,#ef4444)">⚠ ' + t("quota.title") + '</p>' +
-    '<p style="font-size:0.88rem;color:var(--t-soft);line-height:1.6;margin-bottom:1.2rem">' +
+    '<p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1.2rem">' +
       t("quota.body") +
     '</p>' +
     '<div class="modal-actions">' +
@@ -10377,7 +10377,7 @@ function _showSyncConflictModal(cloudData, uid) {
 
   box.innerHTML =
     '<p class="modal-label">' + t("sync.conflict_title") + '</p>' +
-    '<p style="font-size:0.88rem;color:var(--t-soft);margin-bottom:1.2rem;line-height:1.55">' + conflictBody + '</p>' +
+    '<p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:1.2rem;line-height:1.55">' + conflictBody + '</p>' +
     '<div class="modal-actions" style="flex-direction:column;gap:0.5rem">' +
       '<button type="button" class="modal-btn modal-btn-confirm" id="_sc-cloud">' + t("sync.use_cloud") + '</button>' +
       '<button type="button" class="modal-btn modal-btn-cancel" id="_sc-local">' + t("sync.use_local") + '</button>' +

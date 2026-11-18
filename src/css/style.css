@@ -11,7 +11,10 @@
  *   3. Borders, text, semantic
  *   4. Tag pastels (paired bg + fg)
  *   5. Typography, spacing, radii, shadows, motion
- *   6. Legacy aliases — apuntan a tokens nuevos para no romper CSS existente.
+ *
+ * Solo hay tokens que se usan: los alias antiguos (--t-soft, --c-cyan,
+ * --b-subtle…) y los que no tenían consumidores se retiraron en la v2.38.2.
+ * Antes de añadir uno nuevo, mira si ya existe con otro nombre.
  *
  * Modo oscuro (por defecto) = "Oscuro cálido" (marrón + miel).
  * En oscuro el acento se ACLARA para leer sobre fondo oscuro, y el
@@ -23,9 +26,6 @@
   --vt-y: 30px;
 
   /* ─── 1. BRAND PRIMARY ──────────────────────────────────────── */
-  --c-primary-50: #f7f8ee;
-  --c-primary-100: #eef0da;
-  --c-primary-200: #dde2b8;
   --c-primary-300: #c4d195;
   --c-primary-400: #b4c182;
   --c-primary-500: #a4b272;
@@ -38,23 +38,21 @@
   /* texto sobre relleno de acento */
   --accent-tint: rgba(164, 178, 114, 0.15);
   /* fondos teñidos (nav activa, chips) */
-  --box-shadow-bottom: #100a081e;
 
   --grad-primary: linear-gradient(135deg, #8c9a65 0%, #576038 100%);
-  --grad-primary-hover: linear-gradient(135deg, #99a76f 0%, #677143 100%);
   --glow-primary: 0 4px 14px rgba(164, 178, 114, 0.30);
   --ring-primary: 0 0 0 3px rgba(164, 178, 114, 0.22);
+  /* Borde de elemento activo; cada acento (data-accent) pone el suyo. */
+  --b-active: rgba(164, 178, 114, 0.45);
 
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
   --surface-desk: #080605;
   /* escritorio detrás del panel flotante */
   --surface-deep: #100c08;
   /* sidebar, capa más profunda */
-  /* Antes #12100c — casi el mismo negro que desk/deep, así que el canvas
-     apenas se distinguía del marco. Se aclara para que canvas y tarjeta
-     se lean como la misma zona de trabajo, igual que en claro. */
-  --surface-canvas: #201a13;
-  /* canvas principal (panel central hundido) */
+  --surface-canvas: rgba(255, 238, 214, 0.055);
+  /* canvas principal (panel central hundido): crema al 5,5 % sobre el
+     desk. Translúcido a propósito; su versión opaca es --capa-canvas. */
   --surface-card: #251e16;
   /* tarjetas / paneles */
   --surface-raised: #2c241b;
@@ -68,14 +66,11 @@
   --border-subtle: rgba(255, 238, 214, 0.17);
   --border-default: rgba(255, 238, 214, 0.19);
   --border-strong: rgba(255, 238, 214, 0.26);
-  --border-focus: var(--c-primary-500);
 
   --text-primary: #f1e9dc;
   --text-secondary: #b6a691;
   --text-tertiary: #9d8e76;
   /* ≥4.5:1 sobre card #251e16 (AA) */
-  --text-disabled: #55492f;
-  --text-inverse: #17120d;
 
   --c-success: #6cb1a3;
   --c-warning: #d9a66a;
@@ -93,8 +88,6 @@
   --c-overdue-rgb: 176, 71, 63;
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
-  --surface-canvas: rgba(255, 238, 214, 0.055);
-  /* hover de fila */
   /* Bases opacas de las dos capas que llevan grano (ver GRANO DE PAPEL, al
      final): toda caja que se apoya en ellas pinta su tinte encima de su
      base en vez de dejarlo translúcido, así el grano queda solo en el
@@ -148,7 +141,6 @@
   --fw-semibold: 600;
   --fw-bold: 700;
 
-  --lh-tight: 1.2;
   --lh-base: 1.5;
   --lh-relaxed: 1.6;
 
@@ -159,7 +151,6 @@
   /* small-caps headers de sección */
 
   /* ─── SPACING (4px base) ────────────────────────────────────── */
-  --sp-0: 0;
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -167,9 +158,6 @@
   --sp-5: 20px;
   --sp-6: 24px;
   --sp-7: 32px;
-  --sp-8: 40px;
-  --sp-9: 48px;
-  --sp-10: 64px;
 
   /* ─── RADII ─────────────────────────────────────────────────── */
   /* +18px a cada uno, a petición del usuario tras probarlo él mismo. */
@@ -178,14 +166,12 @@
   --r-md: 26px;
   --r-lg: 28px;
   --r-xl: 32px;
-  --r-2xl: 36px;
   --r-pill: 999px;
 
   /* ─── SHADOWS ───────────────────────────────────────────────── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.28);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.40);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 238, 214, 0.04);
+  --glow-blue: 0 0 0 3px rgba(115, 182, 210, 0.18), 0 0 20px rgba(115, 182, 210, 0.08);
 
   /* ─── MOTION ────────────────────────────────────────────────── */
   /* Tres curvas, cada una con su papel — no son intercambiables:
@@ -203,56 +189,12 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
   --dur-fast: 120ms;
-  --dur-base: 200ms;
-  --dur-slow: 320ms;
   /* Plegado/desplegado de las columnas del shell (sidebar y panel de
      detalle). Curva y duración del prototipo v1. */
   --shell-collapse: 0.32s cubic-bezier(0.45, 0.05, 0.2, 1);
 
   /* ─── Z-INDEX ───────────────────────────────────────────────── */
-  --z-base: 1;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-modal: 1000;
   --z-toast: 2000;
-
-  /* ─── 6. LEGACY ALIASES ─────────────────────────────────────── */
-  /* Mientras migramos componentes a los tokens nuevos, los nombres
-   * antiguos resuelven a los nuevos vía cascada. NO añadir consumidores
-   * nuevos a estos aliases — se retirarán cuando todo esté migrado.   */
-  --font-body: var(--font-sans);
-
-  --bg-void: var(--surface-canvas);
-  --bg-deep: var(--surface-deep);
-  --bg-panel: var(--surface-card);
-  --bg-glass: var(--surface-overlay);
-  --bg-item: var(--surface-input);
-
-  --c-cyan: var(--c-primary-400);
-  --c-blue: var(--c-info);
-  --c-violet: var(--c-primary-300);
-  --c-pink: var(--c-danger);
-  --c-green: var(--c-success);
-  --c-gold: var(--c-warning);
-
-  --t-primary: var(--text-primary);
-  --t-soft: var(--text-secondary);
-  --t-muted: var(--text-tertiary);
-
-  --b-subtle: var(--border-default);
-  --b-active: rgba(164, 178, 114, 0.45);
-  --b-glow: rgba(164, 178, 114, 0.80);
-
-  --glow-cyan: 0 0 0 3px rgba(164, 178, 114, 0.18), 0 0 20px rgba(164, 178, 114, 0.10);
-  --glow-blue: 0 0 0 3px rgba(115, 182, 210, 0.18), 0 0 20px rgba(115, 182, 210, 0.08);
-  --glow-pink: 0 0 0 3px rgba(224, 122, 106, 0.18), 0 0 20px rgba(224, 122, 106, 0.08);
-
-  --radius-sm: var(--r-xs);
-  --radius-md: var(--r-sm);
-  --radius-lg: var(--r-md);
-  --radius-xl: var(--r-lg);
-
-  --focus-ring: var(--c-primary-500);
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────── */
@@ -314,10 +256,8 @@
 
 /* ─── LIGHT THEME ────────────────────────────────────────────── */
 /*
- * Sólo redefinimos los tokens NUEVOS. Los aliases legacy del :root
- * cascadean automáticamente porque resuelven `var(--token-nuevo)` en
- * tiempo de uso. Si hay que sobreescribir algo concreto del alias,
- * hacerlo aquí explícitamente.
+ * Solo se redefinen los tokens que cambian de valor en claro; el resto
+ * (tipografía, espaciado, radios, curvas) es común a los dos temas.
  */
 :root[data-theme="light"] {
   color-scheme: light;
@@ -335,7 +275,6 @@
   --accent-tint: rgba(112, 120, 80, 0.14);
 
   --grad-primary: linear-gradient(135deg, #8c986d 0%, #575f3e 100%);
-  --grad-primary-hover: linear-gradient(135deg, #7f8a61 0%, #4b5135 100%);
   --glow-primary: 0 4px 14px rgba(112, 120, 80, 0.28);
   --ring-primary: 0 0 0 3px rgba(112, 120, 80, 0.20);
 
@@ -343,13 +282,11 @@
      grisáceo/apagado; este sube saturación y calidez sin tocar el
      acento ni la tipografía. `--surface-deep` la usan solo la sidebar y
      el panel de detalle: cargan el tono cálido y marcan el marco de la
-     app. `--surface-canvas` se aclara casi a crema para que canvas y
-     tarjeta se lean como una única zona de trabajo luminosa, y el
-     contraste real quede entre esa zona y el marco cálido de
-     sidebar/detalle. */
+     app. `--surface-canvas` es la arena clara del panel central; aquí ya
+     es opaca, así que `--capa-canvas` la toma tal cual. */
   --surface-desk: #f8e1aa;
   --surface-deep: #e6d19e;
-  --surface-canvas: #f9f1de;
+  --surface-canvas: #f3e8c9;
   --surface-card: #fffcf1;
   --surface-raised: #f3e8c9;
   --block-bg: rgba(255, 252, 241, 0.66);
@@ -370,8 +307,6 @@
      #f9f1de y ahí daba 4.68, pero sobre #ebead8 se quedaba en 4.33 y el
      test de axe lo cazaba. Al comprobar este token hay que mirar la
      superficie peor, no la del fondo general. */
-  --text-disabled: #b8a173;
-  --text-inverse: #f2ece0;
 
   /* Semantic */
   --c-success: #56867c;
@@ -395,7 +330,6 @@
   --c-overdue-rgb: 157, 84, 77;
 
   /* Interacción */
-  --surface-canvas: #f3e8c9;
   --capa-canvas: var(--surface-canvas);
   --kbd-bg: #f0e0b8;
   --task-hover: rgba(112, 120, 80, 0.10);
@@ -403,16 +337,11 @@
 
   /* Shadows — más suaves, con tinte cálido */
   --shadow-sm: 0 1px 2px rgba(80, 55, 10, 0.06);
-  --shadow-md: 0 4px 12px rgba(80, 55, 10, 0.08);
   --shadow-lg: 0 12px 32px rgba(80, 55, 10, 0.12);
-  --shadow-card: 0 1px 3px rgba(80, 55, 10, 0.06), 0 0 0 1px rgba(80, 55, 10, 0.04);
 
-  /* Aliases que necesitan tinte específico en light (no cascadean limpio) */
+  /* Con el tinte del oliva oscuro del tema claro */
   --b-active: rgba(112, 120, 80, 0.45);
-  --b-glow: rgba(112, 120, 80, 0.75);
-  --glow-cyan: 0 0 0 3px rgba(112, 120, 80, 0.15);
   --glow-blue: 0 0 0 3px rgba(61, 110, 133, 0.15);
-  --glow-pink: 0 0 0 3px rgba(176, 82, 74, 0.15);
 }
 
 /* Hasta aquí vivía "SIDEBAR OSCURA EN TEMA CLARO": la sidebar y el panel
@@ -609,9 +538,9 @@
 
 /* ─── BODY ───────────────────────────────────────────────────── */
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 15px;
-  color: var(--t-primary);
+  color: var(--text-primary);
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -1760,11 +1689,9 @@ body {
 }
 
 /* En escritorio el popover FLOTA sobre los campos del detalle, así que
-   necesita un fondo opaco. `--surface-canvas` ya no lo es en oscuro: el
-   commit "colors" renombró la declaración de `--row-hover` a
-   `--surface-canvas`, y como va después en el `:root`, pisa el #201a13
-   del lienzo con un velo translúcido al 5,5 % — el calendario dejaba ver
-   "No se repite", las subtareas y la lista a través.
+   necesita un fondo opaco. `--surface-canvas` no lo es en oscuro (es un
+   velo crema al 5,5 %), y con él el calendario dejaba ver "No se repite",
+   las subtareas y la lista a través.
 
    Mismo fondo que `.ctx-menu`, que es su capa hermana. En móvil no hace
    falta: ahí el popover se despliega en línea y no tapa nada. */
@@ -2210,7 +2137,7 @@ body {
 
 .task-link-a:hover,
 .task-link-a:focus-visible {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
 }
 
 .task-link-ico {
@@ -2284,7 +2211,7 @@ body {
 }
 
 .task-link-quitar:hover {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
   color: var(--text-primary);
 }
 
@@ -2452,7 +2379,7 @@ body {
   display: flex;
   flex-direction: column;
   border: 2px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-md);
 }
 
 /* ── Tasks panel — ahora sólo la lista de tareas */
@@ -2569,7 +2496,7 @@ h1 {
   font-size: clamp(1rem, 2.5vw, 1.4rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--t-primary);
+  color: var(--text-primary);
   line-height: 1.2;
   margin-bottom: 0.2rem;
 }
@@ -2675,15 +2602,15 @@ h1 {
 
 /* ─── BUTTONS (BASE) ─────────────────────────────────────────── */
 button {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--t-soft);
+  color: var(--text-secondary);
   background: transparent;
-  border: 2px solid var(--b-subtle);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-default);
+  border-radius: var(--r-xs);
   padding: 0.52rem 0.9rem;
   cursor: pointer;
   display: inline-flex;
@@ -2699,7 +2626,7 @@ button {
 } */
 
 button:focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: 2px solid var(--c-primary-500);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -2895,7 +2822,7 @@ button:focus-visible {
 
 .filter-panel-sep {
   height: 1px;
-  background: var(--b-subtle);
+  background: var(--border-default);
   margin: 4px 0;
 }
 
@@ -2908,7 +2835,7 @@ button:focus-visible {
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: -0.006em;
-  color: var(--t-soft);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   border-radius: var(--r-sm);
@@ -2941,7 +2868,7 @@ button:focus-visible {
 }
 
 .filter-opt--active {
-  color: var(--t-primary);
+  color: var(--text-primary);
 }
 
 .filter-opt--active .filter-opt-check {
@@ -3083,7 +3010,7 @@ button:focus-visible {
   width: 100%;
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--t-soft);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   border-radius: var(--r-sm);
@@ -3112,7 +3039,7 @@ button:focus-visible {
 
 .row-style-opt--active,
 .task-prefs-opt--active {
-  color: var(--t-primary);
+  color: var(--text-primary);
 }
 
 .row-style-opt--active .row-style-check,
@@ -4014,7 +3941,7 @@ button:focus-visible {
 
   .hoy-cal-nav:active,
   .hoy-cal-toggle:active {
-    background: var(--row-hover);
+    background: var(--surface-canvas);
   }
 
   .hoy-cal-nav .lucide,
@@ -4086,7 +4013,7 @@ button:focus-visible {
   }
 
   .hoy-cal-day:active:not(.hoy-cal-day--selected) .hoy-cal-day-num {
-    background: var(--row-hover);
+    background: var(--surface-canvas);
   }
 
   /* Hoy: anillo en el acento y número en negrita. Se sigue viendo con
@@ -4166,7 +4093,7 @@ button:focus-visible {
   /* Día pasado con pendientes: el rojo de «vencidas». */
   .hoy-cal-dot--vencido,
   :root[data-theme="dark"] .hoy-cal-dot--vencido {
-    background: var(--c-pink);
+    background: var(--c-danger);
   }
 
   /* Todo hecho ese día: un punto tenue, ni alarma ni vacío. */
@@ -4702,9 +4629,9 @@ body.tasks-compact .task-text {
 
 /* ─── INLINE EDIT ────────────────────────────────────────────── */
 input.inline-edit {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 0.90rem;
-  color: var(--t-primary);
+  color: var(--text-primary);
   background: rgba(163, 179, 102, 0.06);
   border: 2px solid var(--c-primary-500);
   border-radius: var(--r-md);
@@ -4723,7 +4650,7 @@ input.inline-edit {
   background: #fffcf1;
   border-color: var(--b-active);
   box-shadow: var(--glow-blue);
-  caret-color: var(--c-cyan);
+  caret-color: var(--c-primary-400);
 }
 
 /* ─── MODALS ─────────────────────────────────────────────────── */
@@ -5093,7 +5020,7 @@ input.inline-edit {
 .modal-input {
   width: 100%;
   box-sizing: border-box;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 0.95rem;
   color: var(--text-primary);
   background: rgba(255, 238, 214, 0.04);
@@ -5386,7 +5313,7 @@ input.inline-edit {
 /* ─── DRAG & DROP ────────────────────────────────────────────── */
 .task-item.drag-ghost {
   opacity: 0.30;
-  border-color: var(--c-cyan) !important;
+  border-color: var(--c-primary-400) !important;
 }
 
 /* ─── PROJECT DRAG (sin handle visible) ──────────────────────── */
@@ -5418,7 +5345,7 @@ body.project-dragging .project-item {
   z-index: 6;
   height: 2px;
   margin-top: -1px;
-  background: linear-gradient(90deg, transparent, var(--c-cyan), var(--c-violet), transparent);
+  background: linear-gradient(90deg, transparent, var(--c-primary-400), var(--c-primary-300), transparent);
   border-radius: 999px;
   box-shadow: 0 0 8px rgba(163, 179, 102, 0.5);
   pointer-events: none;
@@ -5455,7 +5382,7 @@ body.project-dragging .project-item {
   flex-shrink: 0;
   width: 25px;
   height: 25px;
-  color: var(--c-pink);
+  color: var(--c-danger);
 }
 
 .priority-badge .lucide {
@@ -5933,7 +5860,7 @@ body.project-dragging .project-item {
     left: 0;
     right: 0;
     min-width: unset;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-radius: var(--r-md) var(--r-md) 0 0;
     border-top: 2px solid rgba(163, 179, 102, 0.45);
     border-left: none;
     border-right: none;
@@ -6566,7 +6493,7 @@ body.project-dragging .project-item {
   border-radius: var(--r-lg);
   font-size: 13px;
   font-weight: 500;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   cursor: pointer;
   text-align: left;
   letter-spacing: 0;
@@ -6624,7 +6551,7 @@ body.project-dragging .project-item {
   align-items: center;
   gap: 11px;
   padding: 15px 18px;
-  border-bottom: 2px solid var(--b-subtle);
+  border-bottom: 2px solid var(--border-default);
 }
 
 .search-head-ico {
@@ -6659,7 +6586,7 @@ body.project-dragging .project-item {
   text-transform: uppercase;
   color: var(--text-tertiary);
   background: transparent;
-  border: 2px solid var(--b-subtle);
+  border: 2px solid var(--border-default);
   border-radius: 23px;
   padding: 2px 7px;
   cursor: pointer;
@@ -6681,7 +6608,7 @@ body.project-dragging .project-item {
   align-items: center;
   gap: 14px;
   padding: 9px 16px;
-  border-top: 2px solid var(--b-subtle);
+  border-top: 2px solid var(--border-default);
   min-height: 20px;
 }
 
@@ -6701,7 +6628,7 @@ body.project-dragging .project-item {
 }
 
 .search-hint {
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   font-size: 0.80rem;
   text-align: center;
   padding: 1.4rem 0;
@@ -6810,8 +6737,8 @@ body.project-dragging .project-item {
 }
 
 mark.search-hl {
-  background: color-mix(in srgb, var(--c-gold) 30%, transparent);
-  color: var(--c-gold);
+  background: color-mix(in srgb, var(--c-warning) 30%, transparent);
+  color: var(--c-warning);
   border-radius: 20px;
   padding: 0 1px;
 }
@@ -6868,14 +6795,14 @@ mark.search-hl {
 }
 
 .undo-toast-msg {
-  color: var(--t-soft);
+  color: var(--text-secondary);
   flex: 1;
 }
 
 .undo-toast-btn {
   background: transparent;
   border: 2px solid rgba(163, 179, 102, 0.40);
-  color: var(--c-cyan);
+  color: var(--c-primary-400);
   padding: 0.24rem 0.62rem;
   border-radius: 23px;
   font-size: 0.78rem;
@@ -6893,7 +6820,7 @@ mark.search-hl {
   left: 0;
   height: 2px;
   width: 100%;
-  background: var(--c-cyan);
+  background: var(--c-primary-400);
   transform-origin: left;
   animation: undoBarShrink 5s linear forwards;
 }
@@ -7058,11 +6985,11 @@ mark.search-hl {
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   background: transparent;
-  border: 2px solid var(--b-subtle);
+  border: 2px solid var(--border-default);
   border-radius: 24px;
   cursor: pointer;
   text-align: left;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   width: 100%;
 }
 
@@ -7074,7 +7001,7 @@ mark.search-hl {
 
 .modal-project-name {
   font-size: 0.84rem;
-  color: var(--t-base);
+  color: var(--text-primary);
   font-weight: 500;
   flex: 1;
   overflow: hidden;
@@ -7084,7 +7011,7 @@ mark.search-hl {
 
 .modal-project-count {
   font-size: 0.72rem;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -7095,9 +7022,9 @@ kbd {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--t-soft);
+  color: var(--text-secondary);
   background: var(--kbd-bg);
-  border: 2px solid var(--b-subtle);
+  border: 2px solid var(--border-default);
   border-bottom-width: 2px;
   border-radius: 22px;
   padding: 0.10rem 0.38rem;
@@ -7145,7 +7072,7 @@ kbd {
 }
 
 .sc-desc {
-  color: var(--t-primary);
+  color: var(--text-primary);
 }
 
 @media (max-width: 560px) {
@@ -7565,10 +7492,10 @@ body.task-dragging .project-item:not(.active) {
   align-items: center;
   background: transparent;
   border: none;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 0.08rem 0.28rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-xs);
   font-size: 0.78rem;
   flex-shrink: 0;
   position: relative;
@@ -7631,7 +7558,7 @@ body.task-dragging .project-item:not(.active) {
   padding: 0.46rem 0.7rem;
   font-size: 0.78rem;
   font-family: inherit;
-  color: var(--t-soft);
+  color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -7640,7 +7567,7 @@ body.task-dragging .project-item:not(.active) {
 }
 
 .ctx-item-danger {
-  color: var(--c-pink);
+  color: var(--c-danger);
 }
 
 /* Faltaba el realce al pasar el ratón: no se sabía qué opción se iba a
@@ -7656,8 +7583,8 @@ body.task-dragging .project-item:not(.active) {
   }
 
   .ctx-item-danger:hover {
-    background: color-mix(in srgb, var(--c-pink) 12%, transparent);
-    color: var(--c-pink);
+    background: color-mix(in srgb, var(--c-danger) 12%, transparent);
+    color: var(--c-danger);
   }
 }
 
@@ -7712,7 +7639,7 @@ body.task-dragging .project-item:not(.active) {
 
 .ctx-sep {
   height: 1px;
-  background: var(--b-subtle);
+  background: var(--border-default);
   margin: 0.25rem 0;
 }
 
@@ -7883,7 +7810,7 @@ body.task-dragging .project-item:not(.active) {
   width: 44px;
   height: 44px;
   font-size: 1rem;
-  border: 1.5px solid var(--b-subtle);
+  border: 1.5px solid var(--border-default);
 }
 
 /* Avatar dibujado (Clay): trae su propio fondo; el disco de
@@ -7959,13 +7886,13 @@ label.profile-avatar-picker-label {
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--t-primary);
+  color: var(--text-primary);
 }
 
 .profile-dropdown-sub {
   font-family: var(--font-mono);
   font-size: 0.62rem;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   margin-top: 0.10rem;
   white-space: nowrap;
   overflow: hidden;
@@ -7974,7 +7901,7 @@ label.profile-avatar-picker-label {
 
 .profile-sep {
   height: 1px;
-  background: var(--b-subtle);
+  background: var(--border-default);
   margin: 0.28rem 0;
 }
 
@@ -8004,8 +7931,8 @@ label.profile-avatar-picker-label {
   background: transparent;
   border: none;
   font-size: 0.78rem;
-  font-family: var(--font-body);
-  color: var(--t-soft);
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
   cursor: pointer;
   text-align: left;
   text-decoration: none;
@@ -8019,7 +7946,7 @@ label.profile-avatar-picker-label {
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
 }
 
 .profile-item-ico {
@@ -8030,7 +7957,7 @@ label.profile-avatar-picker-label {
 }
 
 .profile-item-danger {
-  color: var(--c-pink);
+  color: var(--c-danger);
 }
 
 /* Ítems con atajo de teclado a la derecha (Ajustes, Atajos de teclado) */
@@ -8042,7 +7969,7 @@ label.profile-avatar-picker-label {
 .profile-item-kbd {
   font-family: var(--font-mono);
   font-size: 0.66rem;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
   letter-spacing: 0.02em;
   flex-shrink: 0;
 }
@@ -8068,8 +7995,8 @@ label.profile-avatar-picker-label {
   }
 
   #profile-dropdown .profile-item-danger:hover {
-    background-color: color-mix(in srgb, var(--c-pink) 12%, transparent);
-    color: var(--c-pink);
+    background-color: color-mix(in srgb, var(--c-danger) 12%, transparent);
+    color: var(--c-danger);
   }
 }
 
@@ -8541,7 +8468,7 @@ label.profile-avatar-picker-label {
 }
 
 .settings-btn--danger {
-  color: var(--c-pink);
+  color: var(--c-danger);
 }
 
 /* Color de acento: puntos */
@@ -8730,13 +8657,13 @@ label.profile-avatar-picker-label {
   padding: 0.10rem 0.44rem;
   border-radius: var(--r-pill);
   background: rgba(255, 238, 214, 0.06);
-  color: var(--t-muted);
-  border: 2px solid var(--b-subtle);
+  color: var(--text-tertiary);
+  border: 2px solid var(--border-default);
   flex-shrink: 0;
 }
 
 .profile-toggle-pill.on {
-  color: var(--c-green);
+  color: var(--c-success);
   background: rgba(95, 179, 163, 0.10);
   border-color: rgba(95, 179, 163, 0.32);
 }
@@ -8871,7 +8798,7 @@ label.profile-avatar-picker-label {
   gap: 0.55rem;
   padding: 0.32rem 0.75rem;
   font-size: 0.72rem;
-  color: var(--t-muted);
+  color: var(--text-tertiary);
 }
 
 /* ── Paste options toast ───────────────────────────────────────────── */
@@ -8907,14 +8834,14 @@ label.profile-avatar-picker-label {
 }
 
 .paste-toast-msg {
-  color: var(--t-soft);
+  color: var(--text-secondary);
   margin-right: 0.15rem;
 }
 
 .paste-toast-btn {
   background: transparent;
   border: 2px solid rgba(163, 179, 102, 0.35);
-  color: var(--t-soft);
+  color: var(--text-secondary);
   padding: 0.26rem 0.70rem;
   border-radius: 23px;
   font-size: 0.78rem;
@@ -8925,7 +8852,7 @@ label.profile-avatar-picker-label {
 
 .paste-toast-btn-fmt {
   border-color: rgba(163, 179, 102, 0.55);
-  color: var(--c-cyan);
+  color: var(--c-primary-400);
   font-weight: 600;
 }
 
@@ -8935,7 +8862,7 @@ label.profile-avatar-picker-label {
   left: 0;
   height: 2px;
   width: 100%;
-  background: var(--c-cyan);
+  background: var(--c-primary-400);
   transform-origin: left;
 }
 
@@ -8953,7 +8880,7 @@ label.profile-avatar-picker-label {
 .img-resize-overlay {
   position: absolute;
   display: none;
-  outline: 2px solid var(--c-cyan);
+  outline: 2px solid var(--c-primary-400);
   outline-offset: 1px;
   pointer-events: none;
   z-index: 800;
@@ -8968,7 +8895,7 @@ label.profile-avatar-picker-label {
   position: absolute;
   width: 12px;
   height: 12px;
-  background: var(--c-cyan);
+  background: var(--c-primary-400);
   border: 2px solid #fff;
   border-radius: 21px;
   pointer-events: all;
@@ -9882,7 +9809,7 @@ button {
   }
 
   .chip-sugerencia--recur .lucide { color: var(--c-recur); }
-  .chip-sugerencia--importante .lucide { color: var(--c-pink); }
+  .chip-sugerencia--importante .lucide { color: var(--c-danger); }
   :root[data-theme="light"] .chip-sugerencia--importante .lucide { color: #884640; }
 
   .chip-sugerencia-aceptar:hover {
@@ -10649,7 +10576,7 @@ button {
   cursor: text;
   background: var(--surface-card);
   border: 2px solid var(--border-default);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   box-shadow: 0 20px 50px -18px rgba(40, 30, 15, 0.34);
   text-align: left;
 }
@@ -11330,7 +11257,7 @@ button {
 .tpl-task-prio {
   display: inline-flex;
   align-items: center;
-  color: var(--c-pink);
+  color: var(--c-danger);
 }
 
 .tpl-task-prio .lucide {
@@ -13258,7 +13185,7 @@ button {
 }
 
 .hoy-tabs-hist:active {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
 }
 
 .hoy-tabs-hist[hidden] {
@@ -14994,7 +14921,7 @@ body,
 
 .hoja-fila:active,
 .hoja-accion:active {
-  background: var(--row-hover);
+  background: var(--surface-canvas);
 }
 
 .hoja-accion-ico {

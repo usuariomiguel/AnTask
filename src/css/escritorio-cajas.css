@@ -98,7 +98,7 @@
   .task-list-scroll {
     background: var(--surface-canvas);
     border: 2px solid var(--border-default);
-    border-radius: var(--radius-lg);
+    border-radius: var(--r-md);
   }
 
   .list-filter-row {

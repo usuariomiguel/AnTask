@@ -9,7 +9,6 @@
 :root {
   color-scheme: light;
   --desk: #f8e1aa;
-  --canvas: #f3e8c9;
   --card: #fffcf1;
   --ink: #2b2213;
   --ink-2: #6f5f3e;
@@ -31,7 +30,6 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --desk: #080605;
-  --canvas: #1b1611;
   --card: #251e16;
   --ink: #f1e9dc;
   --ink-2: #b6a691;
