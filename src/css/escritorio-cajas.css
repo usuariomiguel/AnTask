@@ -72,6 +72,9 @@
     --surface-card: #3a2f27;
     --surface-raised: #43372d;
     --surface-overlay: rgba(58, 47, 39, 0.97);
+    /* Velo de modales: marrón oscuro, sin llegar al negro, para que el
+       fondo cálido se siga intuyendo detrás del desenfoque. */
+    --velo-modal: rgba(26, 19, 14, 0.66);
 
     --text-primary: #e6d1aa;
     --text-secondary: #cdb690;

@@ -60,6 +60,10 @@
   --block-bg: rgba(255, 240, 220, 0.045);
   /* bloque de sección */
   --surface-overlay: rgba(38, 30, 22, 0.96);
+  /* Velo detrás de los modales. Antes rgba(4, 4, 9, .78): un negro
+     azulado, frío al lado del marrón. Mismo oscurecimiento, tono tierra.
+     En claro lo pone la regla de .modal-overlay del tema claro. */
+  --velo-modal: rgba(14, 9, 5, 0.78);
   --surface-input: rgba(255, 245, 230, 0.045);
 
   /* ─── 3. BORDERS / TEXT / SEMANTIC ──────────────────────────── */
@@ -4662,7 +4666,7 @@ input.inline-edit {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(4, 4, 9, 0.78);
+  background: var(--velo-modal);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   opacity: 0;
@@ -6526,7 +6530,9 @@ body.project-dragging .project-item {
   padding: 10px 12px;
   border-radius: 23px;
   border: 2px solid var(--border-default);
-  color: var(--text-tertiary);
+  /* Secundario, no terciario: a 10px y sobre el tinte de --kbd-bg el
+     terciario se quedaba en 4,2:1 en oscuro. */
+  color: var(--text-secondary);
   letter-spacing: 0.02em;
 }
 
@@ -6707,8 +6713,17 @@ body.project-dragging .project-item {
   color: var(--text-tertiary);
 }
 
-.search-result-done {
-  opacity: 0.55;
+/* Sin opacidad encima: el color terciario y el check relleno ya la
+   distinguen, y con opacity 0.55 el texto bajaba a 2,6:1 (lejos de AA). */
+
+/* Sobre el tinte de la fila activa el terciario no llega a 4,5:1 (3,9 en
+   oscuro): ahí los textos apagados suben un escalón. */
+.search-result-item--sel :is(.search-result-list, .search-result-text) {
+  color: var(--text-secondary);
+}
+
+.search-result-item--sel:not(.search-result-done) .search-result-text {
+  color: var(--text-primary);
 }
 
 /* Nombre de la lista: mono y discreto, como el resto de metadatos. */
@@ -10586,7 +10601,9 @@ button {
   width: 35px;
   height: 100%;
   border-radius: 26px;
-  background: var(--grad-primary);
+  /* Liso, sin el degradado de --grad-primary: igual que el resto de
+     rellenos de acento (filtro activo, día de hoy, botón añadir). */
+  background: var(--c-primary-500);
   display: grid;
   place-items: center;
   color: var(--accent-on);
@@ -14358,7 +14375,7 @@ button {
   }
 
   .global-search-btn:hover .global-search-kbd {
-    color: var(--text-secondary);
+    color: var(--text-primary);
   }
 
   /* 4. Plegar y botones del rail. */

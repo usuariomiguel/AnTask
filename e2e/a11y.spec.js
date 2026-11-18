@@ -255,3 +255,67 @@ test("a11y: ajustes", async ({ page }) => {
   await page.click("#pf-settings-btn");
   await auditModal(page, "modal-ajustes");
 });
+
+// ═══════════════════════════════════════════════════════════════
+// MODO OSCURO
+//
+// Todo lo de arriba corre en claro (el tema por defecto del navegador
+// de Playwright). En oscuro había tres contrastes rotos que nadie vio:
+// el «Ctrl + K» del buscador, el nombre de lista en la fila activa del
+// buscador y las tareas hechas, atenuadas con opacity hasta 2,6:1.
+// Se cubren en el PC, que desde la v2.39 tiene su propia paleta cálida.
+// ═══════════════════════════════════════════════════════════════
+
+test.describe("modo oscuro", () => {
+  test.use({ colorScheme: "dark" });
+
+  async function cargarOscuro(page) {
+    await page.goto("/");
+    await page.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem("antrack_consent", "essential");
+      localStorage.setItem("antrack-onboarded", "1");
+      localStorage.setItem("antrack_lang", "es");
+      localStorage.setItem("mis-tareas-theme", "dark");
+      const hoy = new Date().toISOString().slice(0, 10);
+      const T = (id, text, done, dueDate) => ({ id, text, done, dueDate: dueDate || null,
+        createdAt: new Date().toISOString(), subtasks: [], notes: "" });
+      localStorage.setItem("anso-projects", JSON.stringify([
+        { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
+          sectionId: null, archived: false, icon: "", color: "", tasks: [] },
+        { id: "p1", name: "Buceo", createdAt: new Date().toISOString(),
+          sectionId: null, archived: false, icon: "", color: "", tasks: [
+            T("t1", "Tarea hecha", true), T("t2", "Tarea de hoy", false, hoy), T("t3", "Tarea vencida", false, "2026-01-01"),
+          ] },
+      ]));
+      localStorage.setItem("anso-active-project", "p1");
+    });
+    await page.goto("/");
+    await page.waitForSelector(".project-item-inbox", { state: "visible", timeout: 15_000 });
+    await page.evaluate(() => {
+      const b = document.getElementById("consent-banner");
+      if (b) b.style.display = "none";
+    });
+  }
+
+  test("a11y oscuro: lista", async ({ page }) => {
+    await cargarOscuro(page);
+    await page.click(".project-item[data-project-id='p1']");
+    await page.waitForSelector("#task-list .task-item");
+    const issues = writeReport("oscuro-lista", await auditar(page));
+    expect(issues, "Violaciones critical/serious en la lista (oscuro)").toEqual([]);
+  });
+
+  test("a11y oscuro: buscador con una tarea hecha seleccionada", async ({ page }) => {
+    await cargarOscuro(page);
+    await page.keyboard.press("Control+k");
+    await page.waitForSelector(".search-result-done");
+    // Lleva la selección a la tarea hecha: es la combinación más apagada.
+    for (let i = 0; i < 4; i++) {
+      if (await page.locator(".search-result-item--sel.search-result-done").count()) break;
+      await page.keyboard.press("ArrowDown");
+    }
+    await expect(page.locator(".search-result-item--sel.search-result-done")).toHaveCount(1);
+    await auditModal(page, "oscuro-buscador");
+  });
+});
