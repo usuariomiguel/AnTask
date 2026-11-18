@@ -1698,7 +1698,7 @@ body {
    falta: ahí el popover se despliega en línea y no tapa nada. */
 @media (min-width: 769px) {
   .field-popover {
-    background: #2c241b;
+    background: var(--surface-raised);
   }
 }
 
@@ -1711,7 +1711,7 @@ body {
   /* Este sí flota también en móvil (el de fecha y repetir de una fila, el
      de lista de la captura rápida): sin fondo opaco se veían las filas de
      debajo a través. El tema claro lo pisa con su propia regla. */
-  background: #2c241b;
+  background: var(--surface-raised);
 }
 
 .field-popover--up {
@@ -7520,7 +7520,7 @@ body.task-dragging .project-item:not(.active) {
   list-style: none;
   margin: 0;
   padding: 0.30rem 0;
-  background: #2c241b;
+  background: var(--surface-raised);
   border: 2px solid rgba(255, 238, 214, 0.13);
   border-radius: 26px;
   box-shadow: 0 8px 36px rgba(0, 0, 0, 0.60);
