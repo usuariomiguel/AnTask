@@ -111,8 +111,12 @@
        · motas y fibritas sueltas, como un papel reciclado (tile de 640px
          con posiciones fijas, generado una vez);
        · manchas de tono muy grandes y suaves, como papel de acuarela:
-         un SVG con cinco elipses de degradado, claras y oscuras, estirado a
-         cada caja. Primero fue un ruido SVG de 1500px y luego cinco
+         un SVG con cinco elipses de degradado, claras y oscuras, a tamaño
+         FIJO (1400×900, anclado arriba) y no estirado a la caja: estirado,
+         en la cabecera y los filtros —cajas bajas— las elipses se
+         aplastaban en franjas claras. Así cada caja enseña un trozo de la
+         misma hoja, y las tres comparten un solo raster. Primero fue un
+         ruido SVG de 1500px y luego cinco
          radial-gradient de CSS: en los dos casos el cambio de tema (su View
          Transition) tardaba ~90 ms más en aplicarse y el icono no giraba a
          tiempo. Como imagen, el navegador la rasteriza una vez y la reusa.
@@ -138,7 +142,11 @@
   .list-filter-row,
   .task-list-scroll {
     background-image: var(--papel-cajas);
-    background-size: 100% 100%, 640px 640px, 160px 160px;
+    background-size: 1400px 900px, 640px 640px, 160px 160px;
+    background-position: center top, 0 0, 0 0;
+    /* La hoja no se repite: en pantallas mayores que 1400×900 se cortaría
+       a mitad de una elipse. Más allá quedan solo motas y grano. */
+    background-repeat: no-repeat, repeat, repeat;
   }
 
   .list-filter-row {
