@@ -28,6 +28,31 @@ function writeReport(name, results) {
   return issues;
 }
 
+/**
+ * Espera a que acaben las animaciones finitas (las infinitas, como un
+ * spinner, no acaban nunca y se ignoran).
+ *
+ * axe mide el color que hay en pantalla en ese instante, mezclando la
+ * opacidad de los ancestros. Nada más cargar siguen en marcha el fundido
+ * del splash y la entrada escalonada de la cabecera, y a mitad de camino
+ * el oliva del filtro activo salía #717951 en vez de #707850: 4,48:1
+ * frente al 4,5:1 exigido. El test fallaba según la carga de la máquina,
+ * no por el color final, que es el que ve el usuario.
+ */
+async function esperarAnimaciones(page) {
+  await page.waitForFunction(() => document.getAnimations().every((a) =>
+    a.playState !== "running" || a.effect?.getComputedTiming().endTime === Infinity
+  ), null, { timeout: 5_000 });
+}
+
+/** Pasa axe a la página entera con las animaciones ya terminadas. */
+async function auditar(page) {
+  await esperarAnimaciones(page);
+  return new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+}
+
 async function loadFresh(page, seed) {
   await page.goto("/");
   await page.evaluate((seed) => {
@@ -69,7 +94,7 @@ async function loadFresh(page, seed) {
 async function auditModal(page, nombre) {
   await page.waitForSelector(".modal-overlay.modal-visible .modal-box", { timeout: 5_000 });
   // Espera al fundido: a medio camino el contraste medido no es el final.
-  await page.waitForTimeout(400);
+  await esperarAnimaciones(page);
   const results = await new AxeBuilder({ page })
     .include(".modal-overlay")
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -87,9 +112,7 @@ async function ctxMenu(page, texto) {
 
 test("a11y: pantalla inicial", async ({ page }) => {
   await loadFresh(page);
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  const results = await auditar(page);
   const issues = writeReport("initial-screen", results);
   expect(issues, "Violaciones critical/serious en pantalla inicial").toEqual([]);
 });
@@ -105,9 +128,7 @@ test("a11y: Inbox con tareas", async ({ page }) => {
   await page.press(".quick-capture-input", "Enter");
   await page.waitForSelector("#task-list .task-item");
 
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  const results = await auditar(page);
   const issues = writeReport("inbox-tasks", results);
   expect(issues, "Violaciones critical/serious en Inbox con tareas").toEqual([]);
 });
@@ -119,9 +140,7 @@ test("a11y: menú de perfil abierto", async ({ page }) => {
     await profileBtn.click({ force: true });
     await page.waitForTimeout(300);
   }
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  const results = await auditar(page);
   const issues = writeReport("profile-menu", results);
   expect(issues, "Violaciones critical/serious en menú de perfil").toEqual([]);
 });
@@ -185,9 +204,7 @@ test("a11y: renombrar una lista en línea", async ({ page }) => {
   await loadFresh(page, true);
   await page.dblclick(".project-item[data-project-id='p1'] .project-item-name");
   await page.waitForSelector("input.project-inline-edit", { state: "visible", timeout: 5_000 });
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+  const results = await auditar(page);
   const issues = writeReport("rename-inline", results);
   expect(issues, "Violaciones critical/serious en renombrar en línea").toEqual([]);
 });
