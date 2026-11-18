@@ -53,41 +53,6 @@
     --font-sans: "Figtree PC", "Figtree Variable", "Figtree", system-ui, -apple-system, sans-serif;
   }
 
-  /* ── Oscuro cálido ───────────────────────────────────────────────
-     En el PC el oscuro de style.css (#080605, casi negro) se veía
-     demasiado oscuro y poco cálido en pantalla grande. Aquí sube a marrón
-     café y la letra pasa de blanco roto a crema. El móvil se queda como
-     estaba.
-
-     Solo superficies, texto, bordes y dos semánticos: el acento no se
-     toca, así que los acentos alternativos (arcilla, miel…) siguen igual.
-     El canvas se calcula solo (crema al 5,5 % sobre el desk → #362d26).
-
-     Contraste AA medido sobre la superficie más clara donde hay texto,
-     el relieve #43372d: primario 7,7 · secundario 5,9 · terciario 4,6.
-     Si se aclara una superficie, hay que volver a medir el terciario. */
-  :root:not([data-theme="light"]) {
-    --surface-desk: #2a221c;
-    --surface-deep: #2f2620;
-    --surface-card: #3a2f27;
-    --surface-raised: #43372d;
-    --surface-overlay: rgba(58, 47, 39, 0.97);
-    /* Velo de modales: marrón oscuro, sin llegar al negro, para que el
-       fondo cálido se siga intuyendo detrás del desenfoque. */
-    --velo-modal: rgba(26, 19, 14, 0.66);
-
-    --text-primary: #e6d1aa;
-    --text-secondary: #cdb690;
-    --text-tertiary: #b6a17f;
-
-    --border-subtle: rgba(255, 226, 190, 0.14);
-    --border-default: rgba(255, 226, 190, 0.17);
-    --border-strong: rgba(255, 226, 190, 0.24);
-
-    --c-overdue: #e8a493;
-    --c-info: #8fbcd0;
-  }
-
   /* ── 1. Las tres columnas ─────────────────────────────────────
      El margen exterior se queda en los 12px de siempre; lo que baja a 6px
      es el hueco ENTRE columnas. */

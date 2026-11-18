@@ -263,7 +263,8 @@ test("a11y: ajustes", async ({ page }) => {
 // de Playwright). En oscuro había tres contrastes rotos que nadie vio:
 // el «Ctrl + K» del buscador, el nombre de lista en la fila activa del
 // buscador y las tareas hechas, atenuadas con opacity hasta 2,6:1.
-// Se cubren en el PC, que desde la v2.39 tiene su propia paleta cálida.
+// Desde la v2.40 el oscuro es la paleta cálida (marrón café y letra
+// crema) en PC y móvil; se cubren los dos.
 // ═══════════════════════════════════════════════════════════════
 
 test.describe("modo oscuro", () => {
@@ -318,4 +319,53 @@ test.describe("modo oscuro", () => {
     await expect(page.locator(".search-result-item--sel.search-result-done")).toHaveCount(1);
     await auditModal(page, "oscuro-buscador");
   });
+
+  test.describe("en el móvil", () => {
+    test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+    test("a11y oscuro móvil: Hoy", async ({ page }) => {
+      await cargarOscuroMovil(page);
+      await page.click("#bnav-today-btn");
+      await page.waitForSelector(".today-item");
+      const issues = writeReport("oscuro-movil-hoy", await auditar(page));
+      expect(issues, "Violaciones critical/serious en Hoy (oscuro, móvil)").toEqual([]);
+    });
+
+    test("a11y oscuro móvil: lista", async ({ page }) => {
+      await cargarOscuroMovil(page);
+      await page.click("#bnav-inbox-btn");
+      await page.waitForSelector("#task-list .task-item");
+      const issues = writeReport("oscuro-movil-lista", await auditar(page));
+      expect(issues, "Violaciones critical/serious en la lista (oscuro, móvil)").toEqual([]);
+    });
+  });
+
+  /** Como cargarOscuro, pero sin esperar a la sidebar (en el móvil es un
+   *  cajón cerrado) y con las tareas en el Inbox, que es la lista a la que
+   *  lleva la barra inferior. */
+  async function cargarOscuroMovil(page) {
+    await page.goto("/");
+    await page.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem("antrack_consent", "essential");
+      localStorage.setItem("antrack-onboarded", "1");
+      localStorage.setItem("antrack_lang", "es");
+      localStorage.setItem("mis-tareas-theme", "dark");
+      const hoy = new Date().toISOString().slice(0, 10);
+      const T = (id, text, done, dueDate) => ({ id, text, done, dueDate: dueDate || null,
+        createdAt: new Date().toISOString(), subtasks: [], notes: "" });
+      localStorage.setItem("anso-projects", JSON.stringify([
+        { id: "__inbox__", name: "Inbox", createdAt: new Date().toISOString(),
+          sectionId: null, archived: false, icon: "", color: "", tasks: [
+            T("t1", "Tarea hecha", true, hoy), T("t2", "Tarea de hoy", false, hoy), T("t3", "Tarea vencida", false, "2026-01-01"),
+          ] },
+      ]));
+    });
+    await page.goto("/");
+    await page.waitForSelector("#bnav-today-btn", { state: "visible", timeout: 15_000 });
+    await page.evaluate(() => {
+      const b = document.getElementById("consent-banner");
+      if (b) b.style.display = "none";
+    });
+  }
 });

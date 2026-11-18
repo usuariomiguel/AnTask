@@ -46,40 +46,45 @@
   --b-active: rgba(164, 178, 114, 0.45);
 
   /* ─── 2. SURFACE LAYERS ─────────────────────────────────────── */
-  --surface-desk: #080605;
-  /* escritorio detrás del panel flotante */
-  --surface-deep: #100c08;
+  /* Paleta «oscuro cálido» (v2.39 en PC, v2.40 en toda la app): marrón
+     café en vez del casi negro #080605 de antes, y letra crema en vez
+     de blanco roto. Contraste AA medido sobre el relieve #43372d, la
+     superficie más clara con texto: primario 7,7 · secundario 5,9 ·
+     terciario 4,6. Si se aclara una superficie, vuelve a medir el
+     terciario. */
+  --surface-desk: #2a221c;
+  /* escritorio detrás del panel flotante (canvas resultante: #362d26) */
+  --surface-deep: #2f2620;
   /* sidebar, capa más profunda */
   --surface-canvas: rgba(255, 238, 214, 0.055);
   /* canvas principal (panel central hundido): crema al 5,5 % sobre el
      desk. Translúcido a propósito; su versión opaca es --capa-canvas. */
-  --surface-card: #251e16;
+  --surface-card: #3a2f27;
   /* tarjetas / paneles */
-  --surface-raised: #2c241b;
+  --surface-raised: #43372d;
   /* hover, raised, segmento activo */
   --block-bg: rgba(255, 240, 220, 0.045);
   /* bloque de sección */
-  --surface-overlay: rgba(38, 30, 22, 0.96);
-  /* Velo detrás de los modales. Antes rgba(4, 4, 9, .78): un negro
-     azulado, frío al lado del marrón. Mismo oscurecimiento, tono tierra.
-     En claro lo pone la regla de .modal-overlay del tema claro. */
-  --velo-modal: rgba(14, 9, 5, 0.78);
+  --surface-overlay: rgba(58, 47, 39, 0.97);
+  /* Velo detrás de los modales: marrón oscuro que deja intuir el fondo
+     cálido tras el desenfoque. Antes rgba(4, 4, 9, .78), un negro
+     azulado. En claro lo pone la regla de .modal-overlay del tema claro. */
+  --velo-modal: rgba(26, 19, 14, 0.66);
   --surface-input: rgba(255, 245, 230, 0.045);
 
   /* ─── 3. BORDERS / TEXT / SEMANTIC ──────────────────────────── */
-  --border-subtle: rgba(255, 238, 214, 0.17);
-  --border-default: rgba(255, 238, 214, 0.19);
-  --border-strong: rgba(255, 238, 214, 0.26);
+  --border-subtle: rgba(255, 226, 190, 0.14);
+  --border-default: rgba(255, 226, 190, 0.17);
+  --border-strong: rgba(255, 226, 190, 0.24);
 
-  --text-primary: #f1e9dc;
-  --text-secondary: #b6a691;
-  --text-tertiary: #9d8e76;
-  /* ≥4.5:1 sobre card #251e16 (AA) */
+  --text-primary: #e6d1aa;
+  --text-secondary: #cdb690;
+  --text-tertiary: #b6a17f;
 
   --c-success: #6cb1a3;
   --c-warning: #d9a66a;
   --c-danger: #d78072;
-  --c-info: #7eb5cd;
+  --c-info: #8fbcd0;
   --c-recur: #af90e5;
 
   /* Vencido — rojo de estado, distinto de --c-danger (que significa
@@ -88,7 +93,7 @@
      alfas distintas; con un solo token hexadecimal harían falta nueve.
      OJO: el tinte es el rojo CLARO en ambos temas, no el de cada modo.
      Es como estaba antes de tokenizar y se conserva a propósito. */
-  --c-overdue: #e19e95;
+  --c-overdue: #e8a493;
   --c-overdue-rgb: 176, 71, 63;
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
@@ -6380,7 +6385,9 @@ body.project-dragging .project-item {
   }
 
   .mobile-bottom-btn.active {
-    color: var(--c-primary-500);
+    /* 400 y no 500: sobre su propio tinte, encima del marrón cálido, el
+       500 se quedaba en 4,3:1 (el 400 da 5,1). En claro lo pone el 600. */
+    color: var(--c-primary-400);
     font-weight: var(--fw-bold);
     /* Píldora rellena tras el icono+texto activos, como la referencia
        que mandó el usuario (nav inferior con blur) — antes solo cambiaba
@@ -12017,6 +12024,7 @@ button {
    #inbox-tasks-label). Va como primer hijo de #task-list, no dentro de
    una fila — por eso su propio margen, no el de .task-item. */
 .inbox-tasks-label {
+  list-style: none;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;

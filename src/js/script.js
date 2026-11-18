@@ -3887,7 +3887,12 @@ function renderTasks() {
   var inboxLabel = document.getElementById("inbox-tasks-label");
   if (isInbox && isSimpleMobile()) {
     if (!inboxLabel) {
-      inboxLabel = document.createElement("div");
+      // <li> y no <div>: es hijo directo del <ul>, y un <div> ahí rompe la
+      // lista para los lectores de pantalla (regla "list" de axe). Oculto a
+      // ellos porque es solo un rótulo visual: si no, contaría como una
+      // tarea más («1 de 3»).
+      inboxLabel = document.createElement("li");
+      inboxLabel.setAttribute("aria-hidden", "true");
       inboxLabel.id = "inbox-tasks-label";
       inboxLabel.className = "inbox-tasks-label";
       inboxLabel.textContent = t("inbox.tasks_label");
