@@ -232,7 +232,7 @@
 }
 
 :root[data-theme="light"] ::selection {
-  background: rgba(112, 120, 80, 0.22);
+  background: rgba(107, 115, 76, 0.22);
   color: #2a251d;
 }
 
@@ -265,18 +265,19 @@
   /* Brand primary — oliva, más oscuro para contraste sobre papel */
   --c-primary-300: #a5b17d;
   --c-primary-400: #8c986d;
-  --c-primary-500: #707850;
-  /* oliva */
+  --c-primary-500: #6b734c;
+  /* oliva. Antes #707850: el crema de --accent-on encima daba 4,55:1, justo
+     en el límite AA. Con #6b734c da 4,89:1. No aclararlo sin medir. */
   --c-primary-600: #5b6240;
   --c-primary-700: #4b5135;
   --c-primary-800: #3e432a;
 
   --accent-on: #fffcf1;
-  --accent-tint: rgba(112, 120, 80, 0.14);
+  --accent-tint: rgba(107, 115, 76, 0.14);
 
   --grad-primary: linear-gradient(135deg, #8c986d 0%, #575f3e 100%);
-  --glow-primary: 0 4px 14px rgba(112, 120, 80, 0.28);
-  --ring-primary: 0 0 0 3px rgba(112, 120, 80, 0.20);
+  --glow-primary: 0 4px 14px rgba(107, 115, 76, 0.28);
+  --ring-primary: 0 0 0 3px rgba(107, 115, 76, 0.20);
 
   /* Surfaces — "arena cálida": el beige anterior (#dcd1bc/#f8f4ea) leía
      grisáceo/apagado; este sube saturación y calidez sin tocar el
@@ -332,15 +333,15 @@
   /* Interacción */
   --capa-canvas: var(--surface-canvas);
   --kbd-bg: #f0e0b8;
-  --task-hover: rgba(112, 120, 80, 0.10);
-  --task-hover-border: rgba(112, 120, 80, 0.36);
+  --task-hover: rgba(107, 115, 76, 0.10);
+  --task-hover-border: rgba(107, 115, 76, 0.36);
 
   /* Shadows — más suaves, con tinte cálido */
   --shadow-sm: 0 1px 2px rgba(80, 55, 10, 0.06);
   --shadow-lg: 0 12px 32px rgba(80, 55, 10, 0.12);
 
   /* Con el tinte del oliva oscuro del tema claro */
-  --b-active: rgba(112, 120, 80, 0.45);
+  --b-active: rgba(107, 115, 76, 0.45);
   --glow-blue: 0 0 0 3px rgba(61, 110, 133, 0.15);
 }
 
@@ -1163,8 +1164,8 @@ body {
   color: #fffcf1;
   box-shadow:
     inset 0 1px 0 rgba(255, 238, 214, 0.18),
-    0 0 0 1px rgba(112, 120, 80, 0.28),
-    0 4px 16px rgba(112, 120, 80, 0.32);
+    0 0 0 1px rgba(107, 115, 76, 0.28),
+    0 4px 16px rgba(107, 115, 76, 0.32);
 }
 
 /* ─── MAIN PANEL ─────────────────────────────────────────────── */
@@ -2745,8 +2746,8 @@ button:focus-visible {
 
 :root[data-theme="light"] .filter-trigger-btn--active {
   color: var(--c-primary-500);
-  background: rgba(112, 120, 80, 0.08);
-  border-color: rgba(112, 120, 80, 0.25);
+  background: rgba(107, 115, 76, 0.08);
+  border-color: rgba(107, 115, 76, 0.25);
 }
 
 /* ── Fila de filtro dentro del cuerpo de la lista (estilo prototipo v1) ──
@@ -5074,9 +5075,9 @@ input.inline-edit {
 }
 
 :root[data-theme="light"] .modal-input:focus {
-  border-color: rgba(112, 120, 80, 0.45);
-  background: rgba(112, 120, 80, 0.04);
-  box-shadow: 0 0 0 3px rgba(112, 120, 80, 0.10);
+  border-color: rgba(107, 115, 76, 0.45);
+  background: rgba(107, 115, 76, 0.04);
+  box-shadow: 0 0 0 3px rgba(107, 115, 76, 0.10);
 }
 
 .modal-actions {
@@ -5624,8 +5625,8 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .mobile-header-count {
     color: var(--c-primary-500);
-    background: rgba(112, 120, 80, 0.10);
-    border-color: rgba(112, 120, 80, 0.22);
+    background: rgba(107, 115, 76, 0.10);
+    border-color: rgba(107, 115, 76, 0.22);
   }
 
   /* When a project is active: show title block, hide logos */
@@ -5736,7 +5737,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .mobile-icon-btn:active {
-    background: rgba(112, 120, 80, 0.08);
+    background: rgba(107, 115, 76, 0.08);
     color: var(--c-primary-500);
   }
 
@@ -5837,7 +5838,7 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .filter-trigger-btn--active {
     color: var(--c-primary-500);
-    background: rgba(112, 120, 80, 0.08);
+    background: rgba(107, 115, 76, 0.08);
   }
 
   .filter-trigger-btn:active {
@@ -5848,7 +5849,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .filter-trigger-btn:active {
-    background: rgba(112, 120, 80, 0.08);
+    background: rgba(107, 115, 76, 0.08);
     color: var(--c-primary-500);
   }
 
@@ -5873,7 +5874,7 @@ body.project-dragging .project-item {
 
   :root[data-theme="light"] .filter-panel {
     box-shadow: 0 -4px 24px rgba(80, 55, 10, 0.10), 0 -1px 0 rgba(80, 55, 10, 0.06);
-    border-top-color: rgba(112, 120, 80, 0.35);
+    border-top-color: rgba(107, 115, 76, 0.35);
   }
 
   .filter-panel-opts {
@@ -6138,8 +6139,8 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .sidebar-search-mobile:active {
-    background: rgba(112, 120, 80, 0.05);
-    border-color: rgba(112, 120, 80, 0.40);
+    background: rgba(107, 115, 76, 0.05);
+    border-color: rgba(107, 115, 76, 0.40);
   }
 
   /* Profile compacto: avatar + nombre en una sola fila densa */
@@ -6362,7 +6363,7 @@ body.project-dragging .project-item {
   }
 
   :root[data-theme="light"] .mobile-fab {
-    box-shadow: 0 8px 18px -6px rgba(112, 120, 80, 0.55);
+    box-shadow: 0 8px 18px -6px rgba(107, 115, 76, 0.55);
   }
 
   /* Estado activo (prototipo): icono y texto en acento, sin dot */
@@ -6786,7 +6787,7 @@ mark.search-hl {
 
 :root[data-theme="light"] .undo-toast {
   background: #fffcf1;
-  border-color: rgba(112, 120, 80, 0.20);
+  border-color: rgba(107, 115, 76, 0.20);
   box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 
@@ -7115,7 +7116,7 @@ kbd {
 
 :root[data-theme="light"] #splash {
   background-image:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(112, 120, 80, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(107, 115, 76, 0.08) 0%, transparent 70%),
     var(--grano-img);
 }
 
@@ -8824,7 +8825,7 @@ label.profile-avatar-picker-label {
 
 :root[data-theme="light"] .paste-toast {
   background: #fffcf1;
-  border-color: rgba(112, 120, 80, 0.20);
+  border-color: rgba(107, 115, 76, 0.20);
   box-shadow: 0 4px 24px rgba(80, 55, 10, 0.12);
 }
 

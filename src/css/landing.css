@@ -13,10 +13,10 @@
   --ink: #2b2213;
   --ink-2: #6f5f3e;
   --ink-3: #756545;
-  --accent: #707850;
+  --accent: #6b734c;
   --accent-ink: #5b6240;
   --accent-on: #fffcf1;
-  --accent-tint: rgba(112, 120, 80, 0.14);
+  --accent-tint: rgba(107, 115, 76, 0.14);
   --border: rgba(80, 55, 10, 0.12);
   --border-soft: rgba(80, 55, 10, 0.08);
   --shadow: 0 30px 80px -30px rgba(80, 55, 10, 0.35);
