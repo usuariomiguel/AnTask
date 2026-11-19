@@ -342,11 +342,11 @@
      subirlo aquí arregla de paso el resto de sus usos. */
   --c-recur: #6d54ac;
 
-  /* Vencido — en claro el rojo baja de tono para leer sobre papel.
-     El canal RGB no cambia: el tinte ya era este en ambos temas. */
-  --c-overdue: #9d544d;
-  --c-overdue-rgb: 157, 84, 77;
-  --c-overdue-boton-rgb: 157, 84, 77;
+  /* Vencido — en claro, un rojo apagado (antes #9d544d, más vivo) que
+     sigue pasando AA sobre el papel (4,66:1 sobre --surface-canvas). */
+  --c-overdue: #8f5853;
+  --c-overdue-rgb: 143, 88, 83;
+  --c-overdue-boton-rgb: 143, 88, 83;
 
   /* Interacción */
   --capa-canvas: var(--surface-canvas);
