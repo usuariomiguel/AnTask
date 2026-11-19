@@ -95,6 +95,10 @@
      Es como estaba antes de tokenizar y se conserva a propósito. */
   --c-overdue: #e8a493;
   --c-overdue-rgb: 176, 71, 63;
+  /* Tinte de los botones y píldoras de vencidas (borde y fondo). En oscuro,
+     el rojo de arriba al 32 % de borde quedaba agresivo sobre el marrón:
+     aquí un salmón apagado, de la familia del texto. */
+  --c-overdue-boton-rgb: 196, 122, 106;
 
   /* ─── 4b. INTERACCIÓN ───────────────────────────────────────── */
   /* Bases opacas de las dos capas que llevan grano (ver GRANO DE PAPEL, al
@@ -342,6 +346,7 @@
      El canal RGB no cambia: el tinte ya era este en ambos temas. */
   --c-overdue: #9d544d;
   --c-overdue-rgb: 157, 84, 77;
+  --c-overdue-boton-rgb: 157, 84, 77;
 
   /* Interacción */
   --capa-canvas: var(--surface-canvas);
@@ -5205,7 +5210,7 @@ input.inline-edit {
 }
 
 .due-overdue {
-  background: rgba(var(--c-overdue-rgb), 0.13);
+  background: rgba(var(--c-overdue-boton-rgb), 0.13);
   color: var(--c-overdue);
 }
 
@@ -9474,7 +9479,7 @@ button {
    duplicara la acción y ocupara más sitio que la fecha misma. Pulsable
    en cualquier tamaño de pantalla, con la flecha como pista. */
 .today-date-pill--overdue {
-  background: rgba(var(--c-overdue-rgb), 0.13);
+  background: rgba(var(--c-overdue-boton-rgb), 0.13);
   color: var(--c-overdue);
   display: inline-flex;
   align-items: center;
@@ -9490,7 +9495,7 @@ button {
 }
 
 .today-date-pill--overdue:active {
-  background: rgba(var(--c-overdue-rgb), 0.22);
+  background: rgba(var(--c-overdue-boton-rgb), 0.22);
 }
 
 /* "Sin fecha": no hay píldora de fecha que reaprovechar, así que la suya
@@ -9930,13 +9935,13 @@ button {
 
   .due-badge--action,
   .today-date-pill--overdue {
-    border-color: rgba(var(--c-overdue-rgb), 0.32);
-    background: rgba(var(--c-overdue-rgb), 0.09);
+    border-color: rgba(var(--c-overdue-boton-rgb), 0.32);
+    background: rgba(var(--c-overdue-boton-rgb), 0.09);
   }
 
   .due-badge--action:hover,
   .today-date-pill--overdue:hover {
-    background: rgba(var(--c-overdue-rgb), 0.16);
+    background: rgba(var(--c-overdue-boton-rgb), 0.16);
   }
 
   /* Es un verbo, no un dato: sin mono, con el peso de los botones. */
@@ -10339,8 +10344,8 @@ button {
 }
 
 .hoy-section--overdue .hoy-section-action {
-  border: 2px solid rgba(var(--c-overdue-rgb), 0.32);
-  background: linear-gradient(rgba(var(--c-overdue-rgb), 0.09), rgba(var(--c-overdue-rgb), 0.09)), var(--capa-canvas);
+  border: 2px solid rgba(var(--c-overdue-boton-rgb), 0.32);
+  background: linear-gradient(rgba(var(--c-overdue-boton-rgb), 0.09), rgba(var(--c-overdue-boton-rgb), 0.09)), var(--capa-canvas);
   color: var(--c-overdue);
 }
 
@@ -12452,7 +12457,7 @@ button {
      fecha de Hoy (.today-date-pill), no el texto suelto con borde extra
      que quedaba antes al quitarle solo el fondo. */
   .due-badge.due-overdue {
-    border: 2px solid rgba(var(--c-overdue-rgb), 0.25);
+    border: 2px solid rgba(var(--c-overdue-boton-rgb), 0.25);
   }
 
   /* ── Fechas con hora ─────────────────────────────────────────
