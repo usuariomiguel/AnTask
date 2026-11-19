@@ -207,13 +207,17 @@
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────── */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 238, 214, 0.14) transparent;
+/* Del color de acento, no crema/tierra fijos: así sigue al acento que
+   elija el usuario (oliva, arcilla, marea…) en los dos temas. Se mezcla
+   con transparente para que no pese más que el contenido. */
+:root {
+  --scroll-thumb: color-mix(in srgb, var(--c-primary-500) 45%, transparent);
+  --scroll-thumb-hover: color-mix(in srgb, var(--c-primary-500) 75%, transparent);
 }
 
-:root[data-theme="light"] * {
-  scrollbar-color: rgba(74, 58, 38, 0.24) transparent;
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -226,12 +230,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 238, 214, 0.14);
+  background: var(--scroll-thumb);
   border-radius: 999px;
 }
 
-:root[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(74, 58, 38, 0.24);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
 }
 
 /* ─── TEXT SELECTION ─────────────────────────────────────────── */
@@ -909,7 +913,7 @@ body {
   flex-direction: column;
   gap: 1px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.15) transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 
 .project-list::-webkit-scrollbar {
@@ -3103,7 +3107,7 @@ button:focus-visible {
      captura flotante (que se centra respecto al panel). */
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
-  scrollbar-color: rgba(163, 179, 102, 0.18) transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 
 .task-list-scroll::-webkit-scrollbar {

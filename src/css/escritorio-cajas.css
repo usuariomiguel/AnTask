@@ -138,17 +138,19 @@
     background-repeat: no-repeat, repeat, repeat;
   }
 
-  /* Sidebar y panel de detalle: el mismo papel, sin la capa de grano. Son
-     transparentes y ya enseñan el del body; repetirlo lo doblaría. Las
-     manchas, a la misma escala que en las cajas. En claro llevan su propia
-     versión (--papel-manchas-marco) con el blanco más flojo: sobre el
-     amarillo del desk, el de las cajas desvaía el color. */
-  .sidebar,
-  .task-detail-wrap {
-    background-image: var(--papel-manchas-marco), var(--papel-motas);
-    background-size: 1400px 900px, 640px 640px;
-    background-position: center top, 0 0;
-    background-repeat: no-repeat, repeat;
+  /* Marco (sidebar, detalle y huecos entre columnas): el papel va en el
+     body, no en .sidebar y .task-detail-wrap. Puesto en ellas acababa en
+     el borde de su columna y el hueco de al lado quedaba liso: se leía
+     como un rectángulo pegado encima. En el body es una sola hoja, de
+     borde a borde, detrás de todo; las cajas tapan su trozo con el suyo.
+     Manchas a pantalla completa, motas y el grano de siempre. En claro,
+     --papel-manchas-marco lleva el blanco más flojo: sobre el amarillo
+     del desk, el de las cajas desvaía el color. */
+  body {
+    background-image: var(--papel-manchas-marco), var(--papel-motas), var(--grano-img);
+    background-size: 100vw 100vh, 640px 640px, 160px 160px;
+    background-position: 0 0, 0 0, 0 0;
+    background-repeat: no-repeat, repeat, repeat;
   }
 
   .list-filter-row {
