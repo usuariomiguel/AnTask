@@ -93,7 +93,7 @@
      alfas distintas; con un solo token hexadecimal harían falta nueve.
      OJO: el tinte es el rojo CLARO en ambos temas, no el de cada modo.
      Es como estaba antes de tokenizar y se conserva a propósito. */
-  --c-overdue: #e8a493;
+  --c-overdue: #d8a99b;
   --c-overdue-rgb: 176, 71, 63;
   /* Tinte de los botones y píldoras de vencidas (borde y fondo). En oscuro,
      el rojo de arriba al 32 % de borde quedaba agresivo sobre el marrón:
