@@ -10254,7 +10254,7 @@ button {
 }
 
 .hoy-section--nodate .hoy-section-title {
-  color: #a9c48e;
+  color: var(--c-primary-300);
 }
 
 :root[data-theme="light"] .hoy-section--today .hoy-section-title {
@@ -10262,7 +10262,7 @@ button {
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-title {
-  color: #547250;
+  color: var(--c-primary-600);
 }
 
 /* Hábitos: morado, el mismo tinte que ya usa el chip de repetición
@@ -12005,7 +12005,7 @@ button {
 }
 
 .hoy-section--nodate .hoy-section-ico {
-  color: #8fae74;
+  color: var(--c-primary-500);
 }
 
 :root[data-theme="light"] .hoy-section--overdue .hoy-section-ico {
@@ -12013,7 +12013,7 @@ button {
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-ico {
-  color: #547250;
+  color: var(--c-primary-600);
 }
 
 .hoy-section-title {
