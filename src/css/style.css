@@ -445,7 +445,7 @@
   --c-primary-300: #d2a777;
   --c-primary-400: #a98656;
   --c-primary-500: #a98656;
-  --c-primary-600: #8b6c40;
+  --c-primary-600: #84663b;
   --accent-tint: rgba(169, 134, 86, 0.14);
   --task-hover: rgba(169, 134, 86, 0.10);
   --task-hover-border: rgba(169, 134, 86, 0.36);
@@ -9943,23 +9943,23 @@ button {
   .today-date-pill--action {
     font-family: var(--font-sans);
     font-weight: 650;
-    border-color: rgba(143, 174, 116, 0.40);
-    background: rgba(143, 174, 116, 0.10);
-    color: #a9c48e;
+    border-color: color-mix(in srgb, var(--c-primary-500) 40%, transparent);
+    background: color-mix(in srgb, var(--c-primary-500) 10%, transparent);
+    color: var(--c-primary-300);
   }
 
   :root[data-theme="light"] .today-date-pill--action {
-    border-color: rgba(84, 114, 80, 0.32);
-    background: rgba(84, 114, 80, 0.08);
-    color: #547250;
+    border-color: color-mix(in srgb, var(--c-primary-500) 32%, transparent);
+    background: color-mix(in srgb, var(--c-primary-500) 8%, transparent);
+    color: var(--c-primary-600);
   }
 
   .today-date-pill--action:hover {
-    background: rgba(143, 174, 116, 0.18);
+    background: color-mix(in srgb, var(--c-primary-500) 18%, transparent);
   }
 
   :root[data-theme="light"] .today-date-pill--action:hover {
-    background: rgba(84, 114, 80, 0.15);
+    background: color-mix(in srgb, var(--c-primary-500) 15%, transparent);
   }
 
   .due-badge--action:active,
@@ -10344,16 +10344,20 @@ button {
   color: var(--c-overdue);
 }
 
+/* «Programar todas hoy» lleva el acento, como el título de «Para hoy»: el
+   botón manda las tareas a esa sección, así que se pinta con su color y
+   no con el verde de «Sin fecha», que es el de la sección donde están. */
 .hoy-section--nodate .hoy-section-action {
-  border: 2px solid rgba(143, 174, 116, 0.40);
-  background: linear-gradient(rgba(143, 174, 116, 0.10), rgba(143, 174, 116, 0.10)), var(--capa-canvas);
-  color: #a9c48e;
+  --tinte-accion: color-mix(in srgb, var(--c-primary-500) 10%, transparent);
+  border: 2px solid color-mix(in srgb, var(--c-primary-500) 40%, transparent);
+  background: linear-gradient(var(--tinte-accion), var(--tinte-accion)), var(--capa-canvas);
+  color: var(--c-primary-300);
 }
 
 :root[data-theme="light"] .hoy-section--nodate .hoy-section-action {
-  border-color: rgba(84, 114, 80, 0.32);
-  background: linear-gradient(rgba(84, 114, 80, 0.08), rgba(84, 114, 80, 0.08)), var(--capa-canvas);
-  color: #547250;
+  --tinte-accion: color-mix(in srgb, var(--c-primary-500) 8%, transparent);
+  border-color: color-mix(in srgb, var(--c-primary-500) 32%, transparent);
+  color: var(--c-primary-600);
 }
 
 .hoy-section-list {
