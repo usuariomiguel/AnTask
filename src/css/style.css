@@ -12054,6 +12054,17 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+/* «Sin fecha» va entera con el acento: título, icono, contador y botón. */
+.hoy-section--nodate .hoy-section-count {
+  color: var(--c-primary-300);
+  border-color: color-mix(in srgb, var(--c-primary-500) 40%, transparent);
+}
+
+:root[data-theme="light"] .hoy-section--nodate .hoy-section-count {
+  color: var(--c-primary-600);
+  border-color: color-mix(in srgb, var(--c-primary-500) 32%, transparent);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MÓVIL — la fecha se ancla al borde derecho de la fila
 
