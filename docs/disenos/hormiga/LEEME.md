@@ -1,6 +1,6 @@
 # «La hormiga»: más personalidad para el tema actual
 
-Maquetas del 20-nov-2026, hechas sobre el diseño actual (Tierra, modo claro).
+Maquetas del 20-nov-2026, hechas sobre el diseño actual (Tierra), en modo claro y oscuro.
 Usan la silueta real del logo (`src/img/logo-hormiga.svg`), separada en piezas: antenas, cuerpo y patas.
 Nada de esto está en la app; es solo referencia.
 
@@ -13,9 +13,11 @@ Nada de esto está en la app; es solo referencia.
   - `#actividad`: el hormiguero.
   - `#vacios`: estados vacíos y pequeños momentos.
 - **`movil.html`** (390×844). Hashes: `#hoy`, `#hoy-congelado`, `#habitos`, `#fin`, `#actividad` e `#inbox` (vacío).
+- **Modo oscuro:** añade `?oscuro` antes del hash (por ejemplo, `index.html?oscuro#fin`) o pulsa el botón del sol de la maqueta.
 - **Capturas:**
   - PC: `hoy.png`, `fin.png`, `actividad.png`, `vacios.png`;
-  - móvil: `movil-hoy.png`, `movil-habitos.png`, `movil-fin.png`, `movil-actividad.png`, `movil-inbox.png`.
+  - móvil: `movil-hoy.png`, `movil-habitos.png`, `movil-fin.png`, `movil-actividad.png`, `movil-inbox.png`;
+  - las mismas terminadas en `-oscuro`, en modo oscuro.
 
 Las fuentes se cargan desde Google Fonts, así que hace falta conexión para verlas bien. En la app ya están autoalojadas, porque son Bricolage Grotesque y Figtree.
 
@@ -41,12 +43,26 @@ Las fuentes se cargan desde Google Fonts, así que hace falta conexión para ver
    - la pestaña activa se mete bajo la hoja, como un marcapáginas;
    - en el móvil, las pestañas Tareas | Hábitos asoman como pestañas de carpeta.
 
+## Modo oscuro
+
+Usa los tokens oscuros de la app (`:root` en `src/css/style.css`):
+- la mesa es `--surface-desk`;
+- la hoja es un tono entre `--surface-card` y `--surface-canvas`;
+- el acento es `--c-primary-500` (#a4b272), con el texto oscuro encima;
+- el texto va en `--text-*`;
+- vencidas, en `--c-overdue`.
+
+La hormiga pasa a oliva claro, y los colores de las listas se aclaran para que se lean sobre oscuro. Para que no sea un simple negativo, lleva toques de noche:
+- estrellas que titilan sobre el rastro;
+- la entrada del hormiguero con luz cálida;
+- luna y luciérnagas en el día terminado;
+- las cámaras del hormiguero iluminadas desde dentro, como con un farol.
+
 ## Cómo encajarlo en la app
 
 - **Animaciones:** la de llevarse la tarea usa la Web Animations API, sin librerías. Cada paso está en `llevarse()` de las maquetas.
 - **Cuándo aparece:** la hormiga solo sale en momentos concretos, así que la app sigue sobria en el día a día.
 - **El hormiguero:** se puede alimentar con lo que ya registra `src/js/activity/`, agrupado por semanas.
 - **Pendiente:**
-  - la versión en modo oscuro;
   - textos en inglés: «¿Qué cargamos hoy?», «Todo cargado.», «Ni rastro de…»;
   - decidir si la hormiga se puede desactivar en Ajustes.
