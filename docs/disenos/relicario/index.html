@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>AnTrack · Estilo «Relicario» (maqueta)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Pirata+One&display=swap" rel="stylesheet">
+<style>
+:root {
+  --abismo: #050806;
+  --piedra: #0d130f;
+  --piedra-2: #141c16;
+  --musgo: #2a4130;
+  --musgo-2: #3d5c41;
+  --verdin: #86a77f;
+  --oro: #c9a14a;
+  --oro-claro: #f0d58c;
+  --oro-osc: #7a5e24;
+  --llama: #ffd27a;
+  --hueso: #e4d8b8;
+  --hueso-2: #b8ab8b;
+  --hueso-3: #7f765f;
+  --sangre: #9e2328;
+  --sangre-claro: #df7a70;
+  --amatista: #9a6ad6;
+  --amatista-osc: #4b2a78;
+  --f-gotica: "Pirata One", "UnifrakturCook", serif;
+  --f-capitel: "Cinzel", "Trajan Pro", serif;
+  --f-texto: "EB Garamond", Garamond, Georgia, serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1440px; height: 900px; overflow: hidden; }
+body {
+  font-family: var(--f-texto);
+  color: var(--hueso);
+  background:
+    radial-gradient(ellipse 60% 50% at 52% 112%, rgba(255, 196, 92, .16), transparent 70%),
+    radial-gradient(ellipse 50% 60% at 18% -10%, rgba(61, 92, 65, .55), transparent 70%),
+    radial-gradient(ellipse 40% 50% at 95% 10%, rgba(75, 42, 120, .22), transparent 70%),
+    var(--abismo);
+  position: relative;
+}
+/* grano de piedra */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .55 0 0 0 1.6 -.6'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.09'/></svg>");
+  mix-blend-mode: screen;
+}
+/* viñeta de vela */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 49;
+  background: radial-gradient(ellipse 75% 70% at 55% 55%, transparent 55%, rgba(0, 0, 0, .65) 100%);
+  animation: parpadeo 4.5s ease-in-out infinite;
+}
+@keyframes parpadeo { 0%,100% { opacity: 1 } 40% { opacity: .9 } 55% { opacity: 1 } 70% { opacity: .93 } }
+
+/* ─── estalactitas ─── */
+.estalactitas { position: fixed; top: 0; left: 0; width: 1440px; height: 70px; z-index: 40; pointer-events: none; }
+
+/* ─── brasas ─── */
+.brasa {
+  position: fixed; width: 3px; height: 3px; border-radius: 50%; z-index: 45; pointer-events: none;
+  background: var(--llama); box-shadow: 0 0 6px 2px rgba(255, 190, 90, .55);
+  animation: subir linear infinite;
+}
+@keyframes subir {
+  0% { transform: translate(0, 0); opacity: 0 }
+  10% { opacity: .9 }
+  100% { transform: translate(var(--dx), -260px); opacity: 0 }
+}
+
+/* ─── esqueleto ─── */
+.app { display: grid; grid-template-columns: 252px 1fr 64px; height: 900px; gap: 14px; padding: 14px; position: relative; z-index: 1; }
+
+/* ─── sidebar: columna de piedra ─── */
+.sidebar {
+  position: relative; display: flex; flex-direction: column; padding: 22px 16px 16px;
+  background:
+    linear-gradient(180deg, rgba(42, 65, 48, .28), transparent 40%),
+    linear-gradient(180deg, #0c120e, #070a08);
+  border: 1px solid rgba(201, 161, 74, .22);
+  border-radius: 120px 120px 6px 6px / 70px 70px 6px 6px;
+  box-shadow: inset 0 0 0 4px #070a08, inset 0 0 0 5px rgba(201, 161, 74, .12), 0 30px 60px rgba(0, 0, 0, .6);
+}
+.marca { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 8px 0 22px; }
+.marca svg { width: 64px; height: 64px; filter: drop-shadow(0 0 10px rgba(240, 213, 140, .45)); }
+.marca-nombre { font-family: var(--f-gotica); font-size: 34px; color: var(--oro-claro); letter-spacing: .02em; line-height: 1;
+  text-shadow: 0 0 18px rgba(240, 213, 140, .35), 0 2px 0 #3b2a0c; }
+.marca-lema { font-family: var(--f-capitel); font-size: 8.5px; letter-spacing: .38em; color: var(--hueso-3); }
+
+.buscar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 20px;
+  background: linear-gradient(#0a0f0c, #0d1410); border: 1px solid rgba(201, 161, 74, .25); border-radius: 4px;
+  color: var(--hueso-3); font-style: italic; font-size: 15px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .7);
+}
+.buscar svg { width: 16px; height: 16px; stroke: var(--oro); }
+.tecla { margin-left: auto; font-family: var(--f-capitel); font-style: normal; font-size: 9.5px; letter-spacing: .1em; color: var(--oro);
+  padding: 2px 6px; border: 1px solid rgba(201, 161, 74, .4); border-radius: 2px; background: rgba(201, 161, 74, .06); }
+
+.rotulo { font-family: var(--f-capitel); font-size: 10px; letter-spacing: .32em; color: var(--hueso-3); margin: 6px 6px 8px; display: flex; align-items: center; gap: 8px; }
+.rotulo::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201, 161, 74, .35), transparent); }
+
+.nav { list-style: none; display: flex; flex-direction: column; gap: 2px; margin-bottom: 18px; }
+.nav li {
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 3px;
+  font-size: 17px; color: var(--hueso-2);
+}
+.nav li svg { width: 17px; height: 17px; stroke: var(--oro); opacity: .75; flex-shrink: 0; }
+.nav li .n { margin-left: auto; font-family: var(--f-capitel); font-size: 11px; color: var(--hueso-3); }
+.nav li.activo {
+  color: var(--oro-claro);
+  background:
+    linear-gradient(90deg, rgba(201, 161, 74, .16), rgba(61, 92, 65, .28) 60%, transparent),
+    repeating-linear-gradient(115deg, transparent 0 14px, rgba(0, 0, 0, .18) 14px 15px);
+  box-shadow: inset 0 0 0 1px rgba(201, 161, 74, .3);
+}
+.nav li.activo::before {
+  content: ""; position: absolute; left: -9px; top: 50%; width: 8px; height: 22px; transform: translateY(-50%);
+  background: var(--oro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+  box-shadow: 0 0 12px var(--oro);
+}
+.nav li.activo svg { opacity: 1; filter: drop-shadow(0 0 5px rgba(240, 213, 140, .6)); }
+.medallon-n {
+  margin-left: auto; min-width: 26px; height: 22px; display: grid; place-items: center; padding: 0 6px;
+  font-family: var(--f-capitel); font-size: 11px; font-weight: 700; color: #1a1205;
+  background: radial-gradient(circle at 35% 30%, var(--oro-claro), var(--oro) 60%, var(--oro-osc));
+  border-radius: 11px; box-shadow: 0 0 10px rgba(240, 213, 140, .45);
+}
+.gema { width: 10px; height: 10px; transform: rotate(45deg); flex-shrink: 0; margin: 0 4px 0 3px;
+  box-shadow: 0 0 8px currentColor, inset -2px -2px 0 rgba(0, 0, 0, .35), inset 1px 1px 0 rgba(255, 255, 255, .4); }
+
+.perfil {
+  margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 10px;
+  border-top: 1px solid rgba(201, 161, 74, .2);
+}
+.perfil-av { width: 42px; height: 42px; border-radius: 50%; position: relative;
+  background: radial-gradient(circle at 50% 38%, #3d5c41, #0d130f 70%);
+  box-shadow: 0 0 0 2px var(--oro), 0 0 0 4px #070a08, 0 0 0 5px rgba(201, 161, 74, .4), 0 0 16px rgba(240, 213, 140, .3); }
+.perfil-av svg { position: absolute; inset: 7px; }
+.perfil b { display: block; font-family: var(--f-capitel); font-size: 13px; color: var(--hueso); letter-spacing: .06em; }
+.perfil span { font-size: 13px; font-style: italic; color: var(--hueso-3); }
+
+/* ─── nave central ─── */
+.nave {
+  position: relative; display: flex; flex-direction: column; overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(61, 92, 65, .35), transparent 70%),
+    linear-gradient(180deg, rgba(14, 21, 16, .94), rgba(7, 10, 8, .96));
+  border: 1px solid rgba(201, 161, 74, .3);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 5px #060907, inset 0 0 0 6px rgba(201, 161, 74, .14), 0 30px 80px rgba(0, 0, 0, .7);
+}
+.esquina { position: absolute; width: 54px; height: 54px; z-index: 3; pointer-events: none; }
+.esquina.tl { top: 8px; left: 8px; }
+.esquina.tr { top: 8px; right: 8px; transform: scaleX(-1); }
+.esquina.bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+.esquina.br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+
+/* cabecera: la vidriera */
+.cabecera { position: relative; height: 214px; display: grid; grid-template-columns: 1fr 600px 1fr; align-items: end; padding: 0 34px; }
+.vidriera { position: relative; width: 600px; height: 206px; align-self: end; }
+.vidriera svg { position: absolute; inset: 0; }
+.vidriera-texto { position: absolute; inset: 58px 0 0; display: flex; flex-direction: column; align-items: center; }
+.titulo {
+  font-family: var(--f-gotica); font-size: 92px; line-height: .9; color: var(--oro-claro);
+  text-shadow: 0 0 30px rgba(255, 210, 122, .55), 0 0 2px #fff4cf, 0 4px 0 #3b2a0c, 0 8px 18px rgba(0, 0, 0, .9);
+}
+.fecha { margin-top: 10px; font-family: var(--f-capitel); font-size: 12px; letter-spacing: .34em; color: var(--hueso-2); }
+.fecha em { color: var(--oro); font-style: normal; }
+
+.rosario { align-self: center; justify-self: start; display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 34px; }
+.rosario svg { width: 210px; height: 112px; overflow: visible; }
+.rosario-txt { font-family: var(--f-capitel); font-size: 11px; letter-spacing: .22em; color: var(--hueso-2); }
+.rosario-txt b { color: var(--oro-claro); font-weight: 700; }
+.rosario-txt i { display: block; text-align: center; font-family: var(--f-texto); font-size: 14px; letter-spacing: 0; color: var(--sangre-claro); margin-top: 3px; }
+
+.acciones { align-self: center; justify-self: end; display: flex; gap: 12px; margin-top: 34px; }
+.sello-btn {
+  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: radial-gradient(circle at 40% 30%, #1c271f, #0a0f0c 70%);
+  box-shadow: 0 0 0 1px rgba(201, 161, 74, .55), 0 0 0 4px #070a08, 0 0 0 5px rgba(201, 161, 74, .22), 0 6px 14px rgba(0, 0, 0, .6);
+}
+.sello-btn svg { width: 19px; height: 19px; stroke: var(--oro-claro); }
+
+/* estandartes (filtros) */
+.estandartes { display: flex; justify-content: center; gap: 10px; margin: 14px 0 10px; position: relative; z-index: 2; }
+.estandarte {
+  position: relative; padding: 9px 22px 17px; font-family: var(--f-capitel); font-size: 12px; font-weight: 600; letter-spacing: .2em;
+  color: var(--hueso-2); background: linear-gradient(180deg, #121a14, #0b100d);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(201, 161, 74, .3);
+}
+.estandarte::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--oro-osc), var(--oro), var(--oro-osc)); }
+.estandarte.activo {
+  color: #fff3d0;
+  background: linear-gradient(180deg, #3d5c41, #213426 70%, #1a2a1e);
+  text-shadow: 0 0 10px rgba(240, 213, 140, .6);
+}
+.estandarte.activo::after { content: "✦"; position: absolute; left: 50%; bottom: 7px; transform: translateX(-50%); font-size: 8px; color: var(--oro-claro); }
+
+/* lista */
+.lista { position: relative; z-index: 2; width: 860px; margin: 0 auto; padding: 4px 0 120px; display: flex; flex-direction: column; gap: 16px; }
+.seccion-cab { display: flex; align-items: center; gap: 12px; margin-bottom: 9px; }
+.seccion-ico { width: 18px; height: 18px; }
+.seccion-titulo { font-family: var(--f-capitel); font-size: 13.5px; font-weight: 700; letter-spacing: .28em; }
+.seccion-num { font-family: var(--f-capitel); font-size: 11px; letter-spacing: .1em; padding: 1px 8px; border: 1px solid currentColor; border-radius: 2px; opacity: .85; }
+.seccion-linea { flex: 1; height: 12px; }
+.seccion-accion {
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; font-family: var(--f-capitel); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  border-radius: 2px;
+}
+.seccion-accion .lacre { width: 20px; height: 20px; }
+
+.vencidas { color: var(--sangre-claro); }
+.vencidas .seccion-accion { color: #f3c1b8; background: linear-gradient(180deg, rgba(158, 35, 40, .45), rgba(90, 15, 20, .55)); box-shadow: inset 0 0 0 1px rgba(223, 122, 112, .45); }
+.parahoy { color: var(--oro-claro); }
+.habitos { color: #c4a3ef; }
+.sinfecha { color: var(--verdin); }
+.sinfecha .seccion-accion { color: var(--oro-claro); background: linear-gradient(180deg, rgba(201, 161, 74, .18), rgba(122, 94, 36, .2)); box-shadow: inset 0 0 0 1px rgba(201, 161, 74, .45); }
+
+/* filas: lápidas con esquinas biseladas */
+.filas { display: flex; flex-direction: column; gap: 8px; }
+.fila {
+  --borde: rgba(201, 161, 74, .32);
+  position: relative; display: flex; align-items: center; gap: 16px; height: 54px; padding: 0 18px 0 16px;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  background: var(--borde);
+  color: var(--hueso);
+}
+.fila::before {
+  content: ""; position: absolute; inset: 1px; z-index: -1;
+  clip-path: polygon(11.5px 0, calc(100% - 11.5px) 0, 100% 11.5px, 100% calc(100% - 11.5px), calc(100% - 11.5px) 100%, 11.5px 100%, 0 calc(100% - 11.5px), 0 11.5px);
+  background:
+    radial-gradient(ellipse 40% 140% at 0% 50%, rgba(255, 196, 92, .12), transparent 70%),
+    linear-gradient(90deg, rgba(42, 65, 48, .55), rgba(15, 22, 17, .92) 55%, rgba(12, 17, 13, .95));
+}
+.fila { isolation: isolate; }
+.vencidas .fila { --borde: rgba(223, 122, 112, .4); }
+.vencidas .fila::before { background:
+    radial-gradient(ellipse 40% 140% at 0% 50%, rgba(158, 35, 40, .28), transparent 70%),
+    linear-gradient(90deg, rgba(70, 18, 20, .55), rgba(18, 14, 12, .94) 55%, rgba(12, 12, 10, .96)); }
+.habitos .fila { --borde: rgba(154, 106, 214, .38); }
+.habitos .fila::before { background:
+    radial-gradient(ellipse 40% 140% at 0% 50%, rgba(154, 106, 214, .2), transparent 70%),
+    linear-gradient(90deg, rgba(75, 42, 120, .45), rgba(16, 14, 20, .94) 55%, rgba(12, 12, 14, .96)); }
+
+.vela { width: 24px; height: 40px; flex-shrink: 0; margin-top: -6px; overflow: visible; }
+.vela .llama { transform-box: fill-box; transform-origin: 50% 100%; animation: llama 1.6s ease-in-out infinite; }
+.vela .halo { animation: halo 1.6s ease-in-out infinite; }
+@keyframes llama { 0%,100% { transform: scale(1, 1) } 30% { transform: scale(.88, 1.12) skewX(3deg) } 60% { transform: scale(1.05, .94) skewX(-2deg) } }
+@keyframes halo { 0%,100% { opacity: .55 } 30% { opacity: .8 } 60% { opacity: .45 } }
+.humo { stroke-dasharray: 40; animation: humo 3s ease-out infinite; }
+@keyframes humo { 0% { stroke-dashoffset: 40; opacity: 0 } 30% { opacity: .7 } 100% { stroke-dashoffset: 0; opacity: 0 } }
+
+.texto { font-size: 20px; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.texto::first-letter { font-family: var(--f-gotica); font-size: 26px; color: var(--oro-claro); line-height: 0; }
+.vencidas .texto::first-letter { color: var(--sangre-claro); }
+.habitos .texto::first-letter { color: #c4a3ef; }
+.fila.hecha .texto { color: var(--hueso-3); position: relative; }
+.fila.hecha .texto::first-letter { color: var(--hueso-3); }
+.fila.hecha .texto::after {
+  content: ""; position: absolute; left: -2px; right: -4px; top: 54%; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(158, 35, 40, .95), rgba(190, 50, 50, .85) 70%, rgba(158, 35, 40, .3));
+  transform: rotate(-.6deg); filter: blur(.3px);
+}
+.meta { margin-left: auto; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.m-lista { display: flex; align-items: center; gap: 4px; font-family: var(--f-capitel); font-size: 11px; letter-spacing: .14em; color: var(--hueso-2); }
+.m-lista .gema { width: 8px; height: 8px; }
+.m-dato { display: flex; align-items: center; gap: 5px; font-size: 15px; font-style: italic; color: var(--hueso-2); }
+.m-dato svg { width: 14px; height: 14px; stroke: var(--oro); }
+.cinta {
+  display: flex; align-items: center; gap: 6px; padding: 5px 16px 5px 12px; font-family: var(--f-capitel); font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%, 6px 50%);
+}
+.cinta svg { width: 12px; height: 12px; }
+.cinta.sangre { color: #fbd6cf; background: linear-gradient(180deg, #a3262a, #6d1418); }
+.cinta.sangre svg { stroke: #fbd6cf; }
+.cinta.oro { color: #1c1406; background: linear-gradient(180deg, var(--oro-claro), var(--oro) 60%, #9b7a33); }
+.cinta.oro svg { stroke: #1c1406; }
+.sello-prio { width: 26px; height: 26px; }
+.cuentas { display: flex; gap: 5px; }
+.cuentas i { width: 9px; height: 9px; border-radius: 50%; display: block; border: 1px solid rgba(196, 163, 239, .55); }
+.cuentas i.l { background: radial-gradient(circle at 35% 30%, #e4d1ff, var(--amatista) 55%, var(--amatista-osc)); border-color: transparent; box-shadow: 0 0 6px rgba(154, 106, 214, .7); }
+.racha { display: flex; align-items: center; gap: 4px; font-family: var(--f-capitel); font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #ffcf7a; }
+.racha svg { width: 13px; height: 16px; }
+
+/* altar: velas y flores al pie */
+.altar { position: absolute; bottom: 0; width: 150px; height: 170px; z-index: 1; pointer-events: none; }
+.altar.izq { left: 6px; }
+.altar.der { right: 6px; transform: scaleX(-1); }
+
+/* placa de captura */
+.placa {
+  position: absolute; z-index: 4; left: 50%; bottom: 22px; transform: translateX(-50%); width: 560px; height: 56px;
+  display: flex; align-items: center; gap: 14px; padding: 0 12px 0 10px;
+  background: linear-gradient(180deg, #18221b, #0b100d);
+  border: 1px solid rgba(201, 161, 74, .55);
+  border-radius: 28px 28px 4px 4px / 28px 28px 4px 4px;
+  box-shadow: inset 0 0 0 3px #070a08, inset 0 0 0 4px rgba(201, 161, 74, .2), 0 0 40px rgba(255, 196, 92, .12), 0 14px 30px rgba(0, 0, 0, .8);
+}
+.placa-pluma { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, var(--oro-claro), var(--oro) 55%, var(--oro-osc)); box-shadow: 0 0 14px rgba(240, 213, 140, .5); }
+.placa-pluma svg { width: 20px; height: 20px; }
+.placa-txt { font-size: 18px; font-style: italic; color: var(--hueso-3); }
+.placa .tecla { margin-left: auto; font-size: 10px; padding: 4px 9px; }
+
+/* ─── retablo lateral (rail) ─── */
+.rail { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 0;
+  background: linear-gradient(180deg, #0c120e, #070a08); border: 1px solid rgba(201, 161, 74, .2);
+  border-radius: 32px 32px 4px 4px / 40px 40px 4px 4px; }
+.rail-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 20px 20px 3px 3px;
+  box-shadow: inset 0 0 0 1px rgba(201, 161, 74, .28); background: rgba(201, 161, 74, .04); }
+.rail-btn svg { width: 17px; height: 17px; stroke: var(--oro); opacity: .8; }
+.rail-sep { color: rgba(201, 161, 74, .5); font-size: 9px; }
+
+/* ─── APARIENCIA ─── */
+.velo { display: none; position: fixed; inset: 0; z-index: 60; background: rgba(2, 4, 3, .78); backdrop-filter: blur(3px); }
+body.ver-apariencia .velo { display: grid; place-items: center; }
+.ajustes {
+  width: 960px; height: 740px; display: grid; grid-template-columns: 220px 1fr; overflow: hidden;
+  background: linear-gradient(180deg, #121a14, #090d0a); border: 1px solid rgba(201, 161, 74, .4); border-radius: 6px;
+  box-shadow: inset 0 0 0 5px #070a08, inset 0 0 0 6px rgba(201, 161, 74, .15), 0 40px 100px rgba(0, 0, 0, .9);
+}
+.aj-nav { padding: 28px 14px; border-right: 1px solid rgba(201, 161, 74, .18); background: rgba(0, 0, 0, .25); }
+.aj-nav h3 { font-family: var(--f-gotica); font-weight: 400; font-size: 34px; color: var(--oro-claro); margin: 0 10px 18px; text-shadow: 0 0 16px rgba(240, 213, 140, .3); }
+.aj-cuerpo { padding: 30px 36px; overflow: hidden; }
+.aj-grupo { margin-bottom: 22px; }
+.aj-grupo h4 { font-family: var(--f-capitel); font-size: 13px; letter-spacing: .26em; color: var(--hueso); margin-bottom: 4px; }
+.aj-grupo p { font-size: 15.5px; font-style: italic; color: var(--hueso-3); margin-bottom: 14px; }
+.segm { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid rgba(201, 161, 74, .3); border-radius: 3px; }
+.segm span { padding: 7px 18px; font-family: var(--f-capitel); font-size: 11px; letter-spacing: .16em; color: var(--hueso-2); border-radius: 2px; }
+.segm span.on { background: linear-gradient(180deg, #3d5c41, #213426); color: #fff3d0; box-shadow: inset 0 0 0 1px rgba(201, 161, 74, .45); }
+.estilos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.estilo { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid rgba(201, 161, 74, .22); background: #0b100d; }
+.estilo-prev { height: 150px; position: relative; overflow: hidden; }
+.estilo-pie { padding: 10px 12px 12px; }
+.estilo-pie b { font-family: var(--f-capitel); font-size: 13px; letter-spacing: .16em; color: var(--hueso); display: block; }
+.estilo-pie span { font-size: 14px; font-style: italic; color: var(--hueso-3); }
+.estilo.elegido { border-color: var(--oro); box-shadow: 0 0 0 1px var(--oro), 0 0 30px rgba(240, 213, 140, .25); }
+.estilo.elegido .estilo-pie b { color: var(--oro-claro); }
+.estilo-marca { position: absolute; top: 10px; right: 10px; z-index: 2; width: 26px; height: 26px; }
+.estilo.prox { opacity: .55; }
+.nuevo { position: absolute; top: 10px; left: 10px; z-index: 2; font-family: var(--f-capitel); font-size: 9px; font-weight: 700; letter-spacing: .2em;
+  padding: 3px 8px; color: #fbd6cf; background: linear-gradient(180deg, #a3262a, #6d1418); }
+.aj-nota { margin-top: 6px; display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border: 1px dashed rgba(201, 161, 74, .3); border-radius: 4px; }
+.aj-nota svg { width: 26px; height: 40px; flex-shrink: 0; }
+.aj-nota p { font-size: 15.5px; color: var(--hueso-2); line-height: 1.4; }
+.aj-nota p b { color: var(--oro-claro); font-weight: 500; }
+
+/* ─── DETALLE (#detalle) ─── */
+.detalle { display: none; }
+body.ver-detalle .app { grid-template-columns: 252px 1fr 430px; }
+body.ver-detalle .rail, body.ver-detalle .rosario, body.ver-detalle .acciones, body.ver-detalle .altar.der { display: none; }
+body.ver-detalle .cabecera { padding: 0; }
+body.ver-detalle .lista { width: auto; margin: 0 34px; }
+body.ver-detalle .placa { width: 440px; }
+body.ver-detalle .detalle { display: flex; }
+.fila.elegida { --borde: #f0d58c; }
+.fila.elegida::before { background:
+  radial-gradient(ellipse 50% 160% at 0% 50%, rgba(255, 196, 92, .28), transparent 70%),
+  linear-gradient(90deg, rgba(61, 92, 65, .8), rgba(26, 38, 29, .95) 60%, rgba(18, 26, 20, .96)); }
+.fila.elegida::after { content: ""; position: absolute; right: 0; top: 50%; width: 7px; height: 16px; transform: translateY(-50%);
+  background: var(--oro-claro); clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+
+.detalle {
+  position: relative; flex-direction: column; overflow: hidden; padding: 20px 26px 18px;
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 0%, rgba(158, 35, 40, .16), transparent 70%),
+    linear-gradient(180deg, #121a14, #080c09);
+  border: 1px solid rgba(201, 161, 74, .35); border-radius: 6px;
+  box-shadow: inset 0 0 0 5px #060907, inset 0 0 0 6px rgba(201, 161, 74, .14), 0 30px 80px rgba(0, 0, 0, .7);
+}
+.det-top { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.det-miga { display: flex; align-items: center; gap: 8px; font-family: var(--f-capitel); font-size: 11px; letter-spacing: .22em; color: var(--hueso-2); }
+.det-miga .gema { width: 8px; height: 8px; margin: 0; }
+.det-miga i { font-style: normal; color: var(--hueso-3); }
+.det-top .sello-btn { width: 34px; height: 34px; margin-left: auto; }
+.det-top .sello-btn + .sello-btn { margin-left: 0; }
+.det-top .sello-btn svg { width: 15px; height: 15px; }
+
+.det-titulo { display: grid; grid-template-columns: 82px 1fr; gap: 16px; align-items: start; }
+.capitular { position: relative; width: 82px; height: 82px; display: grid; place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 210, 122, .18), transparent 65%),
+    repeating-linear-gradient(45deg, #5c1418 0 3px, #6d1a1e 3px 6px);
+  box-shadow: 0 0 0 2px var(--oro), 0 0 0 4px #070a08, 0 0 0 5px rgba(201, 161, 74, .45), 0 0 24px rgba(255, 196, 92, .2); }
+.capitular svg { position: absolute; inset: 4px; width: 74px; height: 74px; }
+.capitular span { position: relative; font-family: var(--f-gotica); font-size: 82px; line-height: 1; margin-top: -4px;
+  color: var(--oro-claro); text-shadow: 0 2px 0 #3b2a0c, 0 0 16px rgba(255, 210, 122, .5); }
+.det-titulo h2 { font-weight: 500; font-size: 27px; line-height: 1.12; color: var(--hueso); padding-top: 4px; }
+.det-titulo h2 em { font-style: italic; color: var(--oro-claro); }
+
+.det-estado { display: flex; align-items: center; gap: 10px; margin: 16px 0 4px; }
+.det-estado .vela { width: 22px; height: 36px; margin: 0; }
+.det-estado p { font-size: 16px; font-style: italic; color: var(--hueso-2); }
+.det-estado p b { font-family: var(--f-capitel); font-style: normal; font-size: 10.5px; letter-spacing: .2em; color: var(--oro-claro); font-weight: 700; margin-right: 6px; }
+.btn-cumplir { margin-left: auto; display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 2px;
+  font-family: var(--f-capitel); font-size: 10.5px; font-weight: 700; letter-spacing: .16em; color: #1c1406;
+  background: linear-gradient(180deg, var(--oro-claro), var(--oro) 60%, #9b7a33); box-shadow: 0 0 16px rgba(240, 213, 140, .3); }
+.btn-cumplir svg { width: 13px; height: 13px; }
+
+.det-orla { display: flex; align-items: center; gap: 10px; margin: 12px 0 6px; color: var(--oro); font-size: 10px; }
+.det-orla::before, .det-orla::after { content: ""; flex: 1; height: 1px; }
+.det-orla::before { background: linear-gradient(90deg, transparent, rgba(201, 161, 74, .55)); }
+.det-orla::after { background: linear-gradient(90deg, rgba(201, 161, 74, .55), transparent); }
+
+.rubricas { display: flex; flex-direction: column; }
+.rubrica { display: grid; grid-template-columns: 20px 118px 1fr; align-items: center; gap: 10px; height: 38px; border-bottom: 1px dotted rgba(201, 161, 74, .2); }
+.rubrica > svg { width: 16px; height: 16px; stroke: var(--oro); }
+.rubrica .et { font-family: var(--f-capitel); font-size: 10.5px; font-weight: 700; letter-spacing: .18em; color: #d0645a; }
+.rubrica .val { font-size: 17px; color: var(--hueso); display: flex; align-items: center; gap: 8px; }
+.rubrica .val.vacio { color: var(--hueso-3); font-style: italic; }
+.rubrica .val.oro { color: var(--oro-claro); }
+.rubrica .val .gema { width: 8px; height: 8px; margin: 0 2px; }
+.rubrica .val .lacre-off { width: 22px; height: 22px; }
+
+.det-sub-cab { display: flex; align-items: center; gap: 10px; margin: 16px 0 6px; }
+.det-sub-cab b { font-family: var(--f-capitel); font-size: 11px; letter-spacing: .24em; color: var(--hueso); }
+.det-sub-cab span { font-family: var(--f-capitel); font-size: 10px; color: var(--oro); padding: 0 6px; border: 1px solid rgba(201, 161, 74, .5); border-radius: 2px; }
+.det-sub-cab .cuentas { margin-left: auto; }
+.det-sub-cab .cuentas i { width: 10px; height: 10px; border-color: rgba(201, 161, 74, .55); }
+.det-sub-cab .cuentas i.l { background: radial-gradient(circle at 35% 30%, #fff3cf, var(--oro) 55%, #6b4f1c); box-shadow: 0 0 6px rgba(240, 213, 140, .6); }
+.subtareas { list-style: none; display: flex; flex-direction: column; }
+.subtareas li { display: flex; align-items: center; gap: 12px; height: 33px; font-size: 16.5px; color: var(--hueso); }
+.subtareas li .vela { width: 13px; height: 22px; margin: 0 3px; }
+.subtareas li.hecha span { color: var(--hueso-3); position: relative; }
+.subtareas li.hecha span::after { content: ""; position: absolute; left: -2px; right: -3px; top: 55%; height: 2px; background: rgba(170, 40, 42, .9); transform: rotate(-.7deg); }
+.subtareas li.nueva { color: var(--hueso-3); font-style: italic; }
+.subtareas li.nueva svg { width: 14px; height: 14px; stroke: var(--oro); margin: 0 3px 0 2px; }
+
+.det-nota { position: relative; margin-top: 12px; padding: 12px 14px 10px 16px; border-left: 2px solid rgba(208, 100, 90, .7);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(201, 161, 74, .12) 25px 26px),
+    linear-gradient(90deg, rgba(201, 161, 74, .07), rgba(201, 161, 74, .02));
+  font-size: 16.5px; font-style: italic; line-height: 26px; color: var(--hueso-2); }
+.det-nota .et { font-family: var(--f-capitel); font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .18em; color: #d0645a; display: block; line-height: 18px; margin-bottom: 2px; }
+.det-nota small { position: absolute; right: 12px; top: 12px; font-family: var(--f-capitel); font-style: normal; font-size: 9.5px; letter-spacing: .1em; color: var(--hueso-3); line-height: 18px; }
+.det-enlace { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 15.5px; color: var(--oro-claro); }
+.det-enlace svg { width: 15px; height: 15px; stroke: var(--oro); }
+.det-enlace span { border-bottom: 1px solid rgba(201, 161, 74, .45); }
+
+.det-pie { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(201, 161, 74, .18); }
+.det-pie p { font-size: 14.5px; font-style: italic; color: var(--hueso-3); }
+.btn-eliminar { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 2px; font-family: var(--f-capitel); font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+  color: #e9a49b; box-shadow: inset 0 0 0 1px rgba(208, 100, 90, .45); background: rgba(158, 35, 40, .12); }
+.btn-eliminar svg { width: 14px; height: 14px; stroke: #e9a49b; }
+</style>
+</head>
+<body>
+
+<!-- estalactitas -->
+<svg class="estalactitas" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-roca" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#030504"/><stop offset="1" stop-color="#0d160f"/>
+    </linearGradient>
+  </defs>
+  <path id="roca" fill="url(#g-roca)" d=""/>
+  <path id="roca-brillo" fill="none" stroke="rgba(134,167,127,.22)" stroke-width="1" d=""/>
+</svg>
+
+<div class="app">
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="marca">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <g stroke="#f0d58c" stroke-linecap="round">
+          <g id="rayos"></g>
+        </g>
+        <circle cx="32" cy="32" r="13" fill="#0b100d" stroke="#c9a14a" stroke-width="1.6"/>
+        <circle cx="32" cy="32" r="9.5" fill="none" stroke="#f0d58c" stroke-width=".8" opacity=".6"/>
+        <!-- check como corazón espinado -->
+        <path d="M26 32.5 l4 4 l8-9" fill="none" stroke="#f0d58c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="marca-nombre">AnTrack</div>
+      <div class="marca-lema">ORA · ET · LABORA</div>
+    </div>
+
+    <div class="buscar">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="white-space:nowrap">Buscar…</span>
+      <span class="tecla">CTRL K</span>
+    </div>
+
+    <div class="rotulo">VISTAS</div>
+    <ul class="nav">
+      <li class="activo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Hoy<span class="medallon-n">IV</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21V11M12 11c0-4 3-7 7-7 0 4-3 7-7 7ZM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z"/></svg>Hábitos<span class="n">II</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 13h5l1.5 3h5L16 13h5M5 5h14l2 8v6H3v-6Z"/></svg>Inbox<span class="n">IX</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>Actividad</li>
+    </ul>
+
+    <div class="rotulo">LISTAS</div>
+    <ul class="nav">
+      <li><span class="gema" style="color:#86a77f;background:#86a77f"></span>Buceo<span class="n">V</span></li>
+      <li><span class="gema" style="color:#df7a70;background:#b53a3a"></span>Casa<span class="n">VII</span></li>
+      <li><span class="gema" style="color:#c4a3ef;background:#8a5cc4"></span>Lecturas<span class="n">III</span></li>
+      <li><span class="gema" style="color:#f0d58c;background:#c9a14a"></span>Trabajo<span class="n">XII</span></li>
+    </ul>
+
+    <div class="perfil">
+      <div class="perfil-av">
+        <svg viewBox="0 0 28 28" fill="none" stroke="#f0d58c" stroke-width="1.4" stroke-linecap="round">
+          <!-- capucha -->
+          <path d="M6 27c0-9 3-17 8-21 5 4 8 12 8 21"/><path d="M10 27c0-6 1.8-10 4-12 2.2 2 4 6 4 12" opacity=".6"/>
+        </svg>
+      </div>
+      <div><b>MIGUEL</b><span>Peregrino · local</span></div>
+    </div>
+  </aside>
+
+  <!-- ═══ NAVE CENTRAL ═══ -->
+  <main class="nave">
+    <svg class="esquina tl" viewBox="0 0 54 54" fill="none" stroke="#c9a14a" stroke-width="1.2" aria-hidden="true">
+      <path d="M2 52V14Q2 2 14 2h38" opacity=".7"/><path d="M8 52V18Q8 8 18 8h34" opacity=".35"/>
+      <path d="M14 14c6 0 9 3 9 9-6 0-9-3-9-9Z" fill="rgba(201,161,74,.25)"/><circle cx="14" cy="14" r="2" fill="#f0d58c" stroke="none"/>
+    </svg>
+    <svg class="esquina tr" viewBox="0 0 54 54" fill="none" stroke="#c9a14a" stroke-width="1.2" aria-hidden="true">
+      <path d="M2 52V14Q2 2 14 2h38" opacity=".7"/><path d="M8 52V18Q8 8 18 8h34" opacity=".35"/>
+      <path d="M14 14c6 0 9 3 9 9-6 0-9-3-9-9Z" fill="rgba(201,161,74,.25)"/><circle cx="14" cy="14" r="2" fill="#f0d58c" stroke="none"/>
+    </svg>
+
+    <header class="cabecera">
+      <!-- progreso: rosario -->
+      <div class="rosario">
+        <svg viewBox="0 0 210 112" id="rosario" aria-hidden="true"></svg>
+        <div class="rosario-txt"><b>I</b> DE <b>VI</b> CUMPLIDAS<i>una penitencia pendiente</i></div>
+      </div>
+
+      <!-- vidriera con el título -->
+      <div class="vidriera">
+        <svg viewBox="0 0 600 206" aria-hidden="true">
+          <defs>
+            <clipPath id="arco"><path d="M40 206V112A290 290 0 0 1 300 8A290 290 0 0 1 560 112V206Z"/></clipPath>
+            <radialGradient id="luz-v" cx=".5" cy=".55" r=".6">
+              <stop offset="0" stop-color="rgba(255,214,140,.32)"/><stop offset="1" stop-color="rgba(255,214,140,0)"/>
+            </radialGradient>
+          </defs>
+          <g clip-path="url(#arco)">
+            <rect width="600" height="206" fill="#060907"/>
+            <g id="vitrales"></g>
+            <rect width="600" height="206" fill="url(#luz-v)"/>
+          </g>
+          <path d="M40 206V112A290 290 0 0 1 300 8A290 290 0 0 1 560 112V206" fill="none" stroke="#c9a14a" stroke-width="2.4"/>
+          <path d="M28 206V110A302 302 0 0 1 300 -4A302 302 0 0 1 572 110V206" fill="none" stroke="#c9a14a" stroke-width="1" opacity=".45"/>
+          <!-- rosetón -->
+          <g transform="translate(300 40)">
+            <circle r="17" fill="#0b100d" stroke="#c9a14a" stroke-width="1.6"/>
+            <g id="roseton" fill="none" stroke="#f0d58c" stroke-width="1" opacity=".85"></g>
+            <circle r="4" fill="#f0d58c"/>
+          </g>
+          <!-- capiteles -->
+          <rect x="30" y="106" width="20" height="6" fill="#c9a14a" opacity=".8"/><rect x="550" y="106" width="20" height="6" fill="#c9a14a" opacity=".8"/>
+        </svg>
+        <div class="vidriera-texto">
+          <div class="titulo">Hoy</div>
+          <div class="fecha">JUEVES · <em>XIX</em> DE NOVIEMBRE · <em>MMXXVI</em></div>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <span class="sello-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span>
+        <span class="sello-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+        <span class="sello-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>
+      </div>
+    </header>
+
+    <nav class="estandartes">
+      <span class="estandarte activo">TODAS</span>
+      <span class="estandarte">PENDIENTES</span>
+      <span class="estandarte">HECHAS</span>
+      <span class="estandarte">OTROS ▾</span>
+    </nav>
+
+    <section class="lista">
+      <!-- VENCIDAS -->
+      <div class="vencidas">
+        <div class="seccion-cab">
+          <svg class="seccion-ico" viewBox="0 0 24 24" fill="none" stroke="#df7a70" stroke-width="1.6"><circle cx="12" cy="12" r="6"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2 19 19M5 19l2.8-2.8M16.2 7.8 19 5"/></svg>
+          <span class="seccion-titulo">VENCIDAS</span>
+          <span class="seccion-num">I</span>
+          <svg class="seccion-linea" viewBox="0 0 400 12" preserveAspectRatio="none"><path d="" class="espinas" stroke="#df7a70" stroke-width="1" fill="none" opacity=".6"/></svg>
+          <span class="seccion-accion"><svg class="lacre" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#7a1418"/><circle cx="12" cy="12" r="7" fill="none" stroke="#df7a70" stroke-width=".8"/><path d="M8 12h8m-3-3 3 3-3 3" stroke="#fbd6cf" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>MOVER TODAS A HOY</span>
+        </div>
+        <div class="filas">
+          <div class="fila">
+            <svg class="vela" data-vela="viva"></svg>
+            <span class="texto">Renovar el seguro del coche</span>
+            <div class="meta">
+              <span class="m-lista"><span class="gema" style="color:#df7a70;background:#b53a3a"></span>CASA</span>
+              <span class="cinta sangre">MAR X NOV<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARA HOY -->
+      <div class="parahoy">
+        <div class="seccion-cab">
+          <svg class="seccion-ico" viewBox="0 0 24 24" fill="none" stroke="#f0d58c" stroke-width="1.6"><path d="M12 3c2 3 3 5 3 7a3 3 0 0 1-6 0c0-2 1-4 3-7Z" fill="rgba(240,213,140,.25)"/><path d="M10 14h4v7h-4z"/></svg>
+          <span class="seccion-titulo">PARA HOY</span>
+          <span class="seccion-num">III</span>
+          <svg class="seccion-linea" viewBox="0 0 400 12" preserveAspectRatio="none"><path d="" class="hiedra" stroke="#c9a14a" stroke-width="1" fill="none" opacity=".55"/></svg>
+        </div>
+        <div class="filas">
+          <div class="fila">
+            <svg class="vela" data-vela="viva"></svg>
+            <span class="texto">Revisar el regulador antes de la inmersión</span>
+            <div class="meta">
+              <svg class="sello-prio" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="#8a1a1e"/><circle cx="13" cy="13" r="8" fill="none" stroke="#df7a70" stroke-width=".8"/><path d="M13 7v8M13 18v1" stroke="#fbd6cf" stroke-width="2.2" stroke-linecap="round"/><path d="M4 18c-1 2 0 4 2 4M22 18c1 2 0 4-2 4" stroke="#7a1418" stroke-width="2" fill="none"/></svg>
+              <span class="m-lista"><span class="gema" style="color:#86a77f;background:#86a77f"></span>BUCEO</span>
+            </div>
+          </div>
+          <div class="fila">
+            <svg class="vela" data-vela="viva"></svg>
+            <span class="texto">Leer el capítulo XII de «El nombre de la rosa»</span>
+            <div class="meta">
+              <span class="m-dato"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2"/></svg>2 de 4</span>
+              <span class="m-lista"><span class="gema" style="color:#c4a3ef;background:#8a5cc4"></span>LECTURAS</span>
+            </div>
+          </div>
+          <div class="fila hecha">
+            <svg class="vela" data-vela="apagada"></svg>
+            <span class="texto">Comprar velas para la cena</span>
+            <div class="meta">
+              <span class="m-lista"><span class="gema" style="color:#df7a70;background:#b53a3a;opacity:.5"></span>CASA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HÁBITOS -->
+      <div class="habitos">
+        <div class="seccion-cab">
+          <svg class="seccion-ico" viewBox="0 0 24 24" fill="none" stroke="#c4a3ef" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="rgba(196,163,239,.35)"/><path d="M12 1v3M12 20v3"/></svg>
+          <span class="seccion-titulo">HÁBITOS</span>
+          <span class="seccion-num">0 / I</span>
+          <svg class="seccion-linea" viewBox="0 0 400 12" preserveAspectRatio="none"><path d="" class="cuentas-l" stroke="#9a6ad6" stroke-width="1" fill="none" opacity=".5"/></svg>
+        </div>
+        <div class="filas">
+          <div class="fila">
+            <svg class="vela" data-vela="viva" data-color="amatista"></svg>
+            <span class="texto">Meditar diez minutos al alba</span>
+            <div class="meta">
+              <span class="cuentas"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i></i></span>
+              <span class="racha"><svg viewBox="0 0 13 16"><path d="M6.5 1c2.5 3 4.5 5.5 4.5 8.5a4.5 4.5 0 0 1-9 0C2 7 4 5 6.5 1Z" fill="#ffb347"/><path d="M6.5 7c1.2 1.4 2 2.6 2 3.9a2 2 0 0 1-4 0c0-1.2.8-2.5 2-3.9Z" fill="#fff0c2"/></svg>VII DÍAS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIN FECHA -->
+      <div class="sinfecha">
+        <div class="seccion-cab">
+          <svg class="seccion-ico" viewBox="0 0 24 24" fill="none" stroke="#86a77f" stroke-width="1.6"><path d="M12 21c-5-2-8-6-8-11 4 0 7 2 8 6 1-4 4-6 8-6 0 5-3 9-8 11Z"/><path d="M12 16V4"/></svg>
+          <span class="seccion-titulo">SIN FECHA · SUGERIDAS</span>
+          <span class="seccion-num">II</span>
+          <svg class="seccion-linea" viewBox="0 0 400 12" preserveAspectRatio="none"><path d="" class="hiedra" stroke="#86a77f" stroke-width="1" fill="none" opacity=".5"/></svg>
+          <span class="seccion-accion"><svg class="lacre" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#8a6a28"/><circle cx="12" cy="12" r="7" fill="none" stroke="#f0d58c" stroke-width=".8"/><path d="M8 12h8m-3-3 3 3-3 3" stroke="#fff3d0" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>PROGRAMAR TODAS HOY</span>
+        </div>
+        <div class="filas">
+          <div class="fila">
+            <svg class="vela" data-vela="viva"></svg>
+            <span class="texto">Ordenar el trastero</span>
+            <div class="meta"><span class="cinta oro">MOVER A HOY<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- altares con velas y flores doradas -->
+    <svg class="altar izq" viewBox="0 0 230 260" aria-hidden="true" data-altar></svg>
+    <svg class="altar der" viewBox="0 0 230 260" aria-hidden="true" data-altar></svg>
+
+    <div class="placa">
+      <span class="placa-pluma"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1406" stroke-width="1.8" stroke-linecap="round"><path d="M20 4C12 4 7 9 5 19M20 4c0 7-5 11-11 11M9 15l-2 2"/></svg></span>
+      <span class="placa-txt">Inscribe un nuevo voto…</span>
+      <span class="tecla">CTRL ⇧ ESPACIO</span>
+    </div>
+
+    <svg class="esquina bl" viewBox="0 0 54 54" fill="none" stroke="#c9a14a" stroke-width="1.2" aria-hidden="true"><path d="M2 52V14Q2 2 14 2h38" opacity=".7"/><path d="M8 52V18Q8 8 18 8h34" opacity=".35"/></svg>
+    <svg class="esquina br" viewBox="0 0 54 54" fill="none" stroke="#c9a14a" stroke-width="1.2" aria-hidden="true"><path d="M2 52V14Q2 2 14 2h38" opacity=".7"/><path d="M8 52V18Q8 8 18 8h34" opacity=".35"/></svg>
+  </main>
+
+  <!-- ═══ RAIL ═══ -->
+  <aside class="rail">
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M14 4v16"/></svg></span>
+    <span class="rail-sep">✦</span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 6h16M4 12h10M4 18h13"/></svg></span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 21V4h11l-2 4 2 4H5"/></svg></span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg></span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg></span>
+    <span class="rail-sep">✦</span>
+    <span class="rail-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 13h5l1.5 3h5L16 13h5M5 5h14l2 8v6H3v-6Z"/></svg></span>
+  </aside>
+
+  <!-- ═══ DETALLE (se ve con #detalle) ═══ -->
+  <aside class="detalle">
+    <div class="det-top">
+      <span class="det-miga"><span class="gema" style="color:#c4a3ef;background:#8a5cc4"></span>LECTURAS <i>›</i> PARA HOY</span>
+      <span class="sello-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
+      <span class="sello-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+    </div>
+
+    <div class="det-titulo">
+      <div class="capitular">
+        <svg viewBox="0 0 74 74" fill="none" stroke="#c9a14a" stroke-width="1" opacity=".75">
+          <path d="M4 20c6 0 10-4 10-10M70 54c-6 0-10 4-10 10"/>
+          <path d="M14 10c-3 2-3 6 0 7M60 64c3-2 3-6 0-7"/>
+          <circle cx="10" cy="64" r="2.4" fill="#c9a14a"/><circle cx="64" cy="10" r="2.4" fill="#c9a14a"/>
+          <path d="M4 58c4 0 6 2 6 6M70 16c-4 0-6-2-6-6"/>
+        </svg>
+        <span>L</span>
+      </div>
+      <h2>eer el capítulo XII de <em>«El nombre de la rosa»</em></h2>
+    </div>
+
+    <div class="det-estado">
+      <svg class="vela" data-vela="viva"></svg>
+      <p><b>ENCENDIDA</b>hace VII días</p>
+      <span class="btn-cumplir"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1406" stroke-width="2.4" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>CUMPLIR</span>
+    </div>
+
+    <div class="det-orla">✦ ✦ ✦</div>
+
+    <div class="rubricas">
+      <div class="rubrica"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="et">LISTA</span><span class="val"><span class="gema" style="color:#c4a3ef;background:#8a5cc4"></span>Lecturas</span></div>
+      <div class="rubrica"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="et">FECHA</span><span class="val oro">Hoy · jueves XIX de noviembre</span></div>
+      <div class="rubrica"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg><span class="et">RECORDATORIO</span><span class="val">a las XXI h, antes de dormir</span></div>
+      <div class="rubrica"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg><span class="et">REPETIR</span><span class="val vacio">No se repite</span></div>
+      <div class="rubrica"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 21V4h11l-2 4 2 4H5"/></svg><span class="et">PRIORIDAD</span><span class="val vacio"><svg class="lacre-off" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(208,100,90,.55)" stroke-width="1.2" stroke-dasharray="3 2"/><path d="M12 7v6M12 16v.5" stroke="rgba(208,100,90,.7)" stroke-width="1.8" stroke-linecap="round"/></svg>Sin sello de importante</span></div>
+    </div>
+
+    <div class="det-sub-cab"><b>SUBTAREAS</b><span>II / IV</span>
+      <span class="cuentas"><i class="l"></i><i class="l"></i><i></i><i></i></span></div>
+    <ul class="subtareas">
+      <li class="hecha"><svg class="vela" data-vela="apagada"></svg><span>Releer el final del capítulo XI</span></li>
+      <li class="hecha"><svg class="vela" data-vela="apagada"></svg><span>Anotar los monjes del scriptorium</span></li>
+      <li><svg class="vela" data-vela="viva"></svg><span>Buscar qué significa «Stat rosa pristina»</span></li>
+      <li><svg class="vela" data-vela="viva"></svg><span>Comentarlo en el club de lectura</span></li>
+      <li class="nueva"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Añadir subtarea…</li>
+    </ul>
+
+    <div class="det-nota"><span class="et">NOTA</span><small>XXVI / CC</small>La edición de bolsillo, la del marcapáginas rojo. Dibujar el plano de la biblioteca mientras leo: el laberinto se me escapa.</div>
+
+    <div class="det-enlace"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>es.wikipedia.org/wiki/El_nombre_de_la_rosa</span></div>
+
+    <div class="det-pie">
+      <p>Inscrita el XII de noviembre</p>
+      <span class="btn-eliminar"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>ELIMINAR</span>
+    </div>
+  </aside>
+</div>
+
+<!-- ═══ APARIENCIA (se ve con #apariencia) ═══ -->
+<div class="velo">
+  <div class="ajustes">
+    <div class="aj-nav">
+      <h3>Ajustes</h3>
+      <ul class="nav">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>Cuenta</li>
+        <li class="activo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18Z" fill="rgba(240,213,140,.3)"/></svg>Apariencia</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg>Avisos</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Datos</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.5"/></svg>Acerca de</li>
+      </ul>
+    </div>
+    <div class="aj-cuerpo">
+      <div class="aj-grupo">
+        <h4>ESTILO</h4>
+        <p>El carácter entero de la aplicación: tipografía, ornamentos, luz y sonido.</p>
+        <div class="estilos">
+          <div class="estilo">
+            <div class="estilo-prev" style="background:linear-gradient(180deg,#3a2f27,#2a221c)">
+              <div style="position:absolute;left:14px;top:16px;font:700 20px var(--f-texto);color:#e6d1aa">Hoy</div>
+              <div style="position:absolute;left:14px;right:14px;top:54px;height:20px;border-radius:10px;background:#43372d;border:1px solid rgba(255,226,190,.17)"></div>
+              <div style="position:absolute;left:14px;right:40px;top:82px;height:20px;border-radius:10px;background:#43372d;border:1px solid rgba(255,226,190,.17)"></div>
+              <div style="position:absolute;left:14px;right:24px;top:110px;height:20px;border-radius:10px;background:#43372d;border:1px solid rgba(255,226,190,.17)"></div>
+            </div>
+            <div class="estilo-pie"><b>TIERRA</b><span>Papel cálido y sereno</span></div>
+          </div>
+          <div class="estilo elegido">
+            <span class="nuevo">NUEVO</span>
+            <svg class="estilo-marca" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="#c9a14a"/><circle cx="13" cy="13" r="8" fill="none" stroke="#1c1406" stroke-width=".8"/><path d="M8.5 13.5l3 3 6-7" stroke="#1c1406" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="estilo-prev" id="prev-relicario"></div>
+            <div class="estilo-pie"><b>RELICARIO</b><span>Penumbra, velas y pan de oro</span></div>
+          </div>
+          <div class="estilo prox">
+            <div class="estilo-prev" style="background:repeating-linear-gradient(45deg,#0d130f 0 10px,#101812 10px 20px);display:grid;place-items:center">
+              <span style="font:400 28px var(--f-gotica);color:#7f765f">?</span>
+            </div>
+            <div class="estilo-pie"><b>PRÓXIMAMENTE</b><span>Otro mundo en camino</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="aj-grupo">
+        <h4>TEMA</h4>
+        <p>Relicario solo existe de noche: el modo claro queda en penumbra.</p>
+        <div class="segm"><span>AUTOMÁTICO</span><span>CLARO</span><span class="on">OSCURO</span></div>
+      </div>
+      <div class="aj-grupo">
+        <h4>AMBIENTE</h4>
+        <p>Detalles que dan vida al estilo. Se desactivan solos con «reducir movimiento».</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="segm"><span class="on">VELAS VIVAS</span></div>
+          <div class="segm"><span class="on">BRASAS</span></div>
+          <div class="segm"><span>CAMPANA AL CUMPLIR</span></div>
+          <div class="segm"><span class="on">NÚMEROS ROMANOS</span></div>
+        </div>
+      </div>
+      <div class="aj-nota">
+        <svg viewBox="0 0 26 40" data-vela-suelta></svg>
+        <p>Cada tarea es una <b>vela encendida</b>. Al cumplirla, se apaga con una voluta de humo y su nombre queda <b>tachado en tinta roja</b>. El progreso del día se reza en el <b>rosario</b> de la cabecera.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── utilidades ───
+let semilla = 7;
+const rnd = () => (semilla = (semilla * 9301 + 49297) % 233280) / 233280;
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, padre) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (padre) padre.appendChild(e); return e; };
+
+// ─── estalactitas ───
+(function () {
+  let d = "M0 0H1440V6", brillo = "";
+  let x = 1440;
+  while (x > 0) {
+    const w = 18 + rnd() * 50, h = 8 + rnd() * (rnd() < .2 ? 58 : 26);
+    const x1 = x - w, xm = x - w / 2 + (rnd() - .5) * 8;
+    d += ` L${x.toFixed(1)} ${(4 + rnd() * 5).toFixed(1)} Q${(xm + w * .2).toFixed(1)} ${(h * .5).toFixed(1)} ${xm.toFixed(1)} ${h.toFixed(1)} Q${(xm - w * .2).toFixed(1)} ${(h * .5).toFixed(1)} ${x1.toFixed(1)} ${(4 + rnd() * 5).toFixed(1)}`;
+    if (h > 30) brillo += ` M${(xm + 3).toFixed(1)} ${(h * .35).toFixed(1)} Q${(xm + 2).toFixed(1)} ${(h * .7).toFixed(1)} ${xm.toFixed(1)} ${(h - 2).toFixed(1)}`;
+    x = x1;
+  }
+  document.getElementById("roca").setAttribute("d", d + " L0 6Z");
+  document.getElementById("roca-brillo").setAttribute("d", brillo);
+})();
+
+// ─── brasas ───
+for (let i = 0; i < 34; i++) {
+  const b = document.createElement("span");
+  b.className = "brasa";
+  const s = 1.5 + rnd() * 2.5;
+  b.style.cssText = `left:${(rnd() * 1440).toFixed(0)}px;top:${(330 + rnd() * 560).toFixed(0)}px;width:${s}px;height:${s}px;--dx:${((rnd() - .5) * 80).toFixed(0)}px;animation-duration:${(6 + rnd() * 8).toFixed(1)}s;animation-delay:-${(rnd() * 12).toFixed(1)}s`;
+  document.body.appendChild(b);
+}
+
+// ─── rayos del sello ───
+(function () {
+  const g = document.getElementById("rayos");
+  for (let i = 0; i < 24; i++) {
+    const a = i / 24 * Math.PI * 2, largo = i % 2 ? 24 : 30;
+    const ondula = i % 2 ? 0 : 1;
+    el("path", { d: `M${32 + Math.cos(a) * 16} ${32 + Math.sin(a) * 16} L${32 + Math.cos(a) * largo} ${32 + Math.sin(a) * largo}`, "stroke-width": ondula ? 1.6 : .9, opacity: ondula ? .9 : .55 }, g);
+  }
+})();
+
+// ─── rosetón ───
+(function () {
+  const g = document.getElementById("roseton");
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2;
+    el("circle", { cx: (Math.cos(a) * 9).toFixed(2), cy: (Math.sin(a) * 9).toFixed(2), r: 5 }, g);
+  }
+})();
+
+// ─── vitrales (triangulación con plomo) ───
+(function () {
+  const g = document.getElementById("vitrales");
+  const cols = ["rgba(61,92,65,.55)", "rgba(42,65,48,.6)", "rgba(201,161,74,.35)", "rgba(158,35,40,.32)", "rgba(75,42,120,.35)", "rgba(20,32,24,.7)", "rgba(61,92,65,.4)"];
+  const pts = [];
+  const C = 11, F = 6;
+  for (let j = 0; j <= F; j++) { pts.push([]); for (let i = 0; i <= C; i++) {
+    const borde = i === 0 || i === C || j === 0 || j === F;
+    pts[j].push([i * 600 / C + (borde ? 0 : (rnd() - .5) * 34), j * 206 / F + (borde ? 0 : (rnd() - .5) * 24)]);
+  } }
+  for (let j = 0; j < F; j++) for (let i = 0; i < C; i++) {
+    const a = pts[j][i], b = pts[j][i + 1], c = pts[j + 1][i + 1], d = pts[j + 1][i];
+    const tri = rnd() < .5 ? [[a, b, c], [a, c, d]] : [[a, b, d], [b, c, d]];
+    for (const t of tri) {
+      // más luz en el centro (donde va el título): cristal más claro
+      const cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
+      const centro = Math.hypot((cx - 300) / 300, (cy - 120) / 110) < .55;
+      el("polygon", { points: t.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" "),
+        fill: centro ? "rgba(20,30,22,.75)" : cols[Math.floor(rnd() * cols.length)],
+        stroke: "#030504", "stroke-width": 2.2, "stroke-linejoin": "round" }, g);
+    }
+  }
+  // parteluces
+  [150, 300, 450].forEach((x) => el("line", { x1: x, y1: 60, x2: x, y2: 206, stroke: "#030504", "stroke-width": 5 }, g));
+})();
+
+// ─── rosario de progreso ───
+(function () {
+  const s = document.getElementById("rosario");
+  const N = 6, hechas = 1;
+  const p = (t) => [14 + t * 182, 10 + 52 * Math.sin(Math.PI * t)];
+  let d = ""; for (let t = 0; t <= 1.001; t += .02) { const [x, y] = p(t); d += (d ? " L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }
+  el("path", { d, fill: "none", stroke: "rgba(201,161,74,.45)", "stroke-width": 1 }, s);
+  const defs = el("defs", {}, s);
+  const rg = el("radialGradient", { id: "cuenta-oro", cx: ".35", cy: ".3" }, defs);
+  el("stop", { offset: "0", "stop-color": "#fff3cf" }, rg); el("stop", { offset: ".5", "stop-color": "#c9a14a" }, rg); el("stop", { offset: "1", "stop-color": "#6b4f1c" }, rg);
+  for (let i = 0; i < N; i++) {
+    const [x, y] = p((i + .5) / N);
+    if (i < hechas) {
+      el("circle", { cx: x, cy: y, r: 13, fill: "rgba(255,210,122,.18)" }, s);
+      el("circle", { cx: x, cy: y, r: 7.5, fill: "url(#cuenta-oro)" }, s);
+    } else if (i === N - 1) {
+      el("circle", { cx: x, cy: y, r: 7, fill: "#2a0b0d", stroke: "#df7a70", "stroke-width": 1.4 }, s);
+    } else {
+      el("circle", { cx: x, cy: y, r: 7, fill: "#0b100d", stroke: "rgba(201,161,74,.6)", "stroke-width": 1.2 }, s);
+    }
+  }
+  // colgante: medallón solar
+  const [cx, cy] = p(.5);
+  el("line", { x1: cx, y1: cy + 8, x2: cx, y2: cy + 20, stroke: "rgba(201,161,74,.6)" }, s);
+  const g = el("g", { transform: `translate(${cx} ${cy + 32})` }, s);
+  for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; el("line", { x1: Math.cos(a) * 10, y1: Math.sin(a) * 10, x2: Math.cos(a) * (i % 2 ? 14 : 17), y2: Math.sin(a) * (i % 2 ? 14 : 17), stroke: "#f0d58c", "stroke-width": i % 2 ? .8 : 1.4 }, g); }
+  el("circle", { r: 9, fill: "url(#cuenta-oro)" }, g);
+  const t = el("text", { y: 3.5, "text-anchor": "middle", "font-family": "Cinzel", "font-size": 9, "font-weight": 700, fill: "#2a1d07" }, g); t.textContent = "17%";
+})();
+
+// ─── líneas de sección ───
+document.querySelectorAll(".espinas").forEach((p) => {
+  let d = "M0 6H400"; for (let x = 6; x < 400; x += 14) d += ` M${x} 6 L${x + 4} ${x % 28 ? 1 : 11} L${x + 7} 6`;
+  p.setAttribute("d", d);
+});
+document.querySelectorAll(".hiedra").forEach((p) => {
+  let d = "M0 6"; for (let x = 0; x < 400; x += 20) d += ` Q${x + 5} 1 ${x + 10} 6 T${x + 20} 6`;
+  for (let x = 12; x < 400; x += 40) d += ` M${x} 6 q3 -6 8 -5 q-2 5 -8 5`;
+  p.setAttribute("d", d);
+});
+document.querySelectorAll(".cuentas-l").forEach((p) => {
+  let d = "M0 6H400"; for (let x = 10; x < 400; x += 22) d += ` M${x + 3} 6 a3 3 0 1 0 -6 0 a3 3 0 1 0 6 0`;
+  p.setAttribute("d", d);
+});
+
+// ─── velas ───
+function vela(svg, viva, color) {
+  svg.setAttribute("viewBox", "0 0 24 40");
+  const cera = color === "amatista" ? ["#d9c8f2", "#9b84c4"] : ["#efe3c4", "#b8a67d"];
+  const id = "c" + Math.floor(rnd() * 1e9);
+  const defs = el("defs", {}, svg);
+  const lg = el("linearGradient", { id, x1: "0", x2: "1" }, defs);
+  el("stop", { offset: "0", "stop-color": cera[1] }, lg); el("stop", { offset: ".45", "stop-color": cera[0] }, lg); el("stop", { offset: "1", "stop-color": cera[1] }, lg);
+  if (viva) {
+    el("circle", { class: "halo", cx: 12, cy: 9, r: 11, fill: "rgba(255,200,100,.35)", filter: "" }, svg);
+  }
+  el("path", { d: "M7 17h10v21H7z", fill: `url(#${id})` }, svg);
+  el("path", { d: "M7 17h10v3c-1 0-1 4-2 4s-1-3-2-3-1 6-2 6-1-5-2-5-1 2-2 2Z", fill: cera[0] }, svg);
+  el("ellipse", { cx: 12, cy: 17, rx: 5, ry: 1.4, fill: viva ? "#fff5dc" : cera[1] }, svg);
+  el("path", { d: "M12 17v-3", stroke: viva ? "#2a1d07" : "#3a3328", "stroke-width": 1.2, "stroke-linecap": "round" }, svg);
+  if (viva) {
+    const g = el("g", { class: "llama" }, svg);
+    el("path", { d: "M12 1.5c2.6 3.6 4 6 4 8.3a4 4 0 0 1-8 0c0-2.3 1.4-4.7 4-8.3Z", fill: "#ffb347" }, g);
+    el("path", { d: "M12 6c1.3 1.9 2 3.1 2 4.3a2 2 0 0 1-4 0c0-1.2.7-2.4 2-4.3Z", fill: "#fff3c4" }, g);
+  } else {
+    el("path", { class: "humo", d: "M12 14c-2-2 2-3 0-5s2-3 0-6", stroke: "rgba(200,190,170,.55)", "stroke-width": 1.2, fill: "none", "stroke-linecap": "round" }, svg);
+  }
+}
+document.querySelectorAll("[data-vela]").forEach((s) => vela(s, s.dataset.vela === "viva", s.dataset.color));
+document.querySelectorAll("[data-vela-suelta]").forEach((s) => { vela(s, true); s.setAttribute("viewBox", "0 0 24 40"); });
+
+// ─── altar: velas altas y flores doradas ───
+document.querySelectorAll("[data-altar]").forEach((s) => {
+  const defs = el("defs", {}, s);
+  const rg = el("radialGradient", { id: "aura" + Math.floor(rnd() * 1e6), cx: ".5", cy: ".5", r: ".5" }, defs);
+  el("stop", { offset: "0", "stop-color": "rgba(255,200,100,.45)" }, rg); el("stop", { offset: "1", "stop-color": "rgba(255,200,100,0)" }, rg);
+  const velas = [[40, 80, 7], [78, 130, 5.5], [20, 150, 4.5]];
+  // musgo y roca
+  let m = "M0 260 L0 222";
+  for (let x = 0; x <= 230; x += 10) m += ` Q${x + 5} ${200 + rnd() * 26} ${x + 10} ${214 + rnd() * 20}`;
+  el("path", { d: m + " L230 260Z", fill: "#0a120c" }, s);
+  el("path", { d: m.replace("M0 260 L0 222", "M0 222"), fill: "none", stroke: "rgba(134,167,127,.25)", "stroke-width": 1 }, s);
+  velas.forEach(([x, y, w]) => {
+    el("circle", { class: "halo", cx: x, cy: y - 8, r: w * 6, fill: `url(#${rg.id})` }, s);
+    el("rect", { x: x - w / 2, y, width: w, height: 225 - y, fill: "#d8cba6", opacity: .85 }, s);
+    el("rect", { x: x - w / 2, y, width: w * .35, height: 225 - y, fill: "#fff3d6", opacity: .35 }, s);
+    const g = el("g", { class: "llama", style: "transform-box:fill-box;transform-origin:50% 100%;animation:llama 1.8s ease-in-out infinite" }, s);
+    el("path", { d: `M${x} ${y - 16}c${w * .5} 5 ${w * .65} 8 ${w * .65} 10.5a${w * .65} ${w * .65} 0 0 1 -${w * 1.3} 0c0-2.5 ${w * .15}-5.5 ${w * .65}-10.5Z`, fill: "#ffc35c" }, g);
+    el("path", { d: `M${x} ${y - 9}c${w * .3} 2 ${w * .35} 3.4 ${w * .35} 4.4a${w * .35} ${w * .35} 0 0 1 -${w * .7} 0c0-1 ${w * .05}-2.4 ${w * .35}-4.4Z`, fill: "#fff6d0" }, g);
+  });
+  // flores doradas
+  for (let i = 0; i < 26; i++) {
+    const fx = 6 + rnd() * 200, fy = 196 + rnd() * 52, r = 2 + rnd() * 3.2;
+    const g = el("g", { transform: `translate(${fx.toFixed(1)} ${fy.toFixed(1)})`, opacity: (.55 + rnd() * .45).toFixed(2) }, s);
+    for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + rnd(); el("circle", { cx: (Math.cos(a) * r).toFixed(2), cy: (Math.sin(a) * r).toFixed(2), r: (r * .62).toFixed(2), fill: "#e7c46a" }, g); }
+    el("circle", { r: (r * .45).toFixed(2), fill: "#7a4e10" }, g);
+  }
+  // hierbas
+  for (let i = 0; i < 18; i++) {
+    const hx = rnd() * 220, hh = 14 + rnd() * 30;
+    el("path", { d: `M${hx.toFixed(1)} 240 q${(rnd() * 8 - 4).toFixed(1)} -${(hh / 2).toFixed(1)} ${(rnd() * 10 - 5).toFixed(1)} -${hh.toFixed(1)}`, stroke: "#2f4a33", "stroke-width": 1.4, fill: "none" }, s);
+  }
+});
+
+// ─── miniatura de Relicario en Apariencia ───
+(function () {
+  const p = document.getElementById("prev-relicario");
+  p.innerHTML = `
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(61,92,65,.6),transparent 70%),#070a08"></div>
+  <svg viewBox="0 0 260 150" style="position:absolute;inset:0;width:100%;height:100%">
+    <path d="M70 70V44A60 60 0 0 1 130 8A60 60 0 0 1 190 44V70" fill="rgba(42,65,48,.6)" stroke="#c9a14a" stroke-width="1.4"/>
+    <text x="130" y="58" text-anchor="middle" font-family="Pirata One" font-size="28" fill="#f0d58c" style="filter:drop-shadow(0 0 6px rgba(255,210,122,.6))">Hoy</text>
+    <g fill="none" stroke="rgba(201,161,74,.45)">
+      <path d="M30 84h200l6 6v8l-6 6H30l-6-6v-8z"/><path d="M30 112h200l6 6v8l-6 6H30l-6-6v-8z" stroke="rgba(223,122,112,.5)"/>
+    </g>
+    <g><rect x="34" y="91" width="4" height="9" fill="#efe3c4"/><path d="M36 84c2 2 2.5 3.5 2.5 4.5a2.5 2.5 0 0 1-5 0c0-1 .5-2.5 2.5-4.5Z" fill="#ffb347"/></g>
+    <g><rect x="34" y="119" width="4" height="9" fill="#efe3c4"/><path d="M36 112c2 2 2.5 3.5 2.5 4.5a2.5 2.5 0 0 1-5 0c0-1 .5-2.5 2.5-4.5Z" fill="#ffb347"/></g>
+    <rect x="48" y="92" width="100" height="5" rx="2" fill="#b8ab8b" opacity=".7"/>
+    <rect x="48" y="120" width="80" height="5" rx="2" fill="#b8ab8b" opacity=".7"/>
+    <path d="M196 117h26l-4 4 4 4h-26z" fill="#a3262a"/>
+    <circle cx="20" cy="30" r="1.5" fill="#ffd27a"/><circle cx="236" cy="50" r="1.2" fill="#ffd27a"/><circle cx="210" cy="20" r="1" fill="#ffd27a"/>
+  </svg>`;
+})();
+
+
+if (location.hash === "#detalle") {
+  document.body.classList.add("ver-detalle");
+  const fila = [...document.querySelectorAll(".fila")].find((f) => f.textContent.includes("capítulo XII"));
+  if (fila) fila.classList.add("elegida");
+}
+if (location.hash === "#apariencia") document.body.classList.add("ver-apariencia");
+window.addEventListener("hashchange", () => document.body.classList.toggle("ver-apariencia", location.hash === "#apariencia"));
+</script>
+</body>
+</html>
