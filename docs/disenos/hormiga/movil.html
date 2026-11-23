@@ -259,6 +259,138 @@ a{color:inherit;text-decoration:none}
 .luciernaga{fill:#f5d77a;filter:drop-shadow(0 0 4px #f5d77a);animation:luci 3.6s ease-in-out infinite alternate}
 @keyframes luci{0%{opacity:.15;transform:translate(0,0)}100%{opacity:1;transform:translate(7px,-9px)}}
 
+/* ═══ Añadido el 23-nov-2026: Notas y Agenda ═══
+   Solo clases nuevas (y alguna existente reutilizada tal cual, como
+   .sec-cab o .lista), así que las pantallas de antes se pintan igual. */
+:root{--cinta:rgba(165,177,125,.55);--cinta-raya:rgba(255,252,241,.4);--cal-google:#3d6e85;--cal-icloud:#b58236}
+:root[data-theme="dark"]{--cinta:rgba(164,178,114,.3);--cinta-raya:rgba(255,238,214,.07);--cal-google:#7fb0c7;--cal-icloud:#d9a85e}
+.m-nav.con-notas button{min-width:0;padding:6px 8px}
+
+/* Notas */
+.n-sub{font-size:13px;color:var(--kraft-tinta);margin-top:6px}
+/* Dos columnas de verdad y no `columns`: al repartir, Chrome partía una
+   tarjeta y pintaba su cinta dos veces. */
+.notas{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;padding:2px 2px 4px}
+.notas>div{display:flex;flex-direction:column;gap:10px;min-width:0}
+.nota{position:relative;padding:13px 13px 11px;border-radius:16px;background:var(--card);border:1px solid var(--borde-s);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.07),0 8px 16px -12px rgba(var(--sombra-rgb),.35)}
+.nota.fijada{margin-top:9px}
+.nota h3{font:650 15px/1.2 var(--f-disp);letter-spacing:-.01em;color:var(--t1)}
+.nota p{font-size:13px;line-height:1.42;color:var(--t2);margin-top:5px}
+.nota-pie{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px;font-size:11.5px;color:var(--t3)}
+.nota-pie .lista{display:inline-flex;align-items:center;gap:4px}
+.cinta{position:absolute;left:50%;top:-9px;width:58px;height:17px;margin-left:-29px;transform:rotate(-4deg);border-radius:2px;background:repeating-linear-gradient(90deg,var(--cinta) 0 6px,var(--cinta-raya) 6px 8px)}
+.nota-lista{list-style:none;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.nota-lista li{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.3;color:var(--t1);cursor:pointer}
+.nl-c{flex:none;width:15px;height:15px;margin-top:1px;border-radius:50%;border:1.6px solid var(--check-borde);display:grid;place-items:center}
+.nl-c svg{width:9px;height:9px;fill:none;stroke:var(--sobre-acento);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.nota-lista li.ok .nl-c{background:var(--o500);border-color:transparent}
+.nota-lista li.ok .nl-c svg{opacity:1}
+.nota-lista li.ok span{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.nota-acc{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-weight:600;font-size:12px;color:var(--o600);padding:4px 10px;border-radius:999px;background:rgba(107,115,76,.12)}
+
+/* Agenda: el día por horas */
+.sh-pista{font-size:11.5px;color:var(--t3);white-space:nowrap}
+.sin-hora{display:flex;gap:6px;overflow:hidden;padding:0 4px 2px 8px;-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent)}
+.sh-chip{flex:none;display:inline-flex;align-items:center;gap:6px;max-width:200px;padding:6px 12px 6px 10px;border-radius:999px;background:var(--card);border:1px dashed var(--check-borde);font-size:12.5px;color:var(--t1);white-space:nowrap}
+.sh-chip i{width:7px;height:7px;border-radius:50%;flex:none;background:var(--c)}
+.sh-chip span{overflow:hidden;text-overflow:ellipsis}
+.ag{position:relative;margin-top:10px}
+.ag-h{position:absolute;left:0;right:0;height:0}
+.ag-h b{position:absolute;left:0;width:36px;top:-8px;text-align:right;font:600 11px var(--f-sans);color:var(--t3);font-variant-numeric:tabular-nums}
+.ag-h::after{content:"";position:absolute;left:46px;right:4px;top:-3px;height:6px;background:radial-gradient(circle,var(--punto) 1.1px,transparent 1.6px) 0 50%/9px 6px repeat-x}
+.ag-b{position:absolute;display:flex;gap:7px;padding:6px 8px 0 11px;border-radius:12px;overflow:hidden}
+.ag-b::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3.5px;background:var(--c)}
+.ag-tarea{background:var(--card);border:1px solid var(--borde);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.08),0 6px 12px -10px rgba(var(--sombra-rgb),.35)}
+.ag-ev{background:color-mix(in srgb,var(--c) 14%,var(--hoja));border:1px solid color-mix(in srgb,var(--c) 28%,transparent)}
+.ag-ev .ag-tit{color:color-mix(in srgb,var(--c) 55%,var(--t1))}
+.ag-tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.ag-tit{font-size:14px;font-weight:600;line-height:1.22;color:var(--t1);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ag-meta{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ag-meta .bandera{display:inline-flex}
+.ag-check{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;border:1.6px solid var(--check-borde);display:grid;place-items:center;cursor:pointer}
+.ag-check svg{width:11px;height:11px;fill:none;stroke:var(--sobre-acento);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.ag-b.hecha .ag-check{background:var(--o500);border-color:transparent}
+.ag-b.hecha .ag-check svg{opacity:1}
+.ag-b.hecha .ag-tit{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.ag-b.estrecho .ag-tit{-webkit-line-clamp:3}
+.ag-b.estrecho .ag-meta{flex-wrap:wrap;row-gap:1px}
+.ag-b.corto{align-items:center;padding-top:0}
+.ag-b.corto .ag-tx{flex-direction:row;align-items:baseline;gap:8px}
+.ag-b.corto .ag-tit{-webkit-line-clamp:1}
+.ag-hab{border-radius:999px;background:rgba(107,115,76,.13);border:1px solid rgba(107,115,76,.24);padding:0 10px 0 6px}
+.ag-hab::before{display:none}
+.ag-hab .r-hor{width:17px;height:17px;flex:none}
+.ag-ahora{position:absolute;left:44px;right:2px;height:2px;margin-top:-1px;border-radius:2px;background:var(--o500);z-index:3}
+.ag-ahora::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--o500);box-shadow:0 0 0 3px var(--hoja)}
+.ag-ahora-t{position:absolute;left:0;width:36px;margin-top:-8px;text-align:right;font:700 11px var(--f-sans);color:var(--o600);z-index:3;font-variant-numeric:tabular-nums}
+
+/* ═══ Añadido el 23-nov-2026: Inbox con listas y detalle de tarea ═══ */
+.inb-sub{font-size:13px;color:var(--kraft-tinta);margin-top:6px}
+.lch-fila{display:flex;gap:6px;margin:14px -18px 0 -20px;padding:2px 18px 6px 20px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
+.lch{flex:none;display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 12px 0 9px;border-radius:14px;background:var(--kraft-hover);font-weight:600;font-size:13.5px;color:var(--t1);white-space:nowrap}
+.lch small{font-size:11.5px;font-weight:600;color:var(--kraft-tinta);font-variant-numeric:tabular-nums}
+.lch.on{background-color:var(--hoja);background-image:var(--tex-hoja);color:var(--o800);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.16),0 8px 14px -10px rgba(var(--sombra-rgb),.45)}
+.lch.on small{color:var(--o600)}
+.lch svg{display:block;flex:none}
+.sec-punto{width:8px;height:8px;border-radius:50%;flex:none;margin-right:-2px}
+.sec-punto.sin{background:none;box-shadow:inset 0 0 0 1.6px var(--t3)}
+.pastilla-n{padding:2px 9px;border-radius:999px;border:1px solid var(--borde);color:var(--t2);font-weight:600;font-size:12px}
+.pastilla-n.hoy{border-color:rgba(107,115,76,.32);background:rgba(107,115,76,.09);color:var(--o600)}
+.inb-fila{cursor:pointer}
+
+/* Detalle: una hoja que sube sobre el Inbox, que se queda detrás, encogido */
+.e-detalle .movil,.e-detalle-abajo .movil{background-color:#1a140e;background-image:none}
+.det-fondo{position:absolute;inset:0;transform:translateY(16px) scale(.92);transform-origin:50% 0;border-radius:26px;overflow:hidden;background-color:var(--kraft);background-image:var(--tex-kraft)}
+.det-velo{position:absolute;inset:0;background:rgba(43,34,19,.34);z-index:6}
+[data-theme="dark"] .det-velo{background:rgba(0,0,0,.5)}
+.det-estado{position:absolute;left:0;right:0;top:0;z-index:8;color:#fbf4df}
+.det-estado .estado{color:inherit}
+.det-hoja{position:absolute;left:0;right:0;top:62px;bottom:0;z-index:7;overflow-y:auto;scrollbar-width:none;padding:0 16px;border-radius:26px 26px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);box-shadow:0 -14px 34px -16px rgba(0,0,0,.5)}
+.det-asa{width:40px;height:5px;border-radius:3px;margin:9px auto 4px;background:var(--punto)}
+.det-cab{display:flex;align-items:center;justify-content:space-between;height:44px}
+.det-lista{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px 0 11px;border-radius:999px;border:1px solid var(--borde);font-weight:600;font-size:13.5px;color:var(--t1)}
+.det-lista i{width:8px;height:8px;border-radius:50%}
+.det-lista .ico{color:var(--t3)}
+.det-btns{display:flex;gap:6px}
+.det-btns>*{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--t2);background:var(--hab-bg);border:1px solid var(--borde-s)}
+.det-tit{display:flex;align-items:flex-start;gap:12px;padding:12px 4px 4px}
+.det-tit .check-wrap{margin-top:3px;flex:none}
+.det-tit h2{font:650 24px/1.12 var(--f-disp);letter-spacing:-.025em;color:var(--t1)}
+.det-tit.hecha h2{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2);text-decoration-thickness:2px}
+.det-sec{margin-top:12px}
+.det-sec .sec-cab{padding-left:4px}
+.det-sec .sec-tit{font-size:14.5px;color:var(--t2)}
+.det-chips{display:flex;gap:6px;padding:2px 0 10px}
+.det-chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--borde);background:var(--card);font-weight:600;font-size:13.5px;color:var(--t2);white-space:nowrap}
+.det-chip.on{background:var(--o500);border-color:transparent;color:var(--sobre-acento)}
+.det-filas{border-radius:18px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:0 12px}
+.det-fila{display:flex;align-items:center;gap:12px;height:46px;font-size:15px;color:var(--t1)}
+.det-fila+.det-fila{border-top:1.6px dotted var(--punto)}
+.det-fila>.ico{color:var(--t2)}
+.det-fila .bandera{color:var(--l-trabajo)}
+.det-valor{margin-left:auto;color:var(--t2);font-size:14px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:4px}
+.det-valor .ico{color:var(--t3)}
+.det-sw{position:relative;width:40px;height:24px;border-radius:999px;background:var(--o500);margin-left:auto}
+.det-sw::after{content:"";position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--sobre-acento);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.det-subs{list-style:none;padding:0 4px}
+.det-subs li{display:flex;align-items:center;gap:11px;height:36px;font-size:15px;color:var(--t1);cursor:pointer}
+.det-subs .nl-c{width:19px;height:19px;margin:0}
+.det-subs .nl-c svg{width:11px;height:11px}
+.det-subs li.ok .nl-c{background:var(--o500);border-color:transparent}
+.det-subs li.ok .nl-c svg{opacity:1}
+.det-subs li.ok span{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.det-subs li.anadir{color:var(--t3)}
+.det-subs li.anadir .ico{width:19px;height:19px}
+.det-enlace{display:flex;align-items:center;gap:9px;height:44px;padding:0 12px;border-radius:14px;background:var(--card);border:1px solid var(--borde-s);font-size:14px;color:var(--t1);white-space:nowrap}
+.det-enlace .ico{color:var(--t2)}
+.det-enlace span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.det-enlace span em{font-style:normal;color:var(--t3)}
+.det-enlace .ico:last-child{margin-left:auto;color:var(--t3)}
+.det-nota{border-radius:16px;border:1px solid var(--borde-s);padding:8px 14px 12px;min-height:110px;font-size:14.5px;line-height:26px;color:var(--t1);background-color:var(--card);background-image:repeating-linear-gradient(transparent 0 25px,var(--borde) 25px 26px);background-position:0 8px}
+.det-acc{display:flex;gap:8px;margin:18px 0 30px}
+.det-acc button{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:7px;height:44px;border-radius:999px;border:1px solid var(--borde);font-weight:600;font-size:14px;color:var(--t2)}
+.det-acc .det-borrar{border-color:rgba(var(--venc-rgb),.32);background:rgba(var(--venc-rgb),.07);color:var(--venc)}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -618,6 +750,222 @@ function pantallaInbox(){
   </div>`+nav('inbox');
 }
 
+/* ═══ Añadido el 23-nov-2026: Notas y Agenda ═══
+   Pantallas nuevas (#notas y #agenda) con su propia barra inferior, que
+   añade «Notas». Las de antes siguen usando nav() sin tocar. */
+ICOS.nota='<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><path d="M15 3v4a2 2 0 0 0 2 2h4"/>';
+ICOS.reloj='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+ICOS.cal='<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>';
+function navN(on){
+  const b=(id,html,lbl)=>`<button class="${id===on?'on':''}">${html}<span>${lbl}</span></button>`;
+  return `<nav class="m-nav con-notas">${b('hoy',ico('calcheck',22),'Hoy')}${b('inbox',ico('inbox',22),'Inbox')}${b('notas',ico('nota',22),'Notas')}${b('buscar',ico('search',22),'Buscar')}<button class="${on==='perfil'?'on':''}"><span class="m-av">A</span></button></nav>
+  <button class="m-fab" aria-label="${on==='notas'?'Nueva nota':'Nueva tarea'}"><span class="fab-hor">${hormiga()}</span>${ico('plus',28,2.2)}</button><div class="home"></div>`;
+}
+
+/* ── Notas ── */
+const NOTAS_FIJ=[
+  {t:'Ideas para Lisboa',l:'viajes',p:'Tranvía 28 a primera hora. Pastéis de Belém. Mirador de Santa Luzia al atardecer.',f:'hace 3 días'},
+  {t:'Medidas del salón',l:'casa',p:'Pared del sofá: 3,40 m<br>Ventana: 1,20 × 1,40 m<br>Estantería: máx. 80 cm de fondo',f:'12 nov'}
+];
+const NOTAS=[
+  {t:'Reunión con Marta',l:'trabajo',items:[['Ver el presupuesto',1],['Enviar la propuesta el lunes',0],['Pedirle los logos',0]],acc:'Pasar 2 a tareas',f:'hoy'},
+  {t:'Libros recomendados',l:'personal',p:'El infinito en un junco · Klara y el sol · Pedro Páramo',f:'ayer'},
+  {t:'Regalo para mamá',l:'personal',p:'La bufanda verde que vio en el mercado, o la cafetera pequeña.',f:'mié'},
+  {t:'Llamada con la gestoría',l:'trabajo',p:'Falta el modelo 303 del tercer trimestre. Mandarlo antes del 30.',f:'mar'}
+];
+function nota(n,fijada){
+  const [ln,lc]=LISTAS[n.l];
+  const cuerpo=n.items
+    ?`<ul class="nota-lista">${n.items.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span>${x}</span></li>`).join('')}</ul><span class="nota-acc">${ico('arrow',13)} ${n.acc}</span>`
+    :`<p>${n.p}</p>`;
+  return `<article class="nota${fijada?' fijada':''}">${fijada?'<span class="cinta"></span>':''}<h3>${n.t}</h3>${cuerpo}
+    <div class="nota-pie"><span class="lista" style="color:${lc}"><i></i><span>${ln}</span></span><span>${n.f}</span></div></article>`;
+}
+function columnas(lista,fijada){
+  const izq=[],der=[];lista.forEach((n,i)=>(i%2?der:izq).push(nota(n,fijada)));
+  return `<div class="notas"><div>${izq.join('')}</div><div>${der.join('')}</div></div>`;
+}
+function pantallaNotas(){
+  return BARRA_ESTADO+`<header class="m-cab">
+    <div class="m-fila1"><div class="m-herr"><button>${ico('menu',19)}</button></div><div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button>${ico('search',19)}</button></div></div>
+    <h1 class="m-tit">Notas</h1><div class="n-sub">Lo que no es tarea, pero no quieres olvidar</div>
+  </header>
+  <div class="m-hoja" style="top:238px">
+    <div class="m-pestanas"><button class="m-pest on">Todas <span>${NOTAS_FIJ.length+NOTAS.length}</span></button><button class="m-pest">Fijadas <span>${NOTAS_FIJ.length}</span></button></div>
+    <div class="m-cuerpo">
+      <div class="sec-cab"><span class="sec-tit">Fijadas</span><span class="puntos"></span></div>
+      ${columnas(NOTAS_FIJ,true)}
+      <div class="sec-cab"><span class="sec-tit">Esta semana</span><span class="puntos"></span></div>
+      ${columnas(NOTAS,false)}
+    </div>
+  </div>`+navN('notas');
+}
+
+/* ── Agenda: Hoy por horas ──
+   Tareas con hora (con casilla), eventos de otros calendarios (sin
+   casilla, teñidos con el color de su calendario) y hábitos con hora (en
+   píldora). Lo que no tiene hora va arriba, para arrastrarlo a un hueco. */
+const AG_INI=7.4,AG_PX=64,AG_AHORA=9+41/60;
+const CALS={google:['Google','var(--cal-google)'],icloud:['iCloud','var(--cal-icloud)']};
+const AGENDA=[
+  {tipo:'hab',t:'Meditar 10 minutos',a:7.5,b:7.75,hecha:1},
+  {tipo:'tarea',t:'Pasear a Tango',a:8,b:8.75,l:'personal',rep:'1d',hecha:1},
+  {tipo:'ev',t:'Daily del equipo',a:9,b:9.75,cal:'google'},
+  {tipo:'tarea',t:'Preparar la presentación del jueves',a:10,b:11.5,l:'trabajo',imp:1,sub:'2/5',col:0,cols:2},
+  {tipo:'ev',t:'Dentista',a:11,b:11.75,cal:'icloud',col:1,cols:2},
+  {tipo:'tarea',t:'Enviar la factura de noviembre',a:12.25,b:12.75,l:'trabajo',rep:'1 mes'},
+  {tipo:'ev',t:'Comida con Laura',a:13.5,b:15,cal:'google'}
+];
+const SIN_HORA=[{t:'Revisar el presupuesto de diciembre',l:'casa'},{t:'Planificar el viaje a Lisboa',l:'viajes'}];
+const hm=x=>{const h=Math.floor(x),m=Math.round((x-h)*60);return `${h}:${String(m).padStart(2,'0')}`;};
+function bloque(it){
+  const cols=it.cols||1,col=it.col||0,dur=it.b-it.a;
+  const top=(it.a-AG_INI)*AG_PX+1,alto=Math.max(it.tipo==='hab'?24:28,dur*AG_PX-3);
+  const pos=`top:${top.toFixed(1)}px;height:${alto.toFixed(1)}px;left:calc(46px + (100% - 50px) * ${col}/${cols});width:calc((100% - 50px) / ${cols} - 4px)`;
+  const corto=dur<0.6?' corto':(cols>1?' estrecho':'');
+  const hora=`${hm(it.a)}–${hm(it.b)}`;
+  if(it.tipo==='hab')
+    return `<div class="ag-b ag-hab corto${it.hecha?' hecha':''}" style="${pos}"><span class="r-hor">${hormiga()}</span><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${hm(it.a)} · hábito</span></div></div>`;
+  if(it.tipo==='ev'){
+    const [cn,cc]=CALS[it.cal];
+    return `<div class="ag-b ag-ev${corto}" style="${pos};--c:${cc}"><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${ico('cal',12)} ${hora} · ${cn}</span></div></div>`;
+  }
+  const [ln,lc]=LISTAS[it.l],m=[hora];
+  if(it.imp)m.push(`<span class="bandera">${ico('flag',12)}</span>`);
+  if(it.rep)m.push(`${ico('repeat',12)} ${it.rep}`);
+  if(it.sub)m.push(`${it.sub} subtareas`);
+  if(!corto)m.push(`<span class="lista" style="color:${lc}"><i></i><span>${ln}</span></span>`);
+  return `<div class="ag-b ag-tarea${corto}${it.hecha?' hecha':''}" style="${pos};--c:${lc}"><span class="ag-check" role="button" aria-label="Completar">${CK}</span><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${m.join(' · ')}</span></div></div>`;
+}
+function agenda(){
+  const fin=15.5,alto=(fin-AG_INI)*AG_PX;let s=`<div class="ag" style="height:${alto}px">`;
+  for(let h=Math.ceil(AG_INI);h<fin;h++)s+=`<div class="ag-h" style="top:${((h-AG_INI)*AG_PX).toFixed(1)}px"><b>${h}:00</b></div>`;
+  s+=AGENDA.map(bloque).join('');
+  const y=((AG_AHORA-AG_INI)*AG_PX).toFixed(1);
+  s+=`<div class="ag-ahora" style="top:${y}px"></div><div class="ag-ahora-t" style="top:${y}px">${hm(AG_AHORA)}</div>`;
+  return s+'</div>';
+}
+function pantallaAgenda(){
+  return BARRA_ESTADO+cabeceraHoy(false)+`
+  <div class="m-hoja" style="top:330px">
+    <div class="m-pestanas"><a class="m-pest" href="#hoy">Tareas <span id="n-tareas">${E.pend}</span></a><a class="m-pest" href="#habitos">Hábitos <span>1/4</span></a><button class="m-pest on">${ico('reloj',15)} Agenda</button></div>
+    <div class="m-cuerpo">
+      <div class="sec-cab"><span class="sec-tit">Sin hora</span><span class="sec-n">${SIN_HORA.length}</span><span class="puntos"></span><span class="sh-pista">arrástralas a una hora</span></div>
+      <div class="sin-hora">${SIN_HORA.map(x=>`<span class="sh-chip" style="--c:${LISTAS[x.l][1]}"><i></i><span>${x.t}</span></span>`).join('')}</div>
+      ${agenda()}
+    </div>
+  </div>`+navN('hoy');
+}
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.ag-check');if(c){c.closest('.ag-b').classList.toggle('hecha');return;}
+  const li=e.target.closest('.nota-lista li');if(li)li.classList.toggle('ok');
+});
+
+/* ═══ Añadido el 23-nov-2026: Inbox con listas y detalle de tarea ═══
+   #inbox-listas es el Inbox lleno (el de #inbox, vacío, no se toca) y
+   #detalle, la hoja de una tarea abierta encima de él. */
+Object.assign(ICOS,{
+  campana:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  cerrar:'<path d="M18 6 6 18M6 6l12 12"/>',
+  mas:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+  copiar:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  papelera:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  fuera:'<path d="M7 7h10v10M7 17 17 7"/>',
+  derecha:'<path d="m9 18 6-6-6-6"/>'
+});
+// [nombre, color, hechas, total] — lo mismo que el anillo de cada lista en la barra lateral.
+const CHIPS_L=[['Trabajo','var(--l-trabajo)',4,8],['Casa','var(--l-casa)',4,6],['Personal','var(--l-personal)',4,5],['Lecturas','var(--l-lect)',1,4],['Viajes','var(--l-viajes)',0,3],['Salud','var(--o500)',5,7]];
+const INB=[
+  {n:'Sin lista',sin:1,pend:2,tareas:[{t:'Llamar al fontanero',f:'Mañana'},{t:'Comprar pilas AA'}]},
+  {n:'Trabajo',c:'var(--l-trabajo)',pend:4,tareas:[
+    {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5]},
+    {t:'Responder a la gestoría',venc:'Ayer'},
+    {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes'},
+    {t:'Preparar la reunión de enero',f:'mar 2 dic'}]},
+  {n:'Casa',c:'var(--l-casa)',pend:2,tareas:[{t:'Renovar el seguro del coche',imp:1,venc:'mié 12 nov'},{t:'Revisar el presupuesto de diciembre',link:1}]}
+];
+const PEND_INB=INB.reduce((s,g)=>s+g.pend,0)+CHIPS_L.slice(2).reduce((s,c)=>s+c[3]-c[2],0);
+const HECHAS_INB=CHIPS_L.reduce((s,c)=>s+c[2],0);
+function anilloLista(d,t,c){
+  const N=10,k=Math.round(N*d/t);let s='<svg width="18" height="18" viewBox="0 0 18 18">';
+  for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;s+=`<circle cx="${(9+7*Math.cos(a)).toFixed(2)}" cy="${(9+7*Math.sin(a)).toFixed(2)}" r="1.45" style="fill:${i<k?c:'var(--punto-kraft)'}"/>`;}
+  return s+'</svg>';
+}
+function filaInbox(t){
+  const m=[];
+  if(t.imp)m.push(`<span class="bandera">${ico('flag',14)}</span>`);
+  if(t.venc)m.push(`<span class="pastilla">${t.venc}</span>`);
+  if(t.f)m.push(`<span class="pastilla-n${t.hoy?' hoy':''}">${t.f}</span>`);
+  if(t.rep)m.push(`<span>${ico('repeat',13)} ${t.rep}</span>`);
+  if(t.link)m.push(`<span>${ico('link',13)} 1</span>`);
+  if(t.sub)m.push(`<span>${t.sub[0]}/${t.sub[1]} subtareas</span>`);
+  return `<div class="fila inb-fila"><div class="fila-in">
+    <span class="check-wrap">${t.sub?anilloSub(t.sub):''}<button class="check" aria-label="Completar">${CKB}</button></span>
+    <div class="f-txt"><span class="titulo"><span class="texto">${t.t}</span>${tachon()}</span>${m.length?`<span class="meta">${m.join('')}</span>`:''}</div></div></div>`;
+}
+// Sin la barra de estado: el detalle lo reutiliza como fondo, encogido.
+function inboxCuerpo(){
+  const chips=`<span class="lch on">Todas <small>${PEND_INB}</small></span>`+CHIPS_L.map(([n,c,d,t])=>`<span class="lch">${anilloLista(d,t,c)}${n} <small>${d}/${t}</small></span>`).join('');
+  const grupos=INB.map(g=>`<section><div class="sec-cab"><i class="sec-punto${g.sin?' sin':''}"${g.c?` style="background:${g.c}"`:''}></i><span class="sec-tit">${g.n}</span><span class="sec-n">${g.pend}</span><span class="puntos"></span></div>${g.tareas.map(filaInbox).join('')}</section>`).join('');
+  return `<header class="m-cab">
+    <div class="m-fila1"><div class="m-herr"><button>${ico('menu',19)}</button></div><div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button>${ico('sliders',19)}</button></div></div>
+    <h1 class="m-tit">Inbox</h1><div class="inb-sub">${PEND_INB} pendientes · ${CHIPS_L.length} listas</div>
+    <div class="lch-fila">${chips}</div>
+  </header>
+  <div class="m-hoja" style="top:268px">
+    <div class="m-pestanas"><button class="m-pest on">Pendientes <span>${PEND_INB}</span></button><button class="m-pest">Hechas <span>${HECHAS_INB}</span></button></div>
+    <div class="m-cuerpo"><div class="capa"></div>${grupos}</div>
+  </div>`+navN('inbox');
+}
+function pantallaInboxListas(){return BARRA_ESTADO+inboxCuerpo();}
+
+function pantallaDetalle(){
+  const SUBS=[['Recopilar los datos del Q3',1],['Pedir el logo nuevo a diseño',1],['Montar las diapositivas',0],['Ensayar con Marta',0],['Enviar el PDF al equipo',0]];
+  const fila=(icono,txt,valor,cls='')=>`<div class="det-fila"><span class="${cls}">${ico(icono,18)}</span>${txt}${valor}</div>`;
+  const val=v=>`<span class="det-valor">${v} ${ico('derecha',16)}</span>`;
+  return `<div class="det-fondo"><div style="height:46px"></div>${inboxCuerpo()}</div><div class="det-velo"></div>
+  <div class="det-estado">${BARRA_ESTADO}</div>
+  <div class="det-hoja">
+    <div class="det-asa"></div>
+    <div class="det-cab"><span class="det-lista"><i style="background:var(--l-trabajo)"></i>Trabajo ${ico('chev',14)}</span>
+      <div class="det-btns"><button aria-label="Más">${ico('mas',18)}</button><a href="#inbox-listas" aria-label="Cerrar">${ico('cerrar',18)}</a></div></div>
+    <div class="det-tit"><span class="check-wrap">${anilloSub([2,5])}<button class="check det-check" aria-label="Completar">${CKB}</button></span><h2>Preparar la presentación del jueves</h2></div>
+    <div class="det-sec">
+      <div class="sec-cab"><span class="sec-tit">Cuándo</span><span class="puntos"></span></div>
+      <div class="det-chips"><span class="det-chip on">${ico('cal',14)} Hoy</span><span class="det-chip">Mañana</span><span class="det-chip">Lunes</span><span class="det-chip">${ico('cal',14)} Otra</span></div>
+      <div class="det-filas">
+        ${fila('reloj','Hora',val('10:00 – 11:30'))}
+        ${fila('repeat','Repetir',val('No se repite'))}
+        ${fila('campana','Aviso',val('30 min antes'))}
+        ${fila('flag','Importante','<span class="det-sw" role="switch" aria-checked="true"></span>','bandera')}
+      </div>
+    </div>
+    <div class="det-sec">
+      <div class="sec-cab"><span class="sec-tit">Subtareas</span><span class="sec-n">2/5</span><span class="puntos"></span></div>
+      <ul class="det-subs">${SUBS.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span>${x}</span></li>`).join('')}<li class="anadir">${ico('plus',19)} Añadir subtarea</li></ul>
+    </div>
+    <div class="det-sec">
+      <div class="sec-cab"><span class="sec-tit">Enlaces</span><span class="sec-n">1</span><span class="puntos"></span></div>
+      <div class="det-enlace">${ico('link',16)}<span>docs.google.com<em>/presentation/d/1Q3-jueves</em></span>${ico('fuera',16)}</div>
+    </div>
+    <div class="det-sec">
+      <div class="sec-cab"><span class="sec-tit">Nota</span><span class="puntos"></span></div>
+      <div class="det-nota">Empezar por la demo del calendario y dejar los números del Q3 para el final. Marta lleva el portátil.</div>
+    </div>
+    <div class="det-acc"><button>${ico('copiar',16)} Duplicar</button><button class="det-borrar">${ico('papelera',16)} Eliminar</button></div>
+  </div><div class="home" style="z-index:9"></div>`;
+}
+
+// #detalle-abajo: la misma hoja, desplazada hasta el final (nota y acciones).
+if(estado==='detalle-abajo')addEventListener('DOMContentLoaded',()=>{const h=document.querySelector('.det-hoja');if(h)h.scrollTop=h.scrollHeight;});
+
+document.addEventListener('click',e=>{
+  const s=e.target.closest('.det-subs li:not(.anadir)');if(s){s.classList.toggle('ok');return;}
+  const d=e.target.closest('.det-check');if(d){d.closest('.det-tit').classList.toggle('hecha');return;}
+  const f=e.target.closest('.inb-fila');if(f&&!e.target.closest('.check')&&!f.closest('.det-fondo'))location.hash='detalle';
+});
+
 /* ═══ Clics ═══ */
 document.addEventListener('click',e=>{
   const b=e.target.closest('.check');if(!b)return;
@@ -637,7 +985,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.tema-btn'))return;c
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
-const P_={hoy:pantallaHoy,'hoy-congelado':pantallaHoy,fin:pantallaFin,habitos:pantallaHabitos,actividad:pantallaActividad,inbox:pantallaInbox};
+const P_={hoy:pantallaHoy,'hoy-congelado':pantallaHoy,fin:pantallaFin,habitos:pantallaHabitos,actividad:pantallaActividad,inbox:pantallaInbox,notas:pantallaNotas,agenda:pantallaAgenda,'inbox-listas':pantallaInboxListas,detalle:pantallaDetalle,'detalle-abajo':pantallaDetalle};
 if(estado==='fin'){E.done=8;E.total=8;E.venc=0;E.pend=0;}
 document.body.classList.add('e-'+estado);
 raiz.innerHTML=(P_[estado]||pantallaHoy)();
