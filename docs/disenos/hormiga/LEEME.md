@@ -111,3 +111,20 @@ Tres pantallas nuevas en `movil.html`. `#inbox` (la bandeja vacía) y `movil-inb
 - **Capturas:** `movil-inbox-listas.png`, `movil-detalle.png`, `movil-detalle-abajo.png` y las mismas terminadas en `-oscuro`.
 
 Respecto a la hoja de tarea que hay hoy en la app, esta añade la hora, el aviso, Importante, la lista, la nota y «Más». Las demás piezas (fecha con botones, Repetir, Subtareas, Enlaces, Duplicar y Eliminar) ya existen.
+
+## Ajustes del 24-nov-2026 (tras la revisión)
+
+- **Hormiga del +:** lleva un contorno del color de la hoja y el degradado de abajo es más alto, así que ya no tapa el texto que pasa por detrás. Afecta a todas las pantallas del móvil, por eso se han rehecho todas las capturas.
+- **Barra inferior con Notas:** queda Hoy · Inbox · Notas · perfil. «Buscar» sale de la barra porque ya está en las cabeceras (lupa en Notas y en Inbox).
+- **Agenda:**
+  - la cabecera se queda compacta: fecha pequeña y la tira de la semana, sin el rastro, que vuelve al subir;
+  - al tocar otro día de la tira se ve su agenda, y la cabecera cambia a ese día (captura `movil-agenda-otro-dia.png`);
+  - la pestaña lleva número, como las otras dos;
+  - los bloques estrechos (dos citas a la vez) muestran solo título y hora;
+  - lo que no tiene hora se puede tocar o arrastrar, y cada chip lleva un reloj.
+- **Notas:**
+  - las pestañas pasan a «Notas | Archivadas», para no repetir «Fijadas», que ya es una sección;
+  - en esta pantalla el botón + crea una nota y lleva su propio icono;
+  - las casillas marcadas usan el tachado a mano.
+- **Inbox:** las filas de una sola línea son más bajas, y el subtítulo dice «2 sin ordenar · 2 vencidas» en vez de repetir el 17.
+- **Detalle:** las subtareas hechas usan el mismo tachado a mano que las filas.

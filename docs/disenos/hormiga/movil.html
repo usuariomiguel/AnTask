@@ -93,7 +93,7 @@ a{color:inherit;text-decoration:none}
 
 /* La hoja, con pestañas de carpeta */
 .m-hoja{position:absolute;left:0;right:0;bottom:0;background-color:var(--hoja);background-image:var(--tex-hoja);border-radius:26px 26px 0 0;box-shadow:0 -1px 0 rgba(var(--sombra-rgb),.06),0 -12px 30px -18px rgba(var(--sombra-rgb),.45)}
-.m-hoja::after{content:"";position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(rgba(var(--hoja-rgb),0),rgba(var(--hoja-rgb),.95) 55%);pointer-events:none;z-index:4}
+.m-hoja::after{content:"";position:absolute;left:0;right:0;bottom:0;height:176px;background:linear-gradient(rgba(var(--hoja-rgb),0),rgba(var(--hoja-rgb),.97) 46%);pointer-events:none;z-index:4}
 .m-pestanas{position:absolute;left:16px;top:-35px;display:flex;gap:4px}
 .m-pest{height:36px;padding:0 16px;border-radius:14px 14px 0 0;background:var(--hoja-2);color:var(--t2);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px}
 .m-pest.on{background-color:var(--hoja);background-image:var(--tex-hoja);color:var(--o800);box-shadow:0 -8px 14px -10px rgba(var(--sombra-rgb),.4)}
@@ -152,7 +152,7 @@ a{color:inherit;text-decoration:none}
 .m-nav button.on .m-av{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--o600)}
 .m-fab{position:absolute;right:16px;bottom:26px;width:62px;height:62px;border-radius:50%;background:var(--o500);color:var(--sobre-acento);display:grid;place-items:center;box-shadow:0 12px 24px -10px rgba(62,67,42,.75);z-index:8}
 .fab-hor{position:absolute;left:17px;top:-26px;width:30px;height:30px;pointer-events:none}
-.fab-hor .hormiga{width:100%;height:100%}
+.fab-hor .hormiga{width:100%;height:100%;filter:drop-shadow(0 0 1.5px var(--hoja)) drop-shadow(0 0 1.5px var(--hoja)) drop-shadow(0 0 1px var(--hoja))}
 .home{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:var(--home);transform:translateX(-50%);z-index:9}
 
 /* Día terminado */
@@ -264,7 +264,7 @@ a{color:inherit;text-decoration:none}
    .sec-cab o .lista), así que las pantallas de antes se pintan igual. */
 :root{--cinta:rgba(165,177,125,.55);--cinta-raya:rgba(255,252,241,.4);--cal-google:#3d6e85;--cal-icloud:#b58236}
 :root[data-theme="dark"]{--cinta:rgba(164,178,114,.3);--cinta-raya:rgba(255,238,214,.07);--cal-google:#7fb0c7;--cal-icloud:#d9a85e}
-.m-nav.con-notas button{min-width:0;padding:6px 8px}
+.m-nav.con-notas button{min-width:0;padding:6px 12px}
 
 /* Notas */
 .n-sub{font-size:13px;color:var(--kraft-tinta);margin-top:6px}
@@ -285,7 +285,9 @@ a{color:inherit;text-decoration:none}
 .nl-c svg{width:9px;height:9px;fill:none;stroke:var(--sobre-acento);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
 .nota-lista li.ok .nl-c{background:var(--o500);border-color:transparent}
 .nota-lista li.ok .nl-c svg{opacity:1}
-.nota-lista li.ok span{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.st{position:relative}
+.nota-lista li.ok .st,.det-subs li.ok .st{color:var(--t3)}
+.nota-lista li.ok .tachon,.det-subs li.ok .tachon{clip-path:inset(-4px -4px -4px -4px)}
 .nota-acc{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-weight:600;font-size:12px;color:var(--o600);padding:4px 10px;border-radius:999px;background:rgba(107,115,76,.12)}
 
 /* Agenda: el día por horas */
@@ -294,6 +296,7 @@ a{color:inherit;text-decoration:none}
 .sh-chip{flex:none;display:inline-flex;align-items:center;gap:6px;max-width:200px;padding:6px 12px 6px 10px;border-radius:999px;background:var(--card);border:1px dashed var(--check-borde);font-size:12.5px;color:var(--t1);white-space:nowrap}
 .sh-chip i{width:7px;height:7px;border-radius:50%;flex:none;background:var(--c)}
 .sh-chip span{overflow:hidden;text-overflow:ellipsis}
+.sh-chip .ico{color:var(--t3);margin-left:2px}
 .ag{position:relative;margin-top:10px}
 .ag-h{position:absolute;left:0;right:0;height:0}
 .ag-h b{position:absolute;left:0;width:36px;top:-8px;text-align:right;font:600 11px var(--f-sans);color:var(--t3);font-variant-numeric:tabular-nums}
@@ -312,7 +315,7 @@ a{color:inherit;text-decoration:none}
 .ag-b.hecha .ag-check{background:var(--o500);border-color:transparent}
 .ag-b.hecha .ag-check svg{opacity:1}
 .ag-b.hecha .ag-tit{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
-.ag-b.estrecho .ag-tit{-webkit-line-clamp:3}
+.ag-b.estrecho .ag-tit{-webkit-line-clamp:2}
 .ag-b.estrecho .ag-meta{flex-wrap:wrap;row-gap:1px}
 .ag-b.corto{align-items:center;padding-top:0}
 .ag-b.corto .ag-tx{flex-direction:row;align-items:baseline;gap:8px}
@@ -322,6 +325,12 @@ a{color:inherit;text-decoration:none}
 .ag-hab .r-hor{width:17px;height:17px;flex:none}
 .ag-ahora{position:absolute;left:44px;right:2px;height:2px;margin-top:-1px;border-radius:2px;background:var(--o500);z-index:3}
 .ag-ahora::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--o500);box-shadow:0 0 0 3px var(--hoja)}
+.m-cab--mini .dia{font-size:46px}
+.m-cab--mini .dsem{font-size:20px}
+.m-cab--mini .fecha{gap:10px}
+.m-cab--mini .semana{margin-top:8px}
+.m-cab--mini .sd{height:50px;cursor:pointer}
+.e-agenda .sd.sel:not(.hoy){background-color:var(--kraft-hover);box-shadow:inset 0 0 0 1.5px var(--o400)}
 .ag-ahora-t{position:absolute;left:0;width:36px;margin-top:-8px;text-align:right;font:700 11px var(--f-sans);color:var(--o600);z-index:3;font-variant-numeric:tabular-nums}
 
 /* ═══ Añadido el 23-nov-2026: Inbox con listas y detalle de tarea ═══ */
@@ -337,6 +346,7 @@ a{color:inherit;text-decoration:none}
 .pastilla-n{padding:2px 9px;border-radius:999px;border:1px solid var(--borde);color:var(--t2);font-weight:600;font-size:12px}
 .pastilla-n.hoy{border-color:rgba(107,115,76,.32);background:rgba(107,115,76,.09);color:var(--o600)}
 .inb-fila{cursor:pointer}
+.fila.una,.fila.una .fila-in{height:48px}
 
 /* Detalle: una hoja que sube sobre el Inbox, que se queda detrás, encogido */
 .e-detalle .movil,.e-detalle-abajo .movil{background-color:#1a140e;background-image:none}
@@ -378,7 +388,6 @@ a{color:inherit;text-decoration:none}
 .det-subs .nl-c svg{width:11px;height:11px}
 .det-subs li.ok .nl-c{background:var(--o500);border-color:transparent}
 .det-subs li.ok .nl-c svg{opacity:1}
-.det-subs li.ok span{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
 .det-subs li.anadir{color:var(--t3)}
 .det-subs li.anadir .ico{width:19px;height:19px}
 .det-enlace{display:flex;align-items:center;gap:9px;height:44px;padding:0 12px;border-radius:14px;background:var(--card);border:1px solid var(--borde-s);font-size:14px;color:var(--t1);white-space:nowrap}
@@ -758,9 +767,10 @@ ICOS.reloj='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
 ICOS.cal='<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>';
 function navN(on){
   const b=(id,html,lbl)=>`<button class="${id===on?'on':''}">${html}<span>${lbl}</span></button>`;
-  return `<nav class="m-nav con-notas">${b('hoy',ico('calcheck',22),'Hoy')}${b('inbox',ico('inbox',22),'Inbox')}${b('notas',ico('nota',22),'Notas')}${b('buscar',ico('search',22),'Buscar')}<button class="${on==='perfil'?'on':''}"><span class="m-av">A</span></button></nav>
-  <button class="m-fab" aria-label="${on==='notas'?'Nueva nota':'Nueva tarea'}"><span class="fab-hor">${hormiga()}</span>${ico('plus',28,2.2)}</button><div class="home"></div>`;
+  return `<nav class="m-nav con-notas">${b('hoy',ico('calcheck',22),'Hoy')}${b('inbox',ico('inbox',22),'Inbox')}${b('notas',ico('nota',22),'Notas')}<button class="${on==='perfil'?'on':''}"><span class="m-av">A</span></button></nav>
+  <button class="m-fab" aria-label="${on==='notas'?'Nueva nota':'Nueva tarea'}"><span class="fab-hor">${hormiga()}</span>${on==='notas'?ico('notamas',26,2):ico('plus',28,2.2)}</button><div class="home"></div>`;
 }
+ICOS.notamas='<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><path d="M15 3v4a2 2 0 0 0 2 2h4"/><path d="M12 11v6M9 14h6"/>';
 
 /* ── Notas ── */
 const NOTAS_FIJ=[
@@ -776,7 +786,7 @@ const NOTAS=[
 function nota(n,fijada){
   const [ln,lc]=LISTAS[n.l];
   const cuerpo=n.items
-    ?`<ul class="nota-lista">${n.items.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span>${x}</span></li>`).join('')}</ul><span class="nota-acc">${ico('arrow',13)} ${n.acc}</span>`
+    ?`<ul class="nota-lista">${n.items.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span></li>`).join('')}</ul><span class="nota-acc">${ico('arrow',13)} ${n.acc}</span>`
     :`<p>${n.p}</p>`;
   return `<article class="nota${fijada?' fijada':''}">${fijada?'<span class="cinta"></span>':''}<h3>${n.t}</h3>${cuerpo}
     <div class="nota-pie"><span class="lista" style="color:${lc}"><i></i><span>${ln}</span></span><span>${n.f}</span></div></article>`;
@@ -791,7 +801,7 @@ function pantallaNotas(){
     <h1 class="m-tit">Notas</h1><div class="n-sub">Lo que no es tarea, pero no quieres olvidar</div>
   </header>
   <div class="m-hoja" style="top:238px">
-    <div class="m-pestanas"><button class="m-pest on">Todas <span>${NOTAS_FIJ.length+NOTAS.length}</span></button><button class="m-pest">Fijadas <span>${NOTAS_FIJ.length}</span></button></div>
+    <div class="m-pestanas"><button class="m-pest on">Notas <span>${NOTAS_FIJ.length+NOTAS.length}</span></button><button class="m-pest">Archivadas <span>3</span></button></div>
     <div class="m-cuerpo">
       <div class="sec-cab"><span class="sec-tit">Fijadas</span><span class="puntos"></span></div>
       ${columnas(NOTAS_FIJ,true)}
@@ -832,32 +842,43 @@ function bloque(it){
   }
   const [ln,lc]=LISTAS[it.l],m=[hora];
   if(it.imp)m.push(`<span class="bandera">${ico('flag',12)}</span>`);
+  if(cols>1)return `<div class="ag-b ag-tarea estrecho${it.hecha?' hecha':''}" style="${pos};--c:${lc}"><span class="ag-check" role="button" aria-label="Completar">${CK}</span><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${m.join(' ')}</span></div></div>`;
   if(it.rep)m.push(`${ico('repeat',12)} ${it.rep}`);
   if(it.sub)m.push(`${it.sub} subtareas`);
   if(!corto)m.push(`<span class="lista" style="color:${lc}"><i></i><span>${ln}</span></span>`);
   return `<div class="ag-b ag-tarea${corto}${it.hecha?' hecha':''}" style="${pos};--c:${lc}"><span class="ag-check" role="button" aria-label="Completar">${CK}</span><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${m.join(' · ')}</span></div></div>`;
 }
-function agenda(){
+function agenda(items=AGENDA,ahora=true){
   const fin=15.5,alto=(fin-AG_INI)*AG_PX;let s=`<div class="ag" style="height:${alto}px">`;
   for(let h=Math.ceil(AG_INI);h<fin;h++)s+=`<div class="ag-h" style="top:${((h-AG_INI)*AG_PX).toFixed(1)}px"><b>${h}:00</b></div>`;
-  s+=AGENDA.map(bloque).join('');
+  s+=items.map(bloque).join('');
   const y=((AG_AHORA-AG_INI)*AG_PX).toFixed(1);
-  s+=`<div class="ag-ahora" style="top:${y}px"></div><div class="ag-ahora-t" style="top:${y}px">${hm(AG_AHORA)}</div>`;
+  if(ahora)s+=`<div class="ag-ahora" style="top:${y}px"></div><div class="ag-ahora-t" style="top:${y}px">${hm(AG_AHORA)}</div>`;
   return s+'</div>';
 }
+// Cabecera compacta: al desplazar la agenda, la fecha y el rastro se encogen y queda la tira de la semana.
+function cabeceraCompacta(){
+  return `<header class="m-cab m-cab--mini"><div class="m-fila1"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy · ${E.done} de ${E.total} en el hormiguero</div><div class="dsem">viernes</div></div></div>
+    <div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button>${ico('menu',19)}</button></div></div>${semana(false)}</header>`;
+}
+// Otros días de la tira (en la maqueta, un ejemplo fijo).
+const AGENDA_OTRO=[{tipo:'ev',t:'Yoga',a:9.5,b:10.5,cal:'icloud'},{tipo:'tarea',t:'Hacer la compra de la semana',a:11,b:12,l:'casa'},{tipo:'ev',t:'Cumpleaños de Lucía',a:13.5,b:15,cal:'google'}];
 function pantallaAgenda(){
-  return BARRA_ESTADO+cabeceraHoy(false)+`
-  <div class="m-hoja" style="top:330px">
-    <div class="m-pestanas"><a class="m-pest" href="#hoy">Tareas <span id="n-tareas">${E.pend}</span></a><a class="m-pest" href="#habitos">Hábitos <span>1/4</span></a><button class="m-pest on">${ico('reloj',15)} Agenda</button></div>
+  return BARRA_ESTADO+cabeceraCompacta()+`
+  <div class="m-hoja" style="top:220px">
+    <div class="m-pestanas"><a class="m-pest" href="#hoy">Tareas <span id="n-tareas">${E.pend}</span></a><a class="m-pest" href="#habitos">Hábitos <span>1/4</span></a><button class="m-pest on">Agenda <span>${AGENDA.length}</span></button></div>
     <div class="m-cuerpo">
-      <div class="sec-cab"><span class="sec-tit">Sin hora</span><span class="sec-n">${SIN_HORA.length}</span><span class="puntos"></span><span class="sh-pista">arrástralas a una hora</span></div>
-      <div class="sin-hora">${SIN_HORA.map(x=>`<span class="sh-chip" style="--c:${LISTAS[x.l][1]}"><i></i><span>${x.t}</span></span>`).join('')}</div>
-      ${agenda()}
+      <div id="ag-sin"><div class="sec-cab"><span class="sec-tit">Sin hora</span><span class="sec-n">${SIN_HORA.length}</span><span class="puntos"></span><span class="sh-pista">toca o arrastra a una hora</span></div>
+      <div class="sin-hora">${SIN_HORA.map(x=>`<span class="sh-chip" style="--c:${LISTAS[x.l][1]}"><i></i><span>${x.t}</span>${ico('reloj',13)}</span>`).join('')}</div></div>
+      <div id="ag-dia">${agenda()}</div>
     </div>
   </div>`+navN('hoy');
 }
 
 document.addEventListener('click',e=>{
+  const sd=e.target.closest('.e-agenda .sd');
+  if(sd){document.querySelectorAll('.e-agenda .sd').forEach(x=>x.classList.toggle('sel',x===sd));const hoy=sd.classList.contains('hoy');
+    document.getElementById('ag-sin').hidden=!hoy;const DN={L:'lunes',M:'martes',X:'miércoles',J:'jueves',V:'viernes',S:'sábado',D:'domingo'};const cab=document.querySelector('.m-cab--mini');cab.querySelector('.dia').textContent=sd.querySelector('.sd-n').textContent;cab.querySelector('.dsem').textContent=DN[sd.querySelector('.sd-l').textContent];cab.querySelector('.eyebrow').textContent=hoy?'Hoy · '+E.done+' de '+E.total+' en el hormiguero':'Toca el 20 para volver a hoy';document.getElementById('ag-dia').innerHTML=agenda(hoy?AGENDA:AGENDA_OTRO,hoy);return;}
   const c=e.target.closest('.ag-check');if(c){c.closest('.ag-b').classList.toggle('hecha');return;}
   const li=e.target.closest('.nota-lista li');if(li)li.classList.toggle('ok');
 });
@@ -900,7 +921,7 @@ function filaInbox(t){
   if(t.rep)m.push(`<span>${ico('repeat',13)} ${t.rep}</span>`);
   if(t.link)m.push(`<span>${ico('link',13)} 1</span>`);
   if(t.sub)m.push(`<span>${t.sub[0]}/${t.sub[1]} subtareas</span>`);
-  return `<div class="fila inb-fila"><div class="fila-in">
+  return `<div class="fila inb-fila${m.length?'':' una'}"><div class="fila-in">
     <span class="check-wrap">${t.sub?anilloSub(t.sub):''}<button class="check" aria-label="Completar">${CKB}</button></span>
     <div class="f-txt"><span class="titulo"><span class="texto">${t.t}</span>${tachon()}</span>${m.length?`<span class="meta">${m.join('')}</span>`:''}</div></div></div>`;
 }
@@ -909,8 +930,8 @@ function inboxCuerpo(){
   const chips=`<span class="lch on">Todas <small>${PEND_INB}</small></span>`+CHIPS_L.map(([n,c,d,t])=>`<span class="lch">${anilloLista(d,t,c)}${n} <small>${d}/${t}</small></span>`).join('');
   const grupos=INB.map(g=>`<section><div class="sec-cab"><i class="sec-punto${g.sin?' sin':''}"${g.c?` style="background:${g.c}"`:''}></i><span class="sec-tit">${g.n}</span><span class="sec-n">${g.pend}</span><span class="puntos"></span></div>${g.tareas.map(filaInbox).join('')}</section>`).join('');
   return `<header class="m-cab">
-    <div class="m-fila1"><div class="m-herr"><button>${ico('menu',19)}</button></div><div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button>${ico('sliders',19)}</button></div></div>
-    <h1 class="m-tit">Inbox</h1><div class="inb-sub">${PEND_INB} pendientes · ${CHIPS_L.length} listas</div>
+    <div class="m-fila1"><div class="m-herr"><button>${ico('menu',19)}</button></div><div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button aria-label="Buscar">${ico('search',19)}</button><button>${ico('sliders',19)}</button></div></div>
+    <h1 class="m-tit">Inbox</h1><div class="inb-sub">${INB[0].pend} sin ordenar · <span style="color:var(--venc);font-weight:600">2 vencidas</span></div>
     <div class="lch-fila">${chips}</div>
   </header>
   <div class="m-hoja" style="top:268px">
@@ -943,7 +964,7 @@ function pantallaDetalle(){
     </div>
     <div class="det-sec">
       <div class="sec-cab"><span class="sec-tit">Subtareas</span><span class="sec-n">2/5</span><span class="puntos"></span></div>
-      <ul class="det-subs">${SUBS.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span>${x}</span></li>`).join('')}<li class="anadir">${ico('plus',19)} Añadir subtarea</li></ul>
+      <ul class="det-subs">${SUBS.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span></li>`).join('')}<li class="anadir">${ico('plus',19)} Añadir subtarea</li></ul>
     </div>
     <div class="det-sec">
       <div class="sec-cab"><span class="sec-tit">Enlaces</span><span class="sec-n">1</span><span class="puntos"></span></div>
