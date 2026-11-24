@@ -602,7 +602,7 @@ function llevarse(f,{congelar=null}={}){
 function pantallaHoy(){
   return BARRA_ESTADO+cabeceraHoy(false)+`
   <div class="m-hoja" style="top:330px">
-    <div class="m-pestanas"><button class="m-pest on">Tareas <span id="n-tareas">${E.pend}</span></button><a class="m-pest" href="#habitos">Hábitos <span>1/4</span></a></div>
+    <div class="m-pestanas"><button class="m-pest on">Tareas <span id="n-tareas">${E.pend}</span></button><a class="m-pest" href="#habitos">Hábitos <span>1/4</span></a><a class="m-pest" href="#agenda">Agenda <span>${AGENDA.length}</span></a></div>
     <div class="m-cuerpo"><div class="capa"></div>
       <section class="sec--venc"><div class="sec-cab"><span class="sec-tit">Vencidas</span><span class="sec-n">2</span><span class="puntos"></span><button class="accion">${ico('arrow',13)} A hoy</button></div>${VENC.map(fila).join('')}</section>
       <section><div class="sec-cab"><span class="sec-tit">Para hoy</span><span class="puntos"></span></div><div id="filas-hoy">${HOY.map(fila).join('')}</div></section>
@@ -625,7 +625,7 @@ function hamaca(w){
 function pantallaFin(){
   return BARRA_ESTADO+cabeceraHoy(true)+`
   <div class="m-hoja" style="top:330px">
-    <div class="m-pestanas"><button class="m-pest on">Tareas <span>0</span></button><a class="m-pest" href="#habitos">Hábitos <span>4/4</span></a></div>
+    <div class="m-pestanas"><button class="m-pest on">Tareas <span>0</span></button><a class="m-pest" href="#habitos">Hábitos <span>4/4</span></a><a class="m-pest" href="#agenda">Agenda <span>${AGENDA.length}</span></a></div>
     <div class="m-cuerpo"><div class="vacio">${hamaca(320)}<h2>Todo cargado.</h2><p>Has llevado 8 tareas al hormiguero.<br>Mañana, más.</p>
       <div class="vacio-acc"><a class="btn-oliva" href="#actividad">Tu hormiguero ${ico('arrow',15)}</a><button class="btn-sec">Hechas · 8 ${ico('chev',15)}</button></div></div></div>
   </div>`+nav('hoy');
@@ -657,7 +657,7 @@ function pantallaHabitos(){
   let fl='';for(let i=0;i<12;i++)fl+=`<span class="r-hor" style="--d:${(-R()*2.8).toFixed(2)}s">${hormiga()}</span>`;
   return BARRA_ESTADO+cabeceraHoy(false)+`
   <div class="m-hoja" style="top:330px">
-    <div class="m-pestanas"><a class="m-pest" href="#hoy">Tareas <span>${E.pend}</span></a><button class="m-pest on">Hábitos <span id="n-hab">1/4</span></button></div>
+    <div class="m-pestanas"><a class="m-pest" href="#hoy">Tareas <span>${E.pend}</span></a><button class="m-pest on">Hábitos <span id="n-hab">1/4</span></button><a class="m-pest" href="#agenda">Agenda <span>${AGENDA.length}</span></a></div>
     <div class="m-cuerpo">
       <div class="fila-larga"><div class="fl-tx"><b>12 días</b><span>tu fila más larga · Meditar</span></div><div class="fl-hor">${fl}</div></div>
       ${HABS.map(habCard).join('')}

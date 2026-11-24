@@ -128,3 +128,4 @@ Respecto a la hoja de tarea que hay hoy en la app, esta añade la hora, el aviso
   - las casillas marcadas usan el tachado a mano.
 - **Inbox:** las filas de una sola línea son más bajas, y el subtítulo dice «2 sin ordenar · 2 vencidas» en vez de repetir el 17.
 - **Detalle:** las subtareas hechas usan el mismo tachado a mano que las filas.
+- **Agenda en las pantallas antiguas:** Hoy, Hábitos y Día terminado también llevan la pestaña «Agenda» junto a «Tareas | Hábitos», y al tocarla se abre `#agenda`.
