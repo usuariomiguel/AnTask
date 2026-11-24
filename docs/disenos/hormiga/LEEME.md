@@ -129,3 +129,26 @@ Respecto a la hoja de tarea que hay hoy en la app, esta añade la hora, el aviso
 - **Inbox:** las filas de una sola línea son más bajas, y el subtítulo dice «2 sin ordenar · 2 vencidas» en vez de repetir el 17.
 - **Detalle:** las subtareas hechas usan el mismo tachado a mano que las filas.
 - **Agenda en las pantallas antiguas:** Hoy, Hábitos y Día terminado también llevan la pestaña «Agenda» junto a «Tareas | Hábitos», y al tocarla se abre `#agenda`.
+
+## Añadido el 24-nov-2026: las pantallas nuevas en PC
+
+Cuatro pantallas nuevas en `index.html`, en claro y en oscuro, que siguen las del móvil:
+
+- **`#agenda`**: Hoy por horas.
+  - Arriba, «Lista | Agenda» y el día con flechas y botón «Hoy». En Hoy, «Ver por horas» lleva aquí y «Lista» vuelve.
+  - A la izquierda, el día, con espacio para que las citas que coinciden muestren todos sus datos.
+  - A la derecha, una columna con «Sin hora» (para arrastrar o pulsar el reloj), las vencidas y la semana; al pulsar otro día cambia la agenda (`agenda-otro-dia.png`).
+- **`#notas`**:
+  - un campo «Escribe una nota…» arriba;
+  - las notas en cuatro columnas, con Fijadas y Esta semana;
+  - un buscador propio;
+  - pestañas «Notas | Archivadas».
+  - Aquí no sale la barra de captura de tareas.
+- **`#inbox-listas`**: el Inbox agrupado por lista («Sin lista» primero), con «Agrupar por lista». En PC no lleva las fichas de listas del móvil, porque ya están en la barra lateral.
+- **`#detalle`**: la tarea se abre como tercera columna, una hoja aparte junto al Inbox, con la fila elegida marcada. Tiene lo mismo que la hoja del móvil y además «Ampliar» y la fecha de creación.
+
+**Cambios en las pantallas de antes:**
+- la barra lateral suma «Notas» y el Inbox lleva al Inbox lleno;
+- la hormiga de la barra de captura lleva contorno de papel y el degradado de abajo es más alto, para no tapar texto.
+
+Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-listas`, `detalle`, sus versiones `-oscuro` y `agenda-otro-dia.png`.
