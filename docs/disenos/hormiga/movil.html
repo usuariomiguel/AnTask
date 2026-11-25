@@ -486,6 +486,65 @@ a{color:inherit;text-decoration:none}
 .mn-hor{position:absolute;right:22px;bottom:96px;width:44px;height:44px;opacity:.9}
 .mn-hor .hormiga{width:100%;height:100%}
 
+/* ═══ Añadido el 25-nov-2026: Ajustes y Apariencia (móvil) ═══ */
+.aj-cab{display:flex;align-items:center;gap:10px;padding:6px 18px 0 16px}
+.aj-cab .m-tit{margin-top:0;font-size:34px}
+.aj-hoja{position:absolute;left:0;right:0;top:128px;bottom:0;padding:4px 16px 120px;border-radius:26px 26px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);overflow-y:auto;scrollbar-width:none}
+.aj-sec{margin-top:10px}
+.aj-sec .sec-tit{font-size:15px;color:var(--t2)}
+.aj-card{border-radius:18px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:4px 14px}
+.aj-fila{display:flex;align-items:center;gap:12px;min-height:50px;font-size:15px;color:var(--t1)}
+.aj-fila+.aj-fila{border-top:1.6px dotted var(--punto)}
+.aj-fila>.ico{color:var(--t2)}
+.aj-fila small{display:block;font-size:12.5px;color:var(--t3);margin-top:1px;line-height:1.3}
+.aj-fila .det-valor{margin-left:auto}
+.aj-fila .sw{flex:none;margin-left:auto;position:relative;width:42px;height:25px;border-radius:999px;background:var(--o500);cursor:pointer;transition:background .2s}
+.aj-fila .sw::after{content:"";position:absolute;left:20px;top:3px;width:19px;height:19px;border-radius:50%;background:var(--sobre-acento);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s}
+.aj-fila .sw.off{background:var(--punto)}
+.aj-fila .sw.off::after{left:3px;background:var(--card)}
+.seg{display:flex;padding:3px;border-radius:999px;background:var(--kraft-hover);border:1px solid var(--borde-s);margin:10px 0 6px}
+.seg span{flex:1;text-align:center;height:34px;line-height:34px;border-radius:999px;font-weight:600;font-size:13.5px;color:var(--t2);cursor:pointer}
+.seg span.on{background:var(--card);color:var(--t1);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.18)}
+.acentos{display:flex;justify-content:space-between;padding:8px 2px 4px}
+.acento{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--t2);cursor:pointer}
+.acento i{width:36px;height:36px;border-radius:50%;background:var(--c);display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.acento i svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.acento.on i{box-shadow:0 0 0 2.5px var(--hoja),0 0 0 4.5px var(--c)}
+.acento.on i svg{opacity:1}
+.acento.on{color:var(--t1);font-weight:600}
+/* Vista previa con el acento elegido; la hormiga sigue en oliva (es la marca) */
+.prev{margin:6px 0 10px;border-radius:16px;background:var(--card);border:1px solid var(--borde-s);padding:10px 12px 12px;--a:var(--o500)}
+.prev .rastro-mini{display:block;width:100%;height:auto}
+.prev .tr-f{fill:none;stroke:var(--punto);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 10}
+.prev .tr-h{fill:none;stroke:var(--a);stroke-width:5;stroke-linecap:round;stroke-dasharray:0 10}
+.prev-fila{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:14.5px}
+.prev-fila .ck{width:20px;height:20px;border-radius:50%;background:var(--a);display:grid;place-items:center;flex:none}
+.prev-fila .ck svg{width:12px;height:12px;fill:none;stroke:var(--sobre-acento);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.prev-fila .tx{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.prev-fila .btn{margin-left:auto;height:30px;padding:0 12px;border-radius:999px;background:var(--a);color:var(--sobre-acento);font-weight:600;font-size:12.5px;display:inline-flex;align-items:center}
+.prev-nota{font-size:12px;color:var(--t3);margin-top:8px;line-height:1.35}
+.estilos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.estilo{position:relative;border-radius:16px;padding:8px 8px 10px;background:var(--card);border:1.5px solid var(--borde-s);cursor:pointer}
+.estilo.on{border-color:var(--o500);box-shadow:0 0 0 3px color-mix(in srgb,var(--o500) 18%,transparent)}
+.estilo .mini{height:74px;border-radius:11px;overflow:hidden;display:flex;gap:4px;padding:6px}
+.estilo b{display:block;font:650 14.5px var(--f-disp);margin-top:7px;padding-left:2px}
+.estilo small{display:block;font-size:11.5px;color:var(--t3);padding-left:2px}
+.estilo .pronto{position:absolute;right:8px;top:8px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:#2a1d1a;color:#e9c46a}
+.mini.tierra{background:#e7cf9b}
+.mini.tierra .l{width:22%;border-radius:6px;background:rgba(255,250,235,.35)}
+.mini.tierra .h{flex:1;border-radius:8px;background:#fbf4df;padding:7px}
+.mini.tierra .h i{display:block;height:5px;border-radius:3px;background:rgba(107,115,76,.35);margin-bottom:6px}
+.mini.reli{background:radial-gradient(ellipse at 50% 0,#3b2a4f,#120d10 70%)}
+.mini.reli .l{width:22%;border-radius:12px 12px 4px 4px;background:linear-gradient(#2c2520,#1a1512)}
+.mini.reli .h{flex:1;border-radius:4px;border:1px solid #8a6a2c;padding:7px;background:#1c1614}
+.mini.reli .h i{display:block;height:5px;border-radius:2px;background:#c9a44c;opacity:.55;margin-bottom:6px}
+.aj-pie{text-align:center;font-size:12.5px;color:var(--t3);margin:16px 0 0}
+.aj-pie .hormiga{width:30px;height:30px;margin:0 auto 4px}
+/* Panel de listas (antes «menú lateral») */
+.mn-tit{font:700 26px/1 var(--f-disp);letter-spacing:-.03em;padding:6px 10px 10px;display:flex;align-items:center}
+.mn-tit .cerrar{margin-left:auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--kraft-tinta)}
+.mn-nueva{display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:13px;border:1.5px dashed var(--punto-kraft);color:var(--kraft-tinta);font-size:15px;margin-top:6px}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1174,6 +1233,87 @@ function pantallaMenu(){
   </nav>`;
 }
 Object.assign(P_EXTRA,{captura:pantallaCaptura,buscar:pantallaBuscar,'buscar-vacio':pantallaBuscarVacio,menu:pantallaMenu});
+
+/* ═══ Añadido el 25-nov-2026: Ajustes y Apariencia; el menú pasa a ser solo de listas ═══
+   La barra de abajo es la navegación principal. ☰ abre un panel solo con las
+   listas (y Actividad), y el avatar de la barra abre Ajustes (#ajustes). */
+const ACENTOS=[
+  ['oliva','Oliva','#6b734c','#a4b272'],['arcilla','Arcilla','#9b5c45','#d88f67'],['terracota','Terracota','#ae6950','#e09975'],
+  ['miel','Miel','#a98656','#d9a66a'],['marea','Marea','#4c6c7c','#7eb5cd'],['vino','Vino','#844042','#d28e93']];
+function pantallaAjustes(){
+  const sw=(on=true)=>`<span class="sw${on?'':' off'}" role="switch" aria-checked="${on}"></span>`;
+  const fila_=(ic,tx,sub,der)=>`<div class="aj-fila">${ic?ico(ic,19):''}<div>${tx}${sub?`<small>${sub}</small>`:''}</div>${der}</div>`;
+  const val=v=>`<span class="det-valor">${v} ${ico('derecha',16)}</span>`;
+  const acentos=ACENTOS.map(([id,n,cl,co],i)=>`<span class="acento${i?'':' on'}" data-c="${OSC?co:cl}" style="--c:${OSC?co:cl}"><i>${CK}</i>${n}</span>`).join('');
+  return BARRA_ESTADO+`<div class="aj-cab"><a class="m-herr" href="#hoy"><button aria-label="Volver">${ico('izquierda',20)}</button></a><h1 class="m-tit">Ajustes</h1></div>
+  <div class="aj-hoja">
+    <div class="aj-card" style="margin-top:12px">${fila_('','<b style="font-weight:650">Tu cuenta</b>','Sincronizado hace un momento · 3 dispositivos','<span class="m-av" style="margin-left:auto">A</span>')}</div>
+
+    <div class="aj-sec"><div class="sec-cab"><span class="sec-tit">Apariencia</span><span class="puntos"></span></div>
+      <div class="seg" id="seg-tema"><span class="${OSC?'':'on'}">Automático</span><span>Claro</span><span class="${OSC?'on':''}">Oscuro</span></div>
+      <div class="acentos" id="acentos">${acentos}</div>
+      <div class="prev" id="prev">
+        <svg class="rastro-mini" viewBox="0 0 330 62"><path class="tr-f" d="M8 44 C 60 18, 110 56, 170 38 S 260 18, 290 40"/><path class="tr-h" d="M8 44 C 60 18, 110 56, 150 42"/>
+          <path d="M268 48 C 278 24, 314 24, 324 48 Z" style="fill:var(--tierra-2)"/>${hormiga({x:136,y:14,w:30})}</svg>
+        <div class="prev-fila"><span class="ck">${CK}</span><span class="tx">Pasear a Tango</span><span class="btn">Añadir</span></div>
+        <p class="prev-nota">El acento tiñe el rastro, las casillas y los botones. La hormiga se queda en oliva: es la marca.</p>
+      </div>
+    </div>
+
+    <div class="aj-sec"><div class="sec-cab"><span class="sec-tit">La hormiga</span><span class="puntos"></span></div>
+      <div class="aj-card">
+        ${fila_('','Se lleva la tarea al completarla','Si lo apagas, solo se marca y se tacha.',sw())}
+        ${fila_('','Rastro y hormiguero en Hoy','En lugar del porcentaje.',sw())}
+        ${fila_('','Hormigas en las rachas','Una por cada día cumplido.',sw())}
+        ${fila_('','Ilustraciones en pantallas vacías','',sw())}
+      </div>
+      <p class="prev-nota" style="padding:0 4px">Con «Reducir movimiento» activado en el móvil, la hormiga aparece pero no se mueve.</p>
+    </div>
+
+    <div class="aj-sec"><div class="sec-cab"><span class="sec-tit">Estilo</span><span class="puntos"></span></div>
+      <div class="estilos">
+        <div class="estilo on"><div class="mini tierra"><div class="l"></div><div class="h"><i style="width:70%"></i><i></i><i style="width:55%"></i></div></div><b>Tierra</b><small>Papel, kraft y la hormiga</small></div>
+        <div class="estilo"><span class="pronto">Pronto</span><div class="mini reli"><div class="l"></div><div class="h"><i style="width:70%"></i><i></i><i style="width:55%"></i></div></div><b>Relicario</b><small>Dark fantasy, velas y oro</small></div>
+      </div>
+    </div>
+
+    <div class="aj-sec"><div class="sec-cab"><span class="sec-tit">General</span><span class="puntos"></span></div>
+      <div class="aj-card">
+        ${fila_('campana','Avisos',null,val('Activados'))}
+        ${fila_('cal','La semana empieza en',null,val('Lunes'))}
+        ${fila_('etiqueta','Idioma',null,val('Español'))}
+        ${fila_('copiar','Copia de seguridad',null,val('Exportar'))}
+        ${fila_('ayuda','Ayuda y atajos',null,val(''))}
+      </div>
+    </div>
+    <div class="aj-pie">${hormiga()}AnTrack 2.43.8 · hecho con paciencia de hormiga</div>
+  </div>`+navN('perfil');
+}
+
+// ☰: panel solo de listas (las vistas ya están en la barra de abajo)
+function pantallaMenu(){
+  const ls=[['Trabajo','var(--l-trabajo)',4,8],['Casa','var(--l-casa)',4,6],['Personal','var(--l-personal)',4,5],['Lecturas','var(--l-lect)',1,4],['Viajes','var(--l-viajes)',0,3],['Salud','var(--o500)',5,7]];
+  return pantallaHoy()+`<div class="velo"></div>
+  <nav class="mn" aria-label="Listas">
+    <div class="mn-tit">Listas<a class="cerrar" href="#hoy" aria-label="Cerrar">${ico('cerrar',20)}</a></div>
+    <a>${ico('inbox',20)}<span>Todas las tareas</span><span class="n">17</span></a>
+    <div class="mn-grupo">Tus listas</div>
+    ${ls.map(([n,c,d,t])=>`<a>${anilloLista(d,t,c)}<span>${n}</span><span class="n">${d}/${t}</span></a>`).join('')}
+    <span class="mn-nueva">${ico('plus',18)} Nueva lista</span>
+    <div class="mn-pie"><a>${ico('history',20)}<span>Actividad · tu hormiguero</span></a></div>
+    <span class="mn-hor">${hormiga({cls:'duerme'})}</span>
+  </nav>`;
+}
+Object.assign(P_EXTRA,{menu:pantallaMenu,ajustes:pantallaAjustes,'ajustes-abajo':pantallaAjustes});
+if(estado==='ajustes-abajo')addEventListener('load',()=>{const h=document.querySelector('.aj-hoja');if(h)h.scrollTop=h.scrollHeight;});
+ICOS.izquierda='<path d="m15 18-6-6 6-6"/>';
+document.addEventListener('click',e=>{
+  const a=e.target.closest('.acento');
+  if(a){document.querySelectorAll('.acento').forEach(x=>x.classList.toggle('on',x===a));document.getElementById('prev').style.setProperty('--a',a.dataset.c);return;}
+  const sg=e.target.closest('#seg-tema span');if(sg){document.querySelectorAll('#seg-tema span').forEach(x=>x.classList.toggle('on',x===sg));return;}
+  const w=e.target.closest('.aj-fila .sw');if(w){w.classList.toggle('off');return;}
+  if(e.target.closest('.m-nav .m-av'))location.hash='ajustes';
+});
 
 document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});
 /* ═══ Arranque ═══ */

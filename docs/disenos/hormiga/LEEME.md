@@ -161,3 +161,14 @@ Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-
 - **`#menu`**: el menú lateral (☰) en kraft: perfil y sincronización, vistas con contadores, listas con su anillo y «+» para crear, y Ajustes y Ayuda abajo, con la hormiga dormida.
 - En la maqueta, el + abre la captura, ☰ abre el menú, la lupa abre la búsqueda y tocar el velo cierra.
 - Capturas: `movil-captura.png`, `movil-buscar.png`, `movil-buscar-vacio.png`, `movil-menu.png` y sus `-oscuro`.
+
+## Añadido el 25-nov-2026: Ajustes y panel de listas (móvil)
+
+- **Navegación:** la barra de abajo es la navegación principal (Hoy · Inbox · Notas · perfil). El menú ☰ ya no repite esas vistas: es un **panel de listas** (`#menu`), con «Todas las tareas», tus listas con su anillo, «Nueva lista» y Actividad abajo.
+- **`#ajustes`** (al tocar el avatar de la barra) y **`#ajustes-abajo`**:
+  - la cuenta y la sincronización arriba;
+  - **Apariencia:** tema (Automático · Claro · Oscuro) y los 6 acentos de la app, con una vista previa que cambia al tocar cada uno. **Decisión:** el acento tiñe el rastro, las casillas y los botones; la hormiga se queda siempre en oliva, porque es la marca;
+  - **La hormiga:** interruptores para que se lleve la tarea, el rastro en Hoy, las hormigas en las rachas y las ilustraciones de pantallas vacías. Con «Reducir movimiento» del sistema, aparece pero no se mueve;
+  - **Estilo:** Tierra (el actual) y Relicario («Pronto»), con una miniatura de cada uno;
+  - **General:** avisos, inicio de semana, idioma, copia de seguridad y ayuda.
+- Capturas: `movil-ajustes.png`, `movil-ajustes-abajo.png`, `movil-menu.png` (rehecha) y sus `-oscuro`.
