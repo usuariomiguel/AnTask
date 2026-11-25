@@ -12,7 +12,7 @@
   --kraft:#e7cf9b;--tinta:#5d4a26;--hoja:#fbf4df;--card:#fffcf1;--t1:#2b2213;--t2:#6f5f3e;--t3:#94845f;
   --o300:#a5b17d;--o400:#8c986d;--o500:#6b734c;--o700:#4b5135;--o800:#3e432a;--sobre:#fbf4df;
   --venc:#8f5853;--venc-rgb:143,88,83;--borde:rgba(80,56,10,.17);--punto:rgba(111,95,62,.32);
-  --tierra-2:#d6b073;--tierra-osc:#5e4426;--suelo:#b78c56;--senda:#efdfb5;--senda-borde:#e2cb93;--piedra:#d9c49a;
+  --tierra-2:#d6b073;--tierra-osc:#5e4426;--suelo:#b78c56;--mont-1:#ecca8e;--mont-2:#d6ad6c;--mont-3:#b78a50;--ramita:#9b7a4a;--senda:#efdfb5;--senda-borde:#e2cb93;--piedra:#d9c49a;
   --l-trabajo:#c25e3a;--l-casa:#3d6e85;--l-personal:#56867c;--l-lect:#b58236;--l-viajes:#96323a;
   --fd:'Bricolage Grotesque',system-ui,sans-serif;--fs:'Figtree',system-ui,sans-serif;
 }
@@ -20,7 +20,7 @@
   --kraft:#211a15;--tinta:#c4ad86;--hoja:#352b23;--card:#40342b;--t1:#e6d1aa;--t2:#cdb690;--t3:#a08d6c;
   --o300:#c9d59b;--o400:#6f7a48;--o500:#a4b272;--o700:#c4d195;--o800:#d6e0ad;--sobre:#211a15;
   --venc:#d8a99b;--venc-rgb:196,122,106;--borde:rgba(255,226,190,.16);--punto:rgba(255,226,190,.24);
-  --tierra-2:#5a4634;--tierra-osc:#f2c46d;--suelo:#6b5640;--senda:#3f3328;--senda-borde:#4a3c2f;--piedra:#55463a;
+  --tierra-2:#5a4634;--tierra-osc:#f2c46d;--suelo:#6b5640;--mont-1:#7a624c;--mont-2:#5c4836;--mont-3:#433427;--ramita:#806650;--senda:#3f3328;--senda-borde:#4a3c2f;--piedra:#55463a;
   --l-trabajo:#e08a66;--l-casa:#7fb0c7;--l-personal:#7fc0b2;--l-lect:#d9a85e;--l-viajes:#d27d84;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -75,6 +75,10 @@ svg.pg{display:block;width:100%;height:auto;overflow:visible}
 .piedra{fill:var(--piedra)}
 .mata{fill:none;stroke:var(--o400);stroke-width:1.8;stroke-linecap:round}
 .hojita{fill:var(--o400)}
+.mont-tex{pointer-events:none}
+.ramita{fill:none;stroke:var(--ramita);stroke-width:2;stroke-linecap:round}
+.puerta-in{fill:url(#pz)}
+.mont-cuerpo{transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
 .sombra-p{fill:rgba(0,0,0,.13)}
 .tr-fondo{fill:none;stroke:var(--punto);stroke-width:3.6;stroke-linecap:round;stroke-dasharray:0 9}
 .tr-hecho{fill:none;stroke:var(--o500);stroke-width:4.6;stroke-linecap:round;stroke-dasharray:0 9}
@@ -97,7 +101,7 @@ svg.pg{display:block;width:100%;height:auto;overflow:visible}
 .bandera{opacity:0;transition:opacity .4s}
 .lleno .bandera{opacity:1}
 .lleno .entrada{filter:drop-shadow(0 0 5px rgba(242,196,109,.95))}
-.grano{fill:var(--c)}
+.grano{fill:var(--c);stroke:rgba(0,0,0,.18);stroke-width:.8}
 .grano.nuevo{animation:cae .5s ease-out}
 @keyframes cae{from{transform:translateY(-14px);opacity:0}}
 
@@ -186,22 +190,31 @@ function viejo(el,pieEl,{done,total,venc,movil}){
 }
 
 /* ── Propuesta: camino con paradas ── */
+function textura(nx,ny){let r=7,o="";const R=()=>(r=(r*1664525+1013904223)>>>0)/4294967296;
+  for(let i=0;i<90;i++){const x=nx-46+R()*92,y=ny-R()*48;const e=((x-nx+1)/47)**2+((ny-y)/49)**2;if(e>.86)continue;
+    o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.6+R()*1.1).toFixed(2)}" style="fill:${R()<.6?"var(--mont-3)":"var(--mont-1)"};opacity:${(0.45+R()*0.4).toFixed(2)}"/>`;}
+  return o;}
 function nuevo(el,{tareas,movil,venc}){
   const U=++uid;
   const W=movil?360:600,H=(movil?116:124)+18;
   const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
   const nx=movil?312:520,ny=movil?96:104;
   const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
-  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><filter id="rug${U}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${uid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><radialGradient id="mg${U}" cx="38%" cy="22%" r="85%"><stop offset="0" stop-color="var(--mont-1)"/><stop offset=".55" stop-color="var(--mont-2)"/><stop offset="1" stop-color="var(--mont-3)"/></radialGradient><filter id="rug${U}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${uid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
     <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${U})"><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda-b"/><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
     <g class="paradas"></g>
     <g class="nido"><path class="suelo" d="M${nx-10} ${ny} H ${nx+48}"/>
-      <path class="monticulo" d="M${nx-46} ${ny} C ${nx-34} ${ny-50}, ${nx+30} ${ny-50}, ${nx+42} ${ny} Z"/>
+      <ellipse cx="${nx}" cy="${ny+1}" rx="56" ry="5" style="fill:rgba(0,0,0,.12)"/>
+      <g class="mont-cuerpo" style="transform-origin:${nx}px ${ny}px">
+        <path d="M${nx-50} ${ny} C ${nx-47} ${ny-14}, ${nx-41} ${ny-25}, ${nx-30} ${ny-35} C ${nx-22} ${ny-43}, ${nx-10} ${ny-50}, ${nx+3} ${ny-49} C ${nx+9} ${ny-52}, ${nx+16} ${ny-49}, ${nx+20} ${ny-46} C ${nx+30} ${ny-40}, ${nx+40} ${ny-24}, ${nx+48} ${ny} Z" style="fill:url(#mg${U})"/>
+        <g class="mont-tex">${textura(nx,ny)}</g>
+        <path class="ramita" d="M${nx-6} ${ny-38} l 22 -6 M${nx+8} ${ny-40} l 5 -4"/><path class="ramita" d="M${nx+18} ${ny-26} l 16 7"/>
+      </g>
       <g filter="url(#rug${U})"><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda-b" style="stroke-width:15"/><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda" style="stroke-width:10"/></g>
       <path class="entrada" d="M${nx-33} ${ny} C ${nx-33} ${ny-17}, ${nx-13} ${ny-17}, ${nx-13} ${ny} Z"/><path d="M${nx-35} ${ny} C ${nx-35} ${ny-20}, ${nx-11} ${ny-20}, ${nx-11} ${ny}" style="fill:none;stroke:var(--senda-borde);stroke-width:2.4;opacity:.9"/>
       <g class="granos"></g>
       <g class="bandera"><path d="M${nx+14} ${ny-36} V ${ny-66}" style="stroke:var(--t2);stroke-width:2.2;stroke-linecap:round"/><path d="M${nx+15} ${ny-66} L ${nx+36} ${ny-59} L ${nx+15} ${ny-52} Z" style="fill:var(--o500)"/></g>
-      <path class="hierba" d="M${nx+40} ${ny} l-3 -8 M${nx+40} ${ny} l4 -9"/></g>
+      <path class="hierba" d="M${nx+50} ${ny} l-3 -8 M${nx+50} ${ny} l4 -9"/></g>
     <g class="hor">${hormiga(-(movil?20:24),-(movil?36:43),movil?40:48)}</g></g>
     <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text>
     <text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
@@ -224,15 +237,16 @@ function nuevo(el,{tareas,movil,venc}){
     const sh=document.createElementNS(NS,'ellipse');sh.setAttribute('cy',1.8);sh.setAttribute('rx',rx);sh.setAttribute('ry',ry*.8);sh.setAttribute('class','sombra-p');w.appendChild(sh);
     const e=document.createElementNS(NS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
   const s={tareas,el,Lg,pAct:0};
-  const GR=[[-2,-10],[12,-8],[26,-6],[6,-20],[20,-17],[-8,-24],[34,-4],[-4,-32],[10,-30],[30,-14],[-14,-28],[16,-36],[38,-10],[2,-4]];
+  const GR=[];for(let r=0,c=5;c>0;r++,c--)for(let i=0;i<c;i++)GR.push([-4+i*9+r*4.5,-r*5.4]);
   s.pintar=(animarGrano)=>{
     const done=tareas.filter(t=>t.ok).length,total=tareas.length,v=tareas.filter(t=>!t.ok&&t.venc).length;
     tareas.forEach(t=>{t.el.setAttribute('class','parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?L[t.l]:'';});
     const ultima=tareas.reduce((m,t,i)=>t.ok?i:m,-1);
     const mk=el.querySelector('.mk');mk.style.strokeDasharray=`${Lg} ${Lg}`;mk.style.strokeDashoffset=Lg-(ultima<0?0:posL(ultima));
     const gg=el.querySelector('.granos');gg.innerHTML='';tareas.filter(t=>t.ok).slice(0,GR.length).forEach((t,i)=>{const [dx,dy]=GR[i];
-      gg.insertAdjacentHTML('beforeend',`<ellipse class="grano${animarGrano&&i===done-1?' nuevo':''}" style="--c:${L[t.l]}" cx="${nx+dx}" cy="${ny+dy-3}" rx="4" ry="2.5" transform="rotate(${(i*37)%60-30} ${nx+dx} ${ny+dy-3})"/>`);});
+      gg.insertAdjacentHTML('beforeend',`<ellipse class="grano${animarGrano&&i===done-1?' nuevo':''}" style="--c:${L[t.l]}" cx="${nx+dx}" cy="${ny+dy-3}" rx="4.8" ry="3" transform="rotate(${(i*37)%40-20} ${nx+dx} ${ny+dy-3})"/>`);});
     el.querySelector('svg').classList.toggle('lleno',done===total);
+    el.querySelector('.mont-cuerpo').style.transform=`scale(${(0.86+0.18*done/total).toFixed(3)})`;
     el.querySelector('.cont-n').innerHTML=`${done}<tspan class="de">/${total}</tspan>`;
     el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
   };
