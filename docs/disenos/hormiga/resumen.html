@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AnTrack · «La hormiga» — resumen del diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--kraft:#e7cf9b;--tinta:#5d4a26;--hoja:#fbf4df;--card:#fffcf1;--t1:#2b2213;--t2:#6f5f3e;--t3:#94845f;--o500:#6b734c;--o800:#3e432a;--borde:rgba(80,56,10,.17);--punto:rgba(111,95,62,.32)}
+:root.oscuro{--kraft:#211a15;--tinta:#c4ad86;--hoja:#352b23;--card:#40342b;--t1:#e6d1aa;--t2:#cdb690;--t3:#a08d6c;--o500:#a4b272;--o800:#d6e0ad;--borde:rgba(255,226,190,.16);--punto:rgba(255,226,190,.24)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',system-ui,sans-serif;background:var(--kraft);color:var(--t1);-webkit-font-smoothing:antialiased}
+.cab{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;padding:14px 40px;background:color-mix(in srgb,var(--kraft) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1.6px dotted var(--punto)}
+.cab svg.h{width:34px;height:34px;fill:var(--o500)}
+.cab h1{font:700 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.cab nav{display:flex;gap:4px;margin-left:24px;flex-wrap:wrap}
+.cab nav a{font-weight:600;font-size:13.5px;color:var(--t2);text-decoration:none;padding:6px 12px;border-radius:999px}
+.cab nav a:hover{background:var(--hoja)}
+.seg{margin-left:auto;display:flex;padding:3px;border-radius:999px;background:var(--hoja);border:1px solid var(--borde)}
+.seg button{font:600 13px 'Figtree',sans-serif;border:0;background:none;color:var(--t2);padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--o500);color:var(--hoja)}
+main{padding:30px 40px 60px;max-width:1700px;margin:0 auto}
+.intro{max-width:880px;font-size:16px;line-height:1.55;color:var(--t2)}
+.intro b{color:var(--t1)}
+.intro a{color:var(--o500)}
+h2{font:700 30px 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:44px 0 6px;display:flex;align-items:center;gap:14px}
+h2::after{content:"";flex:1;height:6px;background:radial-gradient(circle,var(--punto) 1.4px,transparent 1.9px) 0 50%/10px 6px repeat-x}
+.sub{color:var(--t2);font-size:14.5px;margin-bottom:16px}
+.rej{display:grid;gap:22px;align-items:start}
+.rej.pc{grid-template-columns:repeat(auto-fill,minmax(520px,1fr))}
+.rej.movil{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.rej.tab{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+figure{background:var(--hoja);border-radius:18px;padding:10px 10px 12px;box-shadow:0 0 0 1px var(--borde),0 14px 28px -20px rgba(0,0,0,.45)}
+figure img{display:block;width:100%;height:auto;border-radius:10px;cursor:zoom-in;background:var(--card)}
+figcaption{margin-top:9px;padding:0 4px}
+figcaption b{display:block;font:650 15px 'Bricolage Grotesque',sans-serif}
+figcaption span{display:block;font-size:13px;color:var(--t3);margin-top:2px;line-height:1.4}
+figcaption code{font-size:11.5px;color:var(--t3);background:var(--card);border-radius:5px;padding:1px 5px}
+.zoom{position:fixed;inset:0;z-index:20;background:rgba(20,15,10,.82);display:none;align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
+.zoom.on{display:flex}
+.zoom img{max-width:100%;max-height:100%;border-radius:14px;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.pie{margin-top:50px;color:var(--t3);font-size:13px}
+</style>
+</head>
+<body>
+<header class="cab">
+  <svg class="h" viewBox="200.4 293.4 378.8 378.8"><g transform="translate(0,1024) scale(0.1,-0.1)"><path d="M4677 6971 c-226 -115 -446 -493 -447 -767 0 -71 16 -94 53 -77 18 8 31 35 56 111 18 55 53 137 79 183 62 111 203 254 321 324 100 59 124 87 124 146 0 85 -95 126 -186 80z"/><path d="M5250 6789 c-249 -65 -527 -292 -666 -543 -43 -78 -44 -119 -3 -124 23 -3 36 9 87 71 160 196 380 325 635 373 98 19 132 35 152 74 31 60 8 131 -50 156 -44 18 -64 17 -155 -7z"/><path d="M4283 6055 c-131 -29 -248 -116 -300 -223 -25 -50 -28 -68 -28 -152 0 -86 3 -101 32 -163 105 -222 420 -365 686 -313 276 54 383 265 260 514 -68 138 -222 272 -369 321 -82 27 -202 34 -281 16z"/><path d="M3762 5524 c-68 -34 -152 -127 -197 -218 -63 -126 -60 -285 6 -340 47 -40 98 -36 173 14 74 47 187 100 217 100 27 0 90 66 114 120 l18 40 -81 84 c-73 75 -132 164 -132 202 0 13 -23 24 -49 24 -9 0 -40 -12 -69 -26z"/><path d="M3234 5398 c-312 -32 -686 -360 -834 -732 -54 -137 -73 -236 -74 -381 0 -112 3 -136 21 -177 28 -62 67 -83 153 -82 204 3 498 164 704 386 94 101 156 198 198 309 29 78 31 92 29 194 -7 279 -6 286 22 356 15 36 27 71 27 77 0 38 -123 63 -246 50z"/><path d="M3960 5022 c-83 -28 -216 -100 -301 -164 -176 -132 -319 -323 -461 -613 -140 -287 -150 -405 -34 -405 36 0 46 6 91 54 32 34 109 154 210 328 260 444 297 494 383 505 62 8 108 -19 157 -96 23 -36 90 -158 150 -271 199 -378 263 -478 333 -511 73 -36 141 -6 157 68 8 42 -21 161 -92 366 -107 314 -228 574 -305 663 -73 83 -180 112 -288 76z"/></g></svg>
+  <h1>«La hormiga» · resumen del diseño</h1>
+  <nav><a href="#movil">Móvil</a><a href="#pc">PC</a><a href="#tableta">Tableta</a></nav>
+  <div class="seg" id="tema"><button class="on" data-t="claro">Claro</button><button data-t="oscuro">Oscuro</button></div>
+</header>
+<main>
+  <p class="intro"><b>Todas las pantallas de la propuesta de diseño para AnTrack</b>, sobre el tema actual (Tierra): papel y kraft, y la hormiga del logo como personaje en los momentos justos. Son maquetas, no la app. Pulsa una captura para verla grande y cambia arriba entre claro y oscuro. Para usarlas en vivo, abre <a href="movil.html">movil.html</a> o <a href="index.html">index.html</a>; el detalle de cada pantalla está en el LEEME.</p>
+  <div id="contenido"></div>
+  <p class="pie">Maquetas del 20 al 25 de noviembre de 2026 · docs/disenos/hormiga/</p>
+</main>
+<div class="zoom" id="zoom"><img alt=""></div>
+<script>
+const G=[
+ {id:'movil',t:'Móvil',sub:'390 × 844 · abre movil.html#pantalla',c:'movil',p:'movil-',items:[
+  ['bienvenida-1','Bienvenida · 1','La hormiga saluda: sin cuenta y sin conexión'],
+  ['bienvenida-2','Bienvenida · 2','Apunta tu primera tarea y mira cómo la entiende'],
+  ['bienvenida-3','Bienvenida · 3','Cada tarea hecha, una miga al hormiguero'],
+  ['hoy','Hoy','Fecha grande, rastro hasta el hormiguero y la hormiga llevándose una tarea'],
+  ['habitos','Hábitos','Rachas como filas de hormigas'],
+  ['agenda','Agenda','El día por horas, con cabecera compacta'],
+  ['agenda-otro-dia','Agenda · otro día','Al tocar un día de la tira',1],
+  ['mes','Mes','Puntos por día y las tareas del día elegido'],
+  ['fin','Día terminado','La hormiga duerme en la hamaca'],
+  ['captura','Captura rápida','Lee fecha, hora, #lista y p1 mientras escribes'],
+  ['deshacer','Deshacer','El aviso al completar una tarea'],
+  ['inbox-listas','Inbox','Agrupado por lista, con fichas de listas'],
+  ['inbox','Inbox vacío','Bandeja limpia'],
+  ['detalle','Detalle de tarea','Cuándo, hora, aviso, importante y subtareas'],
+  ['detalle-abajo','Detalle · abajo','Enlaces, nota pautada y acciones'],
+  ['lista','Una lista','Trabajo, con su anillo de progreso'],
+  ['menu','Panel de listas','El ☰: solo listas y Actividad'],
+  ['notas','Notas','Fijadas con cinta y notas-lista'],
+  ['nota','Una nota','Casillas que pasan a tareas'],
+  ['buscar','Búsqueda','Resultados agrupados y resaltados'],
+  ['buscar-vacio','Sin resultados','«Ni rastro de…» con la lupa'],
+  ['actividad','Actividad','Tu hormiguero, semana a semana'],
+  ['ajustes','Ajustes','Tema, acentos con vista previa y la hormiga'],
+  ['ajustes-abajo','Ajustes · abajo','Estilo (Tierra / Relicario) y general'],
+  ['avisos','Avisos','Pantalla de bloqueo con acciones']]},
+ {id:'pc',t:'PC',sub:'1440 × 900 · abre index.html#pantalla',c:'pc',p:'',items:[
+  ['hoy','Hoy','Rastro, la hormiga llevándose una tarea y rachas'],
+  ['agenda','Agenda','El día con columna de «Sin hora», vencidas y semana'],
+  ['agenda-otro-dia','Agenda · otro día','Al pulsar un día de la semana',1],
+  ['inbox-listas','Inbox','Agrupado por lista'],
+  ['detalle','Detalle','Tercera columna junto al Inbox'],
+  ['notas','Notas','Cuatro columnas'],
+  ['buscar','Búsqueda (Ctrl+K)','Ventana flotante con atajos'],
+  ['ajustes','Ajustes','Dos columnas, Apariencia abierta'],
+  ['fin','Día terminado','La hamaca'],
+  ['actividad','Actividad','El hormiguero en corte'],
+  ['vacios','Estados vacíos','Inbox, búsqueda, sin conexión, hábito nuevo y momentos']]},
+ {id:'tableta',t:'Tableta',sub:'834 × 1112 · el PC con raíl de iconos (solo en claro)',c:'tab',p:'tableta-',items:[
+  ['hoy','Hoy','Raíl de iconos y el rastro en su fila',1],
+  ['agenda','Agenda','«Sin hora» y vencidas encima del día',1],
+  ['detalle','Detalle','Flota sobre la lista',1],
+  ['notas','Notas','Dos columnas',1]]}
+];
+let osc=false;
+function pintar(){
+  document.getElementById('contenido').innerHTML=G.map(g=>`<h2 id="${g.id}">${g.t}</h2><p class="sub">${g.sub}</p><div class="rej ${g.c}">${g.items.map(([f,t,d,solo])=>{
+    const src=`${g.p}${f}${osc&&!solo?'-oscuro':''}.png`;
+    return `<figure><img loading="lazy" src="${src}" alt="${t}"><figcaption><b>${t}</b><span>${d}</span><span><code>${g.id==='tableta'?'index.html':g.id==='pc'?'index.html':'movil.html'}#${f==='hoy'?'hoy':f}</code></span></figcaption></figure>`;}).join('')}</div>`).join('');
+}
+pintar();
+document.getElementById('tema').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;osc=b.dataset.t==='oscuro';document.documentElement.classList.toggle('oscuro',osc);document.querySelectorAll('#tema button').forEach(x=>x.classList.toggle('on',x===b));pintar();});
+const z=document.getElementById('zoom');
+document.addEventListener('click',e=>{const i=e.target.closest('figure img');if(i){z.querySelector('img').src=i.src;z.classList.add('on');return;}if(e.target.closest('.zoom'))z.classList.remove('on');});
+addEventListener('keydown',e=>{if(e.key==='Escape')z.classList.remove('on');});
+</script>
+</body>
+</html>

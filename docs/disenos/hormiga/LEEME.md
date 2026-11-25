@@ -2,7 +2,7 @@
 
 Maquetas del 20-nov-2026, hechas sobre el diseño actual (Tierra), en modo claro y oscuro.
 Usan la silueta real del logo (`src/img/logo-hormiga.svg`), separada en piezas: antenas, cuerpo y patas.
-Nada de esto está en la app; es solo referencia.
+Nada de esto está en la app; es solo referencia. **Para verlo todo de un vistazo, abre `resumen.html`.**
 
 ## Archivos
 
