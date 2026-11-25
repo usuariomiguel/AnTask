@@ -682,6 +682,44 @@ a{color:inherit;text-decoration:none}
 .bandera-r path:last-child{fill:var(--o500)}
 .mejor .etq-2{fill:var(--o600);font-weight:650}
 
+/* ═══ 26-nov: el progreso de Hoy como senda con paradas (ver progreso.html) ═══ */
+:root{--senda:#efdfb5;--senda-borde:#e2cb93;--piedra:#d9c49a}
+:root[data-theme="dark"]{--senda:#3f3328;--senda-borde:#4a3c2f;--piedra:#55463a}
+.rastro .rastro-pie{display:none}
+.cabeza .rastro{width:min(620px,100%);align-self:center}
+.pg-movil .cont-n,.pg-movil .cont-t{display:none}
+.bandera-r{display:none}
+.pg-host svg.pg{display:block;width:100%;height:auto;overflow:visible}
+.pg-host .senda-b{fill:none;stroke:var(--senda-borde);opacity:.75;stroke-width:17;stroke-linecap:round;stroke-linejoin:round}
+.pg-host .senda{fill:none;stroke:var(--senda);stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.pg-host .pisada{fill:var(--punto);transition:fill .25s}
+.pg-host .pisada.h{fill:var(--o500)}
+.pg-host .piedra{fill:var(--piedra)}
+.pg-host .mata{fill:none;stroke:var(--o400);stroke-width:1.8;stroke-linecap:round}
+.pg-host .hojita{fill:var(--o400)}
+.pg-host .sombra-p{fill:rgba(0,0,0,.13)}
+.pg-host .parada{transition:fill .3s;transform-box:fill-box;transform-origin:center}
+.pg-host .parada.pend{fill:var(--hoja);stroke:var(--punto);stroke-width:1.8;stroke-dasharray:2.4 2.2}
+.pg-host .parada.venc{fill:rgba(var(--venc-rgb),.12);stroke:var(--venc);stroke-width:1.8;stroke-dasharray:none}
+.pg-host .parada.ok{stroke:none}
+.pg-host .parada.pop{animation:pgpop .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pgpop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+.pg-host .cont-n{font:700 34px var(--f-disp);letter-spacing:-.04em;fill:var(--t1)}
+.pg-host .cont-n tspan.de{fill:var(--t3);font-size:22px}
+.pg-host .cont-t{font:500 12.5px var(--f-sans);fill:var(--t2)}
+.pg-host .cont-t .v{fill:var(--venc);font-weight:650}
+.pg-host .pg-bandera{opacity:0;transition:opacity .4s}
+.pg-host .lleno .pg-bandera{opacity:1}
+.pg-host .entrada{fill:var(--tierra-osc);transition:filter .4s}
+.pg-host .lleno .entrada{filter:drop-shadow(0 0 5px rgba(242,196,109,.95))}
+.pg-host .grano{fill:var(--c);stroke:rgba(0,0,0,.18);stroke-width:.8}
+.pg-host .grano.nuevo{animation:pgcae .5s ease-out}
+@keyframes pgcae{from{transform:translateY(-14px);opacity:0}}
+.pg-host .mont-tex{pointer-events:none}
+.pg-host .ramita{fill:none;stroke:var(--ramita);stroke-width:2;stroke-linecap:round}
+.pg-host .mont-cuerpo{transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
+.pg-host .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -976,7 +1014,7 @@ function camara(c,r,cols){
   for(let row=0;n>0&&row<14;row++){const cnt=Math.max(1,base-Math.floor(row/dec)),y=floor-row*SH;if(y<c.cy-c.ry+6)break;const x0=c.cx+ox-(cnt-1)*SW/2;
     for(let i=0;i<cnt&&n>0;i++,n--){const x=x0+i*SW+(r()-.5)*2,col=cols[Math.floor(r()*cols.length)],a=((r()-.5)*36).toFixed(0);
       s+=`<ellipse class="semilla" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="5" ry="3.1" style="fill:${col}" transform="rotate(${a} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;}}
-  if(c.mejor)s+=`<g class="bandera-r"><path d="M${c.cx} ${c.cy-c.ry+4} V ${c.cy-c.ry-16}"/><path d="M${c.cx+1} ${c.cy-c.ry-16} l 13 4.5 l -13 4.5 Z"/></g>`;
+  if(c.mejor)s+=`<g class="bandera-r"><path d="M${c.cx+c.rx*.55} ${c.cy-c.ry*.8+4} V ${c.cy-c.ry*.8-14}"/><path d="M${c.cx+c.rx*.55+1} ${c.cy-c.ry*.8-14} l 13 4.5 l -13 4.5 Z"/></g>`;
   
   if(c.actual){
     const ax=c.cx+c.rx*0.38,ay=c.cy+c.ry-27;
@@ -1601,6 +1639,97 @@ document.addEventListener('click',e=>{
 });
 
 document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});
+/* ═══ 26-nov: el progreso de Hoy como senda con paradas ═══
+   Sustituye al rastro de puntos. Mismo componente que progreso.html. */
+const PGNS='http://www.w3.org/2000/svg';
+const PGL={t:'var(--l-trabajo)',c:'var(--l-casa)',p:'var(--l-personal)',r:'var(--l-lect)',v:'var(--l-viajes)'};
+let pgUid=0,PG=null;
+function pgTextura(nx,ny){let r=7,o="";const R=()=>(r=(r*1664525+1013904223)>>>0)/4294967296;
+  for(let i=0;i<90;i++){const x=nx-46+R()*92,y=ny-R()*48;const e=((x-nx+1)/47)**2+((ny-y)/49)**2;if(e>.86)continue;
+    o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.6+R()*1.1).toFixed(2)}" style="fill:${R()<.6?"var(--mont-3)":"var(--mont-1)"};opacity:${(0.45+R()*0.4).toFixed(2)}"/>`;}
+  return o;}
+function pgNuevo(el,{tareas,movil,venc}){
+  const U=++pgUid;
+  const W=movil?360:600,H=(movil?116:124)+18;
+  const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
+  const nx=movil?312:520,ny=movil?96:104;
+  const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
+  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><radialGradient id="mg${U}" cx="38%" cy="22%" r="85%"><stop offset="0" stop-color="var(--mont-1)"/><stop offset=".55" stop-color="var(--mont-2)"/><stop offset="1" stop-color="var(--mont-3)"/></radialGradient><filter id="rug${U}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${pgUid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+    <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${U})"><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda-b"/><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
+    <g class="paradas"></g>
+    <g class="nido"><path class="suelo" d="M${nx-10} ${ny} H ${nx+48}"/>
+      <ellipse cx="${nx}" cy="${ny+1}" rx="56" ry="5" style="fill:rgba(0,0,0,.12)"/>
+      <g class="mont-cuerpo" style="transform-origin:${nx}px ${ny}px">
+        <path d="M${nx-50} ${ny} C ${nx-47} ${ny-14}, ${nx-41} ${ny-25}, ${nx-30} ${ny-35} C ${nx-22} ${ny-43}, ${nx-10} ${ny-50}, ${nx+3} ${ny-49} C ${nx+9} ${ny-52}, ${nx+16} ${ny-49}, ${nx+20} ${ny-46} C ${nx+30} ${ny-40}, ${nx+40} ${ny-24}, ${nx+48} ${ny} Z" style="fill:url(#mg${U})"/>
+        <g class="mont-tex">${pgTextura(nx,ny)}</g>
+        <path class="ramita" d="M${nx-6} ${ny-38} l 22 -6 M${nx+8} ${ny-40} l 5 -4"/><path class="ramita" d="M${nx+18} ${ny-26} l 16 7"/>
+      </g>
+      <g filter="url(#rug${U})"><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda-b" style="stroke-width:15"/><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda" style="stroke-width:10"/></g>
+      <path class="entrada" d="M${nx-33} ${ny} C ${nx-33} ${ny-17}, ${nx-13} ${ny-17}, ${nx-13} ${ny} Z"/><path d="M${nx-35} ${ny} C ${nx-35} ${ny-20}, ${nx-11} ${ny-20}, ${nx-11} ${ny}" style="fill:none;stroke:var(--senda-borde);stroke-width:2.4;opacity:.9"/>
+      <g class="granos"></g>
+      <g class="pg-bandera"><path d="M${nx+14} ${ny-36} V ${ny-66}" style="stroke:var(--t2);stroke-width:2.2;stroke-linecap:round"/><path d="M${nx+15} ${ny-66} L ${nx+36} ${ny-59} L ${nx+15} ${ny-52} Z" style="fill:var(--o500)"/></g>
+      <path class="hierba" d="M${nx+50} ${ny} l-3 -8 M${nx+50} ${ny} l4 -9"/></g>
+    <g class="hor">${hormiga({x:-(movil?20:24),y:-(movil?36:43),w:movil?40:48})}</g></g>
+    <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text>
+    <text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
+  const g=el.querySelector('.guia'),Lg=g.getTotalLength();
+  const posL=i=>Lg*(0.05+0.9*(tareas.length===1?0.5:i/(tareas.length-1)));
+  const pt=l=>{const a=g.getPointAtLength(l),b=g.getPointAtLength(Math.min(Lg,l+2)),c=g.getPointAtLength(Math.max(0,l-2));return {x:a.x,y:a.y,ang:Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI};};
+  const nrm=l=>{const a=g.getPointAtLength(Math.max(0,l-1)),b=g.getPointAtLength(Math.min(Lg,l+1));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy)||1;return [-dy/m,dx/m];};
+  const fps=[],gpi=el.querySelector('.pisadas'),paso_=muchas?7:8;
+  for(let l=4,i=0;l<Lg-2;l+=paso_,i++){const a=g.getPointAtLength(l),[nx_,ny_]=nrm(l),sd=i%2?1:-1;const c=document.createElementNS(PGNS,'ellipse');
+    c.setAttribute('cx',(a.x+nx_*3*sd).toFixed(1));c.setAttribute('cy',(a.y+ny_*3*sd).toFixed(1));c.setAttribute('rx','1.9');c.setAttribute('ry','1.3');c.setAttribute('class','pisada');gpi.appendChild(c);fps.push({l,c});}
+  const dg=el.querySelector('.deco');const deco=(f,off,html)=>{const l=Lg*f,a=g.getPointAtLength(l),[ux,uy]=nrm(l);return html(a.x+ux*off,a.y+uy*off);};
+  dg.innerHTML=[
+    deco(.16,17,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -9 M${x} ${y} l4 -6"/>`),
+    deco(.33,-15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="4.5" ry="3"/><ellipse class="piedra" cx="${x+7}" cy="${y+2}" rx="2.6" ry="2"/>`),
+    deco(.52,16,(x,y)=>`<path class="hojita" d="M${x} ${y} q 8 -10 16 -3 q -8 8 -16 3 Z"/>`),
+    deco(.7,-16,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -10 M${x} ${y} l4 -7"/>`),
+    deco(.86,15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="3.4" ry="2.4"/>`)].join('');
+  const gp=el.querySelector('.paradas');
+  tareas.forEach((t,i)=>{const q=pt(posL(i));const w=document.createElementNS(PGNS,'g');w.setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${(q.ang-25).toFixed(1)})`);
+    const sh=document.createElementNS(PGNS,'ellipse');sh.setAttribute('cy',1.8);sh.setAttribute('rx',rx);sh.setAttribute('ry',ry*.8);sh.setAttribute('class','sombra-p');w.appendChild(sh);
+    const e=document.createElementNS(PGNS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
+  const s={tareas,el,Lg,pAct:0};
+  const GR=[];for(let r=0,c=5;c>0;r++,c--)for(let i=0;i<c;i++)GR.push([-4+i*9+r*4.5,-r*5.4]);
+  s.pintar=(animarGrano)=>{
+    const done=tareas.filter(t=>t.ok).length,total=tareas.length,v=tareas.filter(t=>!t.ok&&t.venc).length;
+    tareas.forEach(t=>{t.el.setAttribute('class','parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?PGL[t.l]:'';});
+    const ultima=tareas.reduce((m,t,i)=>t.ok?i:m,-1);
+    const mk=el.querySelector('.mk');mk.style.strokeDasharray=`${Lg} ${Lg}`;mk.style.strokeDashoffset=Lg-(ultima<0?0:posL(ultima));
+    const gg=el.querySelector('.granos');gg.innerHTML='';tareas.filter(t=>t.ok).slice(0,GR.length).forEach((t,i)=>{const [dx,dy]=GR[i];
+      gg.insertAdjacentHTML('beforeend',`<ellipse class="grano${animarGrano&&i===done-1?' nuevo':''}" style="--c:${PGL[t.l]}" cx="${nx+dx}" cy="${ny+dy-3}" rx="4.8" ry="3" transform="rotate(${(i*37)%40-20} ${nx+dx} ${ny+dy-3})"/>`);});
+    el.querySelector('svg').classList.toggle('lleno',done===total);
+    el.querySelector('.mont-cuerpo').style.transform=`scale(${(0.86+0.18*done/total).toFixed(3)})`;
+    el.querySelector('.cont-n').innerHTML=`${done}<tspan class="de">/${total}</tspan>`;
+    el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
+  };
+  s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?12:18);};
+  s.colocar=l=>{fps.forEach(f=>f.c.classList.toggle('h',f.l<l));let q;if(l>Lg){q={x:nx-38,y:ny-1,ang:0};}else q=pt(Math.max(0,l));
+    el.querySelector('.hor').setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
+  s.completar=()=>{const i=tareas.findIndex(t=>!t.ok);if(i<0||s.ocupado)return;s.ocupado=true;
+    tareas[i].ok=true;s.pintar(true);tareas[i].el.classList.add('pop');
+    const l0=s.pAct,l1=s.destino(),t0=performance.now(),D=900,ant=el.querySelector('.hormiga');ant.classList.add('anda');
+    (function paso(t){const k=Math.min(1,(t-t0)/D),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;s.colocar(l1>Lg&&k>.85?l1:l0+(Math.min(l1,Lg)-l0)*e);
+      if(k<1)requestAnimationFrame(paso);else{ant.classList.remove('anda');s.colocar(l1);s.ocupado=false;}})(t0);};
+  s.pintar();s.colocar(s.destino());return s;
+}
+
+
+function pgTareas(){const H='pctrvtcp'.split(''),D='pcrtvcpt'.split('');const t=[];
+  for(let i=0;i<E.done;i++)t.push({l:D[i%D.length],ok:1});
+  for(let i=0;i<E.venc&&t.length<E.total;i++)t.push({l:i%2?'t':'c',venc:1});
+  while(t.length<E.total)t.push({l:H[t.length%H.length]});return t;}
+function rastroSVG(){return `<div class="pg-host"><svg width="0" height="0"><path id="tr-guia" d="M0 0"/><path id="tr-mask" d="M0 0"/><g id="tr-hor"><svg class="hormiga"></svg></g></svg></div>`;}
+function ponerProgreso(){const h=document.querySelector('.pg-host');if(!h)return;
+  const mv=h.getBoundingClientRect().width<420;PG=pgNuevo(h,{tareas:pgTareas(),movil:mv});
+  if(mv){h.classList.add('pg-movil');h.querySelector('svg').setAttribute('viewBox','0 24 360 100');}pie();}
+function pie(){const mv=document.querySelector('.pg-movil');
+  const n=document.getElementById('n-nav');if(n)n.textContent=E.pend;const c=document.getElementById('n-tareas');if(c)c.textContent=E.pend;
+  const m=document.getElementById('mes');if(!m)return;
+  m.innerHTML=mv?`<b>${E.done}/${E.total}</b> hechas${E.venc?` · <span style="color:var(--venc);font-weight:600">${E.venc} vencidas</span>`:''}`:(E.pend?`de noviembre · ${E.pend} sin hacer`:'de noviembre · nada pendiente');}
+function avanzar(){if(PG)PG.completar();}
+function migas(){}
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
