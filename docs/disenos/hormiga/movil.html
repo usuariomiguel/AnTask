@@ -591,6 +591,85 @@ a{color:inherit;text-decoration:none}
 .ls-hechas{display:flex;align-items:center;gap:8px;margin:8px 6px 0;padding:10px 12px;border-radius:14px;background:var(--hab-bg);border:1px solid var(--borde-s);font-size:14px;color:var(--t2)}
 .ls-hechas .ico:last-child{margin-left:auto}
 
+/* ═══ Añadido el 25-nov-2026: bienvenida, avisos y mes (móvil) ═══ */
+.bv{position:absolute;inset:0;display:flex;flex-direction:column;padding:0 24px 40px}
+.bv-saltar{position:absolute;right:20px;top:54px;font-weight:600;font-size:14.5px;color:var(--kraft-tinta)}
+.bv-ilus{flex:none;height:360px;display:flex;align-items:flex-end;justify-content:center;margin-top:60px}
+.bv.p2 .bv-ilus{height:230px;margin-top:50px}
+.bv.p2 .bv-ilus svg{width:250px}
+.bv-ilus svg{width:330px;height:auto;overflow:visible}
+.bv-hoja{flex:1;margin:18px -24px -40px;padding:26px 26px 34px;border-radius:28px 28px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);display:flex;flex-direction:column}
+.bv-paso{font:650 13px var(--f-disp);color:var(--o600);display:flex;align-items:center;gap:7px}
+.bv-paso::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.bv h1{font:700 32px/1.08 var(--f-disp);letter-spacing:-.035em;margin-top:8px}
+.bv p{font-size:16px;line-height:1.5;color:var(--t2);margin-top:10px}
+.bv p b{color:var(--t1);font-weight:600}
+.bv-pie{margin-top:auto;display:flex;align-items:center;gap:12px}
+.bv-puntos{display:flex;gap:6px}
+.bv-puntos i{width:8px;height:8px;border-radius:50%;background:var(--punto)}
+.bv-puntos i.on{width:24px;border-radius:4px;background:var(--o500)}
+.bv-btn{margin-left:auto;display:inline-flex;align-items:center;gap:8px;height:50px;padding:0 22px;border-radius:999px;background:var(--o500);color:var(--sobre-acento);font-weight:650;font-size:16px;box-shadow:0 6px 14px -6px rgba(62,67,42,.6)}
+.bv-prueba{margin-top:16px;padding:12px 14px;border-radius:16px;background:var(--card);border:1.5px solid color-mix(in srgb,var(--o500) 45%,transparent);font-size:16.5px;line-height:1.5}
+.bv-prueba .cursor{display:inline-block;width:2px;height:20px;vertical-align:-4px;background:var(--o500);animation:parpadeo 1s steps(1) infinite}
+.bv-ideas{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bv-ideas span{height:30px;line-height:28px;padding:0 11px;border-radius:999px;border:1px dashed var(--check-borde);font-size:13px;color:var(--t2)}
+.bv-ok{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border-radius:14px;background:rgba(107,115,76,.1);font-size:14px;color:var(--t2)}
+.bv-ok .mini-check{width:20px;height:20px}
+/* Avisos: pantalla de bloqueo */
+.bloqueo{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,#7a6a4a,#3a2f22 60%,#1d1711);color:#fbf4df}
+[data-theme="dark"] .bloqueo{background:radial-gradient(ellipse at 50% 20%,#3a3024,#17120d 65%)}
+.bloqueo .estado{color:#fbf4df}
+.bl-hora{text-align:center;font:600 84px/1 var(--f-sans);letter-spacing:-.03em;margin-top:30px}
+.bl-fecha{text-align:center;font-size:18px;font-weight:500;opacity:.85;margin-top:6px}
+.notifs{position:absolute;left:10px;right:10px;top:250px;display:flex;flex-direction:column;gap:8px}
+.notif{display:flex;gap:11px;padding:12px 13px;border-radius:22px;background:rgba(251,244,223,.78);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#2b2213}
+[data-theme="dark"] .notif{background:rgba(64,52,43,.82);color:#e6d1aa}
+.notif .app-ico{flex:none;width:38px;height:38px;border-radius:10px;background:#fbf4df;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+.notif .app-ico .hormiga{width:28px;height:28px;color:#6b734c}
+.notif-tx{flex:1;min-width:0}
+.notif-top{display:flex;font-size:13px;font-weight:600;opacity:.75}
+.notif-top span:last-child{margin-left:auto;font-weight:500}
+.notif-tx b{display:block;font-size:15px;font-weight:650;margin-top:1px}
+.notif-tx p{font-size:14px;line-height:1.35;margin-top:1px;opacity:.9}
+.notif-acc{display:flex;gap:6px;margin-top:8px}
+.notif-acc span{flex:1;text-align:center;height:32px;line-height:32px;border-radius:12px;background:rgba(43,34,19,.08);font-size:13px;font-weight:600}
+[data-theme="dark"] .notif-acc span{background:rgba(255,238,214,.08)}
+.notif-pila{margin:0 14px;height:12px;border-radius:0 0 18px 18px;background:rgba(251,244,223,.45)}
+[data-theme="dark"] .notif-pila{background:rgba(64,52,43,.5)}
+.bl-pie{position:absolute;left:0;right:0;bottom:40px;display:flex;justify-content:space-between;padding:0 46px}
+.bl-pie span{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center}
+/* Aviso dentro de la app: deshacer */
+.brindis{position:absolute;left:16px;right:16px;bottom:104px;z-index:9;display:flex;align-items:center;gap:10px;height:52px;padding:0 8px 0 12px;border-radius:16px;background:#2b2213;color:#fbf4df;box-shadow:0 14px 28px -12px rgba(0,0,0,.6);font-size:14.5px}
+[data-theme="dark"] .brindis{background:#e6d1aa;color:#211a15}
+.brindis .hormiga{width:26px;height:26px;color:#a4b272;flex:none}
+[data-theme="dark"] .brindis .hormiga{color:#5b6240}
+.brindis b{font-weight:650}
+.brindis .deshacer{margin-left:auto;height:36px;padding:0 13px;border-radius:11px;font-weight:700;font-size:14px;color:#c9d59b}
+[data-theme="dark"] .brindis .deshacer{color:#4b5135}
+/* Mes */
+.mes-cab{display:flex;align-items:center;gap:8px;padding:4px 18px 0 20px}
+.mes-cab h1{font:700 30px var(--f-disp);letter-spacing:-.03em}
+.mes-cab .m-herr{margin-left:auto}
+.mes-dias{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 14px 0;font:600 11.5px var(--f-sans);color:var(--kraft-tinta);text-align:center}
+.mes-rej{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:4px 14px 0}
+.md{height:42px;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.md b{font:650 16px var(--f-disp);color:var(--t1)}
+.md.fuera b{color:var(--kraft-tinta);opacity:.45}
+.md.pasado b{color:var(--kraft-tinta)}
+.md .pt{display:flex;gap:2px;height:4px}
+.md .pt i{width:4px;height:4px;border-radius:50%;background:var(--o500)}
+.md .pt i.v{background:var(--venc)}
+.md .pt i.e{background:var(--cal-google)}
+.md.hoy{background-color:var(--hoja);background-image:var(--tex-hoja);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.16),0 8px 14px -10px rgba(var(--sombra-rgb),.45)}
+.md.hoy b{color:var(--o700)}
+.md.sel:not(.hoy){box-shadow:inset 0 0 0 1.6px var(--o400)}
+.mes-ley{display:flex;gap:14px;padding:10px 22px 0;font-size:12px;color:var(--kraft-tinta)}
+.mes-ley span{display:inline-flex;align-items:center;gap:5px}
+.mes-ley i{width:6px;height:6px;border-radius:50%}
+.mes-dia-tit{display:flex;align-items:baseline;gap:8px;padding:2px 8px 4px}
+.mes-dia-tit b{font:650 18px var(--f-disp)}
+.mes-dia-tit span{font-size:13px;color:var(--t3)}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1422,6 +1501,82 @@ document.addEventListener('click',e=>{
   const li=e.target.closest('.nt-items li');if(li&&!e.target.closest('.flecha')){li.classList.toggle('ok');return;}
   if(e.target.closest('.e-notas .nota'))location.hash='nota';
   if(e.target.closest('.e-menu .mn a')&&e.target.closest('.mn a').textContent.includes('Trabajo'))location.hash='lista';
+});
+
+/* ═══ Añadido el 25-nov-2026: bienvenida (3 pasos), avisos y mes ═══ */
+function ilusBienvenida(n){
+  if(n===1)return `<svg viewBox="0 0 330 300"><path class="v-suelo" d="M20 286 H310"/>
+    <path class="monticulo" d="M196 286 C 214 222, 296 222, 314 286 Z"/><ellipse class="entrada" cx="255" cy="248" rx="11" ry="6"/>
+    ${hormiga({x:40,y:120,w:170})}
+    <g class="saludo"><path d="M150 96 q 18 -26 40 -14" style="fill:none;stroke:var(--o500);stroke-width:5;stroke-linecap:round"/><path d="M196 74 l 10 -10 M200 88 l 14 -2" style="stroke:var(--o400);stroke-width:4;stroke-linecap:round"/></g></svg>`;
+  if(n===2)return `<svg viewBox="0 0 330 300"><path class="v-suelo" d="M20 286 H310"/>
+    <rect x="96" y="70" width="190" height="56" rx="28" style="fill:var(--card);stroke:var(--borde);stroke-width:1.5"/>
+    <circle cx="124" cy="98" r="15" style="fill:var(--o500)"/><path d="M118 98 h12 M124 92 v12" style="stroke:var(--sobre-acento);stroke-width:3;stroke-linecap:round"/>
+    <rect x="150" y="91" width="96" height="10" rx="5" style="fill:var(--punto)"/>
+    ${hormiga({x:30,y:150,w:140})}
+    <path d="M150 170 C 170 150, 200 140, 214 128" style="fill:none;stroke:var(--punto);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 10"/></svg>`;
+  return `<svg viewBox="0 0 330 300"><path class="v-suelo" d="M20 286 H310"/>
+    <path d="M24 250 C 80 200, 140 280, 200 230" style="fill:none;stroke:var(--o500);stroke-width:5;stroke-linecap:round;stroke-dasharray:0 11"/>
+    <path class="monticulo" d="M210 286 C 226 230, 300 230, 316 286 Z"/><ellipse class="entrada" cx="263" cy="252" rx="10" ry="5.5"/>
+    <g transform="rotate(-6 160 150)"><rect x="70" y="118" width="190" height="40" rx="20" style="fill:var(--card);stroke:var(--borde);stroke-width:1.5"/>
+      <circle cx="92" cy="138" r="11" style="fill:var(--o500)"/><rect x="112" y="133" width="120" height="9" rx="4.5" style="fill:var(--punto)"/></g>
+    ${hormiga({x:110,y:146,w:110,cls:'anda'})}</svg>`;
+}
+function pantallaBienvenida(n){
+  const txt={
+    1:['Hola. Yo cargo con tus tareas.','AnTrack es una libreta para lo de hoy. <b>Sin cuenta y sin conexión</b>: todo se guarda en tu móvil, y si quieres lo sincronizas después.','Empezar'],
+    2:['Apunta tu primera tarea.','Escríbela como te salga. Yo entiendo las fechas y las repeticiones.',''],
+    3:['Cada tarea hecha, una miga al hormiguero.','Cuando completes algo, me lo llevo. El rastro de arriba te dice cuánto llevas hoy, y Actividad guarda tu hormiguero semana a semana.','Ir a Hoy']
+  }[n];
+  const extra=n===2?`<div class="bv-prueba">Comprar pan <span class="tok tk-fecha">mañana</span><span class="cursor"></span></div>
+      <div class="bv-ideas"><span>Llamar a mamá el domingo</span><span>Regar las plantas cada 3 días</span></div>
+      <div class="bv-ok"><span class="mini-check">${CK}</span>Mañana, sáb 21 · se guarda como «Comprar pan»</div>`:'';
+  return BARRA_ESTADO+`<div class="bv p${n}">${n<3?'<a class="bv-saltar" href="#hoy">Saltar</a>':''}
+    <div class="bv-ilus">${ilusBienvenida(n)}</div>
+    <div class="bv-hoja"><span class="bv-paso">Paso ${n} de 3</span><h1>${txt[0]}</h1><p>${txt[1]}</p>${extra}
+      <div class="bv-pie"><span class="bv-puntos">${[1,2,3].map(i=>`<i class="${i===n?'on':''}"></i>`).join('')}</span>
+        <a class="bv-btn" href="#${n<3?'bienvenida-'+(n+1):'hoy'}">${n===2?'Añadir':txt[2]} ${ico('arrow',18)}</a></div></div>
+  </div><div class="home"></div>`;
+}
+function pantallaAvisos(){
+  const app=`<span class="app-ico">${hormiga()}</span>`;
+  return `<div class="bloqueo">${BARRA_ESTADO}<div class="bl-hora">9:30</div><div class="bl-fecha">viernes, 20 de noviembre</div>
+    <div class="notifs">
+      <div class="notif">${app}<div class="notif-tx"><div class="notif-top"><span>AnTrack</span><span>ahora</span></div><b>Preparar la presentación del jueves</b><p>A las 10:00 · Trabajo · 2 de 5 subtareas hechas</p>
+        <div class="notif-acc"><span>Hecha</span><span>En 1 hora</span><span>Mañana</span></div></div></div>
+      <div><div class="notif">${app}<div class="notif-tx"><div class="notif-top"><span>AnTrack</span><span>8:00</span></div><b>Buenos días: 6 tareas para hoy</b><p>2 vencidas y la primera a las 10:00. La hormiga ya está en la puerta.</p></div></div><div class="notif-pila"></div></div>
+      <div class="notif">${app}<div class="notif-tx"><div class="notif-top"><span>AnTrack</span><span>ayer</span></div><b>Racha de 7 días meditando</b><p>Siete hormigas en fila. No rompas la cadena hoy.</p></div></div>
+    </div>
+    <div class="bl-pie"><span>${ico('sun',20)}</span><span>${ico('cal',20)}</span></div><div class="home" style="background:rgba(251,244,223,.85)"></div></div>`;
+}
+function pantallaDeshacer(){
+  return pantallaHoy()+`<div class="brindis">${hormiga()}<span><b>Llevada:</b> Enviar la factura…</span><button class="deshacer">Deshacer</button></div>`;
+}
+function pantallaMes(){
+  // Noviembre 2026 empieza en domingo; con semanas de lunes, el 1 cae en la 7.ª columna.
+  const pts={2:'oo',3:'o',4:'ooo',5:'o',6:'oe',9:'oo',10:'o',11:'ooo',12:'ov',13:'o',16:'ooo',17:'oo',18:'oooo',19:'ov',20:'ooe',21:'e',22:'o',24:'o',27:'e',30:'o'};
+  let c='';const vacios=6;
+  for(let i=0;i<vacios;i++)c+=`<div class="md fuera"><b>${26+i}</b><span class="pt"></span></div>`;
+  for(let d=1;d<=30;d++){const p=(pts[d]||'').split('').map(x=>`<i class="${x==='v'?'v':x==='e'?'e':''}"></i>`).join('');
+    c+=`<div class="md ${d<20?'pasado':''} ${d===20?'hoy':''} ${d===24?'sel':''}" data-d="${d}"><b>${d}</b><span class="pt">${p}</span></div>`;}
+  for(let d=1;d<=6;d++)c+=`<div class="md fuera"><b>${d}</b><span class="pt"></span></div>`;
+  const filas=[{t:'Comprar el regalo de Lucía',f:'sáb 21 nov'}].length;
+  return BARRA_ESTADO+`<div class="mes-cab"><a class="m-herr" href="#agenda"><button aria-label="Volver">${ico('izquierda',20)}</button></a><h1>Noviembre</h1>
+    <div class="m-herr"><button aria-label="Mes anterior">${ico('izquierda',18)}</button><button aria-label="Mes siguiente">${ico('derecha',18)}</button></div></div>
+    <div class="mes-dias">${['L','M','X','J','V','S','D'].map(x=>`<span>${x}</span>`).join('')}</div>
+    <div class="mes-rej">${c}</div>
+    <div class="mes-ley"><span><i style="background:var(--o500)"></i>tareas</span><span><i style="background:var(--venc)"></i>vencidas</span><span><i style="background:var(--cal-google)"></i>eventos</span></div>
+    <div class="m-hoja" style="top:452px">
+      <div class="m-pestanas"><button class="m-pest on">Día <span>3</span></button><a class="m-pest" href="#agenda">Agenda</a></div>
+      <div class="m-cuerpo"><div class="mes-dia-tit"><b>Martes 24</b><span>dentro de 4 días</span></div>
+        ${[{t:'Enviar el presupuesto a Marta',f:'mar 24 nov',hoy:0},{t:'Pedir cita para la ITV'},{t:'Revisar el contrato del piso',imp:1}].map(filaInbox).join('')}
+        <div class="sec-cab"><span class="sec-tit">Eventos</span><span class="puntos"></span></div>
+        <div class="ag-b ag-ev" style="position:relative;height:50px;margin:2px 4px;--c:var(--cal-google)"><div class="ag-tx"><span class="ag-tit">Revisión con el banco</span><span class="ag-meta">${ico('cal',12)} 16:00–17:00 · Google</span></div></div>
+      </div></div>`+navN('hoy');
+}
+Object.assign(P_EXTRA,{'bienvenida-1':()=>pantallaBienvenida(1),'bienvenida-2':()=>pantallaBienvenida(2),'bienvenida-3':()=>pantallaBienvenida(3),avisos:pantallaAvisos,deshacer:pantallaDeshacer,mes:pantallaMes});
+document.addEventListener('click',e=>{
+  const md=e.target.closest('.md[data-d]');if(md){document.querySelectorAll('.md').forEach(x=>x.classList.toggle('sel',x===md));const t=document.querySelector('.mes-dia-tit b');if(t)t.textContent='Día '+md.dataset.d;}
 });
 
 document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});

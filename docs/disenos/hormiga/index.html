@@ -516,6 +516,49 @@ a{color:inherit;text-decoration:none}
 .mini.tierra{background:#e7cf9b}.mini.tierra .l{width:22%;border-radius:6px;background:rgba(255,250,235,.35)}.mini.tierra .h{flex:1;border-radius:8px;background:#fbf4df;padding:7px}.mini.tierra .h i{display:block;height:5px;border-radius:3px;background:rgba(107,115,76,.35);margin-bottom:6px}
 .mini.reli{background:radial-gradient(ellipse at 50% 0,#3b2a4f,#120d10 70%)}.mini.reli .l{width:22%;border-radius:12px 12px 4px 4px;background:linear-gradient(#2c2520,#1a1512)}.mini.reli .h{flex:1;border-radius:4px;border:1px solid #8a6a2c;padding:7px;background:#1c1614}.mini.reli .h i{display:block;height:5px;border-radius:2px;background:#c9a44c;opacity:.55;margin-bottom:6px}
 
+/* ═══ Añadido el 25-nov-2026: tableta y ventanas medianas (≤ 1100 px) ═══
+   La barra lateral pasa a raíl de iconos, el rastro baja a su propia fila,
+   la agenda apila su columna lateral y el detalle flota encima. */
+@media (max-width:1100px){
+  .app{grid-template-columns:76px 1fr;padding-left:0}
+  .lateral{padding:8px 8px 6px 12px;align-items:stretch}
+  .marca{justify-content:center;padding:6px 0 14px}
+  .marca-nombre,.marca .plegar{display:none}
+  .buscar{justify-content:center;padding:10px 0}
+  .buscar span,.buscar kbd{display:none}
+  .grupo{font-size:0;padding:10px 0 4px;border-top:1.6px dotted var(--punto-kraft);margin:6px 8px 0}
+  .nav a{justify-content:center;padding:10px 0;position:relative}
+  .nav a span:not(.n){display:none}
+  .nav a .n{position:absolute;right:2px;top:2px;font-size:10px}
+  .nav a.activa{margin-right:-20px;padding-right:20px}
+  .nav a.activa .n{min-width:18px;height:18px;font-size:10px;right:22px;top:0}
+  .listas a .n{display:none}
+  .perfil{justify-content:center;padding:10px 0}
+  .perfil>div{display:none}
+  .cabeza{grid-template-columns:auto 1fr;row-gap:10px;padding:26px 22px 4px 36px}
+  .cabeza .herr{grid-column:2;grid-row:1;justify-self:end}
+  .cabeza .rastro{grid-column:1/-1;justify-self:stretch;width:100%;max-width:560px}
+  .dia{font-size:76px}
+  .pestanas{padding-left:28px;padding-right:22px}
+  .cuerpo{padding:2px 22px 0 24px}
+  .captura{width:min(560px,84%)}
+  .captura kbd{display:none}
+  .ag-pc{grid-template-columns:1fr;gap:16px}
+  .ag-lado{order:-1;flex-direction:row;gap:10px}
+  .ag-lado .lado-card{flex:1;min-width:0}
+  .ag-lado .lado-card:last-child,.lado-pista{display:none}
+  .cabeza--pag{grid-template-columns:1fr auto}
+  .cabeza--pag .buscador{display:none}
+  .notas4{grid-template-columns:repeat(2,1fr)}
+  .app.con-detalle{grid-template-columns:76px 1fr}
+  .app.con-detalle .det-panel{position:fixed;right:14px;top:14px;bottom:16px;width:min(440px,62vw);z-index:12;box-shadow:-20px 0 50px -20px rgba(0,0,0,.45),0 0 0 1px rgba(var(--sombra-rgb),.07)}
+  .app.con-detalle .pila::after{content:"";position:absolute;inset:0;border-radius:26px;background:rgba(43,34,19,.18);z-index:5}
+  .aj{width:calc(100vw - 40px);height:calc(100vh - 60px)}
+  .aj-grid{grid-template-columns:1fr}
+  .aj-main{overflow-y:auto}
+  .paleta{width:calc(100vw - 80px)}
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>

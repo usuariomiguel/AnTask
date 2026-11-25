@@ -183,3 +183,27 @@ Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-
 - **`#buscar`** (Ctrl+K, o «Buscar» en la barra lateral): ventana flotante sobre Hoy, con los mismos filtros y grupos que el móvil, el primer resultado marcado y atajos de teclado abajo (↑ ↓, ↵, Tab, Esc).
 - **`#ajustes`** (al pulsar la cuenta en la barra lateral): ventana de dos columnas con el menú en kraft (Cuenta, Apariencia, Avisos, Calendarios, Atajos, Datos y copia, Acerca de) y Apariencia abierta: tema, acentos con vista previa, la hormiga, estilo y filas compactas.
 - Capturas: `movil-nota.png`, `movil-lista.png`, `buscar.png`, `ajustes.png` y sus `-oscuro`.
+
+## Añadido el 25-nov-2026: bienvenida, avisos, mes y tableta
+
+**Móvil (`movil.html`):**
+- **`#bienvenida-1`, `#bienvenida-2`, `#bienvenida-3`**: la primera vez que se abre la app, en tres pasos con la hormiga.
+  1. «Hola. Yo cargo con tus tareas»: sin cuenta y sin conexión.
+  2. «Apunta tu primera tarea»: se escribe de verdad, con ejemplos para tocar, y se ve cómo la entiende la app.
+  3. «Cada tarea hecha, una miga al hormiguero»: explica el rastro y Actividad.
+  Sustituye al modal de 3 pasos que tiene hoy la app (`src/js/ui/onboarding.js`), con el mismo contenido de fondo.
+- **`#avisos`**: la pantalla de bloqueo con los avisos de AnTrack. Un aviso de tarea con hora y botones «Hecha · En 1 hora · Mañana», el resumen de la mañana y un aviso de racha.
+- **`#deshacer`**: el aviso dentro de la app al completar una tarea («Llevada: … · Deshacer»).
+- **`#mes`**: el calendario del mes. Cada día lleva puntos de tareas, vencidas y eventos; hoy en papel y el día elegido marcado. Debajo, las tareas de ese día, con pestaña para pasar a su Agenda.
+
+**PC (`index.html`) en tableta y ventanas medianas (≤ 1100 px):**
+- la barra lateral pasa a un raíl de iconos;
+- el rastro baja a su propia fila;
+- en la Agenda, «Sin hora» y Vencidas suben encima del día;
+- el detalle flota encima de la lista, en lugar de estrecharla;
+- Notas en dos columnas;
+- Ajustes y la búsqueda ocupan casi toda la pantalla.
+
+**Capturas:**
+- móvil: `movil-bienvenida-1/2/3.png`, `movil-avisos.png`, `movil-deshacer.png`, `movil-mes.png` y sus `-oscuro`;
+- tableta (834 × 1112): `tableta-hoy.png`, `tableta-agenda.png`, `tableta-detalle.png`, `tableta-notas.png`.
