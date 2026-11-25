@@ -545,6 +545,52 @@ a{color:inherit;text-decoration:none}
 .mn-tit .cerrar{margin-left:auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--kraft-tinta)}
 .mn-nueva{display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:13px;border:1.5px dashed var(--punto-kraft);color:var(--kraft-tinta);font-size:15px;margin-top:6px}
 
+/* ═══ Añadido el 25-nov-2026: detalle de nota y vista de una lista (móvil) ═══ */
+.nt-cab{display:flex;align-items:center;gap:8px;padding:6px 16px 0}
+.nt-cab .m-herr button{width:38px;height:38px}
+.nt-cab .dcha{margin-left:auto;display:flex;gap:8px}
+.nt-hoja{position:absolute;left:0;right:0;top:108px;bottom:0;padding:22px 22px 150px;border-radius:26px 26px 0 0;background-color:var(--card);background-image:var(--tex-hoja);overflow:hidden}
+.nt-hoja .cinta{top:-9px;left:72px;margin-left:0}
+.nt-meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t3)}
+.nt-meta .det-lista{height:28px;font-size:12.5px}
+.nt-tit{font:700 30px/1.1 var(--f-disp);letter-spacing:-.03em;color:var(--t1);margin-top:14px}
+.nt-cuerpo{margin-top:14px;font-size:16.5px;line-height:30px;color:var(--t1);background-image:repeating-linear-gradient(transparent 0 29px,var(--borde) 29px 30px);background-position:0 -2px}
+.nt-cuerpo p{margin:0}
+.nt-cuerpo .cursor{display:inline-block;width:2px;height:20px;vertical-align:-4px;background:var(--o500);animation:parpadeo 1s steps(1) infinite}
+.nt-items{list-style:none;margin:0}
+.nt-items li{display:flex;align-items:center;gap:10px;height:30px;cursor:pointer}
+.nt-items .nl-c{width:18px;height:18px;margin:0}
+.nt-items .nl-c svg{width:11px;height:11px}
+.nt-items li.ok .nl-c{background:var(--o500);border-color:transparent}
+.nt-items li.ok .nl-c svg{opacity:1}
+.nt-items li.ok .st{color:var(--t3)}
+.nt-items li.ok .tachon{clip-path:inset(-4px -4px -4px -4px)}
+.nt-items li.ok .flecha{display:none}
+.nt-items .flecha{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--o600);padding:2px 9px;border-radius:999px;background:rgba(107,115,76,.12)}
+.nt-items .flecha.hecho{background:none;color:var(--t3);font-weight:500}
+.nt-barra{position:absolute;left:12px;right:12px;bottom:30px;z-index:8;display:flex;align-items:center;gap:2px;height:56px;padding:0 8px;border-radius:999px;background:var(--nav-bg);border:1px solid var(--borde);box-shadow:0 14px 30px -14px rgba(var(--sombra-rgb),.55)}
+.nt-barra button{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--t2)}
+.nt-barra .guardado{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--t3);padding-right:8px}
+.nt-barra .guardado i{width:7px;height:7px;border-radius:50%;background:var(--l-personal)}
+.nt-aviso{margin-top:18px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(107,115,76,.1);font-size:13.5px;color:var(--t2)}
+.nt-aviso .hormiga{width:26px;height:26px;flex:none}
+.nt-aviso b{color:var(--t1);font-weight:600}
+/* Lista concreta */
+.ls-cab{padding:6px 18px 0 16px}
+.ls-cab .m-fila1{align-items:center}
+.ls-tit{display:flex;align-items:center;gap:12px;margin-top:12px}
+.ls-tit .anillo-g{width:46px;height:46px;flex:none}
+.ls-tit h1{font:700 38px/1 var(--f-disp);letter-spacing:-.04em;color:var(--t1)}
+.ls-tit small{display:block;font-size:13px;color:var(--kraft-tinta);margin-top:4px}
+.ls-prog{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--kraft-tinta)}
+.ls-prog .barra{flex:1;height:8px;background:radial-gradient(circle,var(--punto-kraft) 1.6px,transparent 2.1px) 0 50%/10px 8px repeat-x;position:relative}
+.ls-prog .barra i{position:absolute;left:0;top:0;bottom:0;background:radial-gradient(circle,var(--c) 2.1px,transparent 2.6px) 0 50%/10px 8px repeat-x}
+.ls-prog .hormiga{width:24px;height:24px;position:absolute;top:-18px}
+.ls-otras{display:flex;gap:6px;margin:14px -18px 0 -16px;padding:2px 18px 4px 16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
+.ls-seccion-nueva{display:flex;align-items:center;gap:8px;margin:10px 8px 4px;color:var(--t3);font-size:14px}
+.ls-hechas{display:flex;align-items:center;gap:8px;margin:8px 6px 0;padding:10px 12px;border-radius:14px;background:var(--hab-bg);border:1px solid var(--borde-s);font-size:14px;color:var(--t2)}
+.ls-hechas .ico:last-child{margin-left:auto}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1313,6 +1359,69 @@ document.addEventListener('click',e=>{
   const sg=e.target.closest('#seg-tema span');if(sg){document.querySelectorAll('#seg-tema span').forEach(x=>x.classList.toggle('on',x===sg));return;}
   const w=e.target.closest('.aj-fila .sw');if(w){w.classList.toggle('off');return;}
   if(e.target.closest('.m-nav .m-av'))location.hash='ajustes';
+});
+
+/* ═══ Añadido el 25-nov-2026: detalle de nota y vista de una lista ═══ */
+Object.assign(ICOS,{
+  chincheta:'<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+  archivo:'<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
+  negrita:'<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>',
+  casilla:'<rect width="18" height="18" x="3" y="3" rx="4"/><path d="m8 12 3 3 5-6"/>',
+  imagen:'<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  ordenar:'<path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"/>'
+});
+function pantallaNota(){
+  const it=(x,ok,acc)=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span>${acc}</li>`;
+  return BARRA_ESTADO+`<div class="nt-cab"><a class="m-herr" href="#notas"><button aria-label="Volver">${ico('izquierda',20)}</button></a>
+    <div class="dcha m-herr"><button aria-label="Desfijar" style="color:var(--o600)">${ico('chincheta',18)}</button><button aria-label="Archivar">${ico('archivo',18)}</button><button aria-label="Más">${ico('mas',18)}</button></div></div>
+  <div class="nt-hoja"><span class="cinta"></span>
+    <div class="nt-meta"><span class="det-lista"><i style="background:var(--l-trabajo)"></i>Trabajo ${ico('chev',13)}</span><span>Editada hoy, 9:12</span></div>
+    <h1 class="nt-tit">Reunión con Marta</h1>
+    <div class="nt-cuerpo">
+      <p>Repasamos la propuesta de diciembre. Quiere el presupuesto cerrado antes del lunes y los logos nuevos.</p>
+      <ul class="nt-items">
+        ${it('Ver el presupuesto',1,'')}
+        ${it('Enviar la propuesta el lunes',0,`<span class="flecha">${ico('arrow',12)} Tarea</span>`)}
+        ${it('Pedirle los logos',0,`<span class="flecha hecho">${ico('calcheck',13)} en Trabajo</span>`)}
+      </ul>
+      <p>Ella lleva el portátil a la presentación<span class="cursor"></span></p>
+    </div>
+    <div class="nt-aviso">${hormiga()}<span><b>«Pedirle los logos»</b> ya es una tarea en Trabajo. Si la completas, aquí se tacha sola.</span></div>
+  </div>
+  <div class="nt-barra"><button aria-label="Casilla">${ico('casilla',20)}</button><button aria-label="Negrita">${ico('negrita',19)}</button><button aria-label="Imagen">${ico('imagen',20)}</button><button aria-label="Enlace">${ico('link',19)}</button><span class="guardado"><i></i>Guardada</span></div>
+  <div class="home"></div>`;
+}
+
+function pantallaLista(){
+  const c='var(--l-trabajo)';
+  const T=[
+    {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5]},
+    {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes'},
+    {t:'Pedirle los logos a Marta'},
+    {t:'Preparar la reunión de enero',f:'mar 2 dic'}];
+  const V=[{t:'Responder a la gestoría',venc:'Ayer'}];
+  const otras=CHIPS_L.filter(x=>x[0]!=='Trabajo').map(([n,cc,d,t])=>`<span class="lch">${anilloLista(d,t,cc)}${n} <small>${d}/${t}</small></span>`).join('');
+  const anilloG=(()=>{const N=16,k=Math.round(N*4/8);let s='<svg class="anillo-g" viewBox="0 0 46 46">';for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;s+=`<circle cx="${(23+18*Math.cos(a)).toFixed(2)}" cy="${(23+18*Math.sin(a)).toFixed(2)}" r="2.3" style="fill:${i<k?c:'var(--punto-kraft)'}"/>`;}return s+'</svg>';})();
+  return BARRA_ESTADO+`<header class="ls-cab">
+    <div class="m-fila1"><div class="m-herr"><button aria-label="Listas">${ico('menu',19)}</button></div><div class="m-herr"><button aria-label="Buscar">${ico('search',19)}</button><button aria-label="Más">${ico('mas',19)}</button></div></div>
+    <div class="ls-tit">${anilloG}<div><h1>Trabajo</h1><small>4 de 8 hechas · 1 vencida</small></div></div>
+    <div class="ls-otras"><span class="lch on">${anilloLista(4,8,c)}Trabajo</span>${otras}</div>
+  </header>
+  <div class="m-hoja" style="top:288px">
+    <div class="m-pestanas"><button class="m-pest on">Pendientes <span>5</span></button><button class="m-pest">Hechas <span>4</span></button></div>
+    <div class="m-cuerpo"><div class="capa"></div>
+      <section class="sec--venc"><div class="sec-cab"><span class="sec-tit">Vencidas</span><span class="sec-n">1</span><span class="puntos"></span><button class="accion">${ico('arrow',13)} A hoy</button></div>${V.map(filaInbox).join('')}</section>
+      <section><div class="sec-cab"><span class="sec-tit">Esta semana</span><span class="sec-n">2</span><span class="puntos"></span></div>${T.slice(0,2).map(filaInbox).join('')}</section>
+      <section><div class="sec-cab"><span class="sec-tit">Más adelante</span><span class="sec-n">2</span><span class="puntos"></span></div>${T.slice(2).map(filaInbox).join('')}</section>
+      <div class="ls-hechas">${ico('calcheck',17)} 4 hechas esta semana ${ico('chev',16)}</div>
+    </div>
+  </div>`+navN('inbox');
+}
+Object.assign(P_EXTRA,{nota:pantallaNota,lista:pantallaLista});
+document.addEventListener('click',e=>{
+  const li=e.target.closest('.nt-items li');if(li&&!e.target.closest('.flecha')){li.classList.toggle('ok');return;}
+  if(e.target.closest('.e-notas .nota'))location.hash='nota';
+  if(e.target.closest('.e-menu .mn a')&&e.target.closest('.mn a').textContent.includes('Trabajo'))location.hash='lista';
 });
 
 document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});

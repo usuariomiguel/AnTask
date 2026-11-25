@@ -172,3 +172,14 @@ Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-
   - **Estilo:** Tierra (el actual) y Relicario («Pronto»), con una miniatura de cada uno;
   - **General:** avisos, inicio de semana, idioma, copia de seguridad y ayuda.
 - Capturas: `movil-ajustes.png`, `movil-ajustes-abajo.png`, `movil-menu.png` (rehecha) y sus `-oscuro`.
+
+## Añadido el 25-nov-2026: detalle de nota, vista de lista, y búsqueda y Ajustes en PC
+
+**Móvil (`movil.html`):**
+- **`#nota`** (al tocar una nota): la nota abierta como una hoja con su cinta, la lista y «Editada hoy». Texto en papel pautado con casillas mezcladas. Cada casilla pendiente puede pasar a tarea («→ Tarea»); si ya lo es, lo indica («en Trabajo») y una nota de la hormiga avisa de que se tachará sola al completarla. Abajo, barra de formato (casilla, negrita, imagen, enlace) y «Guardada».
+- **`#lista`** (al tocar Trabajo en el panel de listas): cabecera con un anillo grande de progreso, «4 de 8 hechas · 1 vencida», fichas para saltar a otra lista, pestañas «Pendientes | Hechas» y tareas por Vencidas · Esta semana · Más adelante, con las hechas recogidas abajo.
+
+**PC (`index.html`):**
+- **`#buscar`** (Ctrl+K, o «Buscar» en la barra lateral): ventana flotante sobre Hoy, con los mismos filtros y grupos que el móvil, el primer resultado marcado y atajos de teclado abajo (↑ ↓, ↵, Tab, Esc).
+- **`#ajustes`** (al pulsar la cuenta en la barra lateral): ventana de dos columnas con el menú en kraft (Cuenta, Apariencia, Avisos, Calendarios, Atajos, Datos y copia, Acerca de) y Apariencia abierta: tema, acentos con vista previa, la hormiga, estilo y filas compactas.
+- Capturas: `movil-nota.png`, `movil-lista.png`, `buscar.png`, `ajustes.png` y sus `-oscuro`.
