@@ -400,6 +400,92 @@ a{color:inherit;text-decoration:none}
 .det-acc button{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:7px;height:44px;border-radius:999px;border:1px solid var(--borde);font-weight:600;font-size:14px;color:var(--t2)}
 .det-acc .det-borrar{border-color:rgba(var(--venc-rgb),.32);background:rgba(var(--venc-rgb),.07);color:var(--venc)}
 
+/* ═══ Añadido el 25-nov-2026: captura rápida, búsqueda y menú lateral (móvil) ═══ */
+:root{--teclado:#d9d2c3;--tecla:#fbf7ee;--tecla-2:#bfb6a4;--tecla-t:#2b2213}
+:root[data-theme="dark"]{--teclado:#1d1813;--tecla:#4a3f35;--tecla-2:#352c25;--tecla-t:#e6d1aa}
+.velo{position:absolute;inset:0;background:rgba(43,34,19,.38);z-index:20}
+[data-theme="dark"] .velo{background:rgba(0,0,0,.55)}
+/* Captura */
+.cr-hoja{position:absolute;left:0;right:0;bottom:262px;z-index:22;padding:14px 16px 14px;border-radius:24px 24px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);box-shadow:0 -14px 30px -16px rgba(0,0,0,.45)}
+.cr-hoja .det-asa{margin:-4px auto 10px}
+.cr-input{position:relative;min-height:56px;padding:12px 14px;border-radius:16px;background:var(--card);border:1.5px solid color-mix(in srgb,var(--o500) 45%,transparent);font-size:17px;line-height:1.5;color:var(--t1)}
+.cr-input .cursor{display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:var(--o500);animation:parpadeo 1s steps(1) infinite}
+@keyframes parpadeo{50%{opacity:0}}
+.tok{border-radius:6px;padding:0 3px;margin:0 -1px;font-weight:600}
+.tok.tk-fecha{background:rgba(107,115,76,.16);color:var(--o700)}
+.tok.tk-hora{background:rgba(61,110,133,.14);color:var(--l-casa)}
+.tok.tk-lista{background:color-mix(in srgb,var(--l-personal) 16%,transparent);color:var(--l-personal)}
+.tok.tk-prio{background:rgba(var(--venc-rgb),.12);color:var(--venc)}
+.cr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.cr-chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--card);border:1px solid var(--borde);font-weight:600;font-size:12.5px;color:var(--t1)}
+.cr-chip .ico{color:var(--t2)}
+.cr-chip i{width:7px;height:7px;border-radius:50%}
+.cr-chip em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--o600);background:rgba(107,115,76,.14);padding:1px 5px;border-radius:5px}
+.cr-chip .x{color:var(--t3);margin-left:-2px}
+.cr-pie{display:flex;align-items:center;gap:4px;margin-top:12px}
+.cr-pie .herr-c{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--t2)}
+.cr-guardar{margin-left:auto;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;background:var(--o500);color:var(--sobre-acento);font-weight:650;font-size:15px;box-shadow:0 4px 10px -4px rgba(62,67,42,.6)}
+.cr-pista{font-size:12px;color:var(--t3);margin-top:9px;line-height:1.4}
+.cr-pista b{color:var(--t2);font-weight:600}
+.cr-hor{position:absolute;left:34px;top:-25px;width:28px;height:28px}
+.cr-hor .hormiga{width:100%;height:100%}
+.teclado{position:absolute;left:0;right:0;bottom:0;height:262px;z-index:22;background:var(--teclado);padding:8px 3px 30px;display:flex;flex-direction:column;gap:9px}
+.teclado .fila-t{display:flex;justify-content:center;gap:5px}
+.teclado .t{flex:none;width:33px;height:42px;border-radius:6px;background:var(--tecla);color:var(--tecla-t);display:grid;place-items:center;font-size:19px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.teclado .t.esp{background:var(--tecla-2);width:44px;font-size:14px}
+.teclado .t.largo{width:190px;font-size:14px}
+.teclado .t.intro{width:88px;background:var(--o500);color:var(--sobre-acento);font-size:14px;font-weight:600}
+/* Búsqueda */
+.bs-cab{display:flex;align-items:center;gap:10px;padding:8px 16px 0}
+.bs-input{flex:1;display:flex;align-items:center;gap:9px;height:46px;padding:0 14px;border-radius:15px;background:var(--hoja);border:1.5px solid color-mix(in srgb,var(--o500) 45%,transparent);font-size:16px;color:var(--t1)}
+.bs-input .ico{color:var(--t2)}
+.bs-input .cursor{display:inline-block;width:2px;height:19px;margin-left:-6px;background:var(--o500);animation:parpadeo 1s steps(1) infinite}
+.bs-input .x{margin-left:auto;color:var(--t3)}
+.bs-cancelar{font-weight:600;font-size:15px;color:var(--o600)}
+.bs-filtros{display:flex;gap:6px;padding:12px 16px 0}
+.bs-filtro{height:32px;padding:0 13px;border-radius:999px;font-weight:600;font-size:13px;color:var(--t2);background:var(--kraft-hover);display:inline-flex;align-items:center;gap:6px}
+.bs-filtro.on{background:var(--o500);color:var(--sobre-acento)}
+.bs-filtro span{font-size:11.5px;opacity:.8}
+.bs-hoja{position:absolute;left:0;right:0;top:162px;bottom:0;padding:6px 14px 0;border-radius:26px 26px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);overflow:hidden}
+.bs-hoja .sec-cab{margin-top:6px}
+.bs-res{display:flex;align-items:flex-start;gap:12px;padding:10px 8px;border-radius:14px}
+.bs-res+.bs-res{border-top:1.4px dotted var(--punto)}
+.bs-res .ico-res{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--hab-bg);border:1px solid var(--borde-s);color:var(--t2)}
+.bs-res .ico-res.circ{border-radius:50%;background:none;border:1.8px solid var(--check-borde);width:24px;height:24px;margin:5px 5px 0}
+.bs-res b{display:block;font-weight:500;font-size:15.5px;color:var(--t1)}
+.bs-res mark{background:color-mix(in srgb,var(--o500) 22%,transparent);color:inherit;border-radius:3px}
+.bs-res small{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:12.5px;color:var(--t2)}
+.bs-res small i{width:7px;height:7px;border-radius:50%}
+.bs-res p{font-size:13px;color:var(--t3);margin-top:3px;line-height:1.35}
+.bs-res.hecha b{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
+.bs-recientes{display:flex;flex-wrap:wrap;gap:6px;padding:4px 8px 10px}
+.bs-recientes span{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--borde);font-size:13px;color:var(--t2)}
+.bs-vacio{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:26px}
+.bs-vacio>svg{width:240px;height:auto}
+.bs-vacio h2{font:700 25px/1.1 var(--f-disp);letter-spacing:-.02em;margin-top:6px}
+.bs-vacio p{color:var(--t2);font-size:14.5px;line-height:1.45;margin-top:8px;max-width:290px}
+.bs-vacio .btn-sec{margin-top:16px;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--borde);font-weight:600;font-size:14px;color:var(--t2)}
+/* Menú lateral */
+.mn{position:absolute;left:0;top:0;bottom:0;width:318px;z-index:22;display:flex;flex-direction:column;padding:54px 14px 26px 16px;background-color:var(--kraft);background-image:var(--tex-kraft);box-shadow:14px 0 34px -14px rgba(0,0,0,.5);border-radius:0 26px 26px 0}
+.mn-perfil{display:flex;align-items:center;gap:12px;padding:4px 6px 14px}
+.mn-perfil .m-av{width:44px;height:44px;font-size:17px;border-radius:14px}
+.mn-perfil b{display:block;font-size:16px;font-weight:650}
+.mn-perfil small{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--kraft-tinta)}
+.mn-perfil small i{width:7px;height:7px;border-radius:50%;background:var(--l-personal)}
+.mn-perfil .cerrar{margin-left:auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--kraft-tinta)}
+.mn-grupo{font:650 13.5px var(--f-disp);color:var(--kraft-tinta);padding:12px 10px 4px;display:flex;align-items:center}
+.mn-grupo .ico{margin-left:auto;opacity:.8}
+.mn a{display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:13px;font-size:15.5px;color:var(--t1)}
+.mn a .ico{color:var(--kraft-tinta)}
+.mn a .n{margin-left:auto;font-size:13px;color:var(--kraft-tinta)}
+.mn a.on{background-color:var(--hoja);background-image:var(--tex-hoja);font-weight:650;color:var(--o800);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.16)}
+.mn a.on .ico{color:var(--o500)}
+.mn .anillo-m{width:19px;height:19px;flex:none}
+.mn .nueva{color:var(--kraft-tinta)}
+.mn-pie{margin-top:auto;display:flex;flex-direction:column;gap:2px;border-top:1.6px dotted var(--punto-kraft);padding-top:10px}
+.mn-hor{position:absolute;right:22px;bottom:96px;width:44px;height:44px;opacity:.9}
+.mn-hor .hormiga{width:100%;height:100%}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1003,10 +1089,97 @@ document.addEventListener('click',e=>{
 
 document.addEventListener('click',e=>{if(!e.target.closest('.tema-btn'))return;const u=new URL(location.href);OSC?u.searchParams.delete('oscuro'):u.searchParams.set('oscuro','');location.href=u.toString();});
 
+const P_EXTRA={};
+/* ═══ Añadido el 25-nov-2026: captura rápida, búsqueda y menú lateral ═══
+   #captura: la hoja del + con el teclado; el texto se lee mientras escribes.
+   #buscar y #buscar-vacio: la búsqueda a pantalla completa.
+   #menu: el menú lateral (botón ☰) sobre Hoy. */
+Object.assign(ICOS,{
+  sprout:'<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  history:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  ajustes:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  ayuda:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>',
+  etiqueta:'<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r=".5"/>',
+  lista:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'
+});
+
+function teclado(){
+  const f=(teclas)=>`<div class="fila-t">${teclas}</div>`, t=(x,c='')=>`<span class="t ${c}">${x}</span>`;
+  return `<div class="teclado">${f('qwertyuiop'.split('').map(x=>t(x)).join(''))}${f('asdfghjklñ'.split('').map(x=>t(x)).join(''))}
+    ${f(t('⇧','esp')+'zxcvbnm'.split('').map(x=>t(x)).join('')+t('⌫','esp'))}${f(t('123','esp')+t('🙂','esp')+t('espacio','largo')+t('añadir','intro'))}</div>`;
+}
+function pantallaCaptura(){
+  return pantallaHoy()+`<div class="velo"></div>
+  <div class="cr-hoja"><span class="cr-hor">${hormiga()}</span><div class="det-asa"></div>
+    <div class="cr-input">Llamar al dentista <span class="tok tk-fecha">mañana</span> <span class="tok tk-hora">a las 10</span> <span class="tok tk-lista">#personal</span> <span class="tok tk-prio">p1</span><span class="cursor"></span></div>
+    <div class="cr-chips">
+      <span class="cr-chip">${ico('cal',14)} Mañana, sáb 21</span>
+      <span class="cr-chip">${ico('reloj',14)} 10:00 <em>nuevo</em></span>
+      <span class="cr-chip"><i style="background:var(--l-personal)"></i> Personal <em>nuevo</em></span>
+      <span class="cr-chip">${ico('flag',14).replace('class="ico"','class="ico" style="color:var(--l-trabajo)"')} Importante</span>
+    </div>
+    <p class="cr-pista">Se guarda como <b>«Llamar al dentista»</b>. También entiende «cada lunes», «en 3 días» o «todos los meses».</p>
+    <div class="cr-pie"><button class="herr-c" aria-label="Fecha">${ico('cal',20)}</button><button class="herr-c" aria-label="Hora">${ico('reloj',20)}</button><button class="herr-c" aria-label="Lista">${ico('etiqueta',20)}</button><button class="herr-c" aria-label="Repetir">${ico('repeat',20)}</button><button class="herr-c" aria-label="Importante">${ico('flag',20)}</button>
+      <button class="cr-guardar">${ico('arrow',17)} Añadir</button></div>
+  </div>${teclado()}`;
+}
+
+const lupaSVG=()=>`<svg viewBox="0 0 240 160" aria-hidden="true"><path class="v-suelo" d="M14 138 H104"/>${hormiga({x:28,y:74,w:70})}
+  <path d="M92 104 L122 91" style="stroke:var(--o700);stroke-width:7;stroke-linecap:round"/><circle cx="148" cy="80" r="28" style="fill:var(--lente);stroke:var(--o700);stroke-width:7"/>
+  <path d="M133 70 a18 18 0 0 1 15 -9" style="fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;opacity:.9"/></svg>`;
+function cabBusqueda(q){
+  return BARRA_ESTADO+`<div class="bs-cab"><div class="bs-input">${ico('search',19)}<span>${q}</span><span class="cursor"></span><span class="x">${ico('cerrar',17)}</span></div><a class="bs-cancelar" href="#hoy">Cancelar</a></div>`;
+}
+function pantallaBuscar(){
+  const m=s=>s.replace(/factura/i,x=>`<mark>${x}</mark>`);
+  const res=(ico_,tit,sub,extra='',cls='')=>`<div class="bs-res ${cls}">${ico_}<div><b>${m(tit)}</b>${sub}${extra}</div></div>`;
+  const circ='<span class="ico-res circ"></span>';
+  return cabBusqueda('factura')+`
+  <div class="bs-filtros"><span class="bs-filtro on">Todo <span>5</span></span><span class="bs-filtro">Tareas <span>3</span></span><span class="bs-filtro">Notas <span>1</span></span><span class="bs-filtro">Listas <span>1</span></span></div>
+  <div class="bs-hoja">
+    <div class="sec-cab"><span class="sec-tit">Tareas</span><span class="sec-n">2</span><span class="puntos"></span></div>
+    ${res(circ,'Enviar la factura de noviembre',`<small><i style="background:var(--l-trabajo)"></i>Trabajo · Hoy · 12:15 · ${ico('repeat',12)} 1 mes</small>`)}
+    ${res(circ,'Pedir factura del dentista',`<small><i style="background:var(--l-personal)"></i>Personal · sin fecha</small>`)}
+    <div class="sec-cab"><span class="sec-tit">Notas</span><span class="sec-n">1</span><span class="puntos"></span></div>
+    ${res(`<span class="ico-res">${ico('nota',17)}</span>`,'Llamada con la gestoría',`<small><i style="background:var(--l-trabajo)"></i>Trabajo · mar</small>`,`<p>…mandar la ${'<mark>factura</mark>'} rectificativa antes del 30.</p>`)}
+    <div class="sec-cab"><span class="sec-tit">Listas</span><span class="sec-n">1</span><span class="puntos"></span></div>
+    ${res(`<span class="ico-res">${anilloLista(2,4,'var(--l-lect)')}</span>`,'Facturas y papeles',`<small>2 de 4 hechas</small>`)}
+    <div class="sec-cab"><span class="sec-tit">Hechas</span><span class="sec-n">1</span><span class="puntos"></span></div>
+    ${res(`<span class="ico-res circ" style="background:var(--o500);border-color:transparent"></span>`,'Factura de octubre',`<small><i style="background:var(--l-trabajo)"></i>Trabajo · 31 oct</small>`,'','hecha')}
+  </div>`;
+}
+function pantallaBuscarVacio(){
+  return cabBusqueda('factura 2019')+`
+  <div class="bs-filtros"><span class="bs-filtro on">Todo <span>0</span></span><span class="bs-filtro">Tareas</span><span class="bs-filtro">Notas</span><span class="bs-filtro">Listas</span></div>
+  <div class="bs-hoja"><div class="bs-vacio">${lupaSVG()}<h2>Ni rastro de «factura 2019»</h2>
+    <p>No está en tus tareas, notas ni listas. Prueba con otra palabra, o busca también en las tareas hechas hace tiempo.</p>
+    <span class="btn-sec">${ico('history',16)} Buscar en el archivo</span></div>
+    <div class="sec-cab" style="margin-top:22px"><span class="sec-tit">Búsquedas recientes</span><span class="puntos"></span></div>
+    <div class="bs-recientes"><span>${ico('history',14)} presentación</span><span>${ico('history',14)} lisboa</span><span>${ico('history',14)} gestoría</span></div>
+  </div>`;
+}
+
+function pantallaMenu(){
+  const it=(ic,tx,n,on)=>`<a class="${on?'on':''}">${ico(ic,20)}<span>${tx}</span>${n!=null?`<span class="n">${n}</span>`:''}</a>`;
+  const ls=[['Trabajo','var(--l-trabajo)',4,8],['Casa','var(--l-casa)',4,6],['Personal','var(--l-personal)',4,5],['Lecturas','var(--l-lect)',1,4],['Viajes','var(--l-viajes)',0,3],['Salud','var(--o500)',5,7]];
+  return pantallaHoy()+`<div class="velo"></div>
+  <nav class="mn" aria-label="Menú">
+    <div class="mn-perfil"><span class="m-av">A</span><div><b>Tu cuenta</b><small><i></i>Sincronizado</small></div><a class="cerrar" href="#hoy" aria-label="Cerrar">${ico('cerrar',20)}</a></div>
+    <div class="mn-grupo">Vistas</div>
+    ${it('calcheck','Hoy',E.pend,true)}${it('sprout','Hábitos','1/4')}${it('inbox','Inbox',17)}${it('nota','Notas',9)}${it('history','Actividad')}
+    <div class="mn-grupo">Listas ${ico('plus',17)}</div>
+    ${ls.map(([n,c,d,t])=>`<a>${anilloLista(d,t,c)}<span>${n}</span><span class="n">${d}/${t}</span></a>`).join('')}
+    <div class="mn-pie">${it('ajustes','Ajustes')}${it('ayuda','Ayuda y atajos')}</div>
+    <span class="mn-hor">${hormiga({cls:'duerme'})}</span>
+  </nav>`;
+}
+Object.assign(P_EXTRA,{captura:pantallaCaptura,buscar:pantallaBuscar,'buscar-vacio':pantallaBuscarVacio,menu:pantallaMenu});
+
+document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
-const P_={hoy:pantallaHoy,'hoy-congelado':pantallaHoy,fin:pantallaFin,habitos:pantallaHabitos,actividad:pantallaActividad,inbox:pantallaInbox,notas:pantallaNotas,agenda:pantallaAgenda,'inbox-listas':pantallaInboxListas,detalle:pantallaDetalle,'detalle-abajo':pantallaDetalle};
+const P_={hoy:pantallaHoy,'hoy-congelado':pantallaHoy,fin:pantallaFin,habitos:pantallaHabitos,actividad:pantallaActividad,inbox:pantallaInbox,notas:pantallaNotas,agenda:pantallaAgenda,'inbox-listas':pantallaInboxListas,detalle:pantallaDetalle,'detalle-abajo':pantallaDetalle,...P_EXTRA};
 if(estado==='fin'){E.done=8;E.total=8;E.venc=0;E.pend=0;}
 document.body.classList.add('e-'+estado);
 raiz.innerHTML=(P_[estado]||pantallaHoy)();

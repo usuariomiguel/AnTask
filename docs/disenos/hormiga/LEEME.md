@@ -152,3 +152,12 @@ Cuatro pantallas nuevas en `index.html`, en claro y en oscuro, que siguen las de
 - la hormiga de la barra de captura lleva contorno de papel y el degradado de abajo es más alto, para no tapar texto.
 
 Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-listas`, `detalle`, sus versiones `-oscuro` y `agenda-otro-dia.png`.
+
+## Añadido el 25-nov-2026: captura rápida, búsqueda y menú lateral (móvil)
+
+- **`#captura`**: la hoja que sale al pulsar +, con el teclado. Mientras escribes «Llamar al dentista mañana a las 10 #personal p1», cada parte reconocida se colorea y aparece debajo como chip (fecha, hora, lista, importante) que se puede quitar. Abajo dice cómo se guardará el título. «Mañana», «p1» y las repeticiones ya los entiende la app hoy (`nl-parse.js`); **la hora («a las 10») y la lista («#personal») serían nuevas**, y van marcadas con «nuevo».
+- **`#buscar`**: búsqueda a pantalla completa, con filtros Todo · Tareas · Notas · Listas, resultados agrupados, la palabra resaltada y las hechas al final.
+- **`#buscar-vacio`**: «Ni rastro de…» con la hormiga y la lupa, «Buscar en el archivo» y las búsquedas recientes.
+- **`#menu`**: el menú lateral (☰) en kraft: perfil y sincronización, vistas con contadores, listas con su anillo y «+» para crear, y Ajustes y Ayuda abajo, con la hormiga dormida.
+- En la maqueta, el + abre la captura, ☰ abre el menú, la lupa abre la búsqueda y tocar el velo cierra.
+- Capturas: `movil-captura.png`, `movil-buscar.png`, `movil-buscar-vacio.png`, `movil-menu.png` y sus `-oscuro`.
