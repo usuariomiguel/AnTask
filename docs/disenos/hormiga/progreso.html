@@ -187,19 +187,21 @@ function viejo(el,pieEl,{done,total,venc,movil}){
 
 /* ── Propuesta: camino con paradas ── */
 function nuevo(el,{tareas,movil,venc}){
+  const U=++uid;
   const W=movil?360:600,H=(movil?116:124)+18;
   const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
   const nx=movil?312:520,ny=movil?96:104;
   const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
-  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><filter id="rug${uid}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${uid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
-    <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${uid})"><path d="${TR} Q ${nx-58} ${ny-24}, ${nx-34} ${ny-22}" class="senda-b"/><path d="${TR} Q ${nx-58} ${ny-24}, ${nx-34} ${ny-22}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
+  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><filter id="rug${U}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${uid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+    <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${U})"><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda-b"/><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
     <g class="paradas"></g>
-    <g class="nido"><path class="suelo" d="M${nx-60} ${ny} H ${nx+44}"/>
+    <g class="nido"><path class="suelo" d="M${nx-10} ${ny} H ${nx+48}"/>
       <path class="monticulo" d="M${nx-46} ${ny} C ${nx-34} ${ny-50}, ${nx+30} ${ny-50}, ${nx+42} ${ny} Z"/>
-      <ellipse class="entrada" cx="${nx-2}" cy="${ny-30}" rx="9" ry="5"/>
+      <g filter="url(#rug${U})"><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda-b" style="stroke-width:15"/><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda" style="stroke-width:10"/></g>
+      <path class="entrada" d="M${nx-33} ${ny} C ${nx-33} ${ny-17}, ${nx-13} ${ny-17}, ${nx-13} ${ny} Z"/><path d="M${nx-35} ${ny} C ${nx-35} ${ny-20}, ${nx-11} ${ny-20}, ${nx-11} ${ny}" style="fill:none;stroke:var(--senda-borde);stroke-width:2.4;opacity:.9"/>
       <g class="granos"></g>
       <g class="bandera"><path d="M${nx+14} ${ny-36} V ${ny-66}" style="stroke:var(--t2);stroke-width:2.2;stroke-linecap:round"/><path d="M${nx+15} ${ny-66} L ${nx+36} ${ny-59} L ${nx+15} ${ny-52} Z" style="fill:var(--o500)"/></g>
-      <path class="hierba" d="M${nx-56} ${ny} l-3 -8 M${nx-56} ${ny} l1 -11 M${nx+40} ${ny} l-3 -8 M${nx+40} ${ny} l4 -9"/></g>
+      <path class="hierba" d="M${nx+40} ${ny} l-3 -8 M${nx+40} ${ny} l4 -9"/></g>
     <g class="hor">${hormiga(-(movil?20:24),-(movil?36:43),movil?40:48)}</g></g>
     <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text>
     <text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
@@ -222,7 +224,7 @@ function nuevo(el,{tareas,movil,venc}){
     const sh=document.createElementNS(NS,'ellipse');sh.setAttribute('cy',1.8);sh.setAttribute('rx',rx);sh.setAttribute('ry',ry*.8);sh.setAttribute('class','sombra-p');w.appendChild(sh);
     const e=document.createElementNS(NS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
   const s={tareas,el,Lg,pAct:0};
-  const GR=[[-24,-8],[-8,-12],[8,-10],[22,-6],[-16,-20],[2,-22],[16,-18],[-30,-2],[30,-2],[-4,-32],[10,-30],[-18,-30],[24,-14],[-2,-4]];
+  const GR=[[-2,-10],[12,-8],[26,-6],[6,-20],[20,-17],[-8,-24],[34,-4],[-4,-32],[10,-30],[30,-14],[-14,-28],[16,-36],[38,-10],[2,-4]];
   s.pintar=(animarGrano)=>{
     const done=tareas.filter(t=>t.ok).length,total=tareas.length,v=tareas.filter(t=>!t.ok&&t.venc).length;
     tareas.forEach(t=>{t.el.setAttribute('class','parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?L[t.l]:'';});
@@ -235,7 +237,7 @@ function nuevo(el,{tareas,movil,venc}){
     el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
   };
   s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?12:18);};
-  s.colocar=l=>{fps.forEach(f=>f.c.classList.toggle('h',f.l<l));let q;if(l>Lg){q={x:nx-40,y:ny-2,ang:-8};}else q=pt(Math.max(0,l));
+  s.colocar=l=>{fps.forEach(f=>f.c.classList.toggle('h',f.l<l));let q;if(l>Lg){q={x:nx-38,y:ny-1,ang:0};}else q=pt(Math.max(0,l));
     el.querySelector('.hor').setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
   s.completar=()=>{const i=tareas.findIndex(t=>!t.ok);if(i<0||s.ocupado)return;s.ocupado=true;
     tareas[i].ok=true;s.pintar(true);tareas[i].el.classList.add('pop');

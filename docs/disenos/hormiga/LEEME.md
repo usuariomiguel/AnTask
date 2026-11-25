@@ -218,3 +218,4 @@ Comparación, en claro y oscuro, del rastro actual con una propuesta más legibl
 
 Incluye los casos: empezando, casi, día completo, 14 tareas, y la versión móvil. «Completar una» anima la propuesta. Capturas: `progreso.png` y `progreso-oscuro.png`. Si se elige, sustituye al rastro en Hoy (móvil y PC).
 - **Camino (actualizado el 26-nov):** la línea de puntos pasa a ser una senda de tierra con bordes irregulares que llega hasta la entrada del hormiguero. Detrás de la hormiga quedan sus pisadas en verde; delante, en gris. A los lados hay matas, piedras y una hoja. Las semillas llevan una pequeña sombra.
+- **Entrada (26-nov):** la puerta del hormiguero pasa de la cima a la base, mirando al camino, y la senda sube por una rampa de tierra hasta ella. Al terminar el día, la hormiga espera en la puerta.
