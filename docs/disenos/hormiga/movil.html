@@ -724,6 +724,171 @@ a{color:inherit;text-decoration:none}
 .pg-host .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ═══ 26-nov: hormiguero de Actividad ilustrado (ver nido()) ═══ */
+:root{--nd-nube:#f2e0b8;--nd-sol:#efa63a;--nd-arena:#f2d69c;--nd-arena-borde:#e2bb74;--nd-banda:#e8c682;--nd-grano:#d6ab64;--nd-tunel:#fbf1de;--nd-tunel-borde:#d9ab63;--nd-camara:#fdf7ea;--nd-camara-suelo:#f3e2c0;--nd-camara-hover:#fffcf5;--nd-anillo:#d6a75c;--nd-h1:#7f9b46;--nd-h2:#5e7a33;--nd-tallo:#5e7a33;--nd-piedra:#a8a398;--nd-piedra-luz:#cbc6bd;--nd-mont-1:#f4c977;--nd-mont-2:#e4aa52;--nd-mont-3:#cc8d3b;--nd-mancha:#c4812f;--nd-puerta:#3b2613;--nd-puerta-borde:#b77c37;--nd-etq:#fffaf0;--nd-etq-borde:#e8cf9f;--nd-bandera:#5e7c39;--nd-mastil:#4b3a22}
+:root[data-theme="dark"]{--nd-nube:transparent;--nd-sol:transparent;--nd-arena:#3a2d22;--nd-arena-borde:#4f3e2e;--nd-banda:#32261c;--nd-grano:#4d3d2e;--nd-tunel:#5a4634;--nd-tunel-borde:#241c15;--nd-camara:#54412f;--nd-camara-suelo:#4a3929;--nd-camara-hover:#6b543f;--nd-anillo:#2a2119;--nd-h1:#8c9a5c;--nd-h2:#6c7944;--nd-tallo:#6c7944;--nd-piedra:#6a6157;--nd-piedra-luz:#867c70;--nd-mont-1:#8a6e52;--nd-mont-2:#6a523d;--nd-mont-3:#4a392b;--nd-mancha:#3b2e22;--nd-puerta:#f2c46d;--nd-puerta-borde:#5c4532;--nd-etq:#40342b;--nd-etq-borde:rgba(255,226,190,.16);--nd-bandera:#a4b272;--nd-mastil:#cdb690}
+.nd-nube{fill:var(--nd-nube)}
+.nd-rayo{fill:none;stroke:var(--nd-sol);stroke-width:var(--nd-rayo,4px);stroke-linecap:round}
+.nd-arena{fill:var(--nd-arena)}
+.nd-borde-suelo{fill:none;stroke:var(--nd-arena-borde);stroke-width:2.5;stroke-linecap:round}
+.nd-banda{fill:var(--nd-banda);opacity:.55}
+.nd-grano{fill:var(--nd-grano);opacity:.55}
+.nd-h1{fill:var(--nd-h1)}
+.nd-h2{fill:var(--nd-h2)}
+.nd-tallo{fill:none;stroke:var(--nd-tallo);stroke-width:2.2;stroke-linecap:round}
+.nd-p{fill:var(--nd-piedra)}
+.nd-p-luz{fill:var(--nd-piedra-luz)}
+.nd-p-sombra{fill:rgba(0,0,0,.1)}
+.nd-t-borde{fill:none;stroke:var(--nd-tunel-borde);stroke-linecap:round;stroke-linejoin:round}
+.nd-t-hueco{fill:none;stroke:var(--nd-tunel);stroke-linecap:round;stroke-linejoin:round}
+.nd-c-anillo{fill:var(--nd-anillo)}
+.nd-c-hueco{fill:var(--nd-camara);transition:fill .2s}
+.nd-c-suelo{fill:var(--nd-camara-suelo)}
+.camara:hover .nd-c-hueco{fill:var(--nd-camara-hover)}
+.nd-semilla ellipse:first-child{stroke:rgba(0,0,0,.18);stroke-width:.7}
+.nd-brillo{fill:#fff;opacity:.42}
+.nd-mancha{fill:var(--nd-mancha);opacity:.5}
+.nd-puerta{fill:var(--nd-puerta)}
+.nd-puerta-borde{fill:var(--nd-puerta-borde)}
+[data-theme="dark"] .nd-puerta{filter:drop-shadow(0 0 6px rgba(242,196,109,.8))}
+[data-theme="dark"] .nd-c-hueco{fill:url(#nd-luz)}
+[data-theme="dark"] .nd-brillo{opacity:.22}
+.nd-etq rect{fill:var(--nd-etq);stroke:var(--nd-etq-borde);stroke-width:1.5;filter:drop-shadow(0 3px 5px rgba(var(--sombra-rgb),.12))}
+.nd-e1{font:650 var(--nd-f1,16px) var(--f-disp);fill:var(--t1)}
+.nd-e2{font:500 var(--nd-f2,13px) var(--f-sans);fill:var(--t2)}
+.mejor .nd-e2{fill:var(--o600);font-weight:650}
+.camara:hover .nd-e1{fill:var(--o600)}
+.nd-mastil{fill:none;stroke:var(--nd-mastil);stroke-width:2.4;stroke-linecap:round}
+.nd-bandera{fill:var(--nd-bandera)}
+.leyenda--barra{margin-top:10px;padding:12px 18px;border-radius:16px;background:var(--nd-etq);border:1.5px solid var(--nd-etq-borde);gap:8px 18px}
+.leyenda--barra .ley-sep{width:1.5px;align-self:stretch;background:var(--nd-etq-borde)}
+.leyenda--barra .chip i{width:11px;height:11px;border-radius:50%}
+
+/* ═══ 26-nov: la senda de progreso acaba en la puerta (ver pgnCrear) ═══ */
+:root{--nd-senda:#f2dfae;--nd-senda-borde:#e4c587;--nd-raya:#d6ad65;--nd-halo:#fffaf0}
+:root[data-theme="dark"],:root.oscuro{--nd-senda:#45382c;--nd-senda-borde:#57483b;--nd-raya:#7d6852;--nd-halo:#40342b}
+svg.pgn{display:block;width:100%;height:auto;overflow:visible}
+.pgn-senda-b{fill:none;stroke:var(--nd-senda-borde);stroke-width:21;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.pgn-senda{fill:none;stroke:var(--nd-senda);stroke-width:17;stroke-linecap:round;stroke-linejoin:round}
+.pgn-raya{fill:var(--nd-raya);transition:fill .25s}
+.pgn-raya.h{fill:var(--o500)}
+.pgn-rayo{fill:none;stroke:var(--nd-sol);stroke-width:3px;stroke-linecap:round}
+.pgn-sombra,.pgn-p-sombra{fill:rgba(0,0,0,.1)}
+.pgn-mancha{fill:var(--nd-mancha);opacity:.5}
+.pgn-mont{transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
+.pgn-puerta{fill:var(--nd-puerta);transition:filter .4s}
+.pgn-puerta-borde{fill:var(--nd-puerta-borde)}
+.lleno .pgn-puerta,:root[data-theme="dark"] .pgn-puerta,:root.oscuro .pgn-puerta{filter:drop-shadow(0 0 5px rgba(242,196,109,.9))}
+.pgn-halo{fill:var(--nd-halo)}
+.pgn-parada{transition:fill .3s;transform-box:fill-box;transform-origin:center}
+.pgn-parada.pend{fill:var(--hoja);stroke:var(--punto);stroke-width:1.8;stroke-dasharray:2.4 2.2}
+.pgn-parada.venc{fill:rgba(var(--venc-rgb),.12);stroke:var(--venc);stroke-dasharray:none}
+.pgn-parada.ok{stroke:rgba(0,0,0,.18);stroke-width:.8}
+.pgn-parada.pop{animation:pgn-pop .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pgn-pop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+.pgn-p-brillo{fill:#fff;opacity:.45;pointer-events:none;transition:opacity .3s}
+.pgn-grano{transform-box:fill-box}
+.pgn-grano.nuevo{animation:pgn-cae .5s ease-out}
+@keyframes pgn-cae{from{transform:translateY(-14px);opacity:0}}
+.pgn-grano ellipse:first-child{stroke:rgba(0,0,0,.18);stroke-width:.6}
+.pgn-bandera{opacity:0;transition:opacity .4s}
+.lleno .pgn-bandera{opacity:1}
+.pgn-mastil{fill:none;stroke:var(--nd-mastil);stroke-width:2.2;stroke-linecap:round}
+.pgn-trapo{fill:var(--nd-bandera)}
+.pgn-estrella{display:none;fill:#f3e6bf}
+:root[data-theme="dark"] .pgn-estrella,:root.oscuro .pgn-estrella{display:inline;animation:pgn-titila 2.6s ease-in-out infinite alternate}
+@keyframes pgn-titila{from{opacity:.2}to{opacity:.9}}
+@media (prefers-reduced-motion:reduce){.pgn-parada.pop,.pgn-grano.nuevo,.pgn-estrella{animation:none}}
+
+/* ═══ 26-nov: una cámara por dentro (#semana) y la vista previa de Ajustes ═══ */
+.nido .camara{cursor:pointer}
+.sm-ilus{border-radius:20px;overflow:hidden;box-shadow:0 0 0 1.5px var(--nd-etq-borde),0 12px 22px -16px rgba(var(--sombra-rgb),.55)}
+.sm-cam{display:block;width:100%;height:auto}
+.sm-dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 2px}
+.sm-col{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 9px;border-radius:14px;cursor:pointer;font:inherit;color:inherit;background:none;border:0}
+.sm-col:hover{background:rgba(107,115,76,.07)}
+.sm-col.mejor{background:rgba(107,115,76,.11)}
+.sm-col.sel{box-shadow:inset 0 0 0 1.6px var(--o400)}
+.sm-n{font:650 12px var(--f-sans);color:var(--t3);height:15px;font-variant-numeric:tabular-nums}
+.sm-col.mejor .sm-n{color:var(--o600);font-weight:750}
+.sm-pila{display:flex;flex-direction:column-reverse;align-items:center;gap:1.5px;height:64px}
+.sm-pila i{display:block;flex:none;width:16px;height:10px;border-radius:50%;background:var(--c);transform:rotate(var(--r));box-shadow:inset 0 -1.6px 0 rgba(0,0,0,.16),inset 2px 2px 0 rgba(255,255,255,.3)}
+.sm-col.futuro .sm-pila::before{content:"";flex:none;width:14px;height:9px;border-radius:50%;border:1.5px dashed var(--punto)}
+.sm-l{font:600 11px var(--f-sans);color:var(--t3)}
+.sm-d{font:650 15px/1 var(--f-disp);color:var(--t1)}
+.sm-col.hoy .sm-d,.sm-col.hoy .sm-l{color:var(--o600)}
+.sm-barra{display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden;margin:2px 6px 0}
+.sm-barra i{display:block}
+.sm-ley{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 6px 2px;font-size:12.5px;color:var(--t2)}
+.sm-ley span{display:inline-flex;align-items:center;gap:6px}
+.sm-ley i{width:9px;height:9px;border-radius:50%}
+.sm-ley b{color:var(--t1);font-weight:650}
+.sm-dia{margin-top:8px}
+.sm-mejor{display:inline-flex;align-items:center;gap:4px;font:600 11.5px var(--f-sans);color:var(--o600);white-space:nowrap}
+.sm-fila{display:flex;align-items:center;gap:13px;padding:9px 8px 9px 10px}
+.sm-fila+.sm-fila{border-top:1.5px dotted var(--punto)}
+.sm-sem{flex:none;width:17px;height:11px;border-radius:50%;background:var(--c);transform:rotate(-14deg);box-shadow:inset 0 -1.6px 0 rgba(0,0,0,.16),inset 2px 2px 0 rgba(255,255,255,.3)}
+.sm-tx{display:flex;flex-direction:column;min-width:0}
+.sm-tx b{font-weight:500;font-size:15px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-tx small{font-size:12.5px;color:var(--t3);margin-top:2px}
+.sm-pie{font-size:13px;color:var(--t3);padding:12px 8px}
+.sm-ir[disabled]{opacity:.35;cursor:default}
+.aj-pg{cursor:pointer;margin:-2px -6px 0}
+.aj-pg .cont-n,.aj-pg .cont-t{display:none}
+.aj-pg .pgn-raya.h{fill:var(--a)}
+.aj-pg .pgn-trapo{fill:var(--a)}
+.sm-cab .sm-ilus{margin:12px -2px 0}
+.sm-cuerpo{overflow-y:auto;scrollbar-width:none;padding:6px 14px 170px}
+.sm-cuerpo::-webkit-scrollbar{display:none}
+
+/* ═══ 26-nov: calendario desplegable en el Inbox ═══ */
+.inb-tit{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.inb-tit .m-tit{margin-top:0}
+.ic-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 11px;border-radius:999px;background-color:var(--hoja);background-image:var(--tex-hoja);font-weight:600;font-size:13px;color:var(--t1);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.16),0 6px 12px -8px rgba(var(--sombra-rgb),.4)}
+.ic-btn .ico{color:var(--o600)}
+.ic-btn .ico:last-child{color:var(--t3);transition:transform .3s}
+.ic-btn[aria-expanded="true"] .ico:last-child{transform:rotate(180deg)}
+.ic{margin:12px -6px 0 -8px}
+.ic-dias{display:grid;grid-template-columns:repeat(7,1fr);height:16px;font:600 11px var(--f-sans);color:var(--kraft-tinta);text-align:center;opacity:.85}
+.ic-ventana{height:36px;overflow:hidden;transition:height .38s cubic-bezier(.3,.8,.3,1)}
+.ic-rej{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:36px;row-gap:2px;transform:translateY(calc(var(--fila) * -38px));transition:transform .38s cubic-bezier(.3,.8,.3,1)}
+.ic.abierto .ic-ventana{height:226px}
+.ic.abierto .ic-rej{transform:none}
+.ic-d{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0 2px;border-radius:12px}
+.ic-d b{font:650 15px/1 var(--f-disp);color:var(--t1)}
+.ic-d.pasado b{color:var(--kraft-tinta)}
+.ic-d.fuera b{color:var(--kraft-tinta);opacity:.45}
+.ic-d .pt{display:flex;gap:2px;height:4px}
+.ic-d .pt i{width:4px;height:4px;border-radius:50%}
+.ic-d.fuera .pt{opacity:.55}
+.ic-d.hoy{background-color:var(--hoja);background-image:var(--tex-hoja);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.16),0 8px 14px -10px rgba(var(--sombra-rgb),.45)}
+.ic-d.hoy b{color:var(--o700)}
+.ic-d.sel{box-shadow:inset 0 0 0 1.6px var(--o500)}
+.ic-d.hoy.sel{box-shadow:inset 0 0 0 1.6px var(--o500),0 8px 14px -10px rgba(var(--sombra-rgb),.45)}
+.m-hoja.ic-hoja{transition:top .38s cubic-bezier(.3,.8,.3,1)}
+.ic-filtro{display:flex;align-items:center;gap:10px;margin:6px 4px 2px;padding:7px 7px 7px 12px;border-radius:14px;background:rgba(107,115,76,.1);font-size:13.5px;color:var(--t2)}
+.ic-filtro b{color:var(--t1);font-weight:650}
+.ic-quitar{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:999px;background:var(--hoja);font-weight:600;font-size:12.5px;color:var(--t2);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.14)}
+.ic-vacio{font-size:14px;color:var(--t3);padding:16px 12px;line-height:1.45}
+.ic-filtro[hidden],.ic-vacio[hidden],.ic-oculta{display:none!important}
+
+/* ═══ 26-nov: el detalle de cualquier tarea ═══ */
+.det-sw.off{background:var(--punto)}
+.det-sw.off::after{right:auto;left:3px}
+.det-chip.on.venc{background:rgba(var(--venc-rgb),.12);color:var(--venc);border-color:rgba(var(--venc-rgb),.35)}
+.det-nota--vacia{color:var(--t3)}
+
+/* ═══ 26-nov: bienvenida, paso 4 ═══ */
+.bv.p4 .bv-ilus{height:auto;display:block;margin-top:84px}
+.bv-mapa{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bv-t{display:flex;flex-direction:column;gap:3px;padding:12px 12px 13px;border-radius:18px;background:var(--card);border:1px solid var(--borde-s);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.1),0 10px 18px -14px rgba(var(--sombra-rgb),.45)}
+.bv-ico{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;margin-bottom:5px;color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent)}
+.bv-t b{font:650 15.5px var(--f-disp);letter-spacing:-.01em}
+.bv-t small{font-size:12.5px;line-height:1.3;color:var(--t2)}
+.bv-mapa-hor{position:absolute;right:20px;top:-38px;width:42px;height:42px}
+.bv-mapa-hor .hormiga{width:100%;height:100%}
+.bv-mapa .bv-ico svg{width:19px;height:19px}
 </style>
 </head>
 <body>
@@ -1005,58 +1170,142 @@ function montArriba(x0,x1,G,h){const X=u=>(x0+u*(x1-x0)).toFixed(1),Y=v=>(G+1+v*
   return `<defs><radialGradient id="mg-act" cx="38%" cy="22%" r="85%"><stop offset="0" style="stop-color:var(--mont-1)"/><stop offset=".55" style="stop-color:var(--mont-2)"/><stop offset="1" style="stop-color:var(--mont-3)"/></radialGradient></defs>
   <ellipse cx="${X(.5)}" cy="${G+2}" rx="${((x1-x0)*.56).toFixed(0)}" ry="5" style="fill:rgba(0,0,0,.12)"/><path d="${d}" style="fill:url(#mg-act)"/>
   <path class="ramita" d="M${X(.62)} ${Y(-.82)} l ${((x1-x0)*.12).toFixed(1)} ${(h*.12).toFixed(1)} M${X(.3)} ${Y(-.6)} l ${((x1-x0)*.08).toFixed(1)} ${(-h*.1).toFixed(1)}"/>`;}
-function raices(r,W,G,evitar){let s='';for(let i=0;i<7;i++){const x=r()*W;if(x>evitar[0]&&x<evitar[1])continue;const l=26+r()*40;
-  s+=`<path class="raiz" d="M${x.toFixed(0)} ${G} c 5 ${(l*.3).toFixed(0)}, -6 ${(l*.55).toFixed(0)}, 0 ${(l*.75).toFixed(0)} c 4 ${(l*.15).toFixed(0)}, -2 ${(l*.25).toFixed(0)}, 3 ${(l*.3).toFixed(0)} M${x.toFixed(0)} ${(G+l*.4).toFixed(0)} l 9 8"/>`;}return s;}
-function camara(c,r,cols){
-  let s=`<g class="camara${c.actual?' cavando':''}${c.mejor?' mejor':''}"><title>${c.e}: ${c.n} tareas hechas</title>`;
-  if(c.actual)s+=`<ellipse class="c-borde-cav" cx="${c.cx}" cy="${c.cy}" rx="${c.rx+3.5}" ry="${c.ry+3.5}"/>`;
-  s+=`<ellipse class="c-sombra" cx="${c.cx}" cy="${c.cy}" rx="${c.rx}" ry="${c.ry}"/><ellipse class="c-hueco" cx="${c.cx}" cy="${c.cy-2.5}" rx="${c.rx-2.5}" ry="${c.ry-3.5}"/>`;
-  const SW=11,SH=5.4;let base=1;while(base*(base+1)/2<c.n)base++;
-  const floor=c.cy+c.ry-10,half=c.rx*Math.sqrt(Math.max(0,1-((floor-c.cy)/c.ry)**2))-8;base=Math.min(base,Math.max(1,Math.floor(2*half/SW)));
-  const ox=c.actual?-c.rx*0.25:0;let n=c.n;const dec=base*(base+1)/2<c.n?2:1;
-  for(let row=0;n>0&&row<14;row++){const cnt=Math.max(1,base-Math.floor(row/dec)),y=floor-row*SH;if(y<c.cy-c.ry+6)break;const x0=c.cx+ox-(cnt-1)*SW/2;
-    for(let i=0;i<cnt&&n>0;i++,n--){const x=x0+i*SW+(r()-.5)*2,col=cols[Math.floor(r()*cols.length)],a=((r()-.5)*36).toFixed(0);
-      s+=`<ellipse class="semilla" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="5" ry="3.1" style="fill:${col}" transform="rotate(${a} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;}}
-  if(c.mejor)s+=`<g class="bandera-r"><path d="M${c.cx+c.rx*.55} ${c.cy-c.ry*.8+4} V ${c.cy-c.ry*.8-14}"/><path d="M${c.cx+c.rx*.55+1} ${c.cy-c.ry*.8-14} l 13 4.5 l -13 4.5 Z"/></g>`;
-  
-  if(c.actual){
-    const ax=c.cx+c.rx*0.38,ay=c.cy+c.ry-27;
-    s+=hormiga({x:ax-13,y:ay,w:26,cls:'cava'});
-    for(let i=0;i<5;i++)s+=`<circle class="tierra-salta" cx="${(ax+12).toFixed(1)}" cy="${(ay+11).toFixed(1)}" r="${(1.3+r()*1.2).toFixed(1)}" style="--dx:${(6+r()*10).toFixed(0)}px;--dy:${(-5-r()*12).toFixed(0)}px;animation-delay:${(i*0.2).toFixed(2)}s"/>`;
+/* ═══ 26-nov: hormiguero de Actividad ilustrado ═══
+   Rehecho según la ilustración de referencia: cielo con nubes y sol,
+   montículo con la puerta de frente, matas y piedras, cámaras con su
+   pila de semillas en pirámide y etiquetas en tarjeta. Sustituye a
+   raices(), camara() y la nido() anterior; montArriba() se queda porque
+   la usa también la bienvenida. La configuración (ND) cambia de PC a
+   móvil; el dibujo es el mismo. */
+const ND={W:362,H:572,G:76,X:181,k:.6,marco:16,
+  shaft:'M181 73 C 181 103, 170 133, 176 173 S 194 243, 182 303 S 168 403, 178 473 S 186 533, 181 600',
+  ys:[140,206,272,340,406,472,536],radio:n=>[30+n*1.45,15+n*.5],dist:(n,r)=>60+n*1.5,tc:30,
+  tunel:[21,14],anillo:4,semilla:[4.8,2.9],bandera:16,planta:.5,hormiga:16,
+  etq:'arriba',etqH:22,etqR:11,etqAncho:0,sep:7,pad:10,f1:'12.5px',f2:'11.5px',rayo:2.8,estrella:1,
+  mont:[124,52],nubes:[[46,28,.55],[316,36,.6]],
+  piedras:[[22,5,3.2],[300,5.5,3.6]],plantas:[[106,.62],[262,.55]],
+  matas:9,granos:45,bajo:[5,4]};
+function nd_hoja(L,w){const f=v=>v.toFixed(1);return `M0 0 C ${f(-w)} ${f(-L*.38)}, ${f(-w*.55)} ${f(-L*.82)}, 0 ${f(-L)} C ${f(w*.55)} ${f(-L*.82)}, ${f(w)} ${f(-L*.38)}, 0 0 Z`;}
+function nd_mata(x,y,s,r){
+  const A=[-58,-34,-13,7,28,52],L=[9,14,17,16,13,9];
+  let g=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(2)})">`;
+  A.forEach((a,i)=>{g+=`<path class="${i%2?'nd-h2':'nd-h1'}" d="${nd_hoja(L[i]*(.85+r()*.3),3.4)}" transform="rotate(${(a+(r()-.5)*8).toFixed(0)})"/>`;});
+  return g+'</g>';
+}
+function nd_planta(x,y,s){
+  return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(2)})"><path class="nd-tallo" d="M0 0 C 1.5 -8, -1.5 -15, 1 -24"/>`+
+    `<path class="nd-h1" d="${nd_hoja(15,6)}" transform="translate(.5 -11) rotate(-55)"/><path class="nd-h2" d="${nd_hoja(14,5.6)}" transform="translate(.8 -15) rotate(50)"/><path class="nd-h1" d="${nd_hoja(12,5)}" transform="translate(1 -23) rotate(-8)"/></g>`;
+}
+function nd_piedra(x,y,rx,ry){const f=v=>v.toFixed(1);
+  return `<ellipse class="nd-p-sombra" cx="${f(x+rx*.1)}" cy="${f(y+ry*.7)}" rx="${f(rx*1.05)}" ry="${f(ry*.4)}"/><ellipse class="nd-p" cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}"/><ellipse class="nd-p-luz" cx="${f(x-rx*.25)}" cy="${f(y-ry*.38)}" rx="${f(rx*.48)}" ry="${f(ry*.32)}"/>`;}
+function nd_nube(x,y,k){return `<g class="nd-nube" transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="0" rx="36" ry="11"/><circle cx="-13" cy="-7" r="12"/><circle cx="7" cy="-12" r="15"/><circle cx="24" cy="-4" r="9"/></g>`;}
+function nd_monticulo(cx,G,w,h,r){
+  const f=v=>v.toFixed(1),x0=cx-w/2,x1=cx+w/2;
+  const d=`M${f(x0)} ${G+2} C ${f(x0+w*.05)} ${f(G-h*.6)}, ${f(cx-w*.3)} ${f(G-h*1.02)}, ${f(cx)} ${f(G-h)} C ${f(cx+w*.3)} ${f(G-h*.99)}, ${f(x1-w*.05)} ${f(G-h*.55)}, ${f(x1)} ${G+2} Z`;
+  let s=`<defs><radialGradient id="nd-mg" cx="38%" cy="25%" r="80%"><stop offset="0" style="stop-color:var(--nd-mont-1)"/><stop offset=".6" style="stop-color:var(--nd-mont-2)"/><stop offset="1" style="stop-color:var(--nd-mont-3)"/></radialGradient><clipPath id="nd-cm"><path d="${d}"/></clipPath></defs>`;
+  // Rayos de sol arriba a la izquierda, por detrás del montículo.
+  // Nacen en el hombro izquierdo: más arriba se salían del dibujo y se recortaban.
+  const px=cx-w*.34,py=G-h*.66;
+  [-168,-140,-112].forEach(a=>{const c=Math.cos(a*Math.PI/180),sn=Math.sin(a*Math.PI/180);
+    s+=`<path class="nd-rayo" d="M${f(px+c*h*.22)} ${f(py+sn*h*.22)} L${f(px+c*h*.48)} ${f(py+sn*h*.48)}"/>`;});
+  s+=`<ellipse class="nd-p-sombra" cx="${f(cx)}" cy="${G+3}" rx="${f(w*.56)}" ry="${f(Math.max(3,h*.05))}"/><path d="${d}" style="fill:url(#nd-mg)"/><g clip-path="url(#nd-cm)">`;
+  for(let i=0;i<Math.round(w/8);i++){const x=x0+r()*w,y=G-r()*h,rx=(1.2+r()*2.4)*w/250+1;s+=`<ellipse class="nd-mancha" cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(rx*.6)}" transform="rotate(${(r()*60-30).toFixed(0)} ${f(x)} ${f(y)})"/>`;}
+  s+='</g>';
+  // La puerta, de frente y en la base, con su marco de tierra más clara.
+  const arco=(ww,hh,xx)=>`M${f(xx)} ${G+2} V ${f(G-hh+ww/2)} A ${f(ww/2)} ${f(ww/2)} 0 0 1 ${f(xx+ww)} ${f(G-hh+ww/2)} V ${G+2} Z`;
+  const dw=w*.2,dh=h*.5,m=w*.022;
+  s+=`<path class="nd-puerta-borde" d="${arco(dw+m*2,dh+m,cx-dw/2-m)}"/><path class="nd-puerta" d="${arco(dw,dh,cx-dw/2)}"/>`;
+  return s;
+}
+function nd_camara(c,r,cols,o){
+  const f=v=>v.toFixed(1);
+  let s=`<g class="camara${c.actual?' actual':''}${c.mejor?' mejor':''}"><title>${c.e}: ${c.n} tareas hechas</title>`;
+  s+=`<ellipse class="nd-c-hueco" cx="${c.cx}" cy="${c.cy}" rx="${f(c.rx)}" ry="${f(c.ry)}"/>`;
+  s+=`<ellipse class="nd-c-suelo" cx="${c.cx}" cy="${f(c.cy+c.ry*.5)}" rx="${f(c.rx*.8)}" ry="${f(c.ry*.42)}"/>`;
+  // Pila en pirámide: abajo la fila más larga y una menos en cada piso.
+  const [srx,sry]=o.semilla,SW=srx*2+1.5,SH=sry*1.7;
+  let base=1;while(base*(base+1)/2<c.n)base++;
+  const floor=c.cy+c.ry*.6,ox=c.actual?-c.rx*.16:0;
+  let n=c.n;
+  for(let row=0;n>0;row++){const cnt=Math.min(base-row,n),y=floor-row*SH,x0=c.cx+ox-(cnt-1)*SW/2;
+    for(let i=0;i<cnt;i++,n--){const x=x0+i*SW+(r()-.5)*1.2,col=cols[Math.floor(r()*cols.length)],a=((r()-.5)*14).toFixed(0);
+      s+=`<g class="nd-semilla" transform="translate(${f(x)} ${f(y)}) rotate(${a})"><ellipse rx="${srx}" ry="${sry}" style="fill:${col}"/><ellipse class="nd-brillo" cx="${f(-srx*.3)}" cy="${f(-sry*.38)}" rx="${f(srx*.36)}" ry="${f(sry*.28)}"/></g>`;}}
+  // En el móvil la etiqueta va encima de la cámara y taparía la bandera: allí
+  // la mejor semana la dice el propio texto («récord»).
+  if(c.mejor&&o.etq==='lado'){const b=o.bandera,mx=c.cx-c.rx*.18,my=c.cy-c.ry-o.anillo;
+    s+=`<path class="nd-mastil" d="M${f(mx)} ${f(my+2)} V ${f(my-b)}"/><path class="nd-bandera" d="M${f(mx+1)} ${f(my-b)} q ${f(b*.35)} ${f(b*.08)} ${f(b*.62)} ${f(b*.2)} q ${f(-b*.27)} ${f(b*.12)} ${f(-b*.62)} ${f(b*.2)} Z"/>`;}
+  if(c.actual)s+=nd_planta(c.cx+c.rx*.52,floor+sry,o.planta);
+  // Etiqueta en tarjeta. El ancho se ajusta al texto ya pintado (nd_ajustarEtiquetas).
+  const t1=c.actual?'Esta semana':c.e;
+  if(o.etq==='lado'){
+    const t2=c.actual?c.n+' y contando':c.n+' tareas'+(c.mejor?' • tu mejor semana':'');
+    const ax=c.dir>0?c.cx+c.rx+o.anillo+o.sep:c.cx-c.rx-o.anillo-o.sep;
+    s+=`<g class="nd-etq" data-lado="${c.dir}" data-ax="${f(ax)}"><rect x="${f(ax)}" y="${f(c.cy-o.etqH/2)}" width="10" height="${o.etqH}" rx="${o.etqR}"/><text class="nd-e1" x="${f(ax)}" y="${f(c.cy-3)}" text-anchor="middle">${t1}</text><text class="nd-e2" x="${f(ax)}" y="${f(c.cy+o.etqH*.32)}" text-anchor="middle">${t2}</text></g>`;
+  }else{
+    const t2=c.actual?c.n+' y contando':'· '+c.n+(c.mejor?' · récord':'');
+    const ly=c.cy-c.ry-o.anillo-o.sep;
+    s+=`<g class="nd-etq" data-lado="0" data-ax="${c.cx}"><rect x="${c.cx}" y="${f(ly-o.etqH*.72)}" width="10" height="${o.etqH}" rx="${o.etqR}"/><text x="${c.cx}" y="${f(ly)}" text-anchor="middle"><tspan class="nd-e1">${t1}</tspan><tspan class="nd-e2" dx="5">${t2}</tspan></text></g>`;
   }
-  const ly=c.cy-c.ry-(c.actual?11:9);
-  const tt=(c.actual?'Esta semana':c.e)+(c.actual?' '+c.n+' y contando':' · '+c.n+(c.mejor?' · récord':'')),tw=tt.length*6.3+18;
-  s+=`<rect class="tablilla" x="${(c.cx-tw/2).toFixed(0)}" y="${(ly-14).toFixed(0)}" width="${tw.toFixed(0)}" height="20" rx="10"/>`;
-  s+=`<text x="${c.cx}" y="${ly.toFixed(0)}" text-anchor="middle"><tspan class="etq-1">${c.actual?'Esta semana':c.e}</tspan><tspan class="etq-2" dx="5">${c.actual?c.n+' y contando':'· '+c.n+(c.mejor?' · récord':'')}</tspan></text>`;
   return s+'</g>';
 }
 function nido(){
-  const W=362,H=560,G=58,r=rng(42),sx=muestreo(SHAFT);
-  const sem=[{e:'16–22 nov',n:9,actual:1},{e:'9–15 nov',n:21},{e:'2–8 nov',n:15},{e:'26 oct–1 nov',n:23},{e:'19–25 oct',n:9},{e:'12–18 oct',n:18},{e:'5–11 oct',n:12}];
-  const ys=[124,192,258,326,392,458,522];
+  const o=ND,{W,H,G,X}=o,r=rng(42),f=v=>v.toFixed(1);
+  const sx=muestreo(o.shaft);
+  const sem=[{e:'16–22 nov',n:9,actual:1},{e:'9–15 nov',n:21},{e:'2–8 nov',n:15},{e:'26 oct – 1 nov',n:23},{e:'19–25 oct',n:9},{e:'12–18 oct',n:18},{e:'5–11 oct',n:12}];
   const cols=['var(--l-trabajo)','var(--l-casa)','var(--l-personal)','var(--l-lect)','var(--l-viajes)','var(--o500)'];
   const maxN=Math.max(...sem.filter(x=>!x.actual).map(x=>x.n));sem.forEach(x=>{if(!x.actual&&x.n===maxN)x.mejor=1;});
-  const cams=sem.map((s,i)=>{const dir=i%2===0?1:-1,cy=ys[i],x0=sx(cy),rx=30+s.n*1.45,ry=15+s.n*.5,cx=Math.round(x0+dir*(60+s.n*1.5));
-    return {...s,dir,cx,cy,rx,ry,tun:`M${x0.toFixed(1)} ${cy-4} C ${(x0+dir*30).toFixed(1)} ${cy-6}, ${(cx-dir*(rx+30)).toFixed(1)} ${cy+8}, ${(cx-dir*rx*0.75).toFixed(1)} ${cy+2}`};});
-  let s=`<svg class="nido" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tu hormiguero">`;
-  s+=`<defs><radialGradient id="luz-camara" cx="50%" cy="72%" r="68%"><stop offset="0" style="stop-color:var(--hueco-luz)"/><stop offset="1" style="stop-color:var(--hueco)"/></radialGradient><radialGradient id="brillo-camara" cx="50%" cy="62%" r="62%"><stop offset="0" stop-color="#8f6d46"/><stop offset="1" stop-color="#54412f"/></radialGradient><clipPath id="cl-t"><rect x="0" y="${G-30}" width="${W}" height="${H}" rx="16"/></clipPath></defs><g clip-path="url(#cl-t)"><rect class="tierra" x="0" y="${G}" width="${W}" height="${H}"/>`;
-  for(let k=0;k<4;k++){const y=G+50+k*120,a=8+r()*6,h=26+r()*16;s+=`<path class="estrato" d="M0 ${y} C 90 ${y-a}, 180 ${y+a}, 260 ${y} S 340 ${y-a}, 362 ${y+a*.5} L362 ${y+h} C 300 ${y+h-a}, 220 ${y+h+a}, 160 ${y+h} S 50 ${y+h-a}, 0 ${y+h+a*.4} Z"/>`;}
-  s+=raices(r,362,G,[110,252]);
-  for(let i=0;i<260;i++)s+=`<circle class="mota" cx="${(r()*W).toFixed(1)}" cy="${(G+4+r()*(H-G)).toFixed(1)}" r="${(0.5+r()*1.2).toFixed(2)}" opacity="${(0.25+r()*0.45).toFixed(2)}"/>`;
-  for(let i=0;i<10;i++){const x=(r()*W).toFixed(0),y=(G+16+r()*(H-G-16)).toFixed(0);s+=`<ellipse class="guijarro" cx="${x}" cy="${y}" rx="${(3+r()*4).toFixed(1)}" ry="${(2.4+r()*2).toFixed(1)}" transform="rotate(${(r()*60-30).toFixed(0)} ${x} ${y})"/>`;}
-  s+=`<path class="t-borde" d="${SHAFT}"/>`;
-  cams.forEach(c=>{s+=`<path class="t-borde" d="${c.tun}"/>`;if(!c.actual)s+=`<ellipse class="c-borde" cx="${c.cx}" cy="${c.cy}" rx="${c.rx+4}" ry="${c.ry+4}"/>`;});
-  s+=`<path class="t-hueco" d="${SHAFT}"/>`;cams.forEach(c=>{s+=`<path class="t-hueco" d="${c.tun}"/>`;});
-  cams.forEach(c=>{s+=camara(c,r,cols);});
-  s+=enRuta(SHAFT,20,'-3s',false,20);s+=enRuta(cams[1].tun,8,'-2s',true,18);s+=enRuta(cams[2].tun,9,'-5s',false,18);
-  s+=`</g>`+montArriba(128,234,G,37);
-  for(let i=0;i<30;i++){const x=136+r()*90,top=G-36*Math.sin(Math.PI*(x-128)/106),y=top+3+r()*(G-top-3);s+=`<circle class="mota" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.5+r()*1).toFixed(2)}" opacity="${(0.3+r()*0.4).toFixed(2)}"/>`;}
-  s+=`<ellipse class="entrada" cx="181" cy="35" rx="10" ry="5"/><path class="suelo" d="M0 ${G} H${W}"/>`;
-  for(let i=0;i<16;i++){const x=r()*W;if(x>110&&x<252)continue;s+=`<path class="hierba" d="M${x.toFixed(0)} ${G} l-3 -7 M${x.toFixed(0)} ${G} l0.5 -10 M${x.toFixed(0)} ${G} l4 -6"/>`;}
-  s+=enRuta(`M10 ${G-1} C 60 ${G-2}, 100 ${G+1}, 138 ${G-3} C 154 44, 166 37, 174 35`,10,'-4s',false,20,true,true);
-  s+=enRuta(`M356 ${G-1} C 310 ${G+1}, 260 ${G-2}, 226 ${G-3} C 210 44, 196 37, 188 35`,12,'-8s',true,20,true,true);
+  const cams=sem.map((s,i)=>{const dir=i%2===0?1:-1,cy=o.ys[i],x0=sx(cy),[rx,ry]=o.radio(s.n),cx=Math.round(x0+dir*o.dist(s.n,r));
+    return {...s,dir,cx,cy,rx,ry,tun:`M${f(x0)} ${cy-6} C ${f(x0+dir*o.tc)} ${cy-8}, ${f(cx-dir*(rx+o.tc))} ${cy+12}, ${f(cx-dir*rx*.75)} ${cy+2}`};});
+  // Zonas ocupadas, para que matas y piedras de bajo tierra no asomen a medias.
+  const libre=(x,y,m)=>Math.abs(x-sx(y))>o.tunel[0]+m&&cams.every(c=>Math.abs(x-c.cx)>c.rx+m+(o.etq==='lado'?(c.dir*(x-c.cx)>0?o.etqAncho:0):0)||Math.abs(y-c.cy)>c.ry+m+(o.etq==='arriba'?o.etqH+o.sep:0));
+  let s=`<svg class="nido nd" viewBox="0 0 ${W} ${H}" data-w="${W}" data-pad="${o.pad}" style="--nd-f1:${o.f1};--nd-f2:${o.f2};--nd-rayo:${o.rayo}px" role="img" aria-label="Tu hormiguero: cada cámara es una semana">`;
+  s+=`<defs><radialGradient id="nd-luz" cx="50%" cy="66%" r="66%"><stop offset="0" stop-color="#9c784b"/><stop offset="1" stop-color="#54412f"/></radialGradient><clipPath id="nd-ct"><rect x="0" y="${G}" width="${W}" height="${H-G}" rx="${o.marco}"/></clipPath></defs>`;
+  // Cielo: nubes de día y estrellas de noche.
+  o.nubes.forEach(([x,y,k])=>{s+=nd_nube(x,y,k);});
+  for(let i=0;i<16;i++)s+=`<circle class="estrella" cx="${(r()*W).toFixed(0)}" cy="${(4+r()*(G*.6)).toFixed(0)}" r="${(o.estrella*(.7+r()*.8)).toFixed(1)}" style="animation-delay:${(i*.37).toFixed(2)}s"/>`;
+  // Tierra: arena, vetas onduladas, granos, y piedras y matas enterradas.
+  const T=H-G;
+  s+=`<g clip-path="url(#nd-ct)"><rect class="nd-arena" x="0" y="${G}" width="${W}" height="${T}"/>`;
+  for(let k=0;k<4;k++){const y=G+T*(.14+k*.23),a=T*.022+r()*T*.015,h=T*.07+r()*T*.035;
+    s+=`<path class="nd-banda" d="M0 ${f(y)} C ${f(W*.19)} ${f(y-a)}, ${f(W*.37)} ${f(y+a)}, ${f(W*.56)} ${f(y)} S ${f(W*.83)} ${f(y-a)}, ${W} ${f(y+a*.5)} L${W} ${f(y+h)} C ${f(W*.81)} ${f(y+h-a)}, ${f(W*.65)} ${f(y+h+a)}, ${f(W*.46)} ${f(y+h)} S ${f(W*.15)} ${f(y+h-a)}, 0 ${f(y+h+a*.4)} Z"/>`;}
+  for(let i=0;i<o.granos;i++){const x=r()*W,y=G+6+r()*(T-6),rx=(.9+r()*1.8)*o.k;s+=`<ellipse class="nd-grano" cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(rx*.65)}" transform="rotate(${(r()*60-30).toFixed(0)} ${f(x)} ${f(y)})"/>`;}
+  for(let i=0,hechas=0;i<80&&hechas<o.bajo[0];i++){const x=12+r()*(W-24),y=G+24+r()*(T-40);if(!libre(x,y,14*o.k))continue;hechas++;const rx=(7+r()*6)*o.k;s+=nd_piedra(x,y,rx,rx*.62);}
+  for(let i=0,hechas=0;i<120&&hechas<o.bajo[1];i++){const x=12+r()*(W-24),y=G+34+r()*(T-50);if(!libre(x,y,22*o.k))continue;hechas++;s+=nd_mata(x,y,(.7+r()*.4)*o.k,r);}
+  // Túneles y cámaras: primero los bordes (y los anillos), luego el hueco,
+  // para que cada túnel entre en su cámara sin pared por medio.
+  s+=`<path class="nd-t-borde" d="${o.shaft}" style="stroke-width:${o.tunel[0]}"/>`;
+  cams.forEach(c=>{s+=`<path class="nd-t-borde" d="${c.tun}" style="stroke-width:${o.tunel[0]}"/><ellipse class="nd-c-anillo" cx="${c.cx}" cy="${c.cy}" rx="${f(c.rx+o.anillo)}" ry="${f(c.ry+o.anillo)}"/>`;});
+  s+=`<path class="nd-t-hueco" d="${o.shaft}" style="stroke-width:${o.tunel[1]}"/>`;
+  cams.forEach(c=>{s+=`<path class="nd-t-hueco" d="${c.tun}" style="stroke-width:${o.tunel[1]}"/>`;});
+  cams.forEach(c=>{s+=nd_camara(c,r,cols,o);});
+  s+=enRuta(o.shaft,22,'-3s',false,o.hormiga);
+  s+=enRuta(cams[2].tun,9,'-2s',cams[2].dir<0,o.hormiga*.9);
+  s+='</g>';
+  // Superficie: el borde del suelo, el montículo, piedras, plantas y matas.
+  s+=`<path class="nd-borde-suelo" d="M0 ${G} H${W}"/>`;
+  s+=nd_monticulo(X,G,o.mont[0],o.mont[1],r);
+  o.piedras.forEach(([x,rx,ry])=>{s+=nd_piedra(x,G-ry*.55,rx,ry);});
+  o.plantas.forEach(([x,k])=>{s+=nd_planta(x,G+1,k);});
+  const ocup=[[X-o.mont[0]/2-8,X+o.mont[0]/2+8],...o.piedras.map(([x,rx])=>[x-rx-3,x+rx+3]),...o.plantas.map(([x,k])=>[x-10*k,x+10*k])];
+  for(let i=0,hechas=0;i<200&&hechas<o.matas;i++){const x=8+r()*(W-16);if(ocup.some(([a,b])=>x>a&&x<b))continue;hechas++;ocup.push([x-6*o.k,x+6*o.k]);s+=nd_mata(x,G+1,(.85+r()*.6)*o.k,r);}
+  // Una hormiga que llega a la puerta con su semilla.
+  s+=enRuta(`M${f(W*.03)} ${G-1} C ${f(W*.15)} ${G-2}, ${f(W*.27)} ${G+1}, ${f(X-o.mont[0]*.12)} ${G-1}`,15,'-5s',false,o.hormiga,true,true);
   return s+'</svg>';
 }
+function nd_ajustarEtiquetas(){
+  document.querySelectorAll('svg.nd').forEach(svg=>{
+    const W=+svg.dataset.w,pad=+svg.dataset.pad;
+    svg.querySelectorAll('.nd-etq').forEach(g=>{
+      const tx=[...g.querySelectorAll('text')],rect=g.querySelector('rect');
+      const w=Math.max(...tx.map(t=>t.getBBox().width))+pad*2,lado=+g.dataset.lado,ax=+g.dataset.ax;
+      let x=lado>0?ax:lado<0?ax-w:ax-w/2;x=Math.max(4,Math.min(W-4-w,x));
+      rect.setAttribute('x',x.toFixed(1));rect.setAttribute('width',w.toFixed(1));
+      tx.forEach(t=>t.setAttribute('x',(x+w/2).toFixed(1)));
+    });
+  });
+}
+document.fonts.ready.then(nd_ajustarEtiquetas);
+
 function pantallaActividad(){
   return BARRA_ESTADO+`<header class="m-cab">
     <div class="m-fila1"><div class="m-herr"><button>${ico('back',20)}</button></div><div class="m-herr"><button>${ico('sliders',19)}</button></div></div>
@@ -1230,15 +1479,21 @@ Object.assign(ICOS,{
 // [nombre, color, hechas, total] — lo mismo que el anillo de cada lista en la barra lateral.
 const CHIPS_L=[['Trabajo','var(--l-trabajo)',4,8],['Casa','var(--l-casa)',4,6],['Personal','var(--l-personal)',4,5],['Lecturas','var(--l-lect)',1,4],['Viajes','var(--l-viajes)',0,3],['Salud','var(--o500)',5,7]];
 const INB=[
-  {n:'Sin lista',sin:1,pend:2,tareas:[{t:'Llamar al fontanero',f:'Mañana'},{t:'Comprar pilas AA'}]},
+  {n:'Sin lista',sin:1,pend:2,tareas:[{t:'Llamar al fontanero',f:'Mañana',d:21},{t:'Comprar pilas AA'}]},
   {n:'Trabajo',c:'var(--l-trabajo)',pend:4,tareas:[
-    {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5]},
-    {t:'Responder a la gestoría',venc:'Ayer'},
-    {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes'},
-    {t:'Preparar la reunión de enero',f:'mar 2 dic'}]},
-  {n:'Casa',c:'var(--l-casa)',pend:2,tareas:[{t:'Renovar el seguro del coche',imp:1,venc:'mié 12 nov'},{t:'Revisar el presupuesto de diciembre',link:1}]}
+    {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5],d:20},
+    {t:'Responder a la gestoría',venc:'Ayer',d:19},
+    {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes',d:20},
+    {t:'Preparar la reunión de enero',f:'mié 2 dic',d:'d2'}]},
+  {n:'Casa',c:'var(--l-casa)',pend:2,tareas:[{t:'Renovar el seguro del coche',imp:1,venc:'mié 12 nov',d:12},{t:'Revisar el presupuesto de diciembre',link:1}]},
+  // 26-nov: el resto de listas, para que el calendario y cada lista tengan con qué llenarse.
+  // d: el día de la fecha (20 = hoy; 'd2' = 2 de diciembre), para el calendario.
+  {n:'Personal',c:'var(--l-personal)',pend:1,tareas:[{t:'Pedir cita en el dentista',f:'mar 24 nov',d:24}]},
+  {n:'Lecturas',c:'var(--l-lect)',pend:3,tareas:[{t:'Devolver el libro a Lucía',f:'lun 23 nov',d:23},{t:'Terminar «Klara y el sol»',f:'vie 27 nov',d:27},{t:'Apuntar citas del libro'}]},
+  {n:'Viajes',c:'var(--l-viajes)',pend:3,tareas:[{t:'Reservar el hotel en Lisboa',imp:1,f:'mié 25 nov',d:25},{t:'Comprar los billetes de tren',f:'sáb 28 nov',d:28},{t:'Mirar horarios del tranvía 28'}]},
+  {n:'Salud',c:'var(--o500)',pend:2,tareas:[{t:'Pedir análisis de sangre',f:'jue 26 nov',d:26},{t:'Comprar crema solar'}]}
 ];
-const PEND_INB=INB.reduce((s,g)=>s+g.pend,0)+CHIPS_L.slice(2).reduce((s,c)=>s+c[3]-c[2],0);
+const PEND_INB=INB.reduce((s,g)=>s+g.pend,0);
 const HECHAS_INB=CHIPS_L.reduce((s,c)=>s+c[2],0);
 function anilloLista(d,t,c){
   const N=10,k=Math.round(N*d/t);let s='<svg width="18" height="18" viewBox="0 0 18 18">';
@@ -1253,7 +1508,7 @@ function filaInbox(t){
   if(t.rep)m.push(`<span>${ico('repeat',13)} ${t.rep}</span>`);
   if(t.link)m.push(`<span>${ico('link',13)} 1</span>`);
   if(t.sub)m.push(`<span>${t.sub[0]}/${t.sub[1]} subtareas</span>`);
-  return `<div class="fila inb-fila${m.length?'':' una'}"><div class="fila-in">
+  return `<div class="fila inb-fila${m.length?'':' una'}"${t.d!=null?` data-d="${t.d}"`:''}><div class="fila-in">
     <span class="check-wrap">${t.sub?anilloSub(t.sub):''}<button class="check" aria-label="Completar">${CKB}</button></span>
     <div class="f-txt"><span class="titulo"><span class="texto">${t.t}</span>${tachon()}</span>${m.length?`<span class="meta">${m.join('')}</span>`:''}</div></div></div>`;
 }
@@ -1263,48 +1518,55 @@ function inboxCuerpo(){
   const grupos=INB.map(g=>`<section><div class="sec-cab"><i class="sec-punto${g.sin?' sin':''}"${g.c?` style="background:${g.c}"`:''}></i><span class="sec-tit">${g.n}</span><span class="sec-n">${g.pend}</span><span class="puntos"></span></div>${g.tareas.map(filaInbox).join('')}</section>`).join('');
   return `<header class="m-cab">
     <div class="m-fila1"><div class="m-herr"><button>${ico('menu',19)}</button></div><div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button aria-label="Buscar">${ico('search',19)}</button><button>${ico('sliders',19)}</button></div></div>
-    <h1 class="m-tit">Inbox</h1><div class="inb-sub">${INB[0].pend} sin ordenar · <span style="color:var(--venc);font-weight:600">2 vencidas</span></div>
+    <div class="inb-tit"><h1 class="m-tit">Inbox</h1><button class="ic-btn" aria-expanded="false" aria-controls="ic">${ico('cal',15)}<span>Noviembre</span>${ico('chev',14)}</button></div><div class="inb-sub">${INB[0].pend} sin ordenar · <span style="color:var(--venc);font-weight:600">2 vencidas</span></div>
+    ${calInbox()}
     <div class="lch-fila">${chips}</div>
   </header>
-  <div class="m-hoja" style="top:268px">
+  <div class="m-hoja ic-hoja" style="top:${IC_TOP}px">
     <div class="m-pestanas"><button class="m-pest on">Pendientes <span>${PEND_INB}</span></button><button class="m-pest">Hechas <span>${HECHAS_INB}</span></button></div>
-    <div class="m-cuerpo"><div class="capa"></div>${grupos}</div>
+    <div class="m-cuerpo"><div class="capa"></div><div class="ic-filtro" hidden><span class="ic-f-tx"></span><button class="ic-quitar">${ico('cerrar',13)} Quitar</button></div><p class="ic-vacio" hidden>Nada con fecha ese día. Lo que no tiene fecha sigue en «Todas».</p>${grupos}</div>
   </div>`+navN('inbox');
 }
 function pantallaInboxListas(){return BARRA_ESTADO+inboxCuerpo();}
 
 function pantallaDetalle(){
-  const SUBS=[['Recopilar los datos del Q3',1],['Pedir el logo nuevo a diseño',1],['Montar las diapositivas',0],['Ensayar con Marta',0],['Enviar el PDF al equipo',0]];
+  // 26-nov: enseña la tarea que tocaste, sobre la pantalla de la que vienes.
+  // Abierto directamente (#detalle), la presentación del jueves sobre el Inbox.
+  const D=detDatos(),C=!!D.completa;
+  const SUBS=C?[['Recopilar los datos del Q3',1],['Pedir el logo nuevo a diseño',1],['Montar las diapositivas',0],['Ensayar con Marta',0],['Enviar el PDF al equipo',0]]:[];
   const fila=(icono,txt,valor,cls='')=>`<div class="det-fila"><span class="${cls}">${ico(icono,18)}</span>${txt}${valor}</div>`;
   const val=v=>`<span class="det-valor">${v} ${ico('derecha',16)}</span>`;
-  return `<div class="det-fondo"><div style="height:46px"></div>${inboxCuerpo()}</div><div class="det-velo"></div>
+  const f=D.f||'',hora=C?'10:00 – 11:30':(f.match(/\d{1,2}:\d{2}/)||['Sin hora'])[0];
+  const marca=[['Hoy',/^Hoy/.test(f)],['Mañana',/^Mañana/.test(f)],['Lunes',/^lun/.test(f)]],otra=f&&!marca.some(x=>x[1])?f:'';
+  const chips=marca.map(([x,on])=>`<span class="det-chip${on?' on':''}">${x==='Hoy'?ico('cal',14)+' ':''}${x}</span>`).join('')+`<span class="det-chip${otra?' on':''}${otra&&D.venc?' venc':''}">${ico('cal',14)} ${otra||'Otra'}</span>`;
+  return `<div class="det-fondo">${fondoDetalle()}</div><div class="det-velo"></div>
   <div class="det-estado">${BARRA_ESTADO}</div>
   <div class="det-hoja">
     <div class="det-asa"></div>
-    <div class="det-cab"><span class="det-lista"><i style="background:var(--l-trabajo)"></i>Trabajo ${ico('chev',14)}</span>
+    <div class="det-cab"><span class="det-lista"><i style="background:${D.lc||'var(--punto)'}"></i>${D.ln||'Sin lista'} ${ico('chev',14)}</span>
       <div class="det-btns"><button aria-label="Más">${ico('mas',18)}</button><a href="#inbox-listas" aria-label="Cerrar">${ico('cerrar',18)}</a></div></div>
-    <div class="det-tit"><span class="check-wrap">${anilloSub([2,5])}<button class="check det-check" aria-label="Completar">${CKB}</button></span><h2>Preparar la presentación del jueves</h2></div>
+    <div class="det-tit"><span class="check-wrap">${C?anilloSub([2,5]):''}<button class="check det-check" aria-label="Completar">${CKB}</button></span><h2>${D.t}</h2></div>
     <div class="det-sec">
       <div class="sec-cab"><span class="sec-tit">Cuándo</span><span class="puntos"></span></div>
-      <div class="det-chips"><span class="det-chip on">${ico('cal',14)} Hoy</span><span class="det-chip">Mañana</span><span class="det-chip">Lunes</span><span class="det-chip">${ico('cal',14)} Otra</span></div>
+      <div class="det-chips">${chips}</div>
       <div class="det-filas">
-        ${fila('reloj','Hora',val('10:00 – 11:30'))}
-        ${fila('repeat','Repetir',val('No se repite'))}
-        ${fila('campana','Aviso',val('30 min antes'))}
-        ${fila('flag','Importante','<span class="det-sw" role="switch" aria-checked="true"></span>','bandera')}
+        ${fila('reloj','Hora',val(hora))}
+        ${fila('repeat','Repetir',val(C?'No se repite':repTexto(D.rep)))}
+        ${fila('campana','Aviso',val(C?'30 min antes':hora==='Sin hora'?'Sin aviso':'15 min antes'))}
+        ${fila('flag','Importante',`<span class="det-sw${D.imp?'':' off'}" role="switch" aria-checked="${!!D.imp}"></span>`,'bandera')}
       </div>
     </div>
     <div class="det-sec">
-      <div class="sec-cab"><span class="sec-tit">Subtareas</span><span class="sec-n">2/5</span><span class="puntos"></span></div>
+      <div class="sec-cab"><span class="sec-tit">Subtareas</span><span class="sec-n">${C?'2/5':'0'}</span><span class="puntos"></span></div>
       <ul class="det-subs">${SUBS.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span></li>`).join('')}<li class="anadir">${ico('plus',19)} Añadir subtarea</li></ul>
     </div>
-    <div class="det-sec">
+    ${C?`<div class="det-sec">
       <div class="sec-cab"><span class="sec-tit">Enlaces</span><span class="sec-n">1</span><span class="puntos"></span></div>
       <div class="det-enlace">${ico('link',16)}<span>docs.google.com<em>/presentation/d/1Q3-jueves</em></span>${ico('fuera',16)}</div>
-    </div>
+    </div>`:''}
     <div class="det-sec">
       <div class="sec-cab"><span class="sec-tit">Nota</span><span class="puntos"></span></div>
-      <div class="det-nota">Empezar por la demo del calendario y dejar los números del Q3 para el final. Marta lleva el portátil.</div>
+      ${C?'<div class="det-nota">Empezar por la demo del calendario y dejar los números del Q3 para el final. Marta lleva el portátil.</div>':'<div class="det-nota det-nota--vacia">Añade una nota…</div>'}
     </div>
     <div class="det-acc"><button>${ico('copiar',16)} Duplicar</button><button class="det-borrar">${ico('papelera',16)} Eliminar</button></div>
   </div><div class="home" style="z-index:9"></div>`;
@@ -1316,7 +1578,6 @@ if(estado==='detalle-abajo')addEventListener('DOMContentLoaded',()=>{const h=doc
 document.addEventListener('click',e=>{
   const s=e.target.closest('.det-subs li:not(.anadir)');if(s){s.classList.toggle('ok');return;}
   const d=e.target.closest('.det-check');if(d){d.closest('.det-tit').classList.toggle('hecha');return;}
-  const f=e.target.closest('.inb-fila');if(f&&!e.target.closest('.check')&&!f.closest('.det-fondo'))location.hash='detalle';
 });
 
 /* ═══ Clics ═══ */
@@ -1440,17 +1701,16 @@ function pantallaAjustes(){
       <div class="seg" id="seg-tema"><span class="${OSC?'':'on'}">Automático</span><span>Claro</span><span class="${OSC?'on':''}">Oscuro</span></div>
       <div class="acentos" id="acentos">${acentos}</div>
       <div class="prev" id="prev">
-        <svg class="rastro-mini" viewBox="0 0 330 62"><path class="tr-f" d="M8 44 C 60 18, 110 56, 170 38 S 260 18, 290 40"/><path class="tr-h" d="M8 44 C 60 18, 110 56, 150 42"/>
-          <path d="M268 48 C 278 24, 314 24, 324 48 Z" style="fill:var(--tierra-2)"/>${hormiga({x:136,y:14,w:30})}</svg>
+        <div class="aj-pg" role="button" aria-label="Vista previa: tócala para completar una"></div>
         <div class="prev-fila"><span class="ck">${CK}</span><span class="tx">Pasear a Tango</span><span class="btn">Añadir</span></div>
-        <p class="prev-nota">El acento tiñe el rastro, las casillas y los botones. La hormiga se queda en oliva: es la marca.</p>
+        <p class="prev-nota">El acento tiñe la senda recorrida, las casillas y los botones. La hormiga se queda en oliva: es la marca. Toca la senda para ver cómo avanza.</p>
       </div>
     </div>
 
     <div class="aj-sec"><div class="sec-cab"><span class="sec-tit">La hormiga</span><span class="puntos"></span></div>
       <div class="aj-card">
         ${fila_('','Se lleva la tarea al completarla','Si lo apagas, solo se marca y se tacha.',sw())}
-        ${fila_('','Rastro y hormiguero en Hoy','En lugar del porcentaje.',sw())}
+        ${fila_('','Senda y hormiguero en Hoy','En lugar del porcentaje.',sw())}
         ${fila_('','Hormigas en las rachas','Una por cada día cumplido.',sw())}
         ${fila_('','Ilustraciones en pantallas vacías','',sw())}
       </div>
@@ -1499,7 +1759,6 @@ document.addEventListener('click',e=>{
   if(a){document.querySelectorAll('.acento').forEach(x=>x.classList.toggle('on',x===a));document.getElementById('prev').style.setProperty('--a',a.dataset.c);return;}
   const sg=e.target.closest('#seg-tema span');if(sg){document.querySelectorAll('#seg-tema span').forEach(x=>x.classList.toggle('on',x===sg));return;}
   const w=e.target.closest('.aj-fila .sw');if(w){w.classList.toggle('off');return;}
-  if(e.target.closest('.m-nav .m-av'))location.hash='ajustes';
 });
 
 /* ═══ Añadido el 25-nov-2026: detalle de nota y vista de una lista ═══ */
@@ -1534,39 +1793,48 @@ function pantallaNota(){
 }
 
 function pantallaLista(){
-  const c='var(--l-trabajo)';
-  const T=[
-    {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5]},
-    {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes'},
-    {t:'Pedirle los logos a Marta'},
-    {t:'Preparar la reunión de enero',f:'mar 2 dic'}];
-  const V=[{t:'Responder a la gestoría',venc:'Ayer'}];
-  const otras=CHIPS_L.filter(x=>x[0]!=='Trabajo').map(([n,cc,d,t])=>`<span class="lch">${anilloLista(d,t,cc)}${n} <small>${d}/${t}</small></span>`).join('');
-  const anilloG=(()=>{const N=16,k=Math.round(N*4/8);let s='<svg class="anillo-g" viewBox="0 0 46 46">';for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;s+=`<circle cx="${(23+18*Math.cos(a)).toFixed(2)}" cy="${(23+18*Math.sin(a)).toFixed(2)}" r="2.3" style="fill:${i<k?c:'var(--punto-kraft)'}"/>`;}return s+'</svg>';})();
+  // 26-nov: sirve para cualquier lista (se elige en ☰ o en los chips). Trabajo, como antes.
+  const L=listaActual(),c=L.c;
+  let V,S,A;
+  if(L.n==='Trabajo'){
+    const T=[
+      {t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5],d:20},
+      {t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes',d:20},
+      {t:'Pedirle los logos a Marta'},
+      {t:'Preparar la reunión de enero',f:'mié 2 dic',d:'d2'}];
+    V=[{t:'Responder a la gestoría',venc:'Ayer',d:19}];S=T.slice(0,2);A=T.slice(2);
+  }else{
+    const g=INB.find(x=>x.n===L.n)||{tareas:[]},pronto=t=>typeof t.d==='number'&&t.d<=22;
+    V=g.tareas.filter(t=>t.venc);S=g.tareas.filter(t=>!t.venc&&pronto(t));A=g.tareas.filter(t=>!t.venc&&!pronto(t));
+  }
+  const pend=V.length+S.length+A.length;
+  const otras=CHIPS_L.filter(x=>x[0]!==L.n).map(([n,cc,d,t])=>`<span class="lch">${anilloLista(d,t,cc)}${n} <small>${d}/${t}</small></span>`).join('');
+  const anilloG=(()=>{const N=16,k=Math.round(N*L.d/L.t);let s='<svg class="anillo-g" viewBox="0 0 46 46">';for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;s+=`<circle cx="${(23+18*Math.cos(a)).toFixed(2)}" cy="${(23+18*Math.sin(a)).toFixed(2)}" r="2.3" style="fill:${i<k?c:'var(--punto-kraft)'}"/>`;}return s+'</svg>';})();
+  const sec=(tit,arr,cls,extra='')=>arr.length?`<section${cls?` class="${cls}"`:''}><div class="sec-cab"><span class="sec-tit">${tit}</span><span class="sec-n">${arr.length}</span><span class="puntos"></span>${extra}</div>${arr.map(filaInbox).join('')}</section>`:'';
   return BARRA_ESTADO+`<header class="ls-cab">
     <div class="m-fila1"><div class="m-herr"><button aria-label="Listas">${ico('menu',19)}</button></div><div class="m-herr"><button aria-label="Buscar">${ico('search',19)}</button><button aria-label="Más">${ico('mas',19)}</button></div></div>
-    <div class="ls-tit">${anilloG}<div><h1>Trabajo</h1><small>4 de 8 hechas · 1 vencida</small></div></div>
-    <div class="ls-otras"><span class="lch on">${anilloLista(4,8,c)}Trabajo</span>${otras}</div>
+    <div class="ls-tit">${anilloG}<div><h1>${L.n}</h1><small>${L.d} de ${L.t} hechas${V.length?` · ${V.length} ${V.length>1?'vencidas':'vencida'}`:''}</small></div></div>
+    <div class="ls-otras"><span class="lch on">${anilloLista(L.d,L.t,c)}${L.n}</span>${otras}</div>
   </header>
   <div class="m-hoja" style="top:288px">
-    <div class="m-pestanas"><button class="m-pest on">Pendientes <span>5</span></button><button class="m-pest">Hechas <span>4</span></button></div>
+    <div class="m-pestanas"><button class="m-pest on">Pendientes <span>${pend}</span></button><button class="m-pest">Hechas <span>${L.d}</span></button></div>
     <div class="m-cuerpo"><div class="capa"></div>
-      <section class="sec--venc"><div class="sec-cab"><span class="sec-tit">Vencidas</span><span class="sec-n">1</span><span class="puntos"></span><button class="accion">${ico('arrow',13)} A hoy</button></div>${V.map(filaInbox).join('')}</section>
-      <section><div class="sec-cab"><span class="sec-tit">Esta semana</span><span class="sec-n">2</span><span class="puntos"></span></div>${T.slice(0,2).map(filaInbox).join('')}</section>
-      <section><div class="sec-cab"><span class="sec-tit">Más adelante</span><span class="sec-n">2</span><span class="puntos"></span></div>${T.slice(2).map(filaInbox).join('')}</section>
-      <div class="ls-hechas">${ico('calcheck',17)} 4 hechas esta semana ${ico('chev',16)}</div>
+      ${sec('Vencidas',V,'sec--venc',`<button class="accion">${ico('arrow',13)} A hoy</button>`)}
+      ${sec('Esta semana',S)}
+      ${sec(A.some(t=>t.d!=null)?'Más adelante':'Sin fecha',A)}
+      <div class="ls-hechas">${ico('calcheck',17)} ${L.d} hechas esta semana ${ico('chev',16)}</div>
     </div>
   </div>`+navN('inbox');
 }
 Object.assign(P_EXTRA,{nota:pantallaNota,lista:pantallaLista});
 document.addEventListener('click',e=>{
   const li=e.target.closest('.nt-items li');if(li&&!e.target.closest('.flecha')){li.classList.toggle('ok');return;}
-  if(e.target.closest('.e-notas .nota'))location.hash='nota';
-  if(e.target.closest('.e-menu .mn a')&&e.target.closest('.mn a').textContent.includes('Trabajo'))location.hash='lista';
+  if(e.target.closest('.e-notas .nota'))ir('nota');
 });
 
 /* ═══ Añadido el 25-nov-2026: bienvenida (3 pasos), avisos y mes ═══ */
 function ilusBienvenida(n){
+  if(n===4)return bvMapa();
   if(n===1)return `<svg viewBox="0 0 330 300"><path class="v-suelo" d="M20 286 H310"/>
     ${montArriba(190,322,285,64)}<path d="M204 286 C 204 262, 232 262, 232 286 Z" style="fill:var(--tierra-osc)"/><path d="M201 286 C 201 258, 235 258, 235 286" style="fill:none;stroke:var(--senda-borde);stroke-width:3"/>
     ${hormiga({x:40,y:120,w:170})}
@@ -1580,19 +1848,21 @@ function ilusBienvenida(n){
   return `<div class="pg-host bv-pg"></div>`;
 }
 function pantallaBienvenida(n){
+  // 26-nov: cuatro pasos. El cuarto enseña todo lo demás: Agenda, listas, Notas, Hábitos, Actividad y Buscar.
   const txt={
-    1:['Hola. Yo cargo con tus tareas.','AnTrack es una libreta para lo de hoy. <b>Sin cuenta y sin conexión</b>: todo se guarda en tu móvil, y si quieres lo sincronizas después.','Empezar'],
+    1:['Hola. Yo cargo con tus tareas.','AnTrack es tu libreta para el día: tareas, hábitos, notas y agenda. <b>Sin cuenta y sin conexión</b>: todo se guarda en tu móvil, y si quieres lo sincronizas después.','Empezar'],
     2:['Apunta tu primera tarea.','Escríbela como te salga. Yo entiendo las fechas y las repeticiones.',''],
-    3:['Cada tarea hecha, una miga al hormiguero.','Cuando completes algo, me lo llevo. El rastro de arriba te dice cuánto llevas hoy, y Actividad guarda tu hormiguero semana a semana.','Ir a Hoy']
+    3:['Cada tarea hecha, una semilla al hormiguero.','Cuando completes algo, me lo llevo. La senda de arriba te dice cuánto llevas hoy, y Actividad guarda tu hormiguero semana a semana.','Siguiente'],
+    4:['Y todo lo demás, a mano.','Hoy, el Inbox y las Notas están en la barra de abajo; tus listas y Actividad, en ☰. Toca cualquiera para echar un vistazo.','Ir a Hoy']
   }[n];
   const extra=n===2?`<div class="bv-prueba">Comprar pan <span class="tok tk-fecha">mañana</span><span class="cursor"></span></div>
       <div class="bv-ideas"><span>Llamar a mamá el domingo</span><span>Regar las plantas cada 3 días</span></div>
       <div class="bv-ok"><span class="mini-check">${CK}</span>Mañana, sáb 21 · se guarda como «Comprar pan»</div>`:'';
-  return BARRA_ESTADO+`<div class="bv p${n}">${n<3?'<a class="bv-saltar" href="#hoy">Saltar</a>':''}
+  return BARRA_ESTADO+`<div class="bv p${n}">${n<4?'<a class="bv-saltar" href="#hoy">Saltar</a>':''}
     <div class="bv-ilus">${ilusBienvenida(n)}</div>
-    <div class="bv-hoja"><span class="bv-paso">Paso ${n} de 3</span><h1>${txt[0]}</h1><p>${txt[1]}</p>${extra}
-      <div class="bv-pie"><span class="bv-puntos">${[1,2,3].map(i=>`<i class="${i===n?'on':''}"></i>`).join('')}</span>
-        <a class="bv-btn" href="#${n<3?'bienvenida-'+(n+1):'hoy'}">${n===2?'Añadir':txt[2]} ${ico('arrow',18)}</a></div></div>
+    <div class="bv-hoja"><span class="bv-paso">Paso ${n} de 4</span><h1>${txt[0]}</h1><p>${txt[1]}</p>${extra}
+      <div class="bv-pie"><span class="bv-puntos">${[1,2,3,4].map(i=>`<i class="${i===n?'on':''}"></i>`).join('')}</span>
+        <a class="bv-btn" href="#${n<4?'bienvenida-'+(n+1):'hoy'}">${n===2?'Añadir':txt[2]} ${ico('arrow',18)}</a></div></div>
   </div><div class="home"></div>`;
 }
 function pantallaAvisos(){
@@ -1631,80 +1901,102 @@ function pantallaMes(){
         <div class="ag-b ag-ev" style="position:relative;height:50px;margin:2px 4px;--c:var(--cal-google)"><div class="ag-tx"><span class="ag-tit">Revisión con el banco</span><span class="ag-meta">${ico('cal',12)} 16:00–17:00 · Google</span></div></div>
       </div></div>`+navN('hoy');
 }
-Object.assign(P_EXTRA,{'bienvenida-1':()=>pantallaBienvenida(1),'bienvenida-2':()=>pantallaBienvenida(2),'bienvenida-3':()=>pantallaBienvenida(3),avisos:pantallaAvisos,deshacer:pantallaDeshacer,mes:pantallaMes});
+Object.assign(P_EXTRA,{'bienvenida-1':()=>pantallaBienvenida(1),'bienvenida-2':()=>pantallaBienvenida(2),'bienvenida-3':()=>pantallaBienvenida(3),'bienvenida-4':()=>pantallaBienvenida(4),avisos:pantallaAvisos,deshacer:pantallaDeshacer,mes:pantallaMes});
 document.addEventListener('click',e=>{
   const md=e.target.closest('.md[data-d]');if(md){document.querySelectorAll('.md').forEach(x=>x.classList.toggle('sel',x===md));const t=document.querySelector('.mes-dia-tit b');if(t)t.textContent='Día '+md.dataset.d;}
 });
 
-document.addEventListener('click',e=>{if(e.target.closest('.velo')){location.hash='hoy';return;}if(e.target.closest('.m-fab')){location.hash=document.body.classList.contains('e-notas')?'notas':'captura';return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){location.hash='menu';return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))location.hash='buscar';});
+document.addEventListener('click',e=>{if(e.target.closest('.velo')){volver('hoy');return;}if(e.target.closest('.m-fab')){if(!document.body.classList.contains('e-notas'))ir('captura');return;}const b=e.target.closest('.m-herr button');if(b&&b.innerHTML.includes('M4 6h16')){ir('menu');return;}if(b&&b.getAttribute('aria-label')==='Buscar'||b&&b.innerHTML.includes('m21 21-4.3'))ir('buscar');});
 /* ═══ 26-nov: el progreso de Hoy como senda con paradas ═══
    Sustituye al rastro de puntos. Mismo componente que progreso.html. */
 const PGNS='http://www.w3.org/2000/svg';
 const PGL={t:'var(--l-trabajo)',c:'var(--l-casa)',p:'var(--l-personal)',r:'var(--l-lect)',v:'var(--l-viajes)'};
 let pgUid=0,PG=null;
-function pgTextura(nx,ny){let r=7,o="";const R=()=>(r=(r*1664525+1013904223)>>>0)/4294967296;
-  for(let i=0;i<90;i++){const x=nx-46+R()*92,y=ny-R()*48;const e=((x-nx+1)/47)**2+((ny-y)/49)**2;if(e>.86)continue;
-    o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.6+R()*1.1).toFixed(2)}" style="fill:${R()<.6?"var(--mont-3)":"var(--mont-1)"};opacity:${(0.45+R()*0.4).toFixed(2)}"/>`;}
-  return o;}
-function pgNuevo(el,{tareas,movil,venc}){
-  const U=++pgUid;
+/* ═══ 26-nov: la senda de progreso desemboca en la puerta del hormiguero ═══
+   El mismo componente en index.html, movil.html y progreso.html. Antes el
+   camino se quedaba a un lado del montículo y la puerta asomaba aparte;
+   ahora el montículo cierra el camino: la senda pasa por delante y acaba en
+   la puerta, de frente y en la base. Todo con el dibujo del hormiguero de
+   Actividad (matas, piedras, plantas, nubes y rayos de sol).
+   Lo que significa el progreso no cambia: una parada por tarea con el color
+   de su lista al hacerla, las vencidas en rojo delante de la hormiga, la
+   pila de semillas junto a la puerta y la bandera al terminar. */
+let pgnN=0;
+const PGN_L={t:'var(--l-trabajo)',c:'var(--l-casa)',p:'var(--l-personal)',r:'var(--l-lect)',v:'var(--l-viajes)'};
+function pgnCrear(el,{tareas,movil},hormigaSVG){
+  const U=++pgnN,NS='http://www.w3.org/2000/svg',f=v=>(+v).toFixed(1);
+  let sem=5+U*7;const R=()=>(sem=(sem*1664525+1013904223)>>>0)/4294967296;
   const W=movil?360:600,H=(movil?116:124)+18;
   const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
-  const nx=movil?312:520,ny=movil?96:104;
-  const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
-  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><radialGradient id="mg${U}" cx="38%" cy="22%" r="85%"><stop offset="0" stop-color="var(--mont-1)"/><stop offset=".55" stop-color="var(--mont-2)"/><stop offset="1" stop-color="var(--mont-3)"/></radialGradient><filter id="rug${U}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${pgUid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
-    <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${U})"><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda-b"/><path d="${TR} C ${nx-62} ${ny-28}, ${nx-46} ${ny-8}, ${nx-24} ${ny-8}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
-    <g class="paradas"></g>
-    <g class="nido"><path class="suelo" d="M${nx-10} ${ny} H ${nx+48}"/>
-      <ellipse cx="${nx}" cy="${ny+1}" rx="56" ry="5" style="fill:rgba(0,0,0,.12)"/>
-      <g class="mont-cuerpo" style="transform-origin:${nx}px ${ny}px">
-        <path d="M${nx-50} ${ny} C ${nx-47} ${ny-14}, ${nx-41} ${ny-25}, ${nx-30} ${ny-35} C ${nx-22} ${ny-43}, ${nx-10} ${ny-50}, ${nx+3} ${ny-49} C ${nx+9} ${ny-52}, ${nx+16} ${ny-49}, ${nx+20} ${ny-46} C ${nx+30} ${ny-40}, ${nx+40} ${ny-24}, ${nx+48} ${ny} Z" style="fill:url(#mg${U})"/>
-        <g class="mont-tex">${pgTextura(nx,ny)}</g>
-        <path class="ramita" d="M${nx-6} ${ny-38} l 22 -6 M${nx+8} ${ny-40} l 5 -4"/><path class="ramita" d="M${nx+18} ${ny-26} l 16 7"/>
-      </g>
-      <g filter="url(#rug${U})"><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda-b" style="stroke-width:15"/><path d="M${nx-52} ${ny-16} C ${nx-42} ${ny-13}, ${nx-32} ${ny-7}, ${nx-23} ${ny-6}" class="senda" style="stroke-width:10"/></g>
-      <path class="entrada" d="M${nx-33} ${ny} C ${nx-33} ${ny-17}, ${nx-13} ${ny-17}, ${nx-13} ${ny} Z"/><path d="M${nx-35} ${ny} C ${nx-35} ${ny-20}, ${nx-11} ${ny-20}, ${nx-11} ${ny}" style="fill:none;stroke:var(--senda-borde);stroke-width:2.4;opacity:.9"/>
-      <g class="granos"></g>
-      <g class="pg-bandera"><path d="M${nx+14} ${ny-36} V ${ny-66}" style="stroke:var(--t2);stroke-width:2.2;stroke-linecap:round"/><path d="M${nx+15} ${ny-66} L ${nx+36} ${ny-59} L ${nx+15} ${ny-52} Z" style="fill:var(--o500)"/></g>
-      <path class="hierba" d="M${nx+50} ${ny} l-3 -8 M${nx+50} ${ny} l4 -9"/></g>
-    <g class="hor">${hormiga({x:-(movil?20:24),y:-(movil?36:43),w:movil?40:48})}</g></g>
-    <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text>
-    <text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
-  const g=el.querySelector('.guia'),Lg=g.getTotalLength();
-  const posL=i=>Lg*(0.05+0.9*(tareas.length===1?0.5:i/(tareas.length-1)));
+  // Puerta (dx) donde acaba el camino; el montículo, algo a su derecha.
+  const ny=movil?96:104,mw=movil?82:100,mh=movil?44:54,dx=movil?298:498,mx=dx+mw*.14,dw=mw*.24,dh=mh*.58;
+  const GUIA=TR+(movil?` C 282 93, 288 ${ny-2}, ${dx-2} ${ny-3}`:` C 474 92, 482 ${ny-2}, ${dx-2} ${ny-3}`);
+  const muchas=tareas.length>10,rp=muchas?4.4:6.6,x0=mx-mw/2,x1=mx+mw/2;
+  const domo=`M${f(x0)} ${ny+1} C ${f(x0+mw*.05)} ${f(ny-mh*.6)}, ${f(mx-mw*.3)} ${f(ny-mh*1.02)}, ${f(mx)} ${f(ny-mh)} C ${f(mx+mw*.3)} ${f(ny-mh*.99)}, ${f(x1-mw*.05)} ${f(ny-mh*.55)}, ${f(x1)} ${ny+1} Z`;
+  const arco=(ww,hh,xx)=>`M${f(xx)} ${ny+1} V ${f(ny-hh+ww/2)} A ${f(ww/2)} ${f(ww/2)} 0 0 1 ${f(xx+ww)} ${f(ny-hh+ww/2)} V ${ny+1} Z`;
+  let manchas='';for(let i=0;i<Math.round(mw/6);i++){const x=x0+R()*mw,y=ny-R()*mh,rx=.9+R()*1.6;manchas+=`<ellipse class="pgn-mancha" cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(rx*.6)}"/>`;}
+  const rayos=[-168,-140,-112].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180),px=mx-mw*.36,py=ny-mh*.66;
+    return `<path class="pgn-rayo" d="M${f(px+c*mh*.26)} ${f(py+s*mh*.26)} L${f(px+c*mh*.52)} ${f(py+s*mh*.52)}"/>`;}).join('');
+  let estrellas='';for(let i=0;i<7;i++)estrellas+=`<circle class="pgn-estrella" cx="${f(14+R()*(x0-60))}" cy="${f(4+R()*28)}" r="${f(.8+R()*.8)}" style="animation-delay:${(i*.4).toFixed(1)}s"/>`;
+  const nubes=movil?nd_nube(78,12,.34):nd_nube(120,8,.46)+nd_nube(330,0,.36);
+  const bh=movil?17:18,bx=mx+mw*.14,by=ny-mh*.93;
+  el.innerHTML=`<svg class="pg pgn" viewBox="0 0 ${W} ${H}"><defs><radialGradient id="pgn-mg${U}" cx="38%" cy="25%" r="80%"><stop offset="0" style="stop-color:var(--nd-mont-1)"/><stop offset=".6" style="stop-color:var(--nd-mont-2)"/><stop offset="1" style="stop-color:var(--nd-mont-3)"/></radialGradient><clipPath id="pgn-cm${U}"><path d="${domo}"/></clipPath></defs>
+    <g transform="translate(0 18)">
+      <g class="pgn-cielo">${nubes}${estrellas}</g>
+      <g class="pgn-deco"></g>
+      <g class="pgn-detras">${nd_planta(x1-mw*.06,ny+1,movil?.95:1.15)}${nd_planta(x1+mw*.1,ny+1,movil?.7:.85)}${nd_mata(x0+4,ny+1,movil?.5:.6,R)}</g>
+      <g class="pgn-mont" style="transform-origin:${f(mx)}px ${ny}px">${rayos}<ellipse class="pgn-sombra" cx="${f(mx)}" cy="${ny+2}" rx="${f(mw*.56)}" ry="3.5"/><path d="${domo}" style="fill:url(#pgn-mg${U})"/><g clip-path="url(#pgn-cm${U})">${manchas}</g></g>
+      <path class="pgn-senda-b" d="${GUIA}"/><path class="pgn-senda" d="${GUIA}"/>
+      <g class="pgn-rayas"></g><path class="pgn-guia" d="${GUIA}" fill="none"/>
+      <path class="pgn-puerta-borde" d="${arco(dw+mw*.07,dh+mw*.035,dx-dw/2-mw*.035)}"/><path class="pgn-puerta" d="${arco(dw,dh,dx-dw/2)}"/>
+      <g class="pgn-granos"></g>
+      <g class="pgn-bandera"><path class="pgn-mastil" d="M${f(bx)} ${f(by)} V ${f(by-bh)}"/><path class="pgn-trapo" d="M${f(bx+1)} ${f(by-bh)} l ${movil?15:18} 5.5 l ${movil?-15:-18} 5.5 Z"/></g>
+      ${nd_mata(x1+5,ny+1,movil?.5:.62,R)}
+      <g class="pgn-paradas"></g>
+      <g class="hor">${hormigaSVG(-(movil?20:24),-(movil?36:43),movil?40:48)}</g>
+    </g>
+    <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text><text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
+  const svg=el.querySelector('svg'),g=el.querySelector('.pgn-guia'),Lg=g.getTotalLength(),hor=el.querySelector('.hor');
+  const posL=i=>Lg*(0.05+0.88*(tareas.length===1?0.5:i/(tareas.length-1)));
   const pt=l=>{const a=g.getPointAtLength(l),b=g.getPointAtLength(Math.min(Lg,l+2)),c=g.getPointAtLength(Math.max(0,l-2));return {x:a.x,y:a.y,ang:Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI};};
-  const nrm=l=>{const a=g.getPointAtLength(Math.max(0,l-1)),b=g.getPointAtLength(Math.min(Lg,l+1));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy)||1;return [-dy/m,dx/m];};
-  const fps=[],gpi=el.querySelector('.pisadas'),paso_=muchas?7:8;
-  for(let l=4,i=0;l<Lg-2;l+=paso_,i++){const a=g.getPointAtLength(l),[nx_,ny_]=nrm(l),sd=i%2?1:-1;const c=document.createElementNS(PGNS,'ellipse');
-    c.setAttribute('cx',(a.x+nx_*3*sd).toFixed(1));c.setAttribute('cy',(a.y+ny_*3*sd).toFixed(1));c.setAttribute('rx','1.9');c.setAttribute('ry','1.3');c.setAttribute('class','pisada');gpi.appendChild(c);fps.push({l,c});}
-  const dg=el.querySelector('.deco');const deco=(f,off,html)=>{const l=Lg*f,a=g.getPointAtLength(l),[ux,uy]=nrm(l);return html(a.x+ux*off,a.y+uy*off);};
-  dg.innerHTML=[
-    deco(.16,17,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -9 M${x} ${y} l4 -6"/>`),
-    deco(.33,-15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="4.5" ry="3"/><ellipse class="piedra" cx="${x+7}" cy="${y+2}" rx="2.6" ry="2"/>`),
-    deco(.52,16,(x,y)=>`<path class="hojita" d="M${x} ${y} q 8 -10 16 -3 q -8 8 -16 3 Z"/>`),
-    deco(.7,-16,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -10 M${x} ${y} l4 -7"/>`),
-    deco(.86,15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="3.4" ry="2.4"/>`)].join('');
-  const gp=el.querySelector('.paradas');
-  tareas.forEach((t,i)=>{const q=pt(posL(i));const w=document.createElementNS(PGNS,'g');w.setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${(q.ang-25).toFixed(1)})`);
-    const sh=document.createElementNS(PGNS,'ellipse');sh.setAttribute('cy',1.8);sh.setAttribute('rx',rx);sh.setAttribute('ry',ry*.8);sh.setAttribute('class','sombra-p');w.appendChild(sh);
-    const e=document.createElementNS(PGNS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
+  const nrm=l=>{const a=g.getPointAtLength(Math.max(0,l-1)),b=g.getPointAtLength(Math.min(Lg,l+1));const ux=b.x-a.x,uy=b.y-a.y,m=Math.hypot(ux,uy)||1;return [-uy/m,ux/m];};
+  // Rayas en el centro del camino: verdes por donde ya ha pasado la hormiga.
+  const fps=[],gr=el.querySelector('.pgn-rayas'),paso=muchas?8:10;
+  for(let l=6;l<Lg-6;l+=paso){const q=pt(l),e=document.createElementNS(NS,'ellipse');
+    e.setAttribute('cx',f(q.x));e.setAttribute('cy',f(q.y));e.setAttribute('rx','2.7');e.setAttribute('ry','1.1');
+    e.setAttribute('transform',`rotate(${q.ang.toFixed(0)} ${f(q.x)} ${f(q.y)})`);e.setAttribute('class','pgn-raya');gr.appendChild(e);fps.push({l,e});}
+  const deco=(fr,off,fn)=>{const l=Lg*fr,a=g.getPointAtLength(l),[ux,uy]=nrm(l);return fn(a.x+ux*off,a.y+uy*off);};
+  el.querySelector('.pgn-deco').innerHTML=[
+    deco(.12,15,(x,y)=>nd_mata(x,y+3,movil?.42:.5,R)),
+    deco(.3,-14,(x,y)=>nd_piedra(x,y,movil?4:4.8,movil?2.6:3.1)+nd_piedra(x+7,y+2,2.4,1.7)),
+    deco(.5,15,(x,y)=>`<path class="nd-h1" d="${nd_hoja(movil?11:13,movil?4.5:5.4)}" transform="translate(${f(x)} ${f(y)}) rotate(62)"/>`),
+    deco(.68,-15,(x,y)=>nd_mata(x,y+2,movil?.45:.55,R)),
+    deco(.84,14,(x,y)=>nd_piedra(x,y,movil?3.4:4,movil?2.3:2.7))].join('');
+  // Una parada por tarea: círculo con halo, del color de su lista al hacerla.
+  const gp=el.querySelector('.pgn-paradas');
+  tareas.forEach((t,i)=>{const q=pt(posL(i)),w=document.createElementNS(NS,'g');w.setAttribute('transform',`translate(${f(q.x)} ${f(q.y)})`);
+    w.innerHTML=`<ellipse class="pgn-p-sombra" cy="${f(rp*.8)}" rx="${f(rp*1.05)}" ry="${f(rp*.38)}"/><circle class="pgn-halo" r="${f(rp+2.4)}"/><circle class="pgn-parada" r="${f(rp)}"/><circle class="pgn-p-brillo" cx="${f(-rp*.32)}" cy="${f(-rp*.36)}" r="${f(rp*.3)}"/>`;
+    gp.appendChild(w);t.el=w.querySelector('.pgn-parada');t.br=w.querySelector('.pgn-p-brillo');});
+  // La pila de semillas, junto a la puerta: una por tarea hecha (hasta 15).
+  const sx=movil?7:8,sy=movil?4.2:4.8,GR=[];for(let r=0,c=5;c>0;r++,c--)for(let i=0;i<c;i++)GR.push([i*sx+r*sx/2,-r*sy]);
+  const gx=dx+dw/2+(movil?6:7),gy=ny-2.5;
   const s={tareas,el,Lg,pAct:0};
-  const GR=[];for(let r=0,c=5;c>0;r++,c--)for(let i=0;i<c;i++)GR.push([-4+i*9+r*4.5,-r*5.4]);
-  s.pintar=(animarGrano)=>{
+  s.pintar=(animar)=>{
     const done=tareas.filter(t=>t.ok).length,total=tareas.length,v=tareas.filter(t=>!t.ok&&t.venc).length;
-    tareas.forEach(t=>{t.el.setAttribute('class','parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?PGL[t.l]:'';});
-    const ultima=tareas.reduce((m,t,i)=>t.ok?i:m,-1);
-    const mk=el.querySelector('.mk');mk.style.strokeDasharray=`${Lg} ${Lg}`;mk.style.strokeDashoffset=Lg-(ultima<0?0:posL(ultima));
-    const gg=el.querySelector('.granos');gg.innerHTML='';tareas.filter(t=>t.ok).slice(0,GR.length).forEach((t,i)=>{const [dx,dy]=GR[i];
-      gg.insertAdjacentHTML('beforeend',`<ellipse class="grano${animarGrano&&i===done-1?' nuevo':''}" style="--c:${PGL[t.l]}" cx="${nx+dx}" cy="${ny+dy-3}" rx="4.8" ry="3" transform="rotate(${(i*37)%40-20} ${nx+dx} ${ny+dy-3})"/>`);});
-    el.querySelector('svg').classList.toggle('lleno',done===total);
-    el.querySelector('.mont-cuerpo').style.transform=`scale(${(0.86+0.18*done/total).toFixed(3)})`;
+    tareas.forEach(t=>{t.el.setAttribute('class','pgn-parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?PGN_L[t.l]:'';t.br.style.opacity=t.ok?'':'0';});
+    const gg=el.querySelector('.pgn-granos');gg.innerHTML='';
+    tareas.filter(t=>t.ok).slice(0,GR.length).forEach((t,i)=>{const [ox,oy]=GR[i];
+      gg.insertAdjacentHTML('beforeend',`<g transform="translate(${f(gx+ox)} ${f(gy+oy)}) rotate(${(i*37)%30-15})"><g class="pgn-grano${animar&&i===done-1?' nuevo':''}"><ellipse rx="${movil?3.4:3.9}" ry="${movil?2.1:2.4}" style="fill:${PGN_L[t.l]}"/><ellipse class="pgn-p-brillo" cx="-1.1" cy="-.9" rx="1.3" ry=".7"/></g></g>`);});
+    svg.classList.toggle('lleno',done===total);
+    el.querySelector('.pgn-mont').style.transform=`scale(${(0.88+0.14*done/total).toFixed(3)})`;
     el.querySelector('.cont-n').innerHTML=`${done}<tspan class="de">/${total}</tspan>`;
     el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
   };
-  s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?12:18);};
-  s.colocar=l=>{fps.forEach(f=>f.c.classList.toggle('h',f.l<l));let q;if(l>Lg){q={x:nx-38,y:ny-1,ang:0};}else q=pt(Math.max(0,l));
-    el.querySelector('.hor').setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
+  s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?11:16);};
+  // Al terminar el día, la hormiga espera junto a la puerta.
+  s.colocar=l=>{fps.forEach(p=>p.e.classList.toggle('h',p.l<Math.min(l,Lg)));
+    const q=l>Lg?{x:dx-dw*1.25,y:ny-2,ang:0}:pt(Math.max(0,l));
+    hor.setAttribute('transform',`translate(${f(q.x)} ${f(q.y)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
   s.completar=()=>{const i=tareas.findIndex(t=>!t.ok);if(i<0||s.ocupado)return;s.ocupado=true;
     tareas[i].ok=true;s.pintar(true);tareas[i].el.classList.add('pop');
     const l0=s.pAct,l1=s.destino(),t0=performance.now(),D=900,ant=el.querySelector('.hormiga');ant.classList.add('anda');
@@ -1712,6 +2004,7 @@ function pgNuevo(el,{tareas,movil,venc}){
       if(k<1)requestAnimationFrame(paso);else{ant.classList.remove('anda');s.colocar(l1);s.ocupado=false;}})(t0);};
   s.pintar();s.colocar(s.destino());return s;
 }
+function pgNuevo(el,o){return pgnCrear(el,o,(x,y,w)=>hormiga({x,y,w}));}
 
 
 function pgTareas(){const H='pctrvtcp'.split(''),D='pcrtvcpt'.split('');const t=[];
@@ -1732,6 +2025,327 @@ function migas(){}
 addEventListener('load',()=>{const h=document.querySelector('.bv-pg');if(!h)return;
   const nueva=()=>pgNuevo(h,{tareas:[{l:'t',ok:1},{l:'p',ok:1},{l:'c'},{l:'r'},{l:'v'}],movil:true});let pg=nueva();
   setInterval(()=>{if(pg.tareas.every(t=>t.ok)){pg=nueva();return;}pg.completar();},1700);});
+/* ═══ 26-nov: una cámara del hormiguero por dentro (#semana) ═══
+   Al tocar una cámara de Actividad se abre su semana: la cámara de cerca,
+   con una semilla por tarea hecha (del color de su lista), cuántas cayeron
+   cada día, de qué listas, y las tareas día a día. #semana es la del 9 al 15
+   de noviembre; #semana-0 … #semana-6 son las siete cámaras, de la más nueva
+   a la más vieja (el mismo orden que en el hormiguero). Los datos salen de
+   una semilla fija: cada semana se ve siempre igual. */
+const SEMANAS=[
+  {e:'16–22 nov',d0:16,m:'nov',n:9,actual:1,dias:[2,1,3,1,2]},
+  {e:'9–15 nov',d0:9,m:'nov',n:21,dias:[3,4,6,2,3,1,2]},
+  {e:'2–8 nov',d0:2,m:'nov',n:15,dias:[2,3,2,4,2,1,1]},
+  {e:'26 oct – 1 nov',d0:26,m:'oct',n:23,dias:[4,3,5,3,4,2,2]},
+  {e:'19–25 oct',d0:19,m:'oct',n:9,dias:[1,2,1,2,1,1,1]},
+  {e:'12–18 oct',d0:12,m:'oct',n:18,dias:[3,2,4,3,3,1,2]},
+  {e:'5–11 oct',d0:5,m:'oct',n:12,dias:[2,2,2,1,3,1,1]}];
+const SEM_MEDIA=15;
+const SM_L={t:['Trabajo','var(--l-trabajo)'],c:['Casa','var(--l-casa)'],p:['Personal','var(--l-personal)'],r:['Lecturas','var(--l-lect)'],v:['Viajes','var(--l-viajes)'],s:['Salud','var(--o500)']};
+const SM_POOL={
+  t:['Enviar el acta de la reunión','Revisar los números del Q3','Llamar a los proveedores','Preparar el informe mensual','Responder a Marta','Cerrar las facturas de octubre','Pedir el logo nuevo a diseño','Actualizar el calendario del equipo','Recopilar los datos del Q3','Mandar el presupuesto a Marta'],
+  c:['Poner la lavadora','Comprar fruta y pan','Pagar la luz','Bajar el reciclaje','Regar las plantas','Hacer la compra de la semana','Cambiar la bombilla del baño','Limpiar la nevera'],
+  p:['Pasear a Tango','Llamar a mamá','Cortarme el pelo','Felicitar a Lucía','Devolver las llaves a Javi','Escribir a la abuela'],
+  r:['Leer 30 páginas','Terminar «El infinito en un junco»','Apuntar citas del libro','Leer el artículo de Marta'],
+  v:['Mirar vuelos a Lisboa','Renovar el pasaporte','Hacer la lista de la maleta'],
+  s:['Meditar 10 minutos','Correr 5 km','Estirar por la mañana','Ir al fisio']};
+const SM_DN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],SM_LETRA=['L','M','X','J','V','S','D'];
+function semIdx(){const m=/^semana-(\d)$/.exec(estado);return m?Math.min(SEMANAS.length-1,+m[1]):1;}
+function semanaDatos(i){
+  const s=SEMANAS[i],r=rng(4100+i*97);
+  const pesos=[['t',30],['c',22],['p',18],['s',12],['r',10],['v',8]];
+  const elegir=()=>{let x=r()*100;for(const [k,w] of pesos){if((x-=w)<0)return k;}return 't';};
+  const usados={};
+  const dias=SM_DN.map((nom,k)=>{
+    let d=s.d0+k,m=s.m;if(m==='oct'&&d>31){d-=31;m='nov';}
+    const futuro=k>=s.dias.length,n=futuro?0:s.dias[k],hoy=!!s.actual&&k===4;
+    const mins=[];for(let j=0;j<n;j++)mins.push(480+Math.floor(r()*168)*5);mins.sort((a,b)=>a-b);
+    const tareas=mins.map(x=>{const l=elegir(),p=SM_POOL[l];usados[l]=(usados[l]==null?(i*3+k)%p.length:usados[l]+1);
+      return {t:p[usados[l]%p.length],l,h:Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};});
+    return {k,d,m,n,futuro,hoy,nombre:(hoy?'Hoy, viernes':nom)+' '+d+(m!==s.m?' '+m:''),tareas};
+  });
+  const tareas=dias.flatMap(x=>x.tareas),cuenta={};
+  tareas.forEach(t=>{cuenta[t.l]=(cuenta[t.l]||0)+1;});
+  const listas=Object.entries(cuenta).sort((a,b)=>b[1]-a[1]);
+  let mejorDia=0;dias.forEach(x=>{if(x.n>dias[mejorDia].n)mejorDia=x.k;});
+  const mejor=!s.actual&&s.n===Math.max(...SEMANAS.filter(x=>!x.actual).map(x=>x.n));
+  return {i,s,dias,tareas,listas,mejorDia,mejor};
+}
+function semResumen(d){
+  const n=d.s.n,dif=n-SEM_MEDIA;
+  if(d.s.actual)return `${n} tareas y contando · quedan el sábado y el domingo`;
+  return `${n} tareas cargadas · `+(d.mejor?'tu mejor semana':dif>0?`${dif} más que tu media`:dif<0?`${-dif} menos que tu media`:'justo tu media');
+}
+// La cámara de cerca: el mismo dibujo que en el hormiguero (arena, vetas,
+// túneles, anillo y pila de semillas), a otra escala.
+function camaraSVG(d,W,H){
+  const r=rng(900+d.i*31),f=v=>(+v).toFixed(1),n=d.tareas.length,k=H/150;
+  const cx=W*.56,cy=H*.57,ry=H*.3,rx=Math.min(W*.3,ry*2.35),an=5*k,tn=[22*k,15*k];
+  const t1=`M${f(W*.16)} -12 C ${f(W*.15)} ${f(H*.34)}, ${f(cx-rx*1.3)} ${f(cy-ry*.1)}, ${f(cx-rx*.72)} ${f(cy+ry*.05)}`;
+  const t2=`M${f(cx+rx*.74)} ${f(cy+ry*.12)} C ${f(cx+rx*1.15)} ${f(cy+ry*.3)}, ${f(W*.9)} ${f(H*.62)}, ${f(W+14)} ${f(H*.74)}`;
+  let s=`<svg class="nd sm-cam" viewBox="0 0 ${W} ${H}" role="img" aria-label="La cámara de la semana, con ${n} semillas">`;
+  s+=`<defs><clipPath id="sm-cl"><rect width="${W}" height="${H}" rx="${f(18*k)}"/></clipPath><radialGradient id="nd-luz" cx="50%" cy="66%" r="66%"><stop offset="0" stop-color="#9c784b"/><stop offset="1" stop-color="#54412f"/></radialGradient></defs><g clip-path="url(#sm-cl)">`;
+  s+=`<rect class="nd-arena" width="${W}" height="${H}"/>`;
+  for(let b=0;b<3;b++){const y=H*(.1+b*.34),a=H*.04,h=H*.11;
+    s+=`<path class="nd-banda" d="M0 ${f(y)} C ${f(W*.25)} ${f(y-a)}, ${f(W*.5)} ${f(y+a)}, ${f(W*.75)} ${f(y)} S ${f(W*.95)} ${f(y-a)}, ${W} ${f(y+a*.5)} L${W} ${f(y+h)} C ${f(W*.7)} ${f(y+h+a)}, ${f(W*.35)} ${f(y+h-a)}, 0 ${f(y+h)} Z"/>`;}
+  for(let g=0;g<Math.round(W*H/900);g++){const x=r()*W,y=r()*H,q=(.9+r()*1.7)*k;s+=`<ellipse class="nd-grano" cx="${f(x)}" cy="${f(y)}" rx="${f(q)}" ry="${f(q*.65)}"/>`;}
+  s+=nd_piedra(W*.08,H*.82,9*k,5.6*k)+nd_piedra(W*.94,H*.2,7*k,4.4*k)+nd_mata(W*.84,H*.95,.8*k,r);
+  // Primero bordes y anillo, luego los huecos: los túneles entran sin pared.
+  s+=`<path class="nd-t-borde" d="${t1}" style="stroke-width:${f(tn[0])}"/><path class="nd-t-borde" d="${t2}" style="stroke-width:${f(tn[0])}"/>`;
+  s+=`<ellipse class="nd-c-anillo" cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx+an)}" ry="${f(ry+an)}"/>`;
+  s+=`<path class="nd-t-hueco" d="${t1}" style="stroke-width:${f(tn[1])}"/><path class="nd-t-hueco" d="${t2}" style="stroke-width:${f(tn[1])}"/>`;
+  s+=`<ellipse class="nd-c-hueco" cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}"/><ellipse class="nd-c-suelo" cx="${f(cx)}" cy="${f(cy+ry*.5)}" rx="${f(rx*.82)}" ry="${f(ry*.42)}"/>`;
+  // La pila en pirámide, con las semillas mezcladas como fueron cayendo.
+  const srx=Math.min(8.6*k,rx*.075+2),sry=srx*.64,SW=srx*2+1.4,SH=sry*1.68;
+  let base=1;while(base*(base+1)/2<n)base++;
+  const floor=cy+ry*.6,ox=d.s.actual?rx*.1:-rx*.2,cols=d.tareas.map(t=>SM_L[t.l][1]);
+  for(let a=cols.length-1;a>0;a--){const b=Math.floor(r()*(a+1));[cols[a],cols[b]]=[cols[b],cols[a]];}
+  let q=0,cima=floor;
+  for(let row=0;q<n;row++){const cnt=Math.min(base-row,n-q),y=floor-row*SH,x0=cx+ox-(cnt-1)*SW/2;cima=y;
+    for(let j=0;j<cnt;j++,q++){const x=x0+j*SW+(r()-.5)*1.2,a=((r()-.5)*14).toFixed(0);
+      s+=`<g class="nd-semilla" transform="translate(${f(x)} ${f(y)}) rotate(${a})"><ellipse rx="${f(srx)}" ry="${f(sry)}" style="fill:${cols[q]}"/><ellipse class="nd-brillo" cx="${f(-srx*.3)}" cy="${f(-sry*.38)}" rx="${f(srx*.36)}" ry="${f(sry*.28)}"/></g>`;}}
+  if(d.mejor){const mx=cx+ox,my=cima-sry-1,b=16*k;
+    s+=`<path class="nd-mastil" d="M${f(mx)} ${f(my)} V ${f(my-b)}"/><path class="nd-bandera" d="M${f(mx+1)} ${f(my-b)} q ${f(b*.35)} ${f(b*.08)} ${f(b*.62)} ${f(b*.2)} q ${f(-b*.27)} ${f(b*.12)} ${f(-b*.62)} ${f(b*.2)} Z"/>`;}
+  // La semana en curso lleva su brote, como en el hormiguero; la hormiga, al lado de la pila.
+  const hw=38*k;
+  if(d.s.actual)s+=nd_planta(cx+rx*.62,floor+sry,.95*k)+hormiga({x:f(cx-rx*.66-hw*.3),y:f(floor+sry-hw*.86),w:f(hw)});
+  else s+=hormiga({x:f(cx+ox+(base-1)*SW/2+srx+2*k),y:f(floor+sry-hw*.86),w:f(hw)});
+  return s+'</g></svg>';
+}
+// Cuántas semillas cayeron cada día (una por tarea, de abajo arriba).
+function diasHTML(d){
+  return `<div class="sm-dias">${d.dias.map(x=>`<button class="sm-col${x.k===d.mejorDia?' mejor':''}${x.futuro?' futuro':''}${x.hoy?' hoy':''}" data-k="${x.k}" aria-label="${x.nombre}: ${x.n} tareas"><span class="sm-n">${x.futuro?'':x.n}</span><span class="sm-pila">${x.tareas.map((t,j)=>`<i style="--c:${SM_L[t.l][1]};--r:${j%2?7:-7}deg"></i>`).join('')}</span><span class="sm-l">${SM_LETRA[x.k]}</span><span class="sm-d">${x.d}</span></button>`).join('')}</div>`;
+}
+function listasHTML(d){
+  return `<div class="sm-barra">${d.listas.map(([k,n])=>`<i style="flex:${n};background:${SM_L[k][1]}"></i>`).join('')}</div>
+    <div class="sm-ley">${d.listas.map(([k,n])=>`<span><i style="background:${SM_L[k][1]}"></i>${SM_L[k][0]} <b>${n}</b></span>`).join('')}</div>`;
+}
+function diasTareasHTML(d){
+  return d.dias.filter(x=>x.n).map(x=>`<section class="sm-dia" data-k="${x.k}"><div class="sec-cab"><span class="sec-tit">${x.nombre}</span><span class="sec-n">${x.n}</span><span class="puntos"></span>${x.k===d.mejorDia?`<span class="sm-mejor">${ico('flag',12)} su mejor día</span>`:''}</div>
+    ${x.tareas.map(t=>`<div class="sm-fila"><span class="sm-sem" style="--c:${SM_L[t.l][1]}"></span><div class="sm-tx"><b>${t.t}</b><small>${SM_L[t.l][0]} · a las ${t.h}</small></div></div>`).join('')}</section>`).join('')
+    +(d.s.actual?'<p class="sm-pie">El sábado y el domingo aún están por llenar.</p>':'');
+}
+// Tocar un día del gráfico lleva a sus tareas.
+function semIrADia(c){
+  document.querySelectorAll('.sm-col').forEach(x=>x.classList.toggle('sel',x===c));
+  const sec=document.querySelector(`.sm-dia[data-k="${c.dataset.k}"]`),caja=sec&&sec.closest('.sm-der,.sm-cuerpo');
+  if(caja)caja.scrollTo({top:sec.offsetTop-6,behavior:'smooth'});
+}
+
+/* ═══ 26-nov: la maqueta se navega con clics ═══
+   La barra de abajo (Hoy, Inbox, Buscar o Notas y el avatar), ☰, las filas
+   (abren su detalle, sobre la pantalla de la que vienes), Volver y Cerrar,
+   las listas, los resultados de la búsqueda y las cámaras de Actividad. Una
+   pila en sessionStorage recuerda de dónde vienes, para que Volver y Cerrar
+   te devuelvan allí. Abrir una #pantalla directamente (como hacen las
+   capturas) la enseña siempre igual, sin pila. */
+const MQ={pila:'maqueta-pila',nav:'maqueta-nav',det:'maqueta-detalle',desde:'maqueta-desde',lista:'maqueta-lista',dia:'maqueta-dia'};
+const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del(k){try{sessionStorage.removeItem(k);}catch(e){}}};
+// Al llegar navegando, Hoy no repite la demo de la hormiga llevándose una tarea.
+const NAVEGADO=!!ss.get(MQ.nav);ss.del(MQ.nav);
+const BASE_ESTADO={'hoy-congelado':'hoy','detalle-abajo':'detalle','ajustes-abajo':'ajustes','inbox-calendario':'inbox-listas'};
+const aqui=()=>BASE_ESTADO[estado]||estado;
+function pila(){try{return JSON.parse(ss.get(MQ.pila)||'[]');}catch(e){return [];}}
+function irA(h){ss.set(MQ.nav,'1');if(h===estado){location.reload();return;}location.hash=h;}
+function ir(h){const p=pila();p.push(aqui());ss.set(MQ.pila,JSON.stringify(p.slice(-20)));irA(h);}
+function irRaiz(h){ss.set(MQ.pila,'[]');irA(h);}
+function volver(def){const p=pila(),h=p.pop()||def;ss.set(MQ.pila,JSON.stringify(p));irA(h);}
+
+/* ── El detalle de la tarea que tocas ── */
+const COL_LISTA={'var(--l-trabajo)':'Trabajo','var(--l-casa)':'Casa','var(--l-personal)':'Personal','var(--l-lect)':'Lecturas','var(--l-viajes)':'Viajes','var(--o500)':'Salud'};
+function infoDeFila(f){
+  const t=(f.querySelector('.texto,.ag-tit')||f).textContent.trim();
+  const li=f.querySelector('.lista');
+  let lc=(li&&li.style.color)||f.style.getPropertyValue('--c').trim();
+  if(!lc){const p=f.closest('section')&&f.closest('section').querySelector('.sec-punto');if(p&&!p.classList.contains('sin'))lc=p.style.background;}
+  if(!lc&&aqui()==='lista')lc=listaActual().c;
+  let fecha=((f.querySelector('.pastilla-n,.pastilla')||{}).textContent||'').trim();
+  const hora=(((f.querySelector('.ag-meta')||{}).textContent||'').match(/\d{1,2}:\d{2}/)||[])[0];
+  if(!fecha&&hora)fecha='Hoy · '+hora;
+  if(!fecha&&f.closest('#filas-hoy'))fecha='Hoy';
+  const rep=[...f.querySelectorAll('.meta > span,.ag-meta')].find(s=>s.innerHTML.includes(ICOS.repeat.slice(0,30)));
+  return {t,lc,ln:COL_LISTA[lc]||'',f:fecha,venc:!!(f.closest('.sec--venc')||f.querySelector('.pastilla:not(.pastilla-n)')),imp:!!f.querySelector('.bandera'),
+    rep:rep?(rep.textContent.match(/\d+\s?(mes|d)\b/)||[''])[0]:''};
+}
+function abrirDetalle(info){ss.set(MQ.det,JSON.stringify(info));ss.set(MQ.desde,aqui());ir('detalle');}
+function volverDetalle(){const d=ss.get(MQ.desde);ss.del(MQ.desde);ss.del(MQ.det);volver(d||'inbox-listas');}
+const DET_DEF={t:'Preparar la presentación del jueves',lc:'var(--l-trabajo)',ln:'Trabajo',f:'Hoy · 10:00',imp:1};
+function detDatos(){
+  let d=null;try{d=JSON.parse(ss.get(MQ.det)||'null');}catch(e){}
+  if(!d||d.t===DET_DEF.t)return {...DET_DEF,completa:1};
+  return d;
+}
+// Detrás de la hoja, la pantalla de la que vienes (sin su barra de estado).
+function fondoDetalle(){
+  const o=ss.get(MQ.desde),sp='<div style="height:46px"></div>';
+  const M={hoy:pantallaHoy,lista:pantallaLista,agenda:pantallaAgenda,buscar:pantallaBuscar,mes:pantallaMes,avisos:pantallaHoy};
+  return M[o]?M[o]().replace(BARRA_ESTADO,sp):sp+inboxCuerpo();
+}
+const repTexto=r=>({'1d':'Cada día','3d':'Cada 3 días','1 mes':'Cada mes'}[r]||(r?'Cada '+r:'No se repite'));
+
+/* ── Listas: la vista de cualquier lista, no solo Trabajo ── */
+function listaActual(){const n=ss.get(MQ.lista)||'Trabajo',c=CHIPS_L.find(x=>x[0]===n)||CHIPS_L[0];return {n:c[0],c:c[1],d:c[2],t:c[3]};}
+
+/* ── Inbox: calendario desplegable ──
+   Plegado es una tira con la semana; «Noviembre ⌄» lo despliega al mes
+   entero. Los puntos son las tareas con fecha (rojo: vencidas) y tocar un
+   día deja en la lista solo las de ese día. */
+const IC_TOP=332,IC_EXTRA=190;
+function icDia(k){k=String(k);return k[0]==='o'?[+k.slice(1),'oct']:k[0]==='d'?[+k.slice(1),'dic']:[+k,'nov'];}
+function icNombre(k){
+  const [d,m]=icDia(k),w=m==='nov'?(d+5)%7:m==='dic'?d%7:(d+2)%7;
+  const pre={20:'Hoy, ',21:'Mañana, ',19:'Ayer, '}[m==='nov'?d:0]||'';
+  const tx=pre+SM_DN[w].toLowerCase()+' '+d+(m==='nov'?'':' de '+(m==='oct'?'octubre':'diciembre'));
+  return tx[0].toUpperCase()+tx.slice(1);
+}
+function calInbox(){
+  // Noviembre de 2026 empieza en domingo: con semanas de lunes, 6 filas (26 oct – 6 dic).
+  const porDia={};
+  INB.forEach(g=>g.tareas.forEach(t=>{if(t.d==null)return;(porDia[t.d]=porDia[t.d]||[]).push(t.venc?'var(--venc)':g.sin?'var(--t3)':g.c);}));
+  const celda=(k,num,cls)=>`<button class="ic-d ${cls}" data-d="${k}" aria-label="${icNombre(k)}"><b>${num}</b><span class="pt">${(porDia[k]||[]).slice(0,4).map(x=>`<i style="background:${x}"></i>`).join('')}</span></button>`;
+  let c='';
+  for(let d=26;d<=31;d++)c+=celda('o'+d,d,'fuera');
+  for(let d=1;d<=30;d++)c+=celda(d,d,d<20?'pasado':d===20?'hoy':'');
+  for(let d=1;d<=6;d++)c+=celda('d'+d,d,'fuera');
+  return `<div class="ic" id="ic" style="--fila:3" data-sel=""><div class="ic-dias">${SM_LETRA.map(x=>`<span>${x}</span>`).join('')}</div><div class="ic-ventana"><div class="ic-rej">${c}</div></div></div>`;
+}
+function icAbrir(abrir){
+  const ic=document.getElementById('ic');if(!ic)return;
+  ic.classList.toggle('abierto',abrir);document.querySelector('.ic-btn').setAttribute('aria-expanded',abrir);
+  ic.closest('header').nextElementSibling.style.top=(IC_TOP+(abrir?IC_EXTRA:0))+'px';
+}
+function icElegir(k){
+  const ic=document.getElementById('ic');if(!ic)return;
+  const sel=ic.dataset.sel===String(k)?'':String(k);ic.dataset.sel=sel;
+  const celdas=[...ic.querySelectorAll('.ic-d')];
+  celdas.forEach(x=>x.classList.toggle('sel',x.dataset.d===sel));
+  // Plegado, la tira enseña la semana del día elegido.
+  ic.style.setProperty('--fila',sel?Math.floor(celdas.findIndex(x=>x.dataset.d===sel)/7):3);
+  const hoja=ic.closest('header').nextElementSibling;let n=0;
+  hoja.querySelectorAll('.inb-fila').forEach(f=>{const ok=!sel||f.dataset.d===sel;f.classList.toggle('ic-oculta',!ok);if(ok&&sel)n++;});
+  hoja.querySelectorAll('section').forEach(s=>s.classList.toggle('ic-oculta',!!sel&&!s.querySelector('.inb-fila:not(.ic-oculta)')));
+  const fb=hoja.querySelector('.ic-filtro');fb.hidden=!sel;hoja.querySelector('.ic-vacio').hidden=!sel||n>0;
+  if(sel)fb.querySelector('.ic-f-tx').innerHTML=`<b>${icNombre(sel)}</b> · ${n?n+(n>1?' tareas':' tarea'):'nada con fecha'}`;
+}
+
+/* ── Bienvenida, paso 4: todo lo demás ── */
+function bvMapa(){
+  const T=[['reloj','var(--cal-google)','Agenda','Tu día por horas, con Google e iCloud','agenda'],
+    ['inbox','var(--l-casa)','Inbox y listas','Cada cosa en su lista y con su color','inbox-listas'],
+    ['nota','var(--l-lect)','Notas','Lo que no es tarea, con casillas','notas'],
+    ['sprout','var(--l-personal)','Hábitos','Rachas: una hormiga por día','habitos'],
+    ['history','var(--l-trabajo)','Actividad','Tu hormiguero, semana a semana','actividad'],
+    ['search','var(--o500)','Buscar','Tareas, notas y listas a la vez','buscar']];
+  return `<div class="bv-mapa"><span class="bv-mapa-hor">${hormiga()}</span>${T.map(([i,c,t,d,h])=>`<a class="bv-t" href="#${h}" style="--c:${c}"><span class="bv-ico">${ico(i,19)}</span><b>${t}</b><small>${d}</small></a>`).join('')}</div>`;
+}
+
+/* ── Ajustes: la vista previa usa la senda nueva ──
+   El acento tiñe el tramo recorrido y la bandera; tocarla completa una. */
+function ajPrevia(){
+  const h=document.querySelector('.aj-pg');if(!h)return;
+  const nueva=()=>{const pg=pgNuevo(h,{tareas:[{l:'t',ok:1},{l:'p',ok:1},{l:'c',ok:1},{l:'r'},{l:'v'}],movil:true});h.querySelector('svg').setAttribute('viewBox','0 22 360 104');return pg;};
+  let pg=nueva();h.addEventListener('click',()=>{if(pg.tareas.every(t=>t.ok)){pg=nueva();return;}pg.completar();});
+}
+
+/* ── Una cámara por dentro (móvil) ── */
+// Volver es una flecha (←); las de semana anterior y siguiente, ‹ ›, para no confundirlas.
+ICOS.volver='<path d="M19 12H5M11 18l-6-6 6-6"/>';
+function pantallaSemana(){
+  const i=semIdx(),d=semanaDatos(i),s=d.s;
+  return BARRA_ESTADO+`<header class="m-cab sm-cab">
+    <div class="m-fila1"><div class="m-herr"><button class="sm-volver" aria-label="Volver a Actividad">${ico('volver',20)}</button></div>
+      <div class="m-herr"><button class="sm-ir" data-i="${i+1}" aria-label="Semana anterior"${i>=SEMANAS.length-1?' disabled':''}>${ico('izquierda',18)}</button><button class="sm-ir" data-i="${i-1}" aria-label="Semana siguiente"${i<=0?' disabled':''}>${ico('derecha',18)}</button></div></div>
+    <div class="eyebrow" style="margin-top:8px">${s.actual?'Esta semana':'Una cámara del hormiguero'}</div>
+    <h1 class="act-tit">${s.e}</h1><div class="mes">${semResumen(d)}</div>
+    <div class="sm-ilus">${camaraSVG(d,354,146)}</div>
+  </header>
+  <div class="m-hoja" style="top:348px">
+    <div class="m-cuerpo sm-cuerpo">
+      <div class="sec-cab"><span class="sec-tit">Por días</span><span class="puntos"></span></div>${diasHTML(d)}
+      <div class="sec-cab"><span class="sec-tit">Por listas</span><span class="puntos"></span></div>${listasHTML(d)}
+      ${diasTareasHTML(d)}
+    </div>
+  </div>`+navN('perfil');
+}
+Object.assign(P_EXTRA,{semana:pantallaSemana,'inbox-calendario':pantallaInboxListas});
+SEMANAS.forEach((x,i)=>{P_EXTRA['semana-'+i]=pantallaSemana;});
+
+/* ── Clics ── */
+// Enlaces: Volver y Cerrar devuelven a donde estabas; el resto navega sin demo.
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a[href^="#"]');if(!a)return;
+  const h=a.getAttribute('href').slice(1);
+  if(a.matches('.det-btns a')){e.preventDefault();volverDetalle();return;}
+  if(a.matches('.aj-cab a,.bs-cancelar,.nt-cab a.m-herr,.mes-cab a.m-herr,.mn .cerrar')){e.preventDefault();volver(h);return;}
+  ss.set(MQ.nav,'1');
+},true);
+document.addEventListener('click',e=>{
+  if(e.target.closest('.det-fondo'))return;
+  if(e.target.closest('.det-velo')){volverDetalle();return;}
+  // Barra de abajo
+  const nb=e.target.closest('.m-nav button');
+  if(nb){if(nb.querySelector('.m-av')){ir('ajustes');return;}
+    const h={Hoy:'hoy',Inbox:'inbox-listas',Buscar:'buscar',Notas:'notas'}[nb.textContent.trim()];
+    if(h&&h!==aqui())h==='buscar'?ir(h):irRaiz(h);return;}
+  // Panel de listas (☰)
+  const ma=e.target.closest('.mn a:not(.cerrar)');
+  if(ma){const tx=ma.textContent.trim();
+    if(tx.startsWith('Todas'))irRaiz('inbox-listas');
+    else if(tx.startsWith('Actividad'))irRaiz('actividad');
+    else{const n=Object.values(COL_LISTA).find(x=>tx.startsWith(x));if(n){ss.set(MQ.lista,n);irRaiz('lista');}}
+    return;}
+  // Chips de listas (Inbox y vista de lista)
+  const ch=e.target.closest('.lch-fila .lch,.ls-otras .lch');
+  if(ch&&!e.target.closest('.det-fondo')){const tx=ch.textContent.trim();
+    if(tx.startsWith('Todas')){if(aqui()!=='inbox-listas')irRaiz('inbox-listas');return;}
+    const n=Object.values(COL_LISTA).find(x=>tx.startsWith(x));if(n){ss.set(MQ.lista,n);aqui()==='lista'?irA('lista'):ir('lista');}return;}
+  // Calendario del Inbox
+  if(e.target.closest('.ic-btn')){icAbrir(!document.getElementById('ic').classList.contains('abierto'));return;}
+  const icd=e.target.closest('.ic-d');if(icd){icElegir(icd.dataset.d);return;}
+  if(e.target.closest('.ic-quitar')){icElegir(document.getElementById('ic').dataset.sel);return;}
+  // Filas de tareas → su detalle
+  if(!e.target.closest('.check,.check-wrap,.ag-check,.accion')){
+    const f=e.target.closest('.fila:not(.hab),.ag-b.ag-tarea');
+    if(f&&!(typeof ocupado!=='undefined'&&ocupado)){abrirDetalle(infoDeFila(f));return;}
+  }
+  // Búsqueda
+  const r=e.target.closest('.bs-res');
+  if(r){let c=r.previousElementSibling;while(c&&!c.classList.contains('sec-cab'))c=c.previousElementSibling;
+    const tipo=c?c.querySelector('.sec-tit').textContent:'';
+    if(tipo==='Notas'){ir('nota');return;}
+    if(tipo==='Tareas'){const p=r.querySelector('small').textContent.split('·').map(x=>x.trim()),lc=r.querySelector('small i').style.background;
+      abrirDetalle({t:r.querySelector('b').textContent.trim(),lc,ln:COL_LISTA[lc]||'',f:p[1]==='Hoy'&&/\d:\d/.test(p[2]||'')?'Hoy · '+p[2]:(p[1]==='sin fecha'?'':p[1]||''),rep:(p.find(x=>/\d+ mes/.test(x))||'').replace(/^\D+/,'')});}
+    return;}
+  if(e.target.closest('.bs-recientes span')){irA('buscar');return;}
+  const bf=e.target.closest('.bs-filtro');if(bf){bf.parentElement.querySelectorAll('.bs-filtro').forEach(x=>x.classList.toggle('on',x===bf));return;}
+  // Actividad: volver, y cada cámara abre su semana
+  if(e.target.closest('.e-actividad .m-fila1 > .m-herr:first-child button')){volver('hoy');return;}
+  const cam=e.target.closest('svg.nido .camara');
+  if(cam){ir('semana-'+[...document.querySelectorAll('svg.nido .camara')].indexOf(cam));return;}
+  if(e.target.closest('.sm-volver')){volver('actividad');return;}
+  const si=e.target.closest('.sm-ir');if(si){if(!si.disabled)irA('semana-'+si.dataset.i);return;}
+  const col=e.target.closest('.sm-col');if(col){semIrADia(col);return;}
+  // Pestañas que solo cambian de vista (Semanas/Meses/Año, Pendientes/Hechas…)
+  const pe=e.target.closest('button.m-pest');if(pe){pe.parentElement.querySelectorAll('.m-pest').forEach(x=>x.classList.toggle('on',x===pe));return;}
+  // La fecha grande abre el mes; un día de la tira de Hoy, la Agenda de ese día
+  if(e.target.closest('.m-cab .fecha')){ir('mes');return;}
+  const sd=e.target.closest('.semana .sd');
+  if(sd&&!document.body.classList.contains('e-agenda')){ss.set(MQ.dia,[...sd.parentElement.children].indexOf(sd));ir('agenda');return;}
+  // Avisos, deshacer y captura
+  const nt=e.target.closest('.notif');
+  if(nt){if(nt.textContent.includes(DET_DEF.t)){ss.set(MQ.det,JSON.stringify(DET_DEF));ss.set(MQ.desde,'hoy');ir('detalle');}else irRaiz('hoy');return;}
+  if(e.target.closest('.deshacer')){irRaiz('hoy');return;}
+  if(e.target.closest('.cr-guardar')){volver('hoy');return;}
+});
+
+addEventListener('DOMContentLoaded',()=>{
+  ajPrevia();
+  if(estado==='inbox-calendario'){icAbrir(true);icElegir('20');}
+  // Desde la tira de Hoy: la Agenda abre en el día que tocaste.
+  const k=ss.get(MQ.dia);ss.del(MQ.dia);
+  if(k!=null&&estado==='agenda'){const sd=document.querySelectorAll('.e-agenda .semana .sd')[+k];if(sd)sd.click();}
+});
+
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
@@ -1744,7 +2358,7 @@ if(document.getElementById('tr-guia')){
   ponerProgreso(E.done/E.total);migas(E.done);pie();
 }
 const listo=fn=>addEventListener('load',()=>document.fonts.ready.then(()=>setTimeout(fn,350)));
-if(estado==='hoy')listo(()=>setTimeout(()=>llevarse(document.getElementById('demo')),900));
+if(estado==='hoy'&&!NAVEGADO)listo(()=>setTimeout(()=>llevarse(document.getElementById('demo')),900));
 if(estado==='hoy-congelado')listo(()=>llevarse(document.getElementById('demo'),{congelar:2380}));
 </script>
 </body>

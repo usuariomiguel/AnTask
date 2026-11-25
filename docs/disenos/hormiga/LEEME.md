@@ -223,3 +223,60 @@ Incluye los casos: empezando, casi, día completo, 14 tareas, y la versión móv
 - **Hormiguero de Actividad (26-nov):** el montículo de arriba tiene el mismo estilo que el del progreso (volumen, textura y ramitas). Raíces que bajan desde la hierba; cámaras con luz cálida dentro; las tareas de cada semana como una pila de semillas en el suelo de la cámara; etiquetas en tablillas legibles sobre la tierra, y una banderita en la mejor semana («tu mejor semana» / «récord»).
 - **Pasado a las maquetas (26-nov):** el progreso de `progreso.html` (senda, paradas, hormiguero) sustituye al rastro de puntos en Hoy, Hábitos, Día terminado y Agenda, en PC, móvil y tableta. En el móvil el contador pasa al subtítulo («2/6 hechas · 2 vencidas») para no alargar la cabecera.
 - **Bienvenida (26-nov):** el paso 1 usa el mismo montículo, con la puerta en la base; el paso 3 muestra el progreso real (senda, paradas y hormiguero) completando tareas solo, en bucle.
+
+## Cambiado el 26-nov-2026: hormiguero de Actividad ilustrado
+
+El hormiguero de `#actividad` (PC y móvil, claro y oscuro) se rehace según una ilustración de referencia. Sustituye a lo descrito en «Hormiguero de Actividad (26-nov)»: fuera las raíces y las tablillas.
+- **Arriba:** cielo con nubes, un montículo más grande con la **puerta de frente** en la base y unos rayos de sol; matas de hojas, brotes y piedras grises por la superficie.
+- **Bajo tierra:** arena con vetas onduladas, granos, alguna piedra y alguna mata. Los túneles son canales claros con borde de tierra.
+- **Cámaras:** hueco crema con un anillo grueso y la **pila de semillas en pirámide**, cada semilla con un brillo. Una semilla por tarea hecha, del color de su lista; las 107 cuadran con el subtítulo.
+- **Etiquetas:** tarjetas blancas al lado de cada cámara en PC (fecha y «21 tareas») y encima en el móvil. Su ancho se ajusta al texto ya pintado.
+- **Mejor semana:** bandera verde sobre la cámara y «tu mejor semana» en PC. En el móvil, la etiqueta va encima y taparía la bandera, así que lo dice el texto («récord»).
+- **Esta semana:** un brote dentro de la cámara, junto a la pila, en lugar de la hormiga cavando.
+- **Hormigas:** una baja por el túnel, otra entra en una cámara y otra llega a la puerta con su semilla.
+- **Leyenda (PC):** en una barra, con una separación entre el texto y los colores.
+- **De noche:** estrellas en lugar de nubes y sol, la puerta encendida y las cámaras iluminadas por dentro.
+- `montArriba()` no cambia, porque también la usa la bienvenida. Todas las demás pantallas se comprobaron una a una: mismo HTML y mismos estilos que antes, en claro y en oscuro.
+- Capturas rehechas: `actividad.png`, `movil-actividad.png` y sus `-oscuro`.
+
+## Cambiado el 26-nov-2026: la senda acaba en la puerta del hormiguero
+
+La senda de progreso ya no se queda corta antes del hormiguero: entra por la puerta, con el estilo del hormiguero de Actividad. Sustituye a lo descrito en «Entrada (26-nov)» y «Hormiguero (26-nov)» de la propuesta de progreso. Cambia en `progreso.html`, `index.html` y `movil.html` (la misma pieza en los tres).
+- **Hormiguero:** el mismo montículo de Actividad (volumen, rayos de sol, manchas, matas y brotes), con la **puerta de frente** en la base. La senda pasa por delante y termina dentro de la puerta.
+- **Alrededor:** nubes en el cielo, piedras grises y alguna hoja junto al camino. De noche, estrellas en lugar de nubes y la puerta encendida.
+- **Paradas:** círculos con un halo claro; las pendientes, de trazo discontinuo; las vencidas, en rojo; las hechas, del color de su lista y con brillo.
+- **Pila de semillas:** junto a la puerta, una semilla por tarea hecha, del color de su lista.
+- **Día completo:** la bandera sale en lo alto del montículo, la puerta se ilumina y la hormiga espera en la entrada.
+- Lo que hace la senda no cambia: mismas paradas, misma hormiga y mismo «Completar una».
+- Las demás pantallas se comprobaron una a una: solo cambia la senda, en claro y en oscuro.
+- Capturas rehechas: `hoy`, `agenda`, `agenda-otro-dia`, `fin`, `buscar`, `ajustes` (PC); `movil-hoy`, `movil-habitos`, `movil-fin`, `movil-captura`, `movil-deshacer`, `movil-menu`, `movil-bienvenida-3`; `progreso`. Todas con su `-oscuro`, más `tableta-hoy` y `tableta-agenda`. `agenda-otro-dia.png` seguía con el rastro de puntos antiguo; ahora muestra la senda.
+
+## Añadido el 26-nov-2026: la maqueta móvil se navega, calendario en el Inbox y una cámara por dentro
+
+**Se navega con clics (`movil.html`).** Abre `movil.html#hoy` y ve tocando:
+- **Barra de abajo:** Hoy, Inbox, Buscar o Notas, y el avatar lleva a Ajustes. ☰ abre las listas; desde ahí, «Todas las tareas», cualquier lista o Actividad.
+- **Tareas:** cualquier fila (Hoy, Inbox, una lista, Agenda, el mes o un resultado de búsqueda) abre su detalle, con su lista, fecha, hora, repetición e «Importante». Detrás queda la pantalla de la que vienes. La presentación del jueves sigue siendo la del detalle completo.
+- **Listas:** la vista de lista sirve ya para todas (Casa, Personal, Lecturas, Viajes, Salud), desde ☰ o desde los chips.
+- **Volver y Cerrar** te devuelven a donde estabas. La fecha grande abre el mes; un día de la tira de Hoy, la Agenda de ese día; el + abre la captura rápida.
+- Al llegar navegando, Hoy no repite la demo de la hormiga llevándose una tarea. Abrir una `#pantalla` directamente la enseña siempre igual, como antes.
+
+**Calendario desplegable en el Inbox** (`#inbox-listas`; desplegado, `#inbox-calendario`).
+- Plegado, una tira con la semana bajo el título. «Noviembre ⌄» lo despliega al mes entero y la lista baja con él.
+- Los puntos son las tareas con fecha, del color de su lista (rojo: vencidas).
+- Tocar un día deja en la lista solo las de ese día, con «Quitar» para volver a todas. Un día vacío lo dice.
+- Para llenarlo, el Inbox trae ya todas las listas (siguen siendo 17 pendientes). «mar 2 dic» pasa a «mié 2 dic», que es el día de la semana que le toca en 2026.
+
+**Una cámara por dentro** (`#semana`, PC y móvil). Al tocar una cámara de Actividad se abre su semana:
+- La cámara de cerca, con una semilla por tarea del color de su lista. La semana en curso lleva su brote y la mejor semana, su bandera.
+- Cuántas cayeron cada día (el mejor día, marcado) y de qué listas.
+- Las tareas día a día, con la hora a la que se hicieron. Tocar un día del gráfico baja a sus tareas, y ‹ › pasan a la semana anterior o siguiente.
+- `#semana-0` … `#semana-6` son las siete cámaras, de la más nueva a la más vieja. `#semana` es la del 9 al 15 de noviembre.
+
+**Ajustes (PC y móvil).** La vista previa usa la senda nueva: el acento tiñe el tramo recorrido y la bandera, y tocarla completa una. «Rastro y hormiguero en Hoy» pasa a «Senda y hormiguero en Hoy».
+
+**Bienvenida en 4 pasos.**
+- El paso 1 cuenta que hay tareas, hábitos, notas y agenda.
+- El paso 3 habla de semillas y de la senda.
+- El nuevo paso 4 («Y todo lo demás, a mano») enseña Agenda, Inbox y listas, Notas, Hábitos, Actividad y Buscar, y dice dónde está cada cosa. Tocar una tarjeta lleva a esa pantalla.
+
+Capturas nuevas: `movil-inbox-calendario`, `movil-semana`, `semana` y `movil-bienvenida-4`, cada una con su `-oscuro`. Rehechas, con su `-oscuro`: `movil-inbox-listas`, `movil-detalle`, `movil-detalle-abajo`, `movil-lista`, `movil-ajustes`, `movil-bienvenida-1` a `-3`, `ajustes`, `inbox-listas` y `detalle`. El resto de pantallas se comprobaron una a una contra cómo estaban: no cambian.
