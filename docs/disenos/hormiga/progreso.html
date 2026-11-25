@@ -12,7 +12,7 @@
   --kraft:#e7cf9b;--tinta:#5d4a26;--hoja:#fbf4df;--card:#fffcf1;--t1:#2b2213;--t2:#6f5f3e;--t3:#94845f;
   --o300:#a5b17d;--o400:#8c986d;--o500:#6b734c;--o700:#4b5135;--o800:#3e432a;--sobre:#fbf4df;
   --venc:#8f5853;--venc-rgb:143,88,83;--borde:rgba(80,56,10,.17);--punto:rgba(111,95,62,.32);
-  --tierra-2:#d6b073;--tierra-osc:#5e4426;--suelo:#b78c56;
+  --tierra-2:#d6b073;--tierra-osc:#5e4426;--suelo:#b78c56;--senda:#efdfb5;--senda-borde:#e2cb93;--piedra:#d9c49a;
   --l-trabajo:#c25e3a;--l-casa:#3d6e85;--l-personal:#56867c;--l-lect:#b58236;--l-viajes:#96323a;
   --fd:'Bricolage Grotesque',system-ui,sans-serif;--fs:'Figtree',system-ui,sans-serif;
 }
@@ -20,7 +20,7 @@
   --kraft:#211a15;--tinta:#c4ad86;--hoja:#352b23;--card:#40342b;--t1:#e6d1aa;--t2:#cdb690;--t3:#a08d6c;
   --o300:#c9d59b;--o400:#6f7a48;--o500:#a4b272;--o700:#c4d195;--o800:#d6e0ad;--sobre:#211a15;
   --venc:#d8a99b;--venc-rgb:196,122,106;--borde:rgba(255,226,190,.16);--punto:rgba(255,226,190,.24);
-  --tierra-2:#5a4634;--tierra-osc:#f2c46d;--suelo:#6b5640;
+  --tierra-2:#5a4634;--tierra-osc:#f2c46d;--suelo:#6b5640;--senda:#3f3328;--senda-borde:#4a3c2f;--piedra:#55463a;
   --l-trabajo:#e08a66;--l-casa:#7fb0c7;--l-personal:#7fc0b2;--l-lect:#d9a85e;--l-viajes:#d27d84;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -68,6 +68,14 @@ svg.pg{display:block;width:100%;height:auto;overflow:visible}
 .notas p{font-size:13.5px;color:var(--t2);line-height:1.45}
 
 /* Piezas del SVG */
+.senda-b{fill:none;stroke:var(--senda-borde);opacity:.75;stroke-width:17;stroke-linecap:round;stroke-linejoin:round}
+.senda{fill:none;stroke:var(--senda);stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.pisada{fill:var(--punto);transition:fill .25s}
+.pisada.h{fill:var(--o500)}
+.piedra{fill:var(--piedra)}
+.mata{fill:none;stroke:var(--o400);stroke-width:1.8;stroke-linecap:round}
+.hojita{fill:var(--o400)}
+.sombra-p{fill:rgba(0,0,0,.13)}
 .tr-fondo{fill:none;stroke:var(--punto);stroke-width:3.6;stroke-linecap:round;stroke-dasharray:0 9}
 .tr-hecho{fill:none;stroke:var(--o500);stroke-width:4.6;stroke-linecap:round;stroke-dasharray:0 9}
 .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
@@ -183,8 +191,8 @@ function nuevo(el,{tareas,movil,venc}){
   const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
   const nx=movil?312:520,ny=movil?96:104;
   const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
-  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><mask id="m${uid}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
-    <g transform="translate(0 18)"><path d="${TR}" class="tr-fondo"/><path d="${TR}" class="tr-hecho" mask="url(#m${uid++})"/><path class="guia" d="${TR}" fill="none"/>
+  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><filter id="rug${uid}" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter><mask id="m${uid++}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+    <g transform="translate(0 18)"><g class="deco"></g><g filter="url(#rug${uid})"><path d="${TR} Q ${nx-58} ${ny-24}, ${nx-34} ${ny-22}" class="senda-b"/><path d="${TR} Q ${nx-58} ${ny-24}, ${nx-34} ${ny-22}" class="senda"/></g><g class="pisadas"></g><path class="mk" d="" style="display:none"/><path class="guia" d="${TR}" fill="none"/>
     <g class="paradas"></g>
     <g class="nido"><path class="suelo" d="M${nx-60} ${ny} H ${nx+44}"/>
       <path class="monticulo" d="M${nx-46} ${ny} C ${nx-34} ${ny-50}, ${nx+30} ${ny-50}, ${nx+42} ${ny} Z"/>
@@ -198,8 +206,20 @@ function nuevo(el,{tareas,movil,venc}){
   const g=el.querySelector('.guia'),Lg=g.getTotalLength();
   const posL=i=>Lg*(0.05+0.9*(tareas.length===1?0.5:i/(tareas.length-1)));
   const pt=l=>{const a=g.getPointAtLength(l),b=g.getPointAtLength(Math.min(Lg,l+2)),c=g.getPointAtLength(Math.max(0,l-2));return {x:a.x,y:a.y,ang:Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI};};
+  const nrm=l=>{const a=g.getPointAtLength(Math.max(0,l-1)),b=g.getPointAtLength(Math.min(Lg,l+1));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy)||1;return [-dy/m,dx/m];};
+  const fps=[],gpi=el.querySelector('.pisadas'),paso_=muchas?7:8;
+  for(let l=4,i=0;l<Lg-2;l+=paso_,i++){const a=g.getPointAtLength(l),[nx_,ny_]=nrm(l),sd=i%2?1:-1;const c=document.createElementNS(NS,'ellipse');
+    c.setAttribute('cx',(a.x+nx_*3*sd).toFixed(1));c.setAttribute('cy',(a.y+ny_*3*sd).toFixed(1));c.setAttribute('rx','1.9');c.setAttribute('ry','1.3');c.setAttribute('class','pisada');gpi.appendChild(c);fps.push({l,c});}
+  const dg=el.querySelector('.deco');const deco=(f,off,html)=>{const l=Lg*f,a=g.getPointAtLength(l),[ux,uy]=nrm(l);return html(a.x+ux*off,a.y+uy*off);};
+  dg.innerHTML=[
+    deco(.16,17,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -9 M${x} ${y} l4 -6"/>`),
+    deco(.33,-15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="4.5" ry="3"/><ellipse class="piedra" cx="${x+7}" cy="${y+2}" rx="2.6" ry="2"/>`),
+    deco(.52,16,(x,y)=>`<path class="hojita" d="M${x} ${y} q 8 -10 16 -3 q -8 8 -16 3 Z"/>`),
+    deco(.7,-16,(x,y)=>`<path class="mata" d="M${x} ${y} l-3 -7 M${x} ${y} l0.5 -10 M${x} ${y} l4 -7"/>`),
+    deco(.86,15,(x,y)=>`<ellipse class="piedra" cx="${x}" cy="${y}" rx="3.4" ry="2.4"/>`)].join('');
   const gp=el.querySelector('.paradas');
   tareas.forEach((t,i)=>{const q=pt(posL(i));const w=document.createElementNS(NS,'g');w.setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${(q.ang-25).toFixed(1)})`);
+    const sh=document.createElementNS(NS,'ellipse');sh.setAttribute('cy',1.8);sh.setAttribute('rx',rx);sh.setAttribute('ry',ry*.8);sh.setAttribute('class','sombra-p');w.appendChild(sh);
     const e=document.createElementNS(NS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
   const s={tareas,el,Lg,pAct:0};
   const GR=[[-24,-8],[-8,-12],[8,-10],[22,-6],[-16,-20],[2,-22],[16,-18],[-30,-2],[30,-2],[-4,-32],[10,-30],[-18,-30],[24,-14],[-2,-4]];
@@ -215,7 +235,7 @@ function nuevo(el,{tareas,movil,venc}){
     el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
   };
   s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?12:18);};
-  s.colocar=l=>{let q;if(l>Lg){q={x:nx-40,y:ny-2,ang:-8};}else q=pt(Math.max(0,l));
+  s.colocar=l=>{fps.forEach(f=>f.c.classList.toggle('h',f.l<l));let q;if(l>Lg){q={x:nx-40,y:ny-2,ang:-8};}else q=pt(Math.max(0,l));
     el.querySelector('.hor').setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
   s.completar=()=>{const i=tareas.findIndex(t=>!t.ok);if(i<0||s.ocupado)return;s.ocupado=true;
     tareas[i].ok=true;s.pintar(true);tareas[i].el.classList.add('pop');

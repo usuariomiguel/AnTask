@@ -217,3 +217,4 @@ Comparación, en claro y oscuro, del rastro actual con una propuesta más legibl
 - **con más de 10 tareas**, las paradas se hacen pequeñas.
 
 Incluye los casos: empezando, casi, día completo, 14 tareas, y la versión móvil. «Completar una» anima la propuesta. Capturas: `progreso.png` y `progreso-oscuro.png`. Si se elige, sustituye al rastro en Hoy (móvil y PC).
+- **Camino (actualizado el 26-nov):** la línea de puntos pasa a ser una senda de tierra con bordes irregulares que llega hasta la entrada del hormiguero. Detrás de la hormiga quedan sus pisadas en verde; delante, en gris. A los lados hay matas, piedras y una hoja. Las semillas llevan una pequeña sombra.
