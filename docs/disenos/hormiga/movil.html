@@ -670,6 +670,18 @@ a{color:inherit;text-decoration:none}
 .mes-dia-tit b{font:650 18px var(--f-disp)}
 .mes-dia-tit span{font-size:13px;color:var(--t3)}
 
+/* ═══ 26-nov: hormiguero de Actividad renovado ═══ */
+:root{--mont-1:#ecca8e;--mont-2:#d6ad6c;--mont-3:#b78a50;--ramita:#9b7a4a;--hueco-luz:#fffaf0;--raiz:#a88456;--tablilla:rgba(251,244,223,.88)}
+:root[data-theme="dark"]{--mont-1:#7a624c;--mont-2:#5c4836;--mont-3:#433427;--ramita:#806650;--hueco-luz:#a07a4c;--raiz:#5e4a38;--tablilla:rgba(53,43,35,.88)}
+.c-hueco{fill:url(#luz-camara)}
+.semilla{stroke:rgba(0,0,0,.2);stroke-width:.8}
+.raiz{fill:none;stroke:var(--raiz);stroke-width:1.7;stroke-linecap:round;opacity:.6}
+.ramita{fill:none;stroke:var(--ramita);stroke-width:2.2;stroke-linecap:round}
+.tablilla{fill:var(--tablilla);stroke:var(--tierra-borde);stroke-width:1}
+.bandera-r path:first-child{stroke:var(--t2);stroke-width:2;stroke-linecap:round}
+.bandera-r path:last-child{fill:var(--o500)}
+.mejor .etq-2{fill:var(--o600);font-weight:650}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -947,27 +959,34 @@ function enRuta(d,dur,begin,flip,w,miga=false,sup=false){
   const y=sup?-w*0.92:-w*0.55;
   return `<g><animateMotion dur="${dur}s" begin="${begin}" repeatCount="indefinite" rotate="auto" path="${d}"/><g transform="scale(1 ${flip?-1:1})">${hormiga({x:-w/2,y,w,cls:'anda'})}${miga?`<ellipse class="miga-llevada" cx="${(w*0.16).toFixed(1)}" cy="${(y+w*0.06).toFixed(1)}" rx="${(w*0.15).toFixed(1)}" ry="${(w*0.085).toFixed(1)}" transform="rotate(-25 ${(w*0.16).toFixed(1)} ${(y+w*0.06).toFixed(1)})"/>`:''}</g></g>`;
 }
+function montArriba(x0,x1,G,h){const X=u=>(x0+u*(x1-x0)).toFixed(1),Y=v=>(G+1+v*h).toFixed(1);
+  const d=`M${X(0)} ${Y(0)} C ${X(.04)} ${Y(-.38)}, ${X(.12)} ${Y(-.7)}, ${X(.25)} ${Y(-.86)} C ${X(.34)} ${Y(-1)}, ${X(.45)} ${Y(-1.07)}, ${X(.55)} ${Y(-1.05)} C ${X(.64)} ${Y(-1.08)}, ${X(.76)} ${Y(-.97)}, ${X(.83)} ${Y(-.83)} C ${X(.93)} ${Y(-.62)}, ${X(.98)} ${Y(-.3)}, ${X(1)} ${Y(0)} Z`;
+  return `<defs><radialGradient id="mg-act" cx="38%" cy="22%" r="85%"><stop offset="0" style="stop-color:var(--mont-1)"/><stop offset=".55" style="stop-color:var(--mont-2)"/><stop offset="1" style="stop-color:var(--mont-3)"/></radialGradient></defs>
+  <ellipse cx="${X(.5)}" cy="${G+2}" rx="${((x1-x0)*.56).toFixed(0)}" ry="5" style="fill:rgba(0,0,0,.12)"/><path d="${d}" style="fill:url(#mg-act)"/>
+  <path class="ramita" d="M${X(.62)} ${Y(-.82)} l ${((x1-x0)*.12).toFixed(1)} ${(h*.12).toFixed(1)} M${X(.3)} ${Y(-.6)} l ${((x1-x0)*.08).toFixed(1)} ${(-h*.1).toFixed(1)}"/>`;}
+function raices(r,W,G,evitar){let s='';for(let i=0;i<7;i++){const x=r()*W;if(x>evitar[0]&&x<evitar[1])continue;const l=26+r()*40;
+  s+=`<path class="raiz" d="M${x.toFixed(0)} ${G} c 5 ${(l*.3).toFixed(0)}, -6 ${(l*.55).toFixed(0)}, 0 ${(l*.75).toFixed(0)} c 4 ${(l*.15).toFixed(0)}, -2 ${(l*.25).toFixed(0)}, 3 ${(l*.3).toFixed(0)} M${x.toFixed(0)} ${(G+l*.4).toFixed(0)} l 9 8"/>`;}return s;}
 function camara(c,r,cols){
-  let s=`<g class="camara${c.actual?' cavando':''}"><title>${c.e}: ${c.n} tareas hechas</title>`;
+  let s=`<g class="camara${c.actual?' cavando':''}${c.mejor?' mejor':''}"><title>${c.e}: ${c.n} tareas hechas</title>`;
   if(c.actual)s+=`<ellipse class="c-borde-cav" cx="${c.cx}" cy="${c.cy}" rx="${c.rx+3.5}" ry="${c.ry+3.5}"/>`;
   s+=`<ellipse class="c-sombra" cx="${c.cx}" cy="${c.cy}" rx="${c.rx}" ry="${c.ry}"/><ellipse class="c-hueco" cx="${c.cx}" cy="${c.cy-2.5}" rx="${c.rx-2.5}" ry="${c.ry-3.5}"/>`;
-  let n=c.n;
-  for(let row=0;n>0&&row<10;row++){
-    const y=c.cy+c.ry-7-row*6.2;if(y<c.cy-c.ry+8)break;
-    const half=c.rx*Math.sqrt(Math.max(0,1-((y-c.cy)/c.ry)**2))-9;
-    const lim=c.actual?c.cx+half*0.1:c.cx+half;
-    for(let x=c.cx-half+(row%2?4:0);x<=lim&&n>0;x+=12.5+r()*1.5){
-      const col=cols[Math.floor(r()*cols.length)],a=((r()-.5)*44).toFixed(0);
-      s+=`<rect x="${(x-5.5).toFixed(1)}" y="${(y-2.7).toFixed(1)}" width="11" height="5.4" rx="2.7" style="fill:${col}" transform="rotate(${a} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;n--;
-    }
-  }
+  const SW=11,SH=5.4;let base=1;while(base*(base+1)/2<c.n)base++;
+  const floor=c.cy+c.ry-10,half=c.rx*Math.sqrt(Math.max(0,1-((floor-c.cy)/c.ry)**2))-8;base=Math.min(base,Math.max(1,Math.floor(2*half/SW)));
+  const ox=c.actual?-c.rx*0.25:0;let n=c.n;const dec=base*(base+1)/2<c.n?2:1;
+  for(let row=0;n>0&&row<14;row++){const cnt=Math.max(1,base-Math.floor(row/dec)),y=floor-row*SH;if(y<c.cy-c.ry+6)break;const x0=c.cx+ox-(cnt-1)*SW/2;
+    for(let i=0;i<cnt&&n>0;i++,n--){const x=x0+i*SW+(r()-.5)*2,col=cols[Math.floor(r()*cols.length)],a=((r()-.5)*36).toFixed(0);
+      s+=`<ellipse class="semilla" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="5" ry="3.1" style="fill:${col}" transform="rotate(${a} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;}}
+  if(c.mejor)s+=`<g class="bandera-r"><path d="M${c.cx} ${c.cy-c.ry+4} V ${c.cy-c.ry-16}"/><path d="M${c.cx+1} ${c.cy-c.ry-16} l 13 4.5 l -13 4.5 Z"/></g>`;
+  
   if(c.actual){
     const ax=c.cx+c.rx*0.38,ay=c.cy+c.ry-27;
     s+=hormiga({x:ax-13,y:ay,w:26,cls:'cava'});
     for(let i=0;i<5;i++)s+=`<circle class="tierra-salta" cx="${(ax+12).toFixed(1)}" cy="${(ay+11).toFixed(1)}" r="${(1.3+r()*1.2).toFixed(1)}" style="--dx:${(6+r()*10).toFixed(0)}px;--dy:${(-5-r()*12).toFixed(0)}px;animation-delay:${(i*0.2).toFixed(2)}s"/>`;
   }
   const ly=c.cy-c.ry-(c.actual?11:9);
-  s+=`<text x="${c.cx}" y="${ly.toFixed(0)}" text-anchor="middle"><tspan class="etq-1">${c.actual?'Esta semana':c.e}</tspan><tspan class="etq-2" dx="5">${c.actual?c.n+' y contando':'· '+c.n}</tspan></text>`;
+  const tt=(c.actual?'Esta semana':c.e)+(c.actual?' '+c.n+' y contando':' · '+c.n+(c.mejor?' · récord':'')),tw=tt.length*6.3+18;
+  s+=`<rect class="tablilla" x="${(c.cx-tw/2).toFixed(0)}" y="${(ly-14).toFixed(0)}" width="${tw.toFixed(0)}" height="20" rx="10"/>`;
+  s+=`<text x="${c.cx}" y="${ly.toFixed(0)}" text-anchor="middle"><tspan class="etq-1">${c.actual?'Esta semana':c.e}</tspan><tspan class="etq-2" dx="5">${c.actual?c.n+' y contando':'· '+c.n+(c.mejor?' · récord':'')}</tspan></text>`;
   return s+'</g>';
 }
 function nido(){
@@ -975,11 +994,13 @@ function nido(){
   const sem=[{e:'16–22 nov',n:9,actual:1},{e:'9–15 nov',n:21},{e:'2–8 nov',n:15},{e:'26 oct–1 nov',n:23},{e:'19–25 oct',n:9},{e:'12–18 oct',n:18},{e:'5–11 oct',n:12}];
   const ys=[124,192,258,326,392,458,522];
   const cols=['var(--l-trabajo)','var(--l-casa)','var(--l-personal)','var(--l-lect)','var(--l-viajes)','var(--o500)'];
+  const maxN=Math.max(...sem.filter(x=>!x.actual).map(x=>x.n));sem.forEach(x=>{if(!x.actual&&x.n===maxN)x.mejor=1;});
   const cams=sem.map((s,i)=>{const dir=i%2===0?1:-1,cy=ys[i],x0=sx(cy),rx=30+s.n*1.45,ry=15+s.n*.5,cx=Math.round(x0+dir*(60+s.n*1.5));
     return {...s,dir,cx,cy,rx,ry,tun:`M${x0.toFixed(1)} ${cy-4} C ${(x0+dir*30).toFixed(1)} ${cy-6}, ${(cx-dir*(rx+30)).toFixed(1)} ${cy+8}, ${(cx-dir*rx*0.75).toFixed(1)} ${cy+2}`};});
   let s=`<svg class="nido" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tu hormiguero">`;
-  s+=`<defs><radialGradient id="brillo-camara" cx="50%" cy="62%" r="62%"><stop offset="0" stop-color="#8f6d46"/><stop offset="1" stop-color="#54412f"/></radialGradient><clipPath id="cl-t"><rect x="0" y="${G-30}" width="${W}" height="${H}" rx="16"/></clipPath></defs><g clip-path="url(#cl-t)"><rect class="tierra" x="0" y="${G}" width="${W}" height="${H}"/>`;
+  s+=`<defs><radialGradient id="luz-camara" cx="50%" cy="72%" r="68%"><stop offset="0" style="stop-color:var(--hueco-luz)"/><stop offset="1" style="stop-color:var(--hueco)"/></radialGradient><radialGradient id="brillo-camara" cx="50%" cy="62%" r="62%"><stop offset="0" stop-color="#8f6d46"/><stop offset="1" stop-color="#54412f"/></radialGradient><clipPath id="cl-t"><rect x="0" y="${G-30}" width="${W}" height="${H}" rx="16"/></clipPath></defs><g clip-path="url(#cl-t)"><rect class="tierra" x="0" y="${G}" width="${W}" height="${H}"/>`;
   for(let k=0;k<4;k++){const y=G+50+k*120,a=8+r()*6,h=26+r()*16;s+=`<path class="estrato" d="M0 ${y} C 90 ${y-a}, 180 ${y+a}, 260 ${y} S 340 ${y-a}, 362 ${y+a*.5} L362 ${y+h} C 300 ${y+h-a}, 220 ${y+h+a}, 160 ${y+h} S 50 ${y+h-a}, 0 ${y+h+a*.4} Z"/>`;}
+  s+=raices(r,362,G,[110,252]);
   for(let i=0;i<260;i++)s+=`<circle class="mota" cx="${(r()*W).toFixed(1)}" cy="${(G+4+r()*(H-G)).toFixed(1)}" r="${(0.5+r()*1.2).toFixed(2)}" opacity="${(0.25+r()*0.45).toFixed(2)}"/>`;
   for(let i=0;i<10;i++){const x=(r()*W).toFixed(0),y=(G+16+r()*(H-G-16)).toFixed(0);s+=`<ellipse class="guijarro" cx="${x}" cy="${y}" rx="${(3+r()*4).toFixed(1)}" ry="${(2.4+r()*2).toFixed(1)}" transform="rotate(${(r()*60-30).toFixed(0)} ${x} ${y})"/>`;}
   s+=`<path class="t-borde" d="${SHAFT}"/>`;
@@ -987,7 +1008,7 @@ function nido(){
   s+=`<path class="t-hueco" d="${SHAFT}"/>`;cams.forEach(c=>{s+=`<path class="t-hueco" d="${c.tun}"/>`;});
   cams.forEach(c=>{s+=camara(c,r,cols);});
   s+=enRuta(SHAFT,20,'-3s',false,20);s+=enRuta(cams[1].tun,8,'-2s',true,18);s+=enRuta(cams[2].tun,9,'-5s',false,18);
-  s+=`</g><path class="monticulo" d="M128 ${G+1} C 146 20, 216 20, 234 ${G+1} Z"/>`;
+  s+=`</g>`+montArriba(128,234,G,37);
   for(let i=0;i<30;i++){const x=136+r()*90,top=G-36*Math.sin(Math.PI*(x-128)/106),y=top+3+r()*(G-top-3);s+=`<circle class="mota" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.5+r()*1).toFixed(2)}" opacity="${(0.3+r()*0.4).toFixed(2)}"/>`;}
   s+=`<ellipse class="entrada" cx="181" cy="35" rx="10" ry="5"/><path class="suelo" d="M0 ${G} H${W}"/>`;
   for(let i=0;i<16;i++){const x=r()*W;if(x>110&&x<252)continue;s+=`<path class="hierba" d="M${x.toFixed(0)} ${G} l-3 -7 M${x.toFixed(0)} ${G} l0.5 -10 M${x.toFixed(0)} ${G} l4 -6"/>`;}
