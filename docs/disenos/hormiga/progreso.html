@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AnTrack · el progreso de la hormiga (comparación)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --kraft:#e7cf9b;--tinta:#5d4a26;--hoja:#fbf4df;--card:#fffcf1;--t1:#2b2213;--t2:#6f5f3e;--t3:#94845f;
+  --o300:#a5b17d;--o400:#8c986d;--o500:#6b734c;--o700:#4b5135;--o800:#3e432a;--sobre:#fbf4df;
+  --venc:#8f5853;--venc-rgb:143,88,83;--borde:rgba(80,56,10,.17);--punto:rgba(111,95,62,.32);
+  --tierra-2:#d6b073;--tierra-osc:#5e4426;--suelo:#b78c56;
+  --l-trabajo:#c25e3a;--l-casa:#3d6e85;--l-personal:#56867c;--l-lect:#b58236;--l-viajes:#96323a;
+  --fd:'Bricolage Grotesque',system-ui,sans-serif;--fs:'Figtree',system-ui,sans-serif;
+}
+:root.oscuro{
+  --kraft:#211a15;--tinta:#c4ad86;--hoja:#352b23;--card:#40342b;--t1:#e6d1aa;--t2:#cdb690;--t3:#a08d6c;
+  --o300:#c9d59b;--o400:#6f7a48;--o500:#a4b272;--o700:#c4d195;--o800:#d6e0ad;--sobre:#211a15;
+  --venc:#d8a99b;--venc-rgb:196,122,106;--borde:rgba(255,226,190,.16);--punto:rgba(255,226,190,.24);
+  --tierra-2:#5a4634;--tierra-osc:#f2c46d;--suelo:#6b5640;
+  --l-trabajo:#e08a66;--l-casa:#7fb0c7;--l-personal:#7fc0b2;--l-lect:#d9a85e;--l-viajes:#d27d84;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fs);background:var(--kraft);color:var(--t1);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+main{max-width:1240px;margin:0 auto;padding:34px 40px 70px}
+.top{display:flex;align-items:flex-start;gap:20px}
+h1{font:700 34px/1.05 var(--fd);letter-spacing:-.03em}
+.intro{color:var(--t2);font-size:15.5px;line-height:1.5;margin-top:8px;max-width:760px}
+.seg{margin-left:auto;display:flex;padding:3px;border-radius:999px;background:var(--hoja);border:1px solid var(--borde);flex:none}
+.seg button{font-weight:600;font-size:13px;color:var(--t2);padding:6px 14px;border-radius:999px}
+.seg button.on{background:var(--o500);color:var(--sobre)}
+h2{font:700 24px var(--fd);letter-spacing:-.02em;margin:40px 0 12px;display:flex;align-items:center;gap:14px}
+h2::after{content:"";flex:1;height:6px;background:radial-gradient(circle,var(--punto) 1.4px,transparent 1.9px) 0 50%/10px 6px repeat-x}
+.etq{display:inline-flex;align-items:center;gap:7px;font:650 13px var(--fd);color:var(--t3);margin-bottom:8px}
+.etq.nueva{color:var(--o500)}
+.etq.nueva::before,.etq::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.hoja{background:var(--hoja);border-radius:24px;padding:24px 30px 20px;box-shadow:0 0 0 1px var(--borde),0 18px 36px -22px rgba(0,0,0,.4)}
+.hoja+.hoja{margin-top:18px}
+.cab{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:36px}
+.fecha{display:flex;align-items:flex-end;gap:14px}
+.dia{font:700 88px/.78 var(--fd);letter-spacing:-.055em;color:var(--o800)}
+.eyebrow{font:650 14px var(--fd);color:var(--o500);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.dsem{font:650 30px/1 var(--fd);letter-spacing:-.02em}
+.mes{font-size:14px;color:var(--t2);margin-top:6px}
+.pie-viejo{font-size:14px;color:var(--t2);margin-top:-2px}
+.pie-viejo b{color:var(--t1)}
+.pie-viejo .v{color:var(--venc);font-weight:600}
+svg.pg{display:block;width:100%;height:auto;overflow:visible}
+.ctrl{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1.6px dotted var(--punto)}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 15px;border-radius:999px;font-weight:600;font-size:13.5px;background:var(--o500);color:var(--sobre)}
+.btn.sec{background:none;border:1px solid var(--borde);color:var(--t2)}
+.ctrl small{margin-left:auto;color:var(--t3);font-size:12.5px}
+.estados{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.estados .hoja{margin:0;padding:16px 20px 12px}
+.estados p{font-size:13.5px;color:var(--t2);margin-top:6px;line-height:1.4}
+.moviles{display:grid;grid-template-columns:1fr 1fr;gap:26px;justify-items:center}
+.tel{width:390px;border-radius:34px;overflow:hidden;background:var(--kraft);box-shadow:0 0 0 1px var(--borde),0 24px 40px -24px rgba(0,0,0,.5);padding:16px 18px 18px}
+.tel .dia{font-size:62px}
+.tel .dsem{font-size:23px}
+.notas{margin-top:34px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.notas div{background:var(--hoja);border-radius:18px;padding:14px 16px;box-shadow:0 0 0 1px var(--borde)}
+.notas b{display:block;font:650 15.5px var(--fd);margin-bottom:4px}
+.notas p{font-size:13.5px;color:var(--t2);line-height:1.45}
+
+/* Piezas del SVG */
+.tr-fondo{fill:none;stroke:var(--punto);stroke-width:3.6;stroke-linecap:round;stroke-dasharray:0 9}
+.tr-hecho{fill:none;stroke:var(--o500);stroke-width:4.6;stroke-linecap:round;stroke-dasharray:0 9}
+.suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
+.monticulo{fill:var(--tierra-2)}
+.entrada{fill:var(--tierra-osc);transition:filter .4s}
+.hierba{fill:none;stroke:var(--o500);stroke-width:2;stroke-linecap:round}
+.miga{fill:var(--o300)}
+.parada{transition:fill .3s}
+.parada.pend{fill:var(--hoja);stroke:var(--punto);stroke-width:1.8;stroke-dasharray:2.4 2.2}
+.parada.venc{fill:rgba(var(--venc-rgb),.12);stroke:var(--venc);stroke-width:1.8;stroke-dasharray:none}
+.parada.ok{stroke:none}
+.parada.pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+.parada{transform-box:fill-box;transform-origin:center}
+.cont-n{font:700 34px var(--fd);letter-spacing:-.04em;fill:var(--t1)}
+.cont-n tspan.de{fill:var(--t3);font-size:22px}
+.cont-t{font:500 12.5px var(--fs);fill:var(--t2)}
+.cont-t .v{fill:var(--venc);font-weight:650}
+.bandera{opacity:0;transition:opacity .4s}
+.lleno .bandera{opacity:1}
+.lleno .entrada{filter:drop-shadow(0 0 5px rgba(242,196,109,.95))}
+.grano{fill:var(--c)}
+.grano.nuevo{animation:cae .5s ease-out}
+@keyframes cae{from{transform:translateY(-14px);opacity:0}}
+
+.hormiga{fill:currentColor;color:var(--o500);overflow:visible}
+.h-antenas{transform-box:fill-box;transform-origin:14% 100%;animation:antenas 2.8s ease-in-out infinite}
+@keyframes antenas{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}55%{transform:rotate(5deg)}75%{transform:rotate(-2deg)}}
+.anda .h-arriba{animation:bote .28s ease-in-out infinite alternate}
+@keyframes bote{to{transform:translateY(-12px)}}
+.anda .h-patas{transform-box:fill-box;transform-origin:50% 0;animation:pasos .28s ease-in-out infinite alternate}
+@keyframes pasos{from{transform:skewX(-11deg)}to{transform:skewX(11deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>El progreso de la hormiga: ahora y propuesta</h1>
+    <p class="intro">La propuesta convierte el rastro en un <b>camino con una parada por tarea</b>: cada semilla vacía es algo pendiente, se colorea con el color de su lista al completarla, las vencidas esperan en rojo justo donde está la hormiga, la hormiga se planta en la siguiente y el hormiguero se llena hasta izar la bandera. Pulsa «Completar una» para verlo.</p></div>
+    <div class="seg" id="tema"><button class="on" data-t="claro">Claro</button><button data-t="oscuro">Oscuro</button></div></div>
+
+  <h2>En la cabecera de Hoy (PC)</h2>
+  <div class="hoja"><span class="etq">Ahora</span>
+    <div class="cab"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy</div><div class="dsem">viernes</div><div class="mes">de noviembre</div></div></div>
+      <div><div id="viejo-pc"></div><div class="pie-viejo" id="viejo-pc-pie"></div></div></div>
+    <div class="ctrl"><button class="btn" data-acc="viejo">Completar una</button><button class="btn sec" data-acc="reset">Reiniciar</button><small>Un anillo de % convertido en camino: decorativo, pero no dice cuánto falta.</small></div>
+  </div>
+  <div class="hoja"><span class="etq nueva">Propuesta</span>
+    <div class="cab"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy</div><div class="dsem">viernes</div><div class="mes">de noviembre</div></div></div>
+      <div id="nuevo-pc"></div></div>
+    <div class="ctrl"><button class="btn" data-acc="nuevo">Completar una</button><button class="btn sec" data-acc="reset">Reiniciar</button><small>6 tareas: 2 hechas (Trabajo y Personal), 2 vencidas y 2 pendientes.</small></div>
+  </div>
+
+  <h2>Los casos de la propuesta</h2>
+  <div class="estados">
+    <div class="hoja"><span class="etq nueva">Empezando el día</span><div id="e-cero"></div><p>Nada hecho: la hormiga espera en la primera parada y el hormiguero está vacío.</p></div>
+    <div class="hoja"><span class="etq nueva">Casi</span><div id="e-casi"></div><p>Una sola semilla por llevar; el hormiguero ya va lleno.</p></div>
+    <div class="hoja"><span class="etq nueva">Día completo</span><div id="e-fin"></div><p>Todas cargadas: la hormiga llega a casa, se ilumina la entrada y sale la bandera.</p></div>
+    <div class="hoja"><span class="etq nueva">Día cargado (14 tareas)</span><div id="e-muchas"></div><p>Con más de 10, las paradas se hacen pequeñas y se juntan para no saturar.</p></div>
+  </div>
+
+  <h2>En el móvil</h2>
+  <div class="moviles">
+    <div><span class="etq">Ahora</span><div class="tel"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy</div><div class="dsem">viernes</div><div class="mes">de noviembre · 4 sin hacer</div></div></div>
+      <div id="viejo-mv" style="margin-top:8px"></div><div class="pie-viejo" id="viejo-mv-pie"></div></div></div>
+    <div><span class="etq nueva">Propuesta</span><div class="tel"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy</div><div class="dsem">viernes</div><div class="mes">de noviembre · 4 sin hacer</div></div></div>
+      <div id="nuevo-mv" style="margin-top:8px"></div></div></div>
+  </div>
+
+  <div class="notas">
+    <div><b>Se lee de un vistazo</b><p>Cuántas quedan se cuenta en las semillas vacías, sin leer el texto. El «2/6» grande pasa a ser lo primero que ves.</p></div>
+    <div><b>Habla de tus listas</b><p>Cada semilla hecha lleva el color de su lista, así que el camino resume también en qué has trabajado hoy.</p></div>
+    <div><b>Las vencidas no se esconden</b><p>Esperan en rojo delante de la hormiga: son lo siguiente que le toca cargar, antes que lo de hoy.</p></div>
+  </div>
+</main>
+<script>
+const P={
+ ant1:'M4677 6971 c-226 -115 -446 -493 -447 -767 0 -71 16 -94 53 -77 18 8 31 35 56 111 18 55 53 137 79 183 62 111 203 254 321 324 100 59 124 87 124 146 0 85 -95 126 -186 80z',
+ ant2:'M5250 6789 c-249 -65 -527 -292 -666 -543 -43 -78 -44 -119 -3 -124 23 -3 36 9 87 71 160 196 380 325 635 373 98 19 132 35 152 74 31 60 8 131 -50 156 -44 18 -64 17 -155 -7z',
+ cabeza:'M4283 6055 c-131 -29 -248 -116 -300 -223 -25 -50 -28 -68 -28 -152 0 -86 3 -101 32 -163 105 -222 420 -365 686 -313 276 54 383 265 260 514 -68 138 -222 272 -369 321 -82 27 -202 34 -281 16z',
+ torax:'M3762 5524 c-68 -34 -152 -127 -197 -218 -63 -126 -60 -285 6 -340 47 -40 98 -36 173 14 74 47 187 100 217 100 27 0 90 66 114 120 l18 40 -81 84 c-73 75 -132 164 -132 202 0 13 -23 24 -49 24 -9 0 -40 -12 -69 -26z',
+ abdomen:'M3234 5398 c-312 -32 -686 -360 -834 -732 -54 -137 -73 -236 -74 -381 0 -112 3 -136 21 -177 28 -62 67 -83 153 -82 204 3 498 164 704 386 94 101 156 198 198 309 29 78 31 92 29 194 -7 279 -6 286 22 356 15 36 27 71 27 77 0 38 -123 63 -246 50z',
+ patas:'M3960 5022 c-83 -28 -216 -100 -301 -164 -176 -132 -319 -323 -461 -613 -140 -287 -150 -405 -34 -405 36 0 46 6 91 54 32 34 109 154 210 328 260 444 297 494 383 505 62 8 108 -19 157 -96 23 -36 90 -158 150 -271 199 -378 263 -478 333 -511 73 -36 141 -6 157 68 8 42 -21 161 -92 366 -107 314 -228 574 -305 663 -73 83 -180 112 -288 76z'};
+const T10='transform="translate(0,1024) scale(0.1,-0.1)"';
+const hormiga=(x,y,w)=>`<svg class="hormiga" x="${x}" y="${y}" width="${w}" height="${w}" viewBox="200.4 293.4 378.8 378.8" overflow="visible"><g class="h-patas"><g ${T10}><path d="${P.patas}"/></g></g><g class="h-arriba"><g class="h-antenas"><g ${T10}><path d="${P.ant1}"/><path d="${P.ant2}"/></g></g><g ${T10}><path d="${P.cabeza}"/><path d="${P.torax}"/><path d="${P.abdomen}"/></g></g></svg>`;
+const NS='http://www.w3.org/2000/svg';
+const L={t:'var(--l-trabajo)',c:'var(--l-casa)',p:'var(--l-personal)',r:'var(--l-lect)',v:'var(--l-viajes)'};
+let uid=0;
+
+/* ── Ahora: el rastro que ya está en las maquetas ── */
+function viejo(el,pieEl,{done,total,venc,movil}){
+  const id='v'+(uid++),TR='M10 64 C 70 30, 128 82, 196 58 S 318 26, 360 54 S 388 70, 398 68';
+  const M=[[416,66,-20],[446,68,-10],[426,71,15],[454,63,30],[436,73,0],[410,72,10],[460,71,-25],[431,63,20]];
+  el.innerHTML=`<svg class="pg" viewBox="0 0 480 96" style="${movil?'':'max-width:520px;margin-left:auto'}"><defs><mask id="${id}m" maskUnits="userSpaceOnUse" x="-20" y="-20" width="520" height="140"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+    <path d="${TR}" class="tr-fondo"/><path d="${TR}" class="tr-hecho" mask="url(#${id}m)"/><path class="guia" d="${TR}" fill="none"/>
+    <path class="suelo" d="M384 76 H 478"/><path class="monticulo" d="M396 76 C 410 44, 452 42, 472 76 Z"/><ellipse class="entrada" cx="434" cy="55" rx="7.5" ry="4.2"/>
+    <path class="hierba" d="M387 76 l-3 -8 M387 76 l1 -11 M387 76 l5 -7 M476 76 l-4 -7 M476 76 l1 -10 M476 76 l5 -8"/>
+    ${M.map(([x,y,a])=>`<ellipse class="miga" cx="${x}" cy="${y}" rx="3.6" ry="2" transform="rotate(${a} ${x} ${y})"/>`).join('')}
+    <g class="hor">${hormiga(-20,-37,40)}</g></svg>`;
+  const s={done,total,venc,el,pieEl};
+  s.pintar=()=>{const g=el.querySelector('.guia'),Lg=g.getTotalLength(),p=s.done/s.total,mk=el.querySelector('.mk');
+    mk.style.strokeDasharray=`${Lg} ${Lg}`;mk.style.strokeDashoffset=Lg*(1-p);
+    const a=g.getPointAtLength(p*Lg),b=g.getPointAtLength(Math.min(Lg,p*Lg+2)),c=g.getPointAtLength(Math.max(0,p*Lg-2));
+    el.querySelector('.hor').setAttribute('transform',`translate(${a.x} ${a.y}) rotate(${Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI})`);
+    el.querySelectorAll('.miga').forEach((m,i)=>m.style.opacity=i<s.done?1:0);
+    pieEl.innerHTML=`<b>${s.done} de ${s.total}</b> en el hormiguero${s.venc?` · <span class="v">${s.venc} vencidas</span>`:''}`;};
+  s.pintar();return s;
+}
+
+/* ── Propuesta: camino con paradas ── */
+function nuevo(el,{tareas,movil,venc}){
+  const W=movil?360:600,H=(movil?116:124)+18;
+  const TR=movil?'M14 86 C 60 60, 100 100, 160 80 S 236 58, 262 78':'M20 92 C 100 60, 170 108, 260 84 S 400 56, 452 82';
+  const nx=movil?312:520,ny=movil?96:104;
+  const muchas=tareas.length>10, rx=muchas?5:8, ry=muchas?3.4:5.2;
+  el.innerHTML=`<svg class="pg" viewBox="0 0 ${W} ${H}"><defs><mask id="m${uid}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="${W+40}" height="${H+40}"><path class="mk" d="${TR}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/></mask></defs>
+    <g transform="translate(0 18)"><path d="${TR}" class="tr-fondo"/><path d="${TR}" class="tr-hecho" mask="url(#m${uid++})"/><path class="guia" d="${TR}" fill="none"/>
+    <g class="paradas"></g>
+    <g class="nido"><path class="suelo" d="M${nx-60} ${ny} H ${nx+44}"/>
+      <path class="monticulo" d="M${nx-46} ${ny} C ${nx-34} ${ny-50}, ${nx+30} ${ny-50}, ${nx+42} ${ny} Z"/>
+      <ellipse class="entrada" cx="${nx-2}" cy="${ny-30}" rx="9" ry="5"/>
+      <g class="granos"></g>
+      <g class="bandera"><path d="M${nx+14} ${ny-36} V ${ny-66}" style="stroke:var(--t2);stroke-width:2.2;stroke-linecap:round"/><path d="M${nx+15} ${ny-66} L ${nx+36} ${ny-59} L ${nx+15} ${ny-52} Z" style="fill:var(--o500)"/></g>
+      <path class="hierba" d="M${nx-56} ${ny} l-3 -8 M${nx-56} ${ny} l1 -11 M${nx+40} ${ny} l-3 -8 M${nx+40} ${ny} l4 -9"/></g>
+    <g class="hor">${hormiga(-(movil?20:24),-(movil?36:43),movil?40:48)}</g></g>
+    <text class="cont-n" x="${W-2}" y="28" text-anchor="end"></text>
+    <text class="cont-t" x="${W-2}" y="46" text-anchor="end"></text></svg>`;
+  const g=el.querySelector('.guia'),Lg=g.getTotalLength();
+  const posL=i=>Lg*(0.05+0.9*(tareas.length===1?0.5:i/(tareas.length-1)));
+  const pt=l=>{const a=g.getPointAtLength(l),b=g.getPointAtLength(Math.min(Lg,l+2)),c=g.getPointAtLength(Math.max(0,l-2));return {x:a.x,y:a.y,ang:Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI};};
+  const gp=el.querySelector('.paradas');
+  tareas.forEach((t,i)=>{const q=pt(posL(i));const w=document.createElementNS(NS,'g');w.setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${(q.ang-25).toFixed(1)})`);
+    const e=document.createElementNS(NS,'ellipse');e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.classList.add('parada');w.appendChild(e);gp.appendChild(w);t.el=e;});
+  const s={tareas,el,Lg,pAct:0};
+  const GR=[[-24,-8],[-8,-12],[8,-10],[22,-6],[-16,-20],[2,-22],[16,-18],[-30,-2],[30,-2],[-4,-32],[10,-30],[-18,-30],[24,-14],[-2,-4]];
+  s.pintar=(animarGrano)=>{
+    const done=tareas.filter(t=>t.ok).length,total=tareas.length,v=tareas.filter(t=>!t.ok&&t.venc).length;
+    tareas.forEach(t=>{t.el.setAttribute('class','parada '+(t.ok?'ok':t.venc?'pend venc':'pend'));t.el.style.fill=t.ok?L[t.l]:'';});
+    const ultima=tareas.reduce((m,t,i)=>t.ok?i:m,-1);
+    const mk=el.querySelector('.mk');mk.style.strokeDasharray=`${Lg} ${Lg}`;mk.style.strokeDashoffset=Lg-(ultima<0?0:posL(ultima));
+    const gg=el.querySelector('.granos');gg.innerHTML='';tareas.filter(t=>t.ok).slice(0,GR.length).forEach((t,i)=>{const [dx,dy]=GR[i];
+      gg.insertAdjacentHTML('beforeend',`<ellipse class="grano${animarGrano&&i===done-1?' nuevo':''}" style="--c:${L[t.l]}" cx="${nx+dx}" cy="${ny+dy-3}" rx="4" ry="2.5" transform="rotate(${(i*37)%60-30} ${nx+dx} ${ny+dy-3})"/>`);});
+    el.querySelector('svg').classList.toggle('lleno',done===total);
+    el.querySelector('.cont-n').innerHTML=`${done}<tspan class="de">/${total}</tspan>`;
+    el.querySelector('.cont-t').innerHTML=done===total?'todo en el hormiguero':v?`en el hormiguero · <tspan class="v">${v} ${v>1?'vencidas':'vencida'}</tspan>`:'en el hormiguero';
+  };
+  s.destino=()=>{const i=tareas.findIndex(t=>!t.ok);return i<0?Lg+30:posL(i)-(muchas?12:18);};
+  s.colocar=l=>{let q;if(l>Lg){q={x:nx-40,y:ny-2,ang:-8};}else q=pt(Math.max(0,l));
+    el.querySelector('.hor').setAttribute('transform',`translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`);s.pAct=l;};
+  s.completar=()=>{const i=tareas.findIndex(t=>!t.ok);if(i<0||s.ocupado)return;s.ocupado=true;
+    tareas[i].ok=true;s.pintar(true);tareas[i].el.classList.add('pop');
+    const l0=s.pAct,l1=s.destino(),t0=performance.now(),D=900,ant=el.querySelector('.hormiga');ant.classList.add('anda');
+    (function paso(t){const k=Math.min(1,(t-t0)/D),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;s.colocar(l1>Lg&&k>.85?l1:l0+(Math.min(l1,Lg)-l0)*e);
+      if(k<1)requestAnimationFrame(paso);else{ant.classList.remove('anda');s.colocar(l1);s.ocupado=false;}})(t0);};
+  s.pintar();s.colocar(s.destino());return s;
+}
+
+/* ── Datos ── */
+const base=()=>[{l:'t',ok:1},{l:'p',ok:1},{l:'t',venc:1},{l:'c',venc:1},{l:'r'},{l:'v'}];
+let V,N,VM,NM;
+function montar(){
+  V=viejo(document.getElementById('viejo-pc'),document.getElementById('viejo-pc-pie'),{done:2,total:6,venc:2});
+  N=nuevo(document.getElementById('nuevo-pc'),{tareas:base()});
+  nuevo(document.getElementById('e-cero'),{tareas:[{l:'t'},{l:'c'},{l:'p'},{l:'t'},{l:'r'}]});
+  nuevo(document.getElementById('e-casi'),{tareas:[{l:'t',ok:1},{l:'c',ok:1},{l:'p',ok:1},{l:'t',ok:1},{l:'r',ok:1},{l:'v'}]});
+  nuevo(document.getElementById('e-fin'),{tareas:[{l:'t',ok:1},{l:'c',ok:1},{l:'p',ok:1},{l:'t',ok:1},{l:'r',ok:1},{l:'v',ok:1}]});
+  nuevo(document.getElementById('e-muchas'),{tareas:'tcptrvtcptpcrt'.split('').map((l,i)=>({l,ok:i<6,venc:i===6}))});
+  VM=viejo(document.getElementById('viejo-mv'),document.getElementById('viejo-mv-pie'),{done:2,total:6,venc:2,movil:1});
+  NM=nuevo(document.getElementById('nuevo-mv'),{tareas:base(),movil:1});
+}
+montar();
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-acc]');
+  if(b){const a=b.dataset.acc;
+    if(a==='viejo'&&V.done<V.total){V.done++;if(V.venc)V.venc--;V.pintar();}
+    if(a==='nuevo')N.completar();
+    if(a==='reset')montar();return;}
+  const t=e.target.closest('#tema button');
+  if(t){document.documentElement.classList.toggle('oscuro',t.dataset.t==='oscuro');document.querySelectorAll('#tema button').forEach(x=>x.classList.toggle('on',x===t));}
+});
+if(location.hash==='#oscuro'){document.documentElement.classList.add('oscuro');document.querySelectorAll('#tema button').forEach(x=>x.classList.toggle('on',x.dataset.t==='oscuro'));}
+</script>
+</body>
+</html>

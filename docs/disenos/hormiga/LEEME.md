@@ -207,3 +207,13 @@ Por eso se han rehecho todas las capturas de PC, más `agenda`, `notas`, `inbox-
 **Capturas:**
 - móvil: `movil-bienvenida-1/2/3.png`, `movil-avisos.png`, `movil-deshacer.png`, `movil-mes.png` y sus `-oscuro`;
 - tableta (834 × 1112): `tableta-hoy.png`, `tableta-agenda.png`, `tableta-detalle.png`, `tableta-notas.png`.
+
+## Añadido el 26-nov-2026: propuesta de progreso con paradas (`progreso.html`)
+
+Comparación, en claro y oscuro, del rastro actual con una propuesta más legible:
+- **una parada (semilla) por tarea del día:** las vacías son lo pendiente, y al completar una se colorea con el color de su lista;
+- **el orden:** primero lo hecho; las vencidas esperan en rojo delante de la hormiga, que se planta en la siguiente pendiente;
+- **«2/6» grande** junto al hormiguero, que acumula las semillas de colores; al terminar, la entrada se ilumina y sale una bandera;
+- **con más de 10 tareas**, las paradas se hacen pequeñas.
+
+Incluye los casos: empezando, casi, día completo, 14 tareas, y la versión móvil. «Completar una» anima la propuesta. Capturas: `progreso.png` y `progreso-oscuro.png`. Si se elige, sustituye al rastro en Hoy (móvil y PC).
