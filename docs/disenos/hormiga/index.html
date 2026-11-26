@@ -18,7 +18,7 @@
   --tierra:#e3c58f; --tierra-2:#d6b073; --tierra-borde:#b78c56; --hueco:#f8eed6; --tierra-osc:#5e4426;
   --l-trabajo:#c25e3a; --l-casa:#3d6e85; --l-personal:#56867c; --l-lect:#b58236; --l-viajes:#96323a;
   --hoja-rgb:251,244,223; --sombra-rgb:80,55,10; --check-borde:rgba(80,56,10,.42); --punto:rgba(111,95,62,.32); --punto-kraft:rgba(93,74,38,.28);
-  --huella:rgba(107,115,76,.6); --lente:rgba(255,252,241,.6); --nav-bg:rgba(255,252,241,.95); --hab-bg:rgba(255,252,241,.65);
+  --huella:color-mix(in srgb,var(--tinte) 60%,transparent); --lente:rgba(255,252,241,.6); --nav-bg:rgba(255,252,241,.95); --hab-bg:rgba(255,252,241,.65);
   --kbd-bg:rgba(243,232,201,.5); --kraft-hover:rgba(255,250,235,.35); --home:rgba(43,34,19,.85);
   --bandeja:#e3c58f; --bandeja-borde:#b78c56; --sobre-acento:#fbf4df; --c-sombra:#ead6ab; --estrato:#c99f62; --hueco-hover:#fffaf0; --mota:#b78c56; --suelo:#b78c56; --nervio:#a5b17d; --tallo:#5b6240;
   --f-disp:'Bricolage Grotesque',system-ui,sans-serif; --f-sans:'Figtree',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
@@ -31,7 +31,7 @@ a{color:inherit;text-decoration:none}
 .ico{display:block;flex:none}
 
 /* ── La hormiga (silueta del logo) ── */
-.hormiga{display:block;fill:currentColor;color:var(--o500);overflow:visible}
+.hormiga{display:block;fill:currentColor;color:var(--hor);overflow:visible}
 .h-antenas{transform-box:fill-box;transform-origin:14% 100%;animation:antenas 2.8s ease-in-out infinite}
 @keyframes antenas{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}55%{transform:rotate(5deg)}75%{transform:rotate(-2deg)}}
 .anda .h-arriba{animation:bote .28s ease-in-out infinite alternate}
@@ -95,7 +95,7 @@ a{color:inherit;text-decoration:none}
 .rastro-pie .venc{color:var(--venc);font-weight:600}
 .herr{display:flex;gap:2px;align-self:start;color:var(--t2)}
 .herr button{width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
-.herr button:hover{background:rgba(107,115,76,.1)}
+.herr button:hover{background:color-mix(in srgb,var(--tinte) 10%,transparent)}
 .tr-fondo{fill:none;stroke:var(--punto);stroke-width:3.6;stroke-linecap:round;stroke-dasharray:0 9}
 .tr-hecho{fill:none;stroke:var(--o500);stroke-width:4.6;stroke-linecap:round;stroke-dasharray:0 9}
 .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
@@ -126,7 +126,7 @@ a{color:inherit;text-decoration:none}
 .accion--suave{border-color:var(--borde);background:transparent;color:var(--t2)}
 
 .fila{position:relative;height:44px;border-radius:14px;overflow:hidden}
-.fila:hover{background:rgba(107,115,76,.07)}
+.fila:hover{background:color-mix(in srgb,var(--tinte) 7%,transparent)}
 .fila-in{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;column-gap:8px;height:44px;padding:0 12px 0 10px}
 .check-wrap{position:relative;width:23px;height:23px;display:grid;place-items:center}
 .check{position:relative;width:23px;height:23px;border-radius:50%;border:1.8px solid var(--check-borde);display:grid;place-items:center}
@@ -242,14 +242,14 @@ a{color:inherit;text-decoration:none}
 .momentos-tit{font:700 22px var(--f-disp);letter-spacing:-.02em;margin:28px 0 14px}
 .rejilla-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:20px}
 .story{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-.mini-caja{position:relative;height:104px;border-radius:14px;background:rgba(107,115,76,.07);overflow:hidden}
+.mini-caja{position:relative;height:104px;border-radius:14px;background:color-mix(in srgb,var(--tinte) 7%,transparent);overflow:hidden}
 .mini-fila{position:absolute;left:14px;right:10px;top:40px;display:flex;align-items:center;gap:9px;font-size:14px}
 .mc{width:20px;height:20px;border-radius:50%;background:var(--o500);display:grid;place-items:center;flex:none}
 .mc svg{width:13px;height:13px;fill:none;stroke:var(--sobre-acento);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
 .mt{position:relative;color:var(--t3);white-space:nowrap}
 .mini-pie{font-size:13px;color:var(--t2);margin-top:7px}
 .mini-pie b{color:var(--t1)}
-.cargando{position:relative;height:104px;margin-top:10px;border-radius:14px;background:rgba(107,115,76,.07);overflow:hidden}
+.cargando{position:relative;height:104px;margin-top:10px;border-radius:14px;background:color-mix(in srgb,var(--tinte) 7%,transparent);overflow:hidden}
 .carg-tx{position:absolute;left:16px;top:14px;font-size:14px;color:var(--t2)}
 .carg-linea{position:absolute;left:0;right:0;bottom:22px;height:6px;background:radial-gradient(circle,var(--punto) 1.25px,transparent 1.7px) 0 50%/9px 6px repeat-x}
 .carg-hor{position:absolute;left:0;bottom:22px;width:32px;height:32px;animation:cruza 5s linear infinite}
@@ -268,7 +268,7 @@ a{color:inherit;text-decoration:none}
   --tierra:#2a2119; --tierra-2:#5a4634; --tierra-borde:#1c1611; --hueco:#54412f; --tierra-osc:#f2c46d;
   --l-trabajo:#e08a66; --l-casa:#7fb0c7; --l-personal:#7fc0b2; --l-lect:#d9a85e; --l-viajes:#d27d84;
   --sombra-rgb:0,0,0; --check-borde:rgba(255,226,190,.42); --punto:rgba(255,226,190,.24); --punto-kraft:rgba(255,226,190,.22);
-  --huella:rgba(164,178,114,.6); --lente:rgba(255,238,214,.08); --nav-bg:rgba(64,52,43,.96); --hab-bg:rgba(255,238,214,.04);
+  --huella:color-mix(in srgb,var(--tinte-osc) 60%,transparent); --lente:rgba(255,238,214,.08); --nav-bg:rgba(64,52,43,.96); --hab-bg:rgba(255,238,214,.04);
   --kbd-bg:rgba(255,238,214,.05); --kraft-hover:rgba(255,238,214,.06); --home:rgba(230,209,170,.8);
   --bandeja:#5a4634; --bandeja-borde:#7a6148; --sobre-acento:#211a15; --c-sombra:#3f3226; --estrato:#1c1611; --hueco-hover:#7a6148; --mota:#4f3f30; --suelo:#6b5640; --nervio:#8c9a65; --tallo:#7d8a55;
 }
@@ -290,7 +290,7 @@ a{color:inherit;text-decoration:none}
 
 /* ═══ Añadido el 24-nov-2026: Agenda, Notas, Inbox con listas y detalle (PC) ═══ */
 :root{--cal-google:#3d6e85;--cal-icloud:#b58236;--cinta:rgba(165,177,125,.55);--cinta-raya:rgba(255,252,241,.4)}
-:root[data-theme="dark"]{--cal-google:#7fb0c7;--cal-icloud:#d9a85e;--cinta:rgba(164,178,114,.3);--cinta-raya:rgba(255,238,214,.07)}
+:root[data-theme="dark"]{--cal-google:#7fb0c7;--cal-icloud:#d9a85e;--cinta:color-mix(in srgb,var(--tinte-osc) 30%,transparent);--cinta-raya:rgba(255,238,214,.07)}
 .cabeza--pag{grid-template-columns:1fr auto auto;padding-bottom:2px}
 .pag-sub{font-size:14.5px;color:var(--t2);margin-top:8px}
 .pag-sub .venc{color:var(--venc);font-weight:600}
@@ -300,7 +300,7 @@ a{color:inherit;text-decoration:none}
 .pestana .n{font-size:12px;font-weight:700;opacity:.8}
 .pest-dcha{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--t2);font-weight:600;font-size:14px}
 .pest-dcha button{width:32px;height:32px;border-radius:50%;display:grid;place-items:center}
-.pest-dcha button:hover{background:rgba(107,115,76,.1)}
+.pest-dcha button:hover{background:color-mix(in srgb,var(--tinte) 10%,transparent)}
 .pest-dcha .boton-hoy{display:inline-flex;align-items:center;gap:6px;width:auto;height:30px;padding:0 12px;border:1px solid var(--borde);border-radius:999px;font-size:13px}
 .pest-dcha .orden{display:inline-flex;align-items:center;gap:5px;font-weight:500;font-size:13.5px}
 
@@ -326,7 +326,7 @@ a{color:inherit;text-decoration:none}
 .ag-b.hecha .ag-tit{color:var(--t3);text-decoration:line-through;text-decoration-color:var(--t2)}
 .ag-b.corto{align-items:center;padding-top:0}
 .ag-b.corto .ag-tx{flex-direction:row;align-items:baseline;gap:10px}
-.ag-hab{border-radius:999px;background:rgba(107,115,76,.13);border:1px solid rgba(107,115,76,.24);padding:0 12px 0 8px}
+.ag-hab{border-radius:999px;background:color-mix(in srgb,var(--tinte) 13%,transparent);border:1px solid color-mix(in srgb,var(--tinte) 24%,transparent);padding:0 12px 0 8px}
 .ag-hab::before{display:none}
 .ag-hab .r-hor{width:18px;height:18px;flex:none}
 .ag-ahora{position:absolute;left:54px;right:0;height:2px;margin-top:-1px;border-radius:2px;background:var(--o500);z-index:3}
@@ -374,14 +374,14 @@ a{color:inherit;text-decoration:none}
 .st{position:relative}
 .nota-lista li.ok .st,.det-subs li.ok .st{color:var(--t3)}
 .nota-lista li.ok .tachon,.det-subs li.ok .tachon{clip-path:inset(-4px -4px -4px -4px)}
-.nota-acc{display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-weight:600;font-size:13px;color:var(--o600);padding:5px 12px;border-radius:999px;background:rgba(107,115,76,.12)}
+.nota-acc{display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-weight:600;font-size:13px;color:var(--o600);padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--tinte) 12%,transparent)}
 .e-notas .captura{display:none}
 
 /* Inbox (PC) */
 .sec-punto{width:9px;height:9px;border-radius:50%;flex:none;margin-right:-2px}
 .sec-punto.sin{background:none;box-shadow:inset 0 0 0 1.7px var(--t3)}
 .pastilla-n{padding:4px 11px;border-radius:999px;border:1px solid var(--borde);color:var(--t2);font-weight:600;font-size:13px}
-.pastilla-n.hoy{border-color:rgba(107,115,76,.32);background:rgba(107,115,76,.09);color:var(--o600)}
+.pastilla-n.hoy{border-color:color-mix(in srgb,var(--tinte) 32%,transparent);background:color-mix(in srgb,var(--tinte) 9%,transparent);color:var(--o600)}
 .inb-fila{cursor:pointer}
 .fila.elegida{background:color-mix(in srgb,var(--o500) 10%,transparent);box-shadow:inset 3px 0 0 var(--o500)}
 
@@ -514,7 +514,7 @@ a{color:inherit;text-decoration:none}
 .estilo b{display:block;font:650 14.5px var(--f-disp);margin-top:7px;padding-left:2px}
 .estilo small{display:block;font-size:11.5px;color:var(--t3);padding-left:2px}
 .estilo .pronto{position:absolute;right:8px;top:8px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:#2a1d1a;color:#e9c46a}
-.mini.tierra{background:#e7cf9b}.mini.tierra .l{width:22%;border-radius:6px;background:rgba(255,250,235,.35)}.mini.tierra .h{flex:1;border-radius:8px;background:#fbf4df;padding:7px}.mini.tierra .h i{display:block;height:5px;border-radius:3px;background:rgba(107,115,76,.35);margin-bottom:6px}
+.mini.tierra{background:#e7cf9b}.mini.tierra .l{width:22%;border-radius:6px;background:rgba(255,250,235,.35)}.mini.tierra .h{flex:1;border-radius:8px;background:#fbf4df;padding:7px}.mini.tierra .h i{display:block;height:5px;border-radius:3px;background:color-mix(in srgb,var(--tinte) 35%,transparent);margin-bottom:6px}
 .mini.reli{background:radial-gradient(ellipse at 50% 0,#3b2a4f,#120d10 70%)}.mini.reli .l{width:22%;border-radius:12px 12px 4px 4px;background:linear-gradient(#2c2520,#1a1512)}.mini.reli .h{flex:1;border-radius:4px;border:1px solid #8a6a2c;padding:7px;background:#1c1614}.mini.reli .h i{display:block;height:5px;border-radius:2px;background:#c9a44c;opacity:.55;margin-bottom:6px}
 
 /* ═══ Añadido el 25-nov-2026: tableta y ventanas medianas (≤ 1100 px) ═══
@@ -778,8 +778,8 @@ svg.pgn{display:block;width:100%;height:auto;overflow:visible}
 .sm-cam{display:block;width:100%;height:auto}
 .sm-dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 2px}
 .sm-col{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 9px;border-radius:14px;cursor:pointer;font:inherit;color:inherit;background:none;border:0}
-.sm-col:hover{background:rgba(107,115,76,.07)}
-.sm-col.mejor{background:rgba(107,115,76,.11)}
+.sm-col:hover{background:color-mix(in srgb,var(--tinte) 7%,transparent)}
+.sm-col.mejor{background:color-mix(in srgb,var(--tinte) 11%,transparent)}
 .sm-col.sel{box-shadow:inset 0 0 0 1.6px var(--o400)}
 .sm-n{font:650 12px var(--f-sans);color:var(--t3);height:15px;font-variant-numeric:tabular-nums}
 .sm-col.mejor .sm-n{color:var(--o600);font-weight:750}
@@ -861,12 +861,27 @@ svg.pgn{display:block;width:100%;height:auto;overflow:visible}
 .nt-barra button:hover{background:var(--hab-bg)}
 .nt-barra .guardado{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--t3)}
 .nt-barra .guardado i{width:7px;height:7px;border-radius:50%;background:var(--l-personal)}
+/* ═══ 26-nov: ?acento=arcilla|terracota|miel|marea|vino tiñe toda la maqueta.
+   Mismos valores que src/css/style.css (claro / oscuro). La hormiga se queda en oliva (--hor). ═══ */
+:root{--tinte:#6b734c;--tinte-osc:#a4b272;--hor:#6b734c}
+:root[data-theme="dark"]{--hor:#a4b272}
+:root[data-acento]{--tinte:var(--acc-l);--tinte-osc:var(--acc-d);--o500:var(--acc-l);
+  --o300:color-mix(in srgb,var(--acc-l) 62%,#fff);--o400:color-mix(in srgb,var(--acc-l) 84%,#fff);
+  --o600:color-mix(in srgb,var(--acc-l) 85%,#000);--o700:color-mix(in srgb,var(--acc-l) 70%,#000);--o800:color-mix(in srgb,var(--acc-l) 58%,#000)}
+:root[data-acento][data-theme="dark"]{--o500:var(--acc-d);
+  --o300:color-mix(in srgb,var(--acc-d) 75%,#fff);--o400:color-mix(in srgb,var(--acc-d) 62%,#000);
+  --o600:color-mix(in srgb,var(--acc-d) 88%,#fff);--o700:color-mix(in srgb,var(--acc-d) 76%,#fff);--o800:color-mix(in srgb,var(--acc-d) 62%,#fff)}
 </style>
 </head>
 <body>
 <div id="raiz"></div>
 <script>
 const OSC=new URLSearchParams(location.search).has('oscuro');
+/* 26-nov: ?acento=… (claro, oscuro), como en la app */
+const ACC_URL={arcilla:['#9b5c45','#d88f67'],terracota:['#ae6950','#e09975'],miel:['#8a6a3c','#d9a66a'],marea:['#4c6c7c','#7eb5cd'],vino:['#844042','#d28e93']};
+const ACC=new URLSearchParams(location.search).get('acento');
+if(ACC_URL[ACC]){const r=document.documentElement;r.dataset.acento=ACC;r.style.setProperty('--acc-l',ACC_URL[ACC][0]);r.style.setProperty('--acc-d',ACC_URL[ACC][1]);}
+const ACC_I=Math.max(0,['oliva','arcilla','terracota','miel','marea','vino'].indexOf(ACC));
 if(OSC)document.documentElement.dataset.theme='dark';
 /* ═══ Silueta del logo (src/img/logo-hormiga.svg), separada en piezas ═══ */
 const P={
@@ -1609,7 +1624,7 @@ function ajustesHTML(){
       <div class="aj-grid">
         <div class="aj-blq"><div class="sec-cab"><span class="sec-tit">Tema</span><span class="puntos"></span></div>
           <div class="seg" id="seg-tema"><span class="${OSC?'':'on'}">Automático</span><span>Claro</span><span class="${OSC?'on':''}">Oscuro</span></div>
-          <div class="acentos" id="acentos">${ACENTOS.map(([n,cl,co],i)=>`<span class="acento${i?'':' on'}" data-c="${OSC?co:cl}" style="--c:${OSC?co:cl}"><i>${CK}</i>${n}</span>`).join('')}</div></div>
+          <div class="acentos" id="acentos">${ACENTOS.map(([n,cl,co],i)=>`<span class="acento${i===ACC_I?' on':''}" data-c="${OSC?co:cl}" style="--c:${OSC?co:cl}"><i>${CK}</i>${n}</span>`).join('')}</div></div>
         <div class="aj-blq"><div class="sec-cab"><span class="sec-tit">Vista previa</span><span class="puntos"></span></div>
           <div class="prev" id="prev"><div class="aj-pg" role="button" aria-label="Vista previa: tócala para completar una"></div>
             <div class="prev-fila"><span class="ck">${CK}</span><span class="tx">Pasear a Tango</span><span class="btn">Añadir</span></div>

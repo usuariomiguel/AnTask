@@ -48,7 +48,7 @@ figcaption code{font-size:11.5px;color:var(--t3);background:var(--card);border-r
 <header class="cab">
   <svg class="h" viewBox="200.4 293.4 378.8 378.8"><g transform="translate(0,1024) scale(0.1,-0.1)"><path d="M4677 6971 c-226 -115 -446 -493 -447 -767 0 -71 16 -94 53 -77 18 8 31 35 56 111 18 55 53 137 79 183 62 111 203 254 321 324 100 59 124 87 124 146 0 85 -95 126 -186 80z"/><path d="M5250 6789 c-249 -65 -527 -292 -666 -543 -43 -78 -44 -119 -3 -124 23 -3 36 9 87 71 160 196 380 325 635 373 98 19 132 35 152 74 31 60 8 131 -50 156 -44 18 -64 17 -155 -7z"/><path d="M4283 6055 c-131 -29 -248 -116 -300 -223 -25 -50 -28 -68 -28 -152 0 -86 3 -101 32 -163 105 -222 420 -365 686 -313 276 54 383 265 260 514 -68 138 -222 272 -369 321 -82 27 -202 34 -281 16z"/><path d="M3762 5524 c-68 -34 -152 -127 -197 -218 -63 -126 -60 -285 6 -340 47 -40 98 -36 173 14 74 47 187 100 217 100 27 0 90 66 114 120 l18 40 -81 84 c-73 75 -132 164 -132 202 0 13 -23 24 -49 24 -9 0 -40 -12 -69 -26z"/><path d="M3234 5398 c-312 -32 -686 -360 -834 -732 -54 -137 -73 -236 -74 -381 0 -112 3 -136 21 -177 28 -62 67 -83 153 -82 204 3 498 164 704 386 94 101 156 198 198 309 29 78 31 92 29 194 -7 279 -6 286 22 356 15 36 27 71 27 77 0 38 -123 63 -246 50z"/><path d="M3960 5022 c-83 -28 -216 -100 -301 -164 -176 -132 -319 -323 -461 -613 -140 -287 -150 -405 -34 -405 36 0 46 6 91 54 32 34 109 154 210 328 260 444 297 494 383 505 62 8 108 -19 157 -96 23 -36 90 -158 150 -271 199 -378 263 -478 333 -511 73 -36 141 -6 157 68 8 42 -21 161 -92 366 -107 314 -228 574 -305 663 -73 83 -180 112 -288 76z"/></g></svg>
   <h1>«La hormiga» · resumen del diseño</h1>
-  <nav><a href="#movil">Móvil</a><a href="#pc">PC</a><a href="#tableta">Tableta</a></nav>
+  <nav><a href="#movil">Móvil</a><a href="#pc">PC</a><a href="#tableta">Tableta</a><a href="#acentos">Acentos</a></nav>
   <div class="seg" id="tema"><button class="on" data-t="claro">Claro</button><button data-t="oscuro">Oscuro</button></div>
 </header>
 <main>
@@ -110,13 +110,22 @@ const G=[
   ['hoy','Hoy','Raíl de iconos y el rastro en su fila',1],
   ['agenda','Agenda','«Sin hora» y vencidas encima del día',1],
   ['detalle','Detalle','Flota sobre la lista',1],
-  ['notas','Notas','Dos columnas',1]]}
+  ['notas','Notas','Dos columnas',1]]},
+ {id:'acentos',t:'Acentos',sub:'Los 6 de la app sobre Hoy · añade ?acento=nombre a cualquier pantalla. La hormiga se queda en oliva',c:'pc',p:'acento-',u:f=>'index.html'+(f==='oliva'?'':'?acento='+f)+'#hoy',items:[
+  ['oliva','Oliva','El de siempre · 4,6:1 con el texto encima'],
+  ['arcilla','Arcilla','4,8:1 · cerca del rojo de vencidas en claro'],
+  ['terracota','Terracota','3,9:1: no llega a 4,5 en claro, y más oscuro se confunde con Arcilla'],
+  ['miel','Miel','En claro, #8a6a3c (4,5:1) en vez de #a98656 (3,1:1)'],
+  ['marea','Marea','5,2:1 · el que más se separa del rojo de vencidas'],
+  ['vino','Vino','7:1 en claro; en oscuro, el rosa se parece al de vencidas']]},
+ {id:'acentos-movil',t:'Acentos en el móvil',sub:'Los mismos 6, en Hoy',c:'movil',p:'movil-acento-',u:f=>'movil.html'+(f==='oliva'?'':'?acento='+f)+'#hoy',items:[
+  ['oliva','Oliva',''],['arcilla','Arcilla',''],['terracota','Terracota',''],['miel','Miel',''],['marea','Marea',''],['vino','Vino','']]}
 ];
 let osc=false;
 function pintar(){
   document.getElementById('contenido').innerHTML=G.map(g=>`<h2 id="${g.id}">${g.t}</h2><p class="sub">${g.sub}</p><div class="rej ${g.c}">${g.items.map(([f,t,d,solo])=>{
     const src=`${g.p}${f}${osc&&!solo?'-oscuro':''}.png`;
-    return `<figure><img loading="lazy" src="${src}" alt="${t}"><figcaption><b>${t}</b><span>${d}</span><span><code>${g.id==='tableta'?'index.html':g.id==='pc'?'index.html':'movil.html'}#${f==='hoy'?'hoy':f}</code></span></figcaption></figure>`;}).join('')}</div>`).join('');
+    return `<figure><img loading="lazy" src="${src}" alt="${t}"><figcaption><b>${t}</b><span>${d}</span><span><code>${g.u?g.u(f):(g.id==='movil'?'movil.html':'index.html')+'#'+f}</code></span></figcaption></figure>`;}).join('')}</div>`).join('');
 }
 pintar();
 document.getElementById('tema').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;osc=b.dataset.t==='oscuro';document.documentElement.classList.toggle('oscuro',osc);document.querySelectorAll('#tema button').forEach(x=>x.classList.toggle('on',x===b));pintar();});

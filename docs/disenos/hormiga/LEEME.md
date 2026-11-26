@@ -296,3 +296,13 @@ Capturas nuevas: `movil-inbox-calendario`, `movil-semana`, `semana` y `movil-bie
 - **`#mes` (PC):** las pestañas son las mismas que en la Agenda (Lista · Agenda · Mes). Por eso la barra lateral sigue marcando «Hoy».
 - **Móvil:** Hoy, Día terminado, Hábitos, Actividad e Inbox vacío ya usan la barra nueva (Hoy · Inbox · Notas · tú). Buscar se abre con la lupa de la cabecera de Hoy.
 - Capturas: `nota` y `nota-oscuro` (nuevas); `mes`, y las 5 del móvil con su `-oscuro`, rehechas.
+
+## Añadido el 26-nov-2026 (3): los 6 acentos
+
+- **`?acento=`** (`arcilla`, `terracota`, `miel`, `marea` o `vino`) tiñe cualquier pantalla de `index.html` y `movil.html`, en claro y en oscuro: por ejemplo, `index.html?acento=marea&oscuro#hoy`. Usa los mismos valores que `src/css/style.css`. Cambian los botones, las pestañas, las casillas, la senda recorrida, la fecha grande y los tintes suaves; **la hormiga se queda en oliva** (`--hor`). En Ajustes, el acento de la URL sale marcado.
+- Sin `?acento=` todo se ve igual que antes. Se comprobó pantalla a pantalla, en claro y en oscuro: solo cambian, en 1 de 255, unos tintes por redondeo, más las hormigas que se mueven solas.
+- **Contraste del texto claro sobre el acento, en modo claro** (el mínimo para texto es 4,5:1): Oliva 4,6 · Arcilla 4,8 · Terracota 3,9 · Miel 3,1 · Marea 5,2 · Vino 7. En oscuro, todos pasan de 6,5.
+  - **Miel:** en claro la maqueta usa `#8a6a3c` (4,5:1) en lugar del `#a98656` de la app. Es una propuesta.
+  - **Terracota:** para llegar a 4,5 tendría que oscurecerse tanto que quedaría casi igual que Arcilla. **Por decidir:** dejarlo, juntarlos o cambiar Terracota por otro tono.
+  - **Arcilla y Vino** quedan cerca del rojo de vencidas (Arcilla en claro y Vino en oscuro). Se distinguen porque las vencidas llevan su sección y su fecha, pero una casilla hecha en Vino oscuro se parece a una vencida.
+- La página resumen suma **Acentos**: Hoy en los 6, en PC y en móvil. Capturas: `acento-<nombre>.png`, `movil-acento-<nombre>.png` y sus `-oscuro`.
