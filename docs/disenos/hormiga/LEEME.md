@@ -306,3 +306,16 @@ Capturas nuevas: `movil-inbox-calendario`, `movil-semana`, `semana` y `movil-bie
   - **Terracota:** para llegar a 4,5 tendría que oscurecerse tanto que quedaría casi igual que Arcilla. **Por decidir:** dejarlo, juntarlos o cambiar Terracota por otro tono.
   - **Arcilla y Vino** quedan cerca del rojo de vencidas (Arcilla en claro y Vino en oscuro). Se distinguen porque las vencidas llevan su sección y su fecha, pero una casilla hecha en Vino oscuro se parece a una vencida.
 - La página resumen suma **Acentos**: Hoy en los 6, en PC y en móvil. Capturas: `acento-<nombre>.png`, `movil-acento-<nombre>.png` y sus `-oscuro`.
+
+## Añadido el 26-nov-2026 (4): la semana por horas en PC
+
+- **`#agenda-semana`** (no confundir con `#semana`, que es una cámara del hormiguero). Los 7 días, del lunes 16 al domingo 22, por horas:
+  - **Cabecera de cada día:** el día y una semilla por tarea con hora (de color si está hecha y vacía si no). Hoy va marcado y, al pulsar un día, se abre en «Día».
+  - **Todo el día:** eventos de día entero (Club de lectura, Cumpleaños de Lucía) y, en hoy, las tareas «Sin hora» con borde discontinuo, para arrastrarlas a un hueco.
+  - **Hábitos:** una hormiga por hábito cumplido cada día (gris si falta). Hoy, «1/2».
+  - **Rejilla de 7:00 a 21:00:** abre en las 8:00. Las tareas van con casilla y el color de su lista, los eventos teñidos de su calendario y la vencida (la gestoría, el jueves) en rojo. Los días pasados salen más apagados, hoy con fondo y la línea de las 9:41, y el fin de semana sobre kraft. El sábado enseña un hueco «Suelta aquí», como si se estuviera arrastrando una tarea.
+  - **Si dos cosas coinciden** (la presentación y el dentista), se montan una sobre otra, con la segunda desplazada, en lugar de partirse la columna en dos.
+  - El viernes usa los mismos datos que la Agenda, y los demás días cuadran con el Mes.
+- **Pestañas:** Día, Semana y Mes llevan Lista · Día · Semana · Mes. «Agenda» pasa a llamarse «Día».
+- **Tableta:** las columnas se estrechan y los bloques muestran solo el título.
+- Capturas: `agenda-semana` y su `-oscuro` y `tableta-agenda-semana` (nuevas); `agenda`, `agenda-otro-dia` y `mes` con su `-oscuro`, rehechas por las pestañas.

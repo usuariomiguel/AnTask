@@ -871,6 +871,57 @@ svg.pgn{display:block;width:100%;height:auto;overflow:visible}
 :root[data-acento][data-theme="dark"]{--o500:var(--acc-d);
   --o300:color-mix(in srgb,var(--acc-d) 75%,#fff);--o400:color-mix(in srgb,var(--acc-d) 62%,#000);
   --o600:color-mix(in srgb,var(--acc-d) 88%,#fff);--o700:color-mix(in srgb,var(--acc-d) 76%,#fff);--o800:color-mix(in srgb,var(--acc-d) 62%,#fff)}
+/* ═══ 26-nov: la semana por horas (#agenda-semana) ═══ */
+.sm{display:flex;flex-direction:column;height:100%;padding-top:8px}
+.sm-fila{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr));column-gap:6px;flex:none}
+.sm-et{font:600 11.5px var(--f-sans);color:var(--t3);text-align:right;padding-right:6px;align-self:center;line-height:1.15}
+.sm-dia{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 7px;border-radius:14px;color:var(--t2);text-decoration:none}
+.sm-dia:hover{background:var(--hab-bg)}
+.sm-dia small{font:650 11.5px var(--f-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+.sm-dia b{font:700 22px/1 var(--f-disp);letter-spacing:-.03em;color:var(--t1)}
+.sm-dia .sm-sem{display:flex;gap:2.5px;height:6px;align-items:center}
+.sm-dia .sm-sem i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.sm-dia .sm-sem i.f{background:none;box-shadow:inset 0 0 0 1.3px var(--punto)}
+.sm-dia.pas b{color:var(--t2)}
+.sm-dia.hoy{background:var(--card);box-shadow:0 0 0 2px var(--o500),0 8px 16px -12px rgba(var(--sombra-rgb),.45)}
+.sm-dia.hoy small,.sm-dia.hoy b{color:var(--o700)}
+.sm-todo{margin-top:6px;padding:5px 0;border-top:1.6px dotted var(--punto);border-bottom:1.6px dotted var(--punto)}
+.sm-c{display:flex;flex-direction:column;gap:3px;min-width:0;min-height:26px;justify-content:center}
+.sm-chip{display:flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:7px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sm-chip.ev{background:color-mix(in srgb,var(--c) 16%,var(--hoja));color:color-mix(in srgb,var(--c) 60%,var(--t1))}
+.sm-chip.sh{border:1.3px dashed var(--check-borde);color:var(--t2);font-weight:500;background:none}
+.sm-chip.sh i{width:6px;height:6px;border-radius:50%;background:var(--c);flex:none}
+.sm-chip.venc{background:color-mix(in srgb,var(--venc) 13%,transparent);color:var(--venc)}
+.sm-chip .ico{flex:none}
+.sm-chip span{overflow:hidden;text-overflow:ellipsis}
+.sm-habs{padding:4px 0 6px}
+.sm-hab{display:flex;align-items:center;justify-content:center;gap:1px;height:22px}
+.sm-hab .hormiga{width:17px;height:17px}
+.sm-hab .hormiga.no{color:var(--punto);opacity:.9}
+.sm-hab small{font-size:11px;color:var(--t3);margin-left:4px}
+.sm-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding-bottom:96px;-webkit-mask:linear-gradient(#000 calc(100% - 30px),transparent)}
+.sm-rej{position:relative;display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr));column-gap:6px}
+.sm-h{position:absolute;left:0;right:0;height:0;pointer-events:none}
+.sm-h b{position:absolute;left:0;width:46px;top:-8px;text-align:right;font:600 12px var(--f-sans);color:var(--t3);font-variant-numeric:tabular-nums}
+.sm-h::after{content:"";position:absolute;left:58px;right:0;top:-3px;height:6px;background:radial-gradient(circle,var(--punto) 1.1px,transparent 1.6px) 0 50%/9px 6px repeat-x}
+.sm-col{position:relative;grid-row:1;border-radius:12px}
+.sm-col.fin{background:color-mix(in srgb,var(--kraft) 22%,transparent)}
+.sm-col.hoy{background:color-mix(in srgb,var(--tinte) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tinte) 14%,transparent)}
+.sm-col.pas .ag-b{opacity:.78}
+.sm-b{padding:6px 8px 0 11px;gap:6px;border-radius:10px}
+.sm-b .ag-tit{font-size:13px}
+.sm-b .ag-meta{font-size:11.5px;gap:4px}
+.sm-b .ag-check{width:16px;height:16px}
+.sm-b .ag-check svg{width:9px;height:9px}
+.sm-b.corto{padding-top:0}
+.sm-b.corto .ag-meta{display:none}
+.sm-b.venc::before{background:var(--venc)}
+.sm-b.venc .ag-meta{color:var(--venc);font-weight:600}
+.sm-ahora{position:absolute;left:-3px;right:-3px;height:2px;margin-top:-1px;border-radius:2px;background:var(--o500);z-index:3}
+.sm-ahora::before{content:"";position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--o500);box-shadow:0 0 0 3px var(--hoja)}
+.sm-ahora-t{position:absolute;left:0;width:46px;margin-top:-8px;text-align:right;font:700 12px var(--f-sans);color:var(--o600);z-index:3;background:var(--hoja);font-variant-numeric:tabular-nums}
+.sm-hueco{position:absolute;left:3px;right:3px;border-radius:10px;border:1.5px dashed color-mix(in srgb,var(--tinte) 45%,transparent);display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--o600);background:color-mix(in srgb,var(--tinte) 6%,transparent)}
+@media (max-width:1100px){.sm-fila,.sm-rej{grid-template-columns:44px repeat(7,minmax(0,1fr));column-gap:4px}.sm-b .ag-meta{display:none}}
 </style>
 </head>
 <body>
@@ -1450,7 +1501,7 @@ function agendaHTML(){
   const shItem=(t,l,extra)=>`<div class="sh-item" style="--c:${LISTAS[l][1]}"><span class="asa">⋮⋮</span><i></i><span>${t}</span><small>${extra}</small></div>`;
   const dias=[['L',16,3],['M',17,2],['X',18,4],['J',19,1],['V',20,2],['S',21,0],['D',22,0]];
   return cabezaHoy()+`
-  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><button class="pestana on">${ico('reloj',16)} Agenda <span class="n">${AGENDA.length}</span></button><a class="pestana" href="#mes">${ico('calendar',16)} Mes</a>
+  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><button class="pestana on">${ico('reloj',16)} Día <span class="n">${AGENDA.length}</span></button><a class="pestana" href="#agenda-semana">${ico('calendar',16)} Semana</a><a class="pestana" href="#mes">${ico('calendar',16)} Mes</a>
     <div class="pest-dcha"><button aria-label="Día anterior">${ico('izquierda',18)}</button><span id="ag-dia-txt">viernes 20 nov</span><button aria-label="Día siguiente">${ico('derecha',18)}</button><button class="boton-hoy">Hoy</button></div></nav>
   <div class="cuerpo"><div class="ag-pc">
     <div id="ag-dia">${agenda()}</div>
@@ -1969,7 +2020,7 @@ function mesPC(){
   for(let d=1;d<=6;d++)s+=`<div class="mp-d fuera"><b>${d}</b></div>`;
   return `<header class="cabeza cabeza--pag"><div><div class="eyebrow">Calendario</div><h1 class="act-tit">Noviembre <span style="color:var(--t3);font-weight:600">2026</span></h1><div class="pag-sub">38 tareas este mes · 26 hechas · <span class="venc">2 vencidas</span></div></div><div></div>
     <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('izquierda')}</button><button>${ico('derecha')}</button></div></header>
-  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><a class="pestana" href="#agenda">${ico('reloj',16)} Agenda</a><button class="pestana on">${ico('calendar',16)} Mes</button><div class="pest-dcha"><span class="mp-ley"><i style="background:var(--l-trabajo)"></i>tareas por lista<i style="background:var(--cal-google);margin-left:10px"></i>Google</span></div></nav>
+  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><a class="pestana" href="#agenda">${ico('reloj',16)} Día</a><a class="pestana" href="#agenda-semana">${ico('calendar',16)} Semana</a><button class="pestana on">${ico('calendar',16)} Mes</button><div class="pest-dcha"><span class="mp-ley"><i style="background:var(--l-trabajo)"></i>tareas por lista<i style="background:var(--cal-google);margin-left:10px"></i>Google</span></div></nav>
   <div class="cuerpo"><div class="mp">${s}</div></div>`;
 }
 Object.assign(ICOS,{
@@ -2007,17 +2058,70 @@ document.addEventListener('click',e=>{
   const li=e.target.closest('.nt-items li');if(li&&!e.target.closest('.flecha')){li.classList.toggle('ok');return;}
   const n=e.target.closest('.nota');if(n&&!e.target.closest('.nota-lista'))location.hash=estado==='nota'?'#notas':'#nota';
 });
+/* 26-nov: la semana por horas. Mismos datos que la Agenda (viernes) y que el Mes. */
+const SM_INI=7,SM_FIN=21,SM_PX=46;
+const SEMANA_H=[
+  /* L 16 */ [{tipo:'ev',t:'Daily del equipo',a:9,b:9.75,cal:'google'},{tipo:'tarea',t:'Informe semanal',a:10,b:11.5,l:'trabajo',hecha:1},{tipo:'tarea',t:'Hacer la compra',a:17.5,b:18.25,l:'casa',hecha:1}],
+  /* M 17 */ [{tipo:'ev',t:'Daily del equipo',a:9,b:9.75,cal:'google'},{tipo:'ev',t:'Café con Marta',a:11,b:12,cal:'google'},{tipo:'tarea',t:'Llamar al banco',a:13,b:13.5,l:'personal',hecha:1}],
+  /* X 18 */ [{tipo:'ev',t:'Daily del equipo',a:9,b:9.75,cal:'google'},{tipo:'tarea',t:'Entrega del prototipo',a:10,b:12,l:'trabajo',hecha:1},{tipo:'tarea',t:'Pasar la ITV',a:16,b:17,l:'casa',hecha:1},{tipo:'tarea',t:'Gimnasio',a:18.5,b:19.5,l:'personal',hecha:1}],
+  /* J 19 */ [{tipo:'ev',t:'Daily del equipo',a:9,b:9.75,cal:'google'},{tipo:'tarea',t:'Responder a la gestoría',a:12,b:12.75,l:'trabajo',venc:1},{tipo:'ev',t:'Pilates',a:18,b:19,cal:'icloud'}],
+  /* V 20 */ AGENDA.filter(x=>x.tipo!=='hab'),
+  /* S 21 */ [{tipo:'tarea',t:'Comprar el regalo de Lucía',a:11,b:12,l:'personal'},{tipo:'ev',t:'Comida familiar',a:14,b:16.5,cal:'google'}],
+  /* D 22 */ [{tipo:'ev',t:'Yoga',a:10,b:11,cal:'icloud'}]
+];
+const SM_TODO=[[],[],[['ev','Club de lectura','google']],[],[['sh','Presupuesto dic.','casa'],['sh','Viaje a Lisboa','viajes']],[['ev','Cumpleaños de Lucía','google']],[]];
+const SM_HAB=[[2,2],[2,2],[1,2],[2,2],[1,2],[0,2],[0,2]];
+function smBloque(it){
+  const cols=it.cols||1,col=it.col||0,dur=it.b-it.a;
+  const top=(it.a-SM_INI)*SM_PX+1,alto=Math.max(22,dur*SM_PX-3);
+  // dos a la vez: se montan una sobre otra (la segunda, desplazada), para que las dos se lean
+  const horiz=cols===1?`left:2px;width:calc(100% - 4px)`:col===0?`left:2px;width:calc(70% - 4px)`:`left:32%;width:calc(68% - 2px);z-index:2;box-shadow:-3px 0 0 var(--hoja)`;
+  const pos=`top:${top.toFixed(1)}px;height:${alto.toFixed(1)}px;${horiz}`;
+  const corto=dur<0.8?' corto':'',hora=`${hm(it.a)}–${hm(it.b)}`;
+  if(it.tipo==='ev'){const [cn,cc]=CALS[it.cal];return `<div class="ag-b ag-ev sm-b${corto}" style="${pos};--c:${cc}" title="${it.t} · ${hora} · ${cn}"><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${ico('calendar',11)} ${hora}</span></div></div>`;}
+  const lc=LISTAS[it.l][1];
+  return `<div class="ag-b ag-tarea sm-b${corto}${it.hecha?' hecha':''}${it.venc?' venc':''}" style="${pos};--c:${lc}" title="${it.t} · ${hora}"><span class="ag-check" role="button" aria-label="Completar">${CK}</span><div class="ag-tx"><span class="ag-tit">${it.t}</span><span class="ag-meta">${it.venc?'vencida · ':''}${hora}</span></div></div>`;
+}
+function semanaAgHTML(){
+  const D=[['lun',16],['mar',17],['mié',18],['jue',19],['vie',20],['sáb',21],['dom',22]],HOY=4;
+  const tareas=SEMANA_H.flat().filter(x=>x.tipo==='tarea'),hechas=tareas.filter(x=>x.hecha).length,evs=SEMANA_H.flat().filter(x=>x.tipo==='ev').length;
+  const cab=D.map(([l,n],i)=>{const ts=SEMANA_H[i].filter(x=>x.tipo==='tarea');
+    const sem=ts.map(x=>`<i class="${x.hecha?'':'f'}" style="--c:${LISTAS[x.l][1]}"></i>`).join('');
+    return `<a class="sm-dia${i<HOY?' pas':''}${i===HOY?' hoy':''}" href="#agenda" title="Ver el ${l} ${n} por horas"><small>${l}</small><b>${n}</b><span class="sm-sem">${sem}</span></a>`;}).join('');
+  const todo=SM_TODO.map(c=>`<div class="sm-c">${c.map(([k,t,x])=>k==='ev'?`<span class="sm-chip ev" style="--c:${CALS[x][1]}">${ico('calendar',11)}<span>${t}</span></span>`:k==='venc'?`<span class="sm-chip venc">${ico('flag',11)}<span>${t}</span></span>`:`<span class="sm-chip sh" style="--c:${LISTAS[x][1]}" title="Sin hora: arrástrala a un hueco"><i></i><span>${t}</span></span>`).join('')}</div>`).join('');
+  const habs=SM_HAB.map(([h,t],i)=>`<div class="sm-hab">${i>HOY?'':Array.from({length:t},(_,k)=>k<h?hormiga():hormiga({cls:'no'})).join('')}${i===HOY?`<small>${h}/${t}</small>`:''}</div>`).join('');
+  let rej=`<div class="sm-rej" style="height:${(SM_FIN-SM_INI)*SM_PX}px">`;
+  for(let h=SM_INI+1;h<SM_FIN;h++)rej+=`<div class="sm-h" style="top:${(h-SM_INI)*SM_PX}px"><b>${h}:00</b></div>`;
+  rej+='<div style="grid-column:1;grid-row:1"></div>';
+  D.forEach((d,i)=>{rej+=`<div class="sm-col${i<HOY?' pas':''}${i===HOY?' hoy':''}${i>4?' fin':''}" style="grid-column:${i+2}">${SEMANA_H[i].map(smBloque).join('')}`;
+    if(i===HOY){const y=((AG_AHORA-SM_INI)*SM_PX).toFixed(1);rej+=`<div class="sm-ahora" style="top:${y}px"></div>`;}
+    if(i===5)rej+=`<div class="sm-hueco" style="top:${(17-SM_INI)*SM_PX+1}px;height:${SM_PX*1.5-3}px">${ico('plus',13)} Suelta aquí</div>`;
+    rej+='</div>';});
+  rej+=`<div class="sm-ahora-t" style="top:${((AG_AHORA-SM_INI)*SM_PX).toFixed(1)}px">${hm(AG_AHORA)}</div></div>`;
+  return `<header class="cabeza cabeza--pag"><div><div class="eyebrow">Calendario · semana 47</div><h1 class="act-tit">16 – 22 <span style="color:var(--t3);font-weight:600">nov</span></h1><div class="pag-sub">${tareas.length} tareas con hora · ${hechas} hechas · <span class="venc">1 vencida</span> · ${evs} eventos</div></div><div></div>
+    <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('sliders')}</button></div></header>
+  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><a class="pestana" href="#agenda">${ico('reloj',16)} Día</a><button class="pestana on">${ico('calendar',16)} Semana</button><a class="pestana" href="#mes">${ico('calendar',16)} Mes</a>
+    <div class="pest-dcha"><button aria-label="Semana anterior">${ico('izquierda',18)}</button><span>16 – 22 nov</span><button aria-label="Semana siguiente">${ico('derecha',18)}</button><button class="boton-hoy">Hoy</button></div></nav>
+  <div class="cuerpo"><div class="sm">
+    <div class="sm-fila"><span></span>${cab}</div>
+    <div class="sm-fila sm-todo"><span class="sm-et">Todo<br>el día</span>${todo}</div>
+    <div class="sm-fila sm-habs"><span class="sm-et">Hábitos</span>${habs}</div>
+    <div class="sm-scroll" id="sm-scroll">${rej}</div>
+  </div></div>
+  ${captura('¿Qué cargamos? Prueba «el sábado a las 17»')}`;
+}
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
 if(estado==='vacios'){renderVacios();}
 else{
-  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML,habitos:habitosPC,lista:listaPC,mes:mesPC,nota:notasHTML};
+  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML,habitos:habitosPC,lista:listaPC,mes:mesPC,nota:notasHTML,'agenda-semana':semanaAgHTML};
   const esSem=/^semana(-\d)?$/.test(estado);
   const act=estado==='actividad'||esSem?'actividad':(estado==='notas'||estado==='nota')?'notas':estado==='habitos'?'habitos':estado==='lista'?'lista':(estado==='inbox-listas'||estado==='detalle')?'inbox':'hoy';
   document.body.classList.add(estado==='fin'?'e-fin':esSem?'e-semana':act==='actividad'?'e-actividad':NUEVAS[estado]?'e-'+estado:'e-hoy');
   const contenido=NUEVAS[estado]?NUEVAS[estado]():esSem?semanaHTML():act==='actividad'?actividadHTML():hoyHTML(estado);
   raiz.innerHTML=`<div class="app${estado==='detalle'||estado==='nota'?' con-detalle':''}"><aside class="lateral">${lateral(act)}</aside><div class="pila"><main class="hoja">${contenido}</main></div>${estado==='detalle'?detallePanel():estado==='nota'?notaPanel():''}</div>`;
+  if(estado==='agenda-semana'){const sc=document.getElementById('sm-scroll');sc.scrollTop=(8-SM_INI)*SM_PX-6;}
   if(estado==='buscar')raiz.insertAdjacentHTML('beforeend',paletaHTML());
   if(estado==='ajustes')raiz.insertAdjacentHTML('beforeend',ajustesHTML());
   if(estado==='agenda'){
