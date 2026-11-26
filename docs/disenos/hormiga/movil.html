@@ -723,6 +723,52 @@ a{color:inherit;text-decoration:none}
 .pg-host .mont-cuerpo{transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
 .pg-host .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
 
+/* ═══ 26-nov: historial de un hábito (#habito), y en PC #habitos, #lista y #mes ═══ */
+.hb-cab{display:flex;align-items:center;gap:14px}
+.hb-ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--o500) 14%,transparent);color:var(--o600);flex:none}
+.hb-tit{font:700 30px/1.05 var(--f-disp);letter-spacing:-.03em}
+.hb-sub{font-size:13.5px;color:var(--t2);margin-top:4px}
+.hb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.hb-stat{border-radius:16px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:10px 12px}
+.hb-stat b{display:flex;align-items:center;gap:5px;font:700 26px/1 var(--f-disp);letter-spacing:-.03em}
+.hb-stat b .hormiga{width:20px;height:20px}
+.hb-stat span{display:block;font-size:12px;color:var(--t2);margin-top:4px}
+.hb-mes{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.hb-mes .dl{text-align:center;font:600 11px var(--f-sans);color:var(--t3);padding-bottom:2px}
+.hb-d{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;position:relative;font:600 12px var(--f-sans);color:var(--t3)}
+.hb-d.ok{background:color-mix(in srgb,var(--o500) 13%,transparent)}
+.hb-d.ok .hormiga{width:62%;height:62%}
+.hb-d.ok i{position:absolute;right:4px;top:2px;font-style:normal;font-size:9.5px;color:var(--o600)}
+.hb-d.no::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--punto)}
+.hb-d.no b{display:none}
+.hb-d.fut{color:var(--t3);opacity:.5}
+.hb-d.hoy{box-shadow:inset 0 0 0 2px var(--o500)}
+.hb-d.racha{background:color-mix(in srgb,var(--o500) 22%,transparent)}
+.hb-anio{display:grid;grid-auto-flow:column;grid-template-columns:repeat(26,1fr);grid-template-rows:repeat(7,auto);gap:3px;margin-top:8px}
+.hb-anio i{width:100%;aspect-ratio:1;border-radius:3px;background:var(--punto);opacity:.45}
+.hb-anio i.ok{background:var(--o500);opacity:1}
+.hb-anio i.ok2{background:var(--o400);opacity:1}
+.hb-ley{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:6px}
+.hb-ley i{width:10px;height:10px;border-radius:3px}
+.hb-ajustes{border-radius:16px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:2px 14px;margin-top:6px}
+.hb-fila{display:flex;align-items:center;gap:11px;min-height:46px;font-size:14.5px;color:var(--t1)}
+.hb-fila+.hb-fila{border-top:1.6px dotted var(--punto)}
+.hb-fila .ico{color:var(--t2)}
+.hb-fila span:last-child{margin-left:auto;color:var(--t2);font-size:13.5px}
+.hb-btn{display:flex;align-items:center;justify-content:center;gap:9px;height:50px;border-radius:999px;background:var(--o500);color:var(--sobre-acento);font-weight:650;font-size:15.5px;box-shadow:0 6px 14px -6px rgba(62,67,42,.6);margin-top:14px}
+.hb-btn.hecho{background:color-mix(in srgb,var(--o500) 16%,transparent);color:var(--o700);box-shadow:none}
+.hb-btn .hormiga{width:22px;height:22px;color:currentColor}
+.hb-frase{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--o500) 10%,transparent);font-size:13.5px;color:var(--t2);margin-top:12px}
+.hb-frase .hormiga{width:26px;height:26px;flex:none}
+.hb-frase b{color:var(--t1);font-weight:650}
+
+.hb-hoja{position:absolute;left:0;right:0;top:108px;bottom:0;padding:20px 18px 140px;border-radius:26px 26px 0 0;background-color:var(--hoja);background-image:var(--tex-hoja);overflow-y:auto;scrollbar-width:none}
+.hb-hoja .hb-tit{font-size:26px}
+.hb-hoja .hb-btn{display:none}
+.hb-hoja .hb-d{aspect-ratio:auto;height:44px}
+.hb-hoja .hb-d.ok .hormiga{width:28px;height:28px}
+.hab .hab-tx{cursor:pointer}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 /* ═══ 26-nov: hormiguero de Actividad ilustrado (ver nido()) ═══ */
@@ -2346,6 +2392,48 @@ addEventListener('DOMContentLoaded',()=>{
   if(k!=null&&estado==='agenda'){const sd=document.querySelectorAll('.e-agenda .semana .sd')[+k];if(sd)sd.click();}
 });
 
+
+const HB={t:'Meditar 10 minutos',racha:7,mejor:12,pct:83,
+  hechos:[1,2,3,5,6,7,9,10,11,13,14,15,16,17,18,19,20]};
+function hbMes(){
+  const L=['L','M','X','J','V','S','D'];let s=L.map(x=>`<span class="dl">${x}</span>`).join('');
+  for(let i=0;i<6;i++)s+=`<span class="hb-d fut" style="visibility:hidden"></span>`;
+  for(let d=1;d<=30;d++){const ok=HB.hechos.includes(d),fut=d>20,racha=ok&&d>=14;
+    s+=`<span class="hb-d ${fut?'fut':ok?'ok':'no'}${racha?' racha':''}${d===20?' hoy':''}" title="${d} nov">${ok?hormiga()+'<i>'+d+'</i>':fut?d:'<b>'+d+'</b>'}</span>`;}
+  return `<div class="hb-mes">${s}</div>`;
+}
+function hbAnio(){let s='',r=11;const R=()=>(r=(r*1664525+1013904223)>>>0)/4294967296;
+  for(let w=0;w<26;w++)for(let d=0;d<7;d++){const p=R(),k=w>18?.85:w>9?.65:.45;s+=`<i class="${p<k?'ok':p<k+.08?'ok2':''}"></i>`;}
+  return `<div class="hb-anio">${s}</div><div class="hb-ley">junio${'&nbsp;'.repeat(18)}…${'&nbsp;'.repeat(18)}noviembre<span style="margin-left:auto;display:flex;gap:6px;align-items:center"><i style="background:var(--punto);opacity:.45"></i>no<i style="background:var(--o500)"></i>sí</span></div>`;
+}
+function hbCuerpo(){
+  return `<div class="hb-stats">
+      <div class="hb-stat"><b>${HB.racha} ${hormiga()}</b><span>días seguidos</span></div>
+      <div class="hb-stat"><b>${HB.mejor}</b><span>tu mejor racha</span></div>
+      <div class="hb-stat"><b>${HB.pct}%</b><span>este mes</span></div></div>
+    <div class="hb-frase">${hormiga()}<span>Siete hormigas en fila. <b>Si cumples 5 días más, igualas tu récord</b> (12, en septiembre).</span></div>
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Noviembre</span><span class="puntos"></span></div>
+    ${hbMes()}
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Últimos 6 meses</span><span class="puntos"></span></div>
+    ${hbAnio()}
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Ajustes del hábito</span><span class="puntos"></span></div>
+    <div class="hb-ajustes">
+      <div class="hb-fila">${ico('repeat',18)}<span>Frecuencia</span><span>Cada día</span></div>
+      <div class="hb-fila">${ico('reloj',18)}<span>Hora</span><span>7:30 · en la Agenda</span></div>
+      <div class="hb-fila">${ico('campana',18)}<span>Aviso</span><span>Si a las 21:00 no está hecho</span></div>
+    </div>`;
+}
+
+function pantallaHabito(){
+  return BARRA_ESTADO+`<div class="nt-cab"><a class="m-herr" href="#habitos"><button aria-label="Volver">${ico('izquierda',20)}</button></a>
+    <div class="dcha m-herr"><button aria-label="Más">${ico('mas',18)}</button></div></div>
+  <div class="hb-hoja"><div class="hb-cab"><span class="hb-ico">${ico('sprout',24)}</span><div><div class="hb-tit">${HB.t}</div><div class="hb-sub">Cada día · Salud</div></div></div>
+    ${hbCuerpo()}
+    <div class="hb-btn hecho">${hormiga()} Hecho hoy · racha de 7</div>
+  </div>`+navN('hoy');
+}
+Object.assign(P_EXTRA,{habito:pantallaHabito});
+document.addEventListener('click',e=>{if(e.target.closest('.hab .hab-tx'))location.hash='habito';});
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');

@@ -608,6 +608,91 @@ a{color:inherit;text-decoration:none}
 .pg-host .mont-cuerpo{transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
 .pg-host .suelo{fill:none;stroke:var(--suelo);stroke-width:2.4;stroke-linecap:round}
 
+/* ═══ 26-nov: historial de un hábito (#habito), y en PC #habitos, #lista y #mes ═══ */
+.hb-cab{display:flex;align-items:center;gap:14px}
+.hb-ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--o500) 14%,transparent);color:var(--o600);flex:none}
+.hb-tit{font:700 30px/1.05 var(--f-disp);letter-spacing:-.03em}
+.hb-sub{font-size:13.5px;color:var(--t2);margin-top:4px}
+.hb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.hb-stat{border-radius:16px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:10px 12px}
+.hb-stat b{display:flex;align-items:center;gap:5px;font:700 26px/1 var(--f-disp);letter-spacing:-.03em}
+.hb-stat b .hormiga{width:20px;height:20px}
+.hb-stat span{display:block;font-size:12px;color:var(--t2);margin-top:4px}
+.hb-mes{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.hb-mes .dl{text-align:center;font:600 11px var(--f-sans);color:var(--t3);padding-bottom:2px}
+.hb-d{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;position:relative;font:600 12px var(--f-sans);color:var(--t3)}
+.hb-d.ok{background:color-mix(in srgb,var(--o500) 13%,transparent)}
+.hb-d.ok .hormiga{width:62%;height:62%}
+.hb-d.ok i{position:absolute;right:4px;top:2px;font-style:normal;font-size:9.5px;color:var(--o600)}
+.hb-d.no::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--punto)}
+.hb-d.no b{display:none}
+.hb-d.fut{color:var(--t3);opacity:.5}
+.hb-d.hoy{box-shadow:inset 0 0 0 2px var(--o500)}
+.hb-d.racha{background:color-mix(in srgb,var(--o500) 22%,transparent)}
+.hb-anio{display:grid;grid-auto-flow:column;grid-template-columns:repeat(26,1fr);grid-template-rows:repeat(7,auto);gap:3px;margin-top:8px}
+.hb-anio i{width:100%;aspect-ratio:1;border-radius:3px;background:var(--punto);opacity:.45}
+.hb-anio i.ok{background:var(--o500);opacity:1}
+.hb-anio i.ok2{background:var(--o400);opacity:1}
+.hb-ley{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:6px}
+.hb-ley i{width:10px;height:10px;border-radius:3px}
+.hb-ajustes{border-radius:16px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:2px 14px;margin-top:6px}
+.hb-fila{display:flex;align-items:center;gap:11px;min-height:46px;font-size:14.5px;color:var(--t1)}
+.hb-fila+.hb-fila{border-top:1.6px dotted var(--punto)}
+.hb-fila .ico{color:var(--t2)}
+.hb-fila span:last-child{margin-left:auto;color:var(--t2);font-size:13.5px}
+.hb-btn{display:flex;align-items:center;justify-content:center;gap:9px;height:50px;border-radius:999px;background:var(--o500);color:var(--sobre-acento);font-weight:650;font-size:15.5px;box-shadow:0 6px 14px -6px rgba(62,67,42,.6);margin-top:14px}
+.hb-btn.hecho{background:color-mix(in srgb,var(--o500) 16%,transparent);color:var(--o700);box-shadow:none}
+.hb-btn .hormiga{width:22px;height:22px;color:currentColor}
+.hb-frase{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--o500) 10%,transparent);font-size:13.5px;color:var(--t2);margin-top:12px}
+.hb-frase .hormiga{width:26px;height:26px;flex:none}
+.hb-frase b{color:var(--t1);font-weight:650}
+
+/* PC */
+.hbp{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:26px;padding-top:8px;overflow:hidden}
+.hbp-lista{display:flex;flex-direction:column;gap:10px}
+.hbp-card{border-radius:18px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:12px 16px 10px;cursor:pointer}
+.hbp-card.on{background:var(--card);box-shadow:0 0 0 2px color-mix(in srgb,var(--o500) 45%,transparent),0 10px 20px -14px rgba(var(--sombra-rgb),.4)}
+.hbp-top{display:flex;align-items:center;gap:12px}
+.hbp-top b{display:block;font-weight:600;font-size:16px}
+.hbp-top small{font-size:13px;color:var(--t2)}
+.hbp-n{margin-left:auto;font:700 24px var(--f-disp);color:var(--o600)}
+.hbp-sem{display:grid;grid-template-columns:repeat(7,1fr);margin-top:8px}
+.hbp-sem .hs{display:flex;flex-direction:column;align-items:center;gap:3px;font:600 11px var(--f-sans);color:var(--t3)}
+.hbp-sem .hs i{width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.hbp-sem .hs i .hormiga{width:22px;height:22px}
+.hbp-sem .hs em{width:5px;height:5px;border-radius:50%;background:var(--punto)}
+.hbp-sem .hs.hoy{color:var(--o600)}
+.hbp-sem .hs.hoy i{box-shadow:inset 0 0 0 1.6px var(--o400)}
+.hbp-nuevo{display:flex;align-items:center;gap:9px;height:46px;padding:0 16px;border-radius:16px;border:1.5px dashed var(--check-borde);color:var(--t3);font-size:14.5px}
+.hbp-det{border-radius:22px;background:var(--card);border:1px solid var(--borde-s);padding:18px 20px;overflow:hidden;box-shadow:0 12px 26px -18px rgba(var(--sombra-rgb),.45)}
+.hbp-det .hb-mes{gap:3px}
+.hbp-det .hb-d{border-radius:9px;aspect-ratio:auto;height:34px}
+.hbp-det .hb-d.ok .hormiga{width:24px;height:24px}
+.hbp-det .hb-stats{margin-top:10px}
+.hbp-det .hb-ajustes{display:none}
+.hbp-det .sec-cab:last-of-type{display:none}
+.e-habitos .captura{display:none}
+.lp-tit{display:flex;align-items:center;gap:16px}
+.lp-anillo{width:64px;height:64px;flex:none}
+.mp{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(6,minmax(0,1fr));gap:4px;height:100%;padding:4px 0 90px}
+.mp-dl{font:650 12.5px var(--f-disp);color:var(--t3);padding:2px 8px 6px}
+.mp-d{border-radius:12px;background:var(--hab-bg);border:1px solid var(--borde-s);padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-height:92px;overflow:hidden}
+.mp-d b{font:650 14px var(--f-disp);color:var(--t1)}
+.mp-d.pas b{color:var(--t3)}
+.mp-d.fuera{background:none;border-color:transparent}
+.mp-d.fuera b{color:var(--t3);opacity:.45}
+.mp-d.hoy{background:var(--card);box-shadow:0 0 0 2px var(--o500)}
+.mp-d.hoy b{color:var(--o700)}
+.mp-d.sel{box-shadow:inset 0 0 0 1.6px var(--o400)}
+.mp-ev{display:flex;align-items:center;gap:4px;font-size:11.5px;line-height:1.3;padding:2px 6px;border-radius:6px;color:var(--t1);background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:inset 2.5px 0 0 var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-d.pas .mp-ev{opacity:.6;text-decoration:line-through;text-decoration-color:var(--t3)}
+.mp-ev.v{color:var(--venc);text-decoration:none!important;opacity:1!important}
+.mp-ev.g{background:color-mix(in srgb,var(--c) 16%,var(--hoja));box-shadow:none;color:color-mix(in srgb,var(--c) 60%,var(--t1))}
+.mp-mas{font-size:11px;color:var(--t3);padding-left:4px}
+.mp-ley{display:flex;align-items:center;gap:6px;font-weight:500;font-size:12.5px;color:var(--t3)}
+.mp-ley i{width:9px;height:9px;border-radius:3px}
+.e-mes .captura{display:none}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 /* ═══ 26-nov: hormiguero de Actividad ilustrado (ver nido()) ═══ */
@@ -832,14 +917,14 @@ function anillo(d,t,c){
 }
 function lateral(act){
   const fin=estado==='fin';
-  const nav=[['hoy','calendar','Hoy',fin?null:E.pend,'#hoy'],['habitos','sprout','Hábitos',fin?null:1,'#hoy'],['inbox','inbox','Inbox',17,'#inbox-listas'],['notas','nota','Notas',9,'#notas'],['actividad','history','Actividad',null,'#actividad']];
+  const nav=[['hoy','calendar','Hoy',fin?null:E.pend,'#hoy'],['habitos','sprout','Hábitos',fin?null:1,'#habitos'],['inbox','inbox','Inbox',17,'#inbox-listas'],['notas','nota','Notas',9,'#notas'],['actividad','history','Actividad',null,'#actividad']];
   const ls=[['Trabajo','var(--l-trabajo)',3,8],['Casa','var(--l-casa)',2,6],['Personal','var(--l-personal)',4,5],['Lecturas','var(--l-lect)',1,4],['Viajes','var(--l-viajes)',0,3],['Salud','var(--o500)',5,7]];
   return `<div class="marca"><span class="marca-ico">${hormiga()}</span><span class="marca-nombre">AnTrack</span><button class="plegar">${ico('panel')}</button></div>
   <div class="buscar">${ico('search')}<span>Buscar</span><kbd>Ctrl + K</kbd></div>
   <div class="grupo">Vistas</div>
   <nav class="nav">${nav.map(([id,ic,tx,n,h])=>`<a href="${h}" class="${id===act?'activa':''}">${ico(ic)}<span>${tx}</span>${n!=null?`<span class="n" ${id==='hoy'?'id="n-nav"':''}>${n}</span>`:''}</a>`).join('')}</nav>
   <div class="grupo">Listas</div>
-  <nav class="nav listas">${ls.map(([n,c,d,t])=>`<a href="#hoy">${anillo(d,t,c)}<span>${n}</span><span class="n">${d}/${t}</span></a>`).join('')}</nav>
+  <nav class="nav listas">${ls.map(([n,c,d,t])=>`<a href="${n==='Trabajo'?'#lista':'#hoy'}" class="${n==='Trabajo'&&act==='lista'?'activa':''}">${anillo(d,t,c)}<span>${n}</span><span class="n">${d}/${t}</span></a>`).join('')}</nav>
   <div class="perfil"><span class="avatar">A</span><div><b>Tu cuenta</b><small><i></i>Sincronizado</small></div></div>`;
 }
 
@@ -914,7 +999,7 @@ function habito(h){
     <span class="racha" title="Racha de ${h.r} días"><span class="racha-hor">${hormigas(h.r)}</span><span class="racha-n">${h.r} días</span></span></div></div>`;
 }
 function habitos(lista,hechos){
-  return `<section class="seccion"><div class="sec-cab"><span class="sec-tit">Hábitos</span><span class="sec-n" id="n-hab">${hechos}/${lista.length}</span><span class="puntos"></span><button class="accion accion--suave">${ico('arrow',15)} Ver historial</button></div>${lista.map(habito).join('')}</section>`;
+  return `<section class="seccion"><div class="sec-cab"><span class="sec-tit">Hábitos</span><span class="sec-n" id="n-hab">${hechos}/${lista.length}</span><span class="puntos"></span><a class="accion accion--suave" href="#habitos">${ico('arrow',15)} Ver historial</a></div>${lista.map(habito).join('')}</section>`;
 }
 
 /* ═══ Día terminado: la hormiga duerme en una hoja ═══ */
@@ -1308,7 +1393,7 @@ function agendaHTML(){
   const shItem=(t,l,extra)=>`<div class="sh-item" style="--c:${LISTAS[l][1]}"><span class="asa">⋮⋮</span><i></i><span>${t}</span><small>${extra}</small></div>`;
   const dias=[['L',16,3],['M',17,2],['X',18,4],['J',19,1],['V',20,2],['S',21,0],['D',22,0]];
   return cabezaHoy()+`
-  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><button class="pestana on">${ico('reloj',16)} Agenda <span class="n">${AGENDA.length}</span></button>
+  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><button class="pestana on">${ico('reloj',16)} Agenda <span class="n">${AGENDA.length}</span></button><a class="pestana" href="#mes">${ico('calendar',16)} Mes</a>
     <div class="pest-dcha"><button aria-label="Día anterior">${ico('izquierda',18)}</button><span id="ag-dia-txt">viernes 20 nov</span><button aria-label="Día siguiente">${ico('derecha',18)}</button><button class="boton-hoy">Hoy</button></div></nav>
   <div class="cuerpo"><div class="ag-pc">
     <div id="ag-dia">${agenda()}</div>
@@ -1759,14 +1844,85 @@ function ajPrevia(){
 }
 addEventListener('DOMContentLoaded',ajPrevia);
 
+
+const HB={t:'Meditar 10 minutos',racha:7,mejor:12,pct:83,
+  hechos:[1,2,3,5,6,7,9,10,11,13,14,15,16,17,18,19,20]};
+function hbMes(){
+  const L=['L','M','X','J','V','S','D'];let s=L.map(x=>`<span class="dl">${x}</span>`).join('');
+  for(let i=0;i<6;i++)s+=`<span class="hb-d fut" style="visibility:hidden"></span>`;
+  for(let d=1;d<=30;d++){const ok=HB.hechos.includes(d),fut=d>20,racha=ok&&d>=14;
+    s+=`<span class="hb-d ${fut?'fut':ok?'ok':'no'}${racha?' racha':''}${d===20?' hoy':''}" title="${d} nov">${ok?hormiga()+'<i>'+d+'</i>':fut?d:'<b>'+d+'</b>'}</span>`;}
+  return `<div class="hb-mes">${s}</div>`;
+}
+function hbAnio(){let s='',r=11;const R=()=>(r=(r*1664525+1013904223)>>>0)/4294967296;
+  for(let w=0;w<26;w++)for(let d=0;d<7;d++){const p=R(),k=w>18?.85:w>9?.65:.45;s+=`<i class="${p<k?'ok':p<k+.08?'ok2':''}"></i>`;}
+  return `<div class="hb-anio">${s}</div><div class="hb-ley">junio${'&nbsp;'.repeat(18)}…${'&nbsp;'.repeat(18)}noviembre<span style="margin-left:auto;display:flex;gap:6px;align-items:center"><i style="background:var(--punto);opacity:.45"></i>no<i style="background:var(--o500)"></i>sí</span></div>`;
+}
+function hbCuerpo(){
+  return `<div class="hb-stats">
+      <div class="hb-stat"><b>${HB.racha} ${hormiga()}</b><span>días seguidos</span></div>
+      <div class="hb-stat"><b>${HB.mejor}</b><span>tu mejor racha</span></div>
+      <div class="hb-stat"><b>${HB.pct}%</b><span>este mes</span></div></div>
+    <div class="hb-frase">${hormiga()}<span>Siete hormigas en fila. <b>Si cumples 5 días más, igualas tu récord</b> (12, en septiembre).</span></div>
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Noviembre</span><span class="puntos"></span></div>
+    ${hbMes()}
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Últimos 6 meses</span><span class="puntos"></span></div>
+    ${hbAnio()}
+    <div class="sec-cab" style="margin-top:8px"><span class="sec-tit">Ajustes del hábito</span><span class="puntos"></span></div>
+    <div class="hb-ajustes">
+      <div class="hb-fila">${ico('repeat',18)}<span>Frecuencia</span><span>Cada día</span></div>
+      <div class="hb-fila">${ico('reloj',18)}<span>Hora</span><span>7:30 · en la Agenda</span></div>
+      <div class="hb-fila">${ico('campana',18)}<span>Aviso</span><span>Si a las 21:00 no está hecho</span></div>
+    </div>`;
+}
+
+/* PC: #habitos (lista + historial), #lista y #mes */
+const HABS_PC=[{t:'Meditar 10 minutos',r:7,s:'1111h11'},{t:'Beber 2 litros de agua',r:2,s:'0011x00'},{t:'Estirar la espalda',r:4,s:'1111x00'},{t:'Leer 20 páginas',r:0,s:'1000x00'}];
+function habitosPC(){
+  const sem=s=>s.split('').map((c,i)=>`<span class="hs${i===4?' hoy':''}">${'LMXJVSD'[i]}<i>${c==='1'||c==='h'?hormiga():i>4?'':'<em></em>'}</i></span>`).join('');
+  return `<header class="cabeza cabeza--pag"><div><div class="eyebrow">Hábitos</div><h1 class="act-tit">Hábitos</h1><div class="pag-sub">1 de 4 hoy · tu fila más larga, 12 días</div></div><div></div>
+    <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('plus')}</button></div></header>
+  <div class="cuerpo hbp">
+    <div class="hbp-lista">${HABS_PC.map((h,i)=>`<div class="hbp-card${i===0?' on':''}"><div class="hbp-top"><span class="check-wrap"><button class="check" aria-label="Cumplir">${CKB}</button></span><div><b>${h.t}</b><small>${h.r?'Racha de '+h.r+' días':'Hoy empieza la fila'}</small></div><span class="hbp-n">${h.r||''}</span></div><div class="hbp-sem">${sem(h.s)}</div></div>`).join('')}
+      <div class="hbp-nuevo">${ico('plus',17)} Nuevo hábito</div></div>
+    <div class="hbp-det"><div class="hb-cab"><span class="hb-ico">${ico('sprout',26)}</span><div><div class="hb-tit">${HB.t}</div><div class="hb-sub">Cada día · desde el 3 de septiembre · Salud</div></div></div>
+      ${hbCuerpo()}</div>
+  </div>`;
+}
+function listaPC(){
+  const c='var(--l-trabajo)';
+  const T=[{t:'Preparar la presentación del jueves',imp:1,f:'Hoy · 10:00',hoy:1,sub:[2,5]},{t:'Enviar la factura de noviembre',f:'Hoy · 12:15',hoy:1,rep:'1 mes'}];
+  const M=[{t:'Pedirle los logos a Marta'},{t:'Preparar la reunión de enero',f:'mié 2 dic'}];
+  const N=16,k=8;let an='<svg class="lp-anillo" viewBox="0 0 56 56">';for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;an+=`<circle cx="${(28+22*Math.cos(a)).toFixed(2)}" cy="${(28+22*Math.sin(a)).toFixed(2)}" r="2.6" style="fill:${i<k?c:'var(--punto)'}"/>`;}an+='</svg>';
+  return `<header class="cabeza cabeza--pag"><div class="lp-tit">${an}<div><div class="eyebrow" style="color:var(--l-trabajo)">Lista</div><h1 class="act-tit">Trabajo</h1><div class="pag-sub">4 de 8 hechas · <span class="venc">1 vencida</span> · 2 para hoy</div></div></div><div></div>
+    <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('mas')}</button></div></header>
+  <nav class="pestanas"><button class="pestana on">Pendientes <span class="n">5</span></button><button class="pestana">Hechas <span class="n">4</span></button><div class="pest-dcha"><span class="orden">Por fecha ${ico('chev',15)}</span></div></nav>
+  <div class="cuerpo"><div class="capa"></div>
+    <section class="seccion sec--venc"><div class="sec-cab"><span class="sec-tit">Vencidas</span><span class="sec-n">1</span><span class="puntos"></span><button class="accion">${ico('arrow',15)} A hoy</button></div>${[{t:'Responder a la gestoría',venc:'Ayer'}].map(filaInbox).join('')}</section>
+    <section class="seccion"><div class="sec-cab"><span class="sec-tit">Esta semana</span><span class="sec-n">2</span><span class="puntos"></span></div>${T.map(filaInbox).join('')}</section>
+    <section class="seccion"><div class="sec-cab"><span class="sec-tit">Más adelante</span><span class="sec-n">2</span><span class="puntos"></span></div>${M.map(filaInbox).join('')}</section>
+  </div>${captura('Añadir a Trabajo…')}`;
+}
+function mesPC(){
+  const ev={2:[['t','Informe mensual']],4:[['c','Fontanero'],['p','Cena con Ana']],6:[['t','Revisión Q3']],9:[['t','Informe']],11:[['r','Club de lectura'],['c','Basura']],12:[['v','Seguro coche',1]],13:[['p','Yoga']],16:[['t','Daily'],['c','Compra']],18:[['t','Entrega'],['p','Gimnasio'],['c','ITV']],19:[['t','Gestoría',1]],20:[['t','Presentación'],['t','Factura'],['G','Comida con Laura']],21:[['p','Regalo Lucía'],['G','Cumple Lucía']],24:[['t','Presupuesto Marta'],['G','Banco 16:00']],26:[['r','Leer 40 pág.']],27:[['G','Cena empresa']],30:[['c','Alquiler']]};
+  const C={t:'var(--l-trabajo)',c:'var(--l-casa)',p:'var(--l-personal)',r:'var(--l-lect)',v:'var(--l-viajes)',G:'var(--cal-google)'};
+  let s=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map(x=>`<span class="mp-dl">${x}</span>`).join('');
+  for(let i=0;i<6;i++)s+=`<div class="mp-d fuera"><b>${26+i}</b></div>`;
+  for(let d=1;d<=30;d++){const e=ev[d]||[];s+=`<div class="mp-d${d<20?' pas':''}${d===20?' hoy':''}${d===24?' sel':''}"><b>${d}</b>${e.slice(0,3).map(([l,t,v])=>`<span class="mp-ev${l==='G'?' g':''}${v?' v':''}" style="--c:${C[l]}">${l==='G'?ico('calendar',10):''}${t}</span>`).join('')}${e.length>3?`<span class="mp-mas">+${e.length-3}</span>`:''}</div>`;}
+  for(let d=1;d<=6;d++)s+=`<div class="mp-d fuera"><b>${d}</b></div>`;
+  return `<header class="cabeza cabeza--pag"><div><div class="eyebrow">Calendario</div><h1 class="act-tit">Noviembre <span style="color:var(--t3);font-weight:600">2026</span></h1><div class="pag-sub">38 tareas este mes · 26 hechas · <span class="venc">2 vencidas</span></div></div><div></div>
+    <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('izquierda')}</button><button>${ico('derecha')}</button></div></header>
+  <nav class="pestanas"><a class="pestana" href="#agenda">Día</a><button class="pestana">Semana</button><button class="pestana on">Mes</button><div class="pest-dcha"><span class="mp-ley"><i style="background:var(--l-trabajo)"></i>tareas por lista<i style="background:var(--cal-google);margin-left:10px"></i>Google</span></div></nav>
+  <div class="cuerpo"><div class="mp">${s}</div></div>`;
+}
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
 if(estado==='vacios'){renderVacios();}
 else{
-  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML};
+  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML,habitos:habitosPC,lista:listaPC,mes:mesPC};
   const esSem=/^semana(-\d)?$/.test(estado);
-  const act=estado==='actividad'||esSem?'actividad':estado==='notas'?'notas':(estado==='inbox-listas'||estado==='detalle')?'inbox':'hoy';
+  const act=estado==='actividad'||esSem?'actividad':estado==='notas'?'notas':estado==='habitos'?'habitos':estado==='lista'?'lista':(estado==='inbox-listas'||estado==='detalle')?'inbox':'hoy';
   document.body.classList.add(estado==='fin'?'e-fin':esSem?'e-semana':act==='actividad'?'e-actividad':NUEVAS[estado]?'e-'+estado:'e-hoy');
   const contenido=NUEVAS[estado]?NUEVAS[estado]():esSem?semanaHTML():act==='actividad'?actividadHTML():hoyHTML(estado);
   raiz.innerHTML=`<div class="app${estado==='detalle'?' con-detalle':''}"><aside class="lateral">${lateral(act)}</aside><div class="pila"><main class="hoja">${contenido}</main></div>${estado==='detalle'?detallePanel():''}</div>`;

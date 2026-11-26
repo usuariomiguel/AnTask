@@ -280,3 +280,12 @@ La senda de progreso ya no se queda corta antes del hormiguero: entra por la pue
 - El nuevo paso 4 («Y todo lo demás, a mano») enseña Agenda, Inbox y listas, Notas, Hábitos, Actividad y Buscar, y dice dónde está cada cosa. Tocar una tarjeta lleva a esa pantalla.
 
 Capturas nuevas: `movil-inbox-calendario`, `movil-semana`, `semana` y `movil-bienvenida-4`, cada una con su `-oscuro`. Rehechas, con su `-oscuro`: `movil-inbox-listas`, `movil-detalle`, `movil-detalle-abajo`, `movil-lista`, `movil-ajustes`, `movil-bienvenida-1` a `-3`, `ajustes`, `inbox-listas` y `detalle`. El resto de pantallas se comprobaron una a una contra cómo estaban: no cambian.
+
+## Añadido el 26-nov-2026: hábitos, una lista y el mes en PC; un hábito en el móvil
+
+- **`#habito` (móvil):** al tocar un hábito se abre su historial: racha actual (con hormiga), mejor racha y % del mes; una frase de la hormiga («si cumples 5 días más, igualas tu récord»); noviembre con una hormiga en cada día cumplido (la racha actual, más marcada; hoy, con borde); los últimos 6 meses en una rejilla; y los ajustes del hábito (frecuencia, hora en la Agenda, aviso si no está hecho).
+- **`#habitos` (PC):** la vista de Hábitos que faltaba. A la izquierda, cada hábito con su semana de hormigas; a la derecha, el historial del elegido. «Ver historial» en Hoy y «Hábitos» en la barra lateral llevan aquí.
+- **`#lista` (PC):** una lista (Trabajo) con su anillo grande, «4 de 8 hechas · 1 vencida · 2 para hoy» y las tareas por Vencidas · Esta semana · Más adelante. Se abre desde la barra lateral.
+- **`#mes` (PC):** el calendario del mes con las tareas de cada día como etiquetas del color de su lista (las pasadas, tachadas; las vencidas, en rojo) y los eventos de Google. Hoy, con borde verde. Pestañas Día · Semana · Mes; desde la Agenda, «Mes».
+- La página resumen suma estas pantallas y las que faltaban (`bienvenida-4`, `inbox-calendario`, `semana`).
+- Capturas: `movil-habito`, `habitos`, `lista`, `mes`, cada una con su `-oscuro`.
