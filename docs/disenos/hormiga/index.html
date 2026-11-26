@@ -356,6 +356,7 @@ a{color:inherit;text-decoration:none}
 .nota-nueva .ico{color:var(--o500)}
 .nota-nueva span:last-child{margin-left:auto;display:flex;gap:12px;color:var(--t3)}
 .notas4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start;padding:4px 6px 8px}
+.app.con-detalle .notas4{grid-template-columns:repeat(3,1fr)}
 .notas4>div{display:flex;flex-direction:column;gap:14px;min-width:0}
 .nota{position:relative;padding:15px 16px 13px;border-radius:18px;background:var(--card);border:1px solid var(--borde-s);box-shadow:0 1px 2px rgba(var(--sombra-rgb),.07),0 10px 18px -14px rgba(var(--sombra-rgb),.4)}
 .nota.fijada{margin-top:10px}
@@ -819,6 +820,47 @@ svg.pgn{display:block;width:100%;height:auto;overflow:visible}
 .sm-pc .sm-col{padding:10px 0 11px}
 .sm-pc .sm-pila{height:92px;gap:2px}
 .sm-pc .sm-pila i{width:20px;height:12px}
+/* ═══ 26-nov: detalle de una nota en PC ═══ */
+.e-nota .captura{display:none}
+.nota{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.nota:hover{transform:translateY(-2px)}
+.nota.sel{box-shadow:0 0 0 2px color-mix(in srgb,var(--o500) 55%,transparent),0 14px 24px -16px rgba(var(--sombra-rgb),.5)}
+.nt-panel{display:flex;flex-direction:column;padding-bottom:0}
+.nt-panel .det-cab{flex:none}
+.nt-panel .det-btns .fij{color:var(--o600)}
+.nt-papel{position:relative;flex:1;margin:4px -6px 0;padding:22px 20px 20px;border-radius:20px 20px 0 0;background:var(--card);border:1px solid var(--borde-s);border-bottom:0}
+.nt-papel .cinta{top:-9px;left:64px;margin-left:0}
+.nt-meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t3)}
+.nt-tit{font:700 30px/1.1 var(--f-disp);letter-spacing:-.03em;color:var(--t1);margin-top:12px}
+.nt-cuerpo{margin-top:14px;font-size:16px;line-height:30px;color:var(--t1);background-image:repeating-linear-gradient(transparent 0 29px,var(--borde) 29px 30px);background-position:0 -2px}
+.nt-cuerpo p{margin:0}
+.nt-cuerpo .cursor{display:inline-block;width:2px;height:20px;vertical-align:-4px;background:var(--o500);animation:parpadeo 1s steps(1) infinite}
+.nt-items{list-style:none;margin:0;padding:0}
+.nt-items li{display:flex;align-items:center;gap:10px;height:30px;cursor:pointer}
+.nt-items .nl-c{width:18px;height:18px;margin:0}
+.nt-items .nl-c svg{width:11px;height:11px}
+.nt-items li.ok .nl-c{background:var(--o500);border-color:transparent}
+.nt-items li.ok .nl-c svg{opacity:1}
+.nt-items li.ok .st{color:var(--t3)}
+.nt-items li.ok .tachon{clip-path:inset(-4px -4px -4px -4px)}
+.nt-items li.ok .flecha{display:none}
+.nt-items .flecha{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--o600);padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--o500) 13%,transparent)}
+.nt-items .flecha.hecho{background:none;color:var(--t3);font-weight:500}
+.nt-aviso{margin-top:18px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--o500) 11%,transparent);font-size:13.5px;line-height:1.4;color:var(--t2)}
+.nt-aviso .hormiga{width:28px;height:28px;flex:none}
+.nt-aviso b{color:var(--t1);font-weight:600}
+.nt-enl{margin-top:16px}
+.nt-enl .sec-cab{height:32px}
+.nt-enl .sec-tit{font-size:13.5px;color:var(--t2)}
+.nt-tarea{display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:12px;background:var(--hab-bg);border:1px solid var(--borde-s);font-size:14px;color:var(--t1)}
+.nt-tarea+.nt-tarea{margin-top:6px}
+.nt-tarea i{width:8px;height:8px;border-radius:50%;flex:none}
+.nt-tarea small{margin-left:auto;color:var(--t3);font-size:12.5px}
+.nt-barra{position:sticky;bottom:0;z-index:3;flex:none;display:flex;align-items:center;gap:2px;height:56px;margin:0 -22px;padding:0 14px;background:var(--hoja);border-top:1px solid var(--borde-s)}
+.nt-barra button{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--t2)}
+.nt-barra button:hover{background:var(--hab-bg)}
+.nt-barra .guardado{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--t3)}
+.nt-barra .guardado i{width:7px;height:7px;border-radius:50%;background:var(--l-personal)}
 </style>
 </head>
 <body>
@@ -1431,11 +1473,11 @@ function nota(n,fijada){
   const cuerpo=n.items
     ?`<ul class="nota-lista">${n.items.map(([x,ok])=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span></li>`).join('')}</ul><span class="nota-acc">${ico('arrow',13)} ${n.acc}</span>`
     :`<p>${n.p}</p>`;
-  return `<article class="nota${fijada?' fijada':''}">${fijada?'<span class="cinta"></span>':''}<h3>${n.t}</h3>${cuerpo}
+  return `<article class="nota${fijada?' fijada':''}${estado==='nota'&&n.t==='Reunión con Marta'?' sel':''}">${fijada?'<span class="cinta"></span>':''}<h3>${n.t}</h3>${cuerpo}
     <div class="nota-pie"><span class="lista" style="color:${lc}"><i></i><span>${ln}</span></span><span>${n.f}</span></div></article>`;
 }
 function columnas4(lista,fijada){
-  const c=[[],[],[],[]];lista.forEach((n,i)=>c[i%4].push(nota(n,fijada)));
+  const k=estado==='nota'?3:4,c=Array.from({length:k},()=>[]);lista.forEach((n,i)=>c[i%k].push(nota(n,fijada)));
   return `<div class="notas4">${c.map(x=>`<div>${x.join('')}</div>`).join('')}</div>`;
 }
 function notasHTML(){
@@ -1912,20 +1954,55 @@ function mesPC(){
   for(let d=1;d<=6;d++)s+=`<div class="mp-d fuera"><b>${d}</b></div>`;
   return `<header class="cabeza cabeza--pag"><div><div class="eyebrow">Calendario</div><h1 class="act-tit">Noviembre <span style="color:var(--t3);font-weight:600">2026</span></h1><div class="pag-sub">38 tareas este mes · 26 hechas · <span class="venc">2 vencidas</span></div></div><div></div>
     <div class="herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun')}</button><button>${ico('izquierda')}</button><button>${ico('derecha')}</button></div></header>
-  <nav class="pestanas"><a class="pestana" href="#agenda">Día</a><button class="pestana">Semana</button><button class="pestana on">Mes</button><div class="pest-dcha"><span class="mp-ley"><i style="background:var(--l-trabajo)"></i>tareas por lista<i style="background:var(--cal-google);margin-left:10px"></i>Google</span></div></nav>
+  <nav class="pestanas"><a class="pestana" href="#hoy">${ico('list',16)} Lista</a><a class="pestana" href="#agenda">${ico('reloj',16)} Agenda</a><button class="pestana on">${ico('calendar',16)} Mes</button><div class="pest-dcha"><span class="mp-ley"><i style="background:var(--l-trabajo)"></i>tareas por lista<i style="background:var(--cal-google);margin-left:10px"></i>Google</span></div></nav>
   <div class="cuerpo"><div class="mp">${s}</div></div>`;
 }
+Object.assign(ICOS,{
+  chincheta:'<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+  archivo:'<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
+  negrita:'<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>',
+  calcheck:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/>'
+});
+/* 26-nov: el detalle de una nota, a la derecha de la rejilla (como el de una tarea) */
+function notaPanel(){
+  const it=(x,ok,acc)=>`<li class="${ok?'ok':''}"><span class="nl-c">${CK}</span><span class="st">${x}${tachon()}</span>${acc}</li>`;
+  return `<aside class="det-panel nt-panel">
+    <div class="det-cab"><span class="det-lista"><i style="background:var(--l-trabajo)"></i>Trabajo ${ico('chev',14)}</span>
+      <div class="det-btns"><button aria-label="Fijar">${ico('chincheta',16)}</button><button aria-label="Archivar">${ico('archivo',16)}</button><button aria-label="Más">${ico('mas',18)}</button><a href="#notas" aria-label="Cerrar">${ico('cerrar',18)}</a></div></div>
+    <div class="nt-papel">
+      <div class="nt-meta"><span>Editada hoy, 9:12</span><span>·</span><span>Creada el 18 nov</span></div>
+      <h2 class="nt-tit">Reunión con Marta</h2>
+      <div class="nt-cuerpo">
+        <p>Repasamos la propuesta de diciembre. Quiere el presupuesto cerrado antes del lunes y los logos nuevos.</p>
+        <ul class="nt-items">
+          ${it('Ver el presupuesto',1,'')}
+          ${it('Enviar la propuesta el lunes',0,`<span class="flecha">${ico('arrow',12)} Pasar a tarea</span>`)}
+          ${it('Pedirle los logos',0,`<span class="flecha hecho">${ico('calcheck',13)} en Trabajo</span>`)}
+        </ul>
+        <p>Ella lleva el portátil a la presentación del jueves<span class="cursor"></span></p>
+      </div>
+      <div class="nt-aviso">${hormiga()}<span><b>«Pedirle los logos»</b> ya es una tarea en Trabajo. Cuando la completes, aquí se tacha sola.</span></div>
+      <div class="nt-enl"><div class="sec-cab"><span class="sec-tit">Tareas que salen de esta nota</span><span class="sec-n">1</span><span class="puntos"></span></div>
+        <div class="nt-tarea"><i style="background:var(--l-trabajo)"></i>Pedirle los logos a Marta<small>sin fecha</small></div></div>
+    </div>
+    <div class="nt-barra"><button aria-label="Casilla">${ico('casilla',19)}</button><button aria-label="Negrita">${ico('negrita',18)}</button><button aria-label="Imagen">${ico('imagen',19)}</button><button aria-label="Enlace">${ico('link',18)}</button><span class="guardado"><i></i>Guardada</span></div>
+  </aside>`;
+}
+document.addEventListener('click',e=>{
+  const li=e.target.closest('.nt-items li');if(li&&!e.target.closest('.flecha')){li.classList.toggle('ok');return;}
+  const n=e.target.closest('.nota');if(n&&!e.target.closest('.nota-lista'))location.hash=estado==='nota'?'#notas':'#nota';
+});
 /* ═══ Arranque ═══ */
 texturas();
 const raiz=document.getElementById('raiz');
 if(estado==='vacios'){renderVacios();}
 else{
-  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML,habitos:habitosPC,lista:listaPC,mes:mesPC};
+  const NUEVAS={agenda:agendaHTML,notas:notasHTML,'inbox-listas':inboxHTML,detalle:inboxHTML,habitos:habitosPC,lista:listaPC,mes:mesPC,nota:notasHTML};
   const esSem=/^semana(-\d)?$/.test(estado);
-  const act=estado==='actividad'||esSem?'actividad':estado==='notas'?'notas':estado==='habitos'?'habitos':estado==='lista'?'lista':(estado==='inbox-listas'||estado==='detalle')?'inbox':'hoy';
+  const act=estado==='actividad'||esSem?'actividad':(estado==='notas'||estado==='nota')?'notas':estado==='habitos'?'habitos':estado==='lista'?'lista':(estado==='inbox-listas'||estado==='detalle')?'inbox':'hoy';
   document.body.classList.add(estado==='fin'?'e-fin':esSem?'e-semana':act==='actividad'?'e-actividad':NUEVAS[estado]?'e-'+estado:'e-hoy');
   const contenido=NUEVAS[estado]?NUEVAS[estado]():esSem?semanaHTML():act==='actividad'?actividadHTML():hoyHTML(estado);
-  raiz.innerHTML=`<div class="app${estado==='detalle'?' con-detalle':''}"><aside class="lateral">${lateral(act)}</aside><div class="pila"><main class="hoja">${contenido}</main></div>${estado==='detalle'?detallePanel():''}</div>`;
+  raiz.innerHTML=`<div class="app${estado==='detalle'||estado==='nota'?' con-detalle':''}"><aside class="lateral">${lateral(act)}</aside><div class="pila"><main class="hoja">${contenido}</main></div>${estado==='detalle'?detallePanel():estado==='nota'?notaPanel():''}</div>`;
   if(estado==='buscar')raiz.insertAdjacentHTML('beforeend',paletaHTML());
   if(estado==='ajustes')raiz.insertAdjacentHTML('beforeend',ajustesHTML());
   if(estado==='agenda'){

@@ -289,3 +289,10 @@ Capturas nuevas: `movil-inbox-calendario`, `movil-semana`, `semana` y `movil-bie
 - **`#mes` (PC):** el calendario del mes con las tareas de cada día como etiquetas del color de su lista (las pasadas, tachadas; las vencidas, en rojo) y los eventos de Google. Hoy, con borde verde. Pestañas Día · Semana · Mes; desde la Agenda, «Mes».
 - La página resumen suma estas pantallas y las que faltaban (`bienvenida-4`, `inbox-calendario`, `semana`).
 - Capturas: `movil-habito`, `habitos`, `lista`, `mes`, cada una con su `-oscuro`.
+
+## Añadido el 26-nov-2026 (2): una nota en PC y la barra nueva en todo el móvil
+
+- **`#nota` (PC):** al pulsar una nota se abre a la derecha, como el detalle de una tarea. La rejilla pasa a 3 columnas y la nota elegida queda marcada. Dentro van la lista (con fijar, archivar, más y cerrar), cuándo se editó, el título, el cuerpo en papel pautado con casillas (una con «Pasar a tarea», otra ya convertida «en Trabajo»), el aviso de la hormiga, las tareas que salen de la nota y una barra para dar formato con «Guardada». En tableta el panel se abre por encima.
+- **`#mes` (PC):** las pestañas son las mismas que en la Agenda (Lista · Agenda · Mes). Por eso la barra lateral sigue marcando «Hoy».
+- **Móvil:** Hoy, Día terminado, Hábitos, Actividad e Inbox vacío ya usan la barra nueva (Hoy · Inbox · Notas · tú). Buscar se abre con la lupa de la cabecera de Hoy.
+- Capturas: `nota` y `nota-oscuro` (nuevas); `mes`, y las 5 del móvil con su `-oscuro`, rehechas.

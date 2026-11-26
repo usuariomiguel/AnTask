@@ -1018,6 +1018,8 @@ const BARRA_ESTADO=`<div class="estado"><span>9:41</span><span class="ei">
   <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.6 10.5 8.6a3.7 3.7 0 0 0-5 0z"/><path d="M8 5.3c2 0 3.7.7 5 1.9l1.5-1.8A9.4 9.4 0 0 0 8 2.9a9.4 9.4 0 0 0-6.5 2.5L3 7.2a7.1 7.1 0 0 1 5-1.9z"/></svg>
   <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2"/><path d="M25 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" opacity=".5"/></svg></span></div>`;
 function nav(on){
+  // 26-nov: todas las pantallas usan ya la barra nueva (Hoy · Inbox · Notas · tú); Buscar vive arriba, en la lupa
+  return navN(on);
   const b=(id,html,lbl)=>`<button class="${id===on?'on':''}">${html}<span>${lbl}</span></button>`;
   return `<nav class="m-nav">${b('hoy',ico('calcheck',22),'Hoy')}${b('inbox',ico('inbox',22),'Inbox')}${b('buscar',ico('search',22),'Buscar')}<button class="${on==='perfil'?'on':''}"><span class="m-av">A</span></button></nav>
   <button class="m-fab" aria-label="Nueva tarea"><span class="fab-hor">${hormiga()}</span>${ico('plus',28,2.2)}</button><div class="home"></div>`;
@@ -1060,7 +1062,7 @@ function semana(fin){
 function cabeceraHoy(fin){
   return `<header class="m-cab">
     <div class="m-fila1"><div class="fecha"><div class="dia">20</div><div><div class="eyebrow">Hoy</div><div class="dsem">viernes</div><div class="mes" id="mes">de noviembre</div></div></div>
-      <div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button>${ico('menu',19)}</button></div></div>
+      <div class="m-herr"><button class="tema-btn" aria-label="Cambiar tema">${ico(OSC?'moon':'sun',19)}</button><button aria-label="Buscar">${ico('search',19)}</button><button>${ico('menu',19)}</button></div></div>
     <div class="rastro">${rastroSVG()}<div class="rastro-pie" id="pie"></div></div>
     ${semana(fin)}
   </header>`;
